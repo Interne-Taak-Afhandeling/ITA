@@ -1,0 +1,66 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Polly;
+using Serilog;
+using ITA.Poller.Services;
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/ita-poller-.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+try
+{
+    // Build configuration 
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddEnvironmentVariables() 
+        .AddUserSecrets<Program>()
+        .Build();
+
+    
+    // Setup DI
+    var services = new ServiceCollection()
+        .AddSingleton<IConfiguration>(configuration)
+        .AddLogging(builder =>
+        {
+            builder.ClearProviders();
+            builder.AddSerilog(dispose: true);
+        })
+        .AddHttpClient<IOpenKlantApiClient, OpenKlantApiClient>() 
+        .Services
+        .AddSingleton<IEmailService, EmailService>()
+        .AddSingleton<IInternetakenProcessor, InternetakenProcessor>()
+        .BuildServiceProvider();
+
+    // Get services
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var openKlantApiClient = services.GetRequiredService<IOpenKlantApiClient>();
+    var emailService = services.GetRequiredService<IEmailService>();
+    var processor = services.GetRequiredService<IInternetakenProcessor>();
+
+    logger.LogInformation("Starting ITA Poller application");
+
+    try
+    {
+        await processor.ProcessInternetakenAsync();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Application error occurred");
+        throw;
+    }
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
