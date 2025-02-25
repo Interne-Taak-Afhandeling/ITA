@@ -12,8 +12,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    // Build configuration 
-    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+    // Build configuration  
     var configuration = new ConfigurationBuilder()
         .SetBasePath(Directory.GetCurrentDirectory())
         .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -38,8 +37,6 @@ try
 
     // Get services
     var logger = services.GetRequiredService<ILogger<Program>>();
-    var openKlantApiClient = services.GetRequiredService<IOpenKlantApiClient>();
-    var emailService = services.GetRequiredService<IEmailService>();
     var processor = services.GetRequiredService<IInternetakenProcessor>();
 
     logger.LogInformation("Starting ITA Poller application");
