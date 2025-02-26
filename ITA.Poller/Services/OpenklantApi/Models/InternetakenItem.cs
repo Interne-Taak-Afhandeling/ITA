@@ -5,9 +5,9 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace ITA.Poller.Models
+namespace ITA.Poller.Services.Openklant.Models
 {
-    
+
     public class InternetakenItem
     {
         public required string Uuid { get; set; }

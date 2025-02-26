@@ -1,23 +1,25 @@
 using Microsoft.Extensions.Logging;
-using ITA.Poller.Models;
+using ITA.Poller.Services.Openklant;
+using ITA.Poller.Services.Emailservices.SmtpMailService;
+using ITA.Poller.Services.Openklant.Models;
 
-namespace ITA.Poller.Services;
+namespace ITA.Poller.Features;
 
 public interface IInternetakenProcessor
 {
     Task ProcessInternetakenAsync();
 }
 
-public class InternetakenProcessor : IInternetakenProcessor
+public class InternetakenNotifier : IInternetakenProcessor
 {
     private readonly IOpenKlantApiClient _openKlantApiClient;
     private readonly IEmailService _emailService;
-    private readonly ILogger<InternetakenProcessor> _logger;
+    private readonly ILogger<InternetakenNotifier> _logger;
 
-    public InternetakenProcessor(
+    public InternetakenNotifier(
         IOpenKlantApiClient openKlantApiClient,
         IEmailService emailService,
-        ILogger<InternetakenProcessor> logger)
+        ILogger<InternetakenNotifier> logger)
     {
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
@@ -57,7 +59,7 @@ public class InternetakenProcessor : IInternetakenProcessor
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, 
+                _logger.LogError(ex,
                     "Error processing internetaken. Will continue with next request");
                 // Continue processing other requests even if one fails
             }
@@ -67,14 +69,14 @@ public class InternetakenProcessor : IInternetakenProcessor
     private async Task ProcessSingleInternetakenAsync(InternetakenItem request)
     {
         _logger.LogInformation("Processing internetaken with number: {Number}", request.Nummer);
-        
+
         var emailBody = $"Internetaken Number: {request.Nummer}\n\n" +
                        $"Requested Action: {string.Join("\n\n", request.GevraagdeHandeling)}\n\n" +
                        $"Explanation: {request.Toelichting ?? "No explanation provided"}\n\n" +
                        $"Status: {request.Status}";
 
-       await _emailService.SendEmailAsync($"New Internetaken - {request.Nummer}", emailBody);
-        
+        await _emailService.SendEmailAsync($"New Internetaken - {request.Nummer}", emailBody);
+
         _logger.LogInformation("Successfully processed internetaken: {Number}", request.Nummer);
     }
 }

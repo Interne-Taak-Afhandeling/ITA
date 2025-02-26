@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging; 
+using Microsoft.Extensions.Logging;
 using Serilog;
-using ITA.Poller.Services;
+using ITA.Poller.Features;
+using ITA.Poller.Services.Openklant;
+using ITA.Poller.Services.Emailservices.SmtpMailService;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -32,7 +34,7 @@ try
         .AddHttpClient<IOpenKlantApiClient, OpenKlantApiClient>() 
         .Services
         .AddSingleton<IEmailService, EmailService>()
-        .AddSingleton<IInternetakenProcessor, InternetakenProcessor>()
+        .AddSingleton<IInternetakenProcessor, InternetakenNotifier>()
         .BuildServiceProvider();
 
     // Get services

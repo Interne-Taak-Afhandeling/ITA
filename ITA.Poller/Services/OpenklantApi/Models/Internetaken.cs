@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 
-namespace ITA.Poller.Models
+namespace ITA.Poller.Services.Openklant.Models
 {
-    
+
     public class Internetaken
     {
         public int Count { get; set; }
@@ -16,5 +16,5 @@ namespace ITA.Poller.Models
         public List<InternetakenItem> Results { get; set; } = new();
     }
 
-   
+
 }

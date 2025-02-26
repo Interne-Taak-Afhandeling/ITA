@@ -2,9 +2,8 @@ using System.Net.Mail;
 using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ITA.Poller.Models;
 
-namespace ITA.Poller.Services;
+namespace ITA.Poller.Services.Emailservices.SmtpMailService;
 
 public interface IEmailService
 {
@@ -23,7 +22,7 @@ public class EmailService : IEmailService
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        
+
         // Load and validate configuration
         _toEmail = _configuration.GetValue<string>("Email:To")
             ?? throw new InvalidOperationException("Email:To configuration is missing");
@@ -36,8 +35,8 @@ public class EmailService : IEmailService
             Password = _configuration.GetValue<string>("Email:SmtpSettings:Password") ?? throw new InvalidOperationException("Email:SmtpSettings:Password configuration is missing"),
             FromEmail = _configuration.GetValue<string>("Email:SmtpSettings:FromEmail") ?? throw new InvalidOperationException("Email:SmtpSettings:FromEmail configuration is missing")
         };
-            
-         
+
+
     }
 
     public async Task SendEmailAsync(string subject, string body)
@@ -51,7 +50,7 @@ public class EmailService : IEmailService
                 EnableSsl = false,
                 Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password)
             };
-               
+
             var mailMessage = new MailMessage
             {
                 From = new MailAddress(_smtpSettings.FromEmail),
@@ -71,6 +70,6 @@ public class EmailService : IEmailService
             throw;
         }
     }
- 
+
 }
 

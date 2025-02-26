@@ -1,4 +1,4 @@
-namespace ITA.Poller.Models
+namespace ITA.Poller.Services.Emailservices.SmtpMailService
 {
     public class SmtpSettings
     {

@@ -1,11 +1,11 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using ITA.Poller.Models;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;  
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using ITA.Poller.Services.Openklant.Models;
 
-namespace ITA.Poller.Services;
+namespace ITA.Poller.Services.Openklant;
 
 public interface IOpenKlantApiClient
 {
@@ -16,7 +16,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<OpenKlantApiClient> _logger;  
+    private readonly ILogger<OpenKlantApiClient> _logger;
 
     public OpenKlantApiClient(
         HttpClient httpClient,
@@ -27,14 +27,14 @@ public class OpenKlantApiClient : IOpenKlantApiClient
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-          
+
         _httpClient.BaseAddress = new Uri(_configuration.GetValue<string>("OpenKlantApi:BaseUrl")
             ?? throw new InvalidOperationException("OpenKlantApi:BaseUrl configuration is missing"));
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token",
             _configuration.GetValue<string>("OpenKlantApi:ApiKey") ?? throw new InvalidOperationException("OpenKlantApi:ApiKey configuration is missing"));
 
-     
- 
+
+
     }
 
     public async Task<Internetaken?> GetInternetakenAsync()
@@ -42,18 +42,18 @@ public class OpenKlantApiClient : IOpenKlantApiClient
         try
         {
             _logger.LogInformation("Fetching internetaken from OpenKlant API");
- 
-                var response = await _httpClient.GetAsync("internetaken");
-                response.EnsureSuccessStatusCode();             
- 
-            
-               var content = await response.Content.ReadFromJsonAsync<Internetaken>();
-            
-                _logger.LogInformation(
-                    "Successfully retrieved {Count} internetaken",
-                    content?.Results?.Count ?? 0);
 
-                return content;
+            var response = await _httpClient.GetAsync("internetaken");
+            response.EnsureSuccessStatusCode();
+
+
+            var content = await response.Content.ReadFromJsonAsync<Internetaken>();
+
+            _logger.LogInformation(
+                "Successfully retrieved {Count} internetaken",
+                content?.Results?.Count ?? 0);
+
+            return content;
         }
         catch (HttpRequestException ex)
         {
