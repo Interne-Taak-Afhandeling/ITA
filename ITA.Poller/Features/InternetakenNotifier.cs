@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using ITA.Poller.Services.Openklant;
 using ITA.Poller.Services.Emailservices.SmtpMailService;
 using ITA.Poller.Services.Openklant.Models;
+using System;
 
 namespace ITA.Poller.Features;
 
@@ -34,26 +35,33 @@ public class InternetakenNotifier : IInternetakenProcessor
     public async Task ProcessInternetakenAsync()
     {
         try
-        {
-            var internetaken = await _openKlantApiClient.GetInternetakenAsync();
-            if (internetaken?.Results == null || !internetaken.Results.Any())
+        { 
+            var nextUrl = "internetaken"; // Set initial URL for the first page
+
+            while (true)
             {
-                _logger.LogInformation("No new internetaken found");
-                return;
+                var response = await _openKlantApiClient.GetInternetakenAsync(nextUrl);
+              
+                if (response.Results == null || !response.Results.Any())
+                {
+                    _logger.LogInformation("No new internetaken found");
+                    break;
+                }
+
+                var filteredResults = response.Results
+                    .Where(item => item.ToegewezenOp > DateTimeOffset.UtcNow.AddHours(-_configuration.GetValue<int>("InternetakenNotifier:HourThreshold")))
+                    .ToList();
+
+                if (!filteredResults.Any())
+                {
+                    _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", _configuration.GetValue<int>("InternetakenNotifier:HourThreshold"));
+                    break;
+                }
+
+                await ProcessInternetakenBatchAsync(filteredResults);                
+
+                nextUrl = response.Next != null ? new Uri(response.Next).PathAndQuery : null;
             }
-
-            var threshold = DateTimeOffset.UtcNow.AddHours(-_configuration.GetValue<int>("InternetakenNotifier:HourThreshold"));
-            var filteredResults = internetaken.Results
-                .Where(item => item.ToegewezenOp > threshold)
-                .ToList();
-
-            if (!filteredResults.Any())
-            {
-                _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", _configuration.GetValue<int>("InternetakenNotifier:HourThreshold"));
-                return;
-            }
-
-            await ProcessInternetakenBatchAsync(filteredResults);
         }
         catch (Exception ex)
         {
