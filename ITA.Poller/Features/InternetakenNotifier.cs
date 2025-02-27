@@ -36,31 +36,34 @@ public class InternetakenNotifier : IInternetakenProcessor
     {
         try
         { 
-            var nextUrl = "internetaken"; // Set initial URL for the first page
+            var hourThreshold = _configuration.GetValue<int>("InternetakenNotifier:HourThreshold");
+            var apiBaseUrl = _configuration.GetValue<string>("OpenKlantApi:BaseUrl");
+            var nextUrl = "internetaken";
 
             while (nextUrl != null)
             {
                 var response = await _openKlantApiClient.GetInternetakenAsync(nextUrl);
-              
-                if (response.Results == null || !response.Results.Any())
+
+                if (response.Results is not { Count: > 0 })
                 {
                     _logger.LogInformation("No new internetaken found");
                     break;
                 }
 
+                var thresholdTime = DateTimeOffset.UtcNow.AddHours(-hourThreshold);
                 var filteredResults = response.Results
-                    .Where(item => item.ToegewezenOp > DateTimeOffset.UtcNow.AddHours(-_configuration.GetValue<int>("InternetakenNotifier:HourThreshold")))
+                    .Where(item => item.ToegewezenOp > thresholdTime)
                     .ToList();
 
-                if (!filteredResults.Any())
+                if (filteredResults.Count == 0)
                 {
-                    _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", _configuration.GetValue<int>("InternetakenNotifier:HourThreshold"));
+                    _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", hourThreshold);
                     break;
                 }
 
-                await ProcessInternetakenBatchAsync(filteredResults);                
+                await ProcessInternetakenBatchAsync(filteredResults);
 
-                nextUrl = response.Next != null ? new Uri(response.Next).PathAndQuery : null;
+                nextUrl = response.Next?.Replace(apiBaseUrl, "");
             }
         }
         catch (Exception ex)
