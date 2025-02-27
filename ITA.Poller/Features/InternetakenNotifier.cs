@@ -38,7 +38,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         { 
             var nextUrl = "internetaken"; // Set initial URL for the first page
 
-            while (true)
+            while (nextUrl != null)
             {
                 var response = await _openKlantApiClient.GetInternetakenAsync(nextUrl);
               
