@@ -20,6 +20,8 @@ namespace ITA.Poller.Services.Openklant.Models
 
         public required string Status { get; set; }
 
+       public required DateTime ToegewezenOp { get; set; }
+
         public string? Toelichting { get; set; }
 
         // Add constructor with default values for required properties
