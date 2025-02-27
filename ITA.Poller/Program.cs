@@ -6,11 +6,7 @@ using ITA.Poller.Features;
 using ITA.Poller.Services.Openklant;
 using ITA.Poller.Services.Emailservices.SmtpMailService;
 
-// Configure Serilog
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.File("logs/ita-poller-.log", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+ 
 
 try
 {
@@ -21,13 +17,16 @@ try
         .AddEnvironmentVariables() 
         .AddUserSecrets<Program>()
         .Build();
+   
+    Log.Logger = new LoggerConfiguration()
+           .ReadFrom.Configuration(configuration) 
+           .CreateLogger();
 
-    
     // Setup DI
     var services = new ServiceCollection()
         .AddSingleton<IConfiguration>(configuration)
         .AddLogging(builder =>
-        {
+        {  
             builder.ClearProviders();
             builder.AddSerilog(dispose: true);
         })
