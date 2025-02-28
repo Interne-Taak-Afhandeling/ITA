@@ -5,8 +5,9 @@ using Serilog;
 using ITA.Poller.Features;
 using ITA.Poller.Services.Openklant;
 using ITA.Poller.Services.Emailservices.SmtpMailService;
+using ITA.Poller.Services.ObjecttypenApi;
 
- 
+
 
 try
 {
@@ -24,17 +25,18 @@ try
 
     // Setup DI
     var services = new ServiceCollection()
-        .AddSingleton<IConfiguration>(configuration)
-        .AddLogging(builder =>
-        {  
-            builder.ClearProviders();
-            builder.AddSerilog(dispose: true);
-        })
-        .AddHttpClient<IOpenKlantApiClient, OpenKlantApiClient>() 
-        .Services
-        .AddSingleton<IEmailService, EmailService>()
-        .AddSingleton<IInternetakenProcessor, InternetakenNotifier>()
-        .BuildServiceProvider();
+    .AddSingleton<IConfiguration>(configuration)
+    .AddLogging(builder =>
+    {
+        builder.ClearProviders();
+        builder.AddSerilog(dispose: true);
+    })
+    .AddHttpClient() // Add HttpClient factory
+    .AddTransient<IOpenKlantApiClient, OpenKlantApiClient>() // Register OpenKlantApiClient
+    .AddTransient<IObjecttypenApiClient, ObjecttypenApiClient>() // Register ObjecttypenApiClient
+    .AddSingleton<IEmailService, EmailService>()
+    .AddSingleton<IInternetakenProcessor, InternetakenNotifier>()
+    .BuildServiceProvider();
 
     // Get services
     var logger = services.GetRequiredService<ILogger<Program>>();

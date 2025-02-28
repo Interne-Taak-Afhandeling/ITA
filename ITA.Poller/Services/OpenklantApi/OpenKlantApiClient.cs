@@ -10,6 +10,7 @@ namespace ITA.Poller.Services.Openklant;
 public interface IOpenKlantApiClient
 {
     Task<Internetaken?> GetInternetakenAsync(string path);
+    Task<Klantcontact> GetKlantcontactAsync(string uuid);
 }
 
 public class OpenKlantApiClient : IOpenKlantApiClient
@@ -17,6 +18,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<OpenKlantApiClient> _logger;
+    private readonly string _baseUrl;
 
     public OpenKlantApiClient(
         HttpClient httpClient,
@@ -28,8 +30,9 @@ public class OpenKlantApiClient : IOpenKlantApiClient
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 
-        _httpClient.BaseAddress = new Uri(_configuration.GetValue<string>("OpenKlantApi:BaseUrl")
-            ?? throw new InvalidOperationException("OpenKlantApi:BaseUrl configuration is missing"));
+        _baseUrl = _configuration.GetValue<string>("OpenKlantApi:BaseUrl")
+            ?? throw new InvalidOperationException("OpenKlantApi:BaseUrl configuration is missing");
+        _httpClient.BaseAddress = new Uri(_baseUrl);
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token",
             _configuration.GetValue<string>("OpenKlantApi:ApiKey") ?? throw new InvalidOperationException("OpenKlantApi:ApiKey configuration is missing"));
 
@@ -80,4 +83,13 @@ public class OpenKlantApiClient : IOpenKlantApiClient
             throw;
         }
     }
+
+    public async Task<Klantcontact> GetKlantcontactAsync(string uuid)
+    {
+        var response = await _httpClient.GetAsync($"klantcontacten/{uuid}");
+        response.EnsureSuccessStatusCode();
+        var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>(); 
+        return klantcontact;
+    }
 }
+

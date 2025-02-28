@@ -18,11 +18,19 @@ namespace ITA.Poller.Services.Openklant.Models
 
         public required string GevraagdeHandeling { get; set; }
 
-        public required string Status { get; set; }
+        public Klantcontact? AanleidinggevendKlantcontact { get; set; }
 
-       public required DateTime ToegewezenOp { get; set; }
+        public Actor? ToegewezenAanActor { get; set; }
+
+        public List<Actor>? ToegewezenAanActoren { get; set; }
 
         public string? Toelichting { get; set; }
+
+        public required string Status { get; set; }
+
+        public required DateTime ToegewezenOp { get; set; }
+
+        public DateTime? AfgehandeldOp { get; set; }
 
         // Add constructor with default values for required properties
         public InternetakenItem()
@@ -32,6 +40,7 @@ namespace ITA.Poller.Services.Openklant.Models
             Nummer = string.Empty;
             GevraagdeHandeling = string.Empty;
             Status = string.Empty;
+            ToegewezenOp = DateTime.UtcNow;
         }
     }
 }

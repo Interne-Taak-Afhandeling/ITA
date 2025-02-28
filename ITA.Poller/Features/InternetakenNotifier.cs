@@ -4,6 +4,7 @@ using ITA.Poller.Services.Openklant;
 using ITA.Poller.Services.Emailservices.SmtpMailService;
 using ITA.Poller.Services.Openklant.Models;
 using System;
+using ITA.Poller.Services.ObjecttypenApi;
 
 namespace ITA.Poller.Features;
 
@@ -18,18 +19,20 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly IEmailService _emailService;
     private readonly ILogger<InternetakenNotifier> _logger;
     private readonly IConfiguration _configuration;
-  
+    private readonly IObjecttypenApiClient _objecttypenApiClient; // Added this line
 
     public InternetakenNotifier(
         IOpenKlantApiClient openKlantApiClient,        
         IConfiguration configuration,
         IEmailService emailService,
-        ILogger<InternetakenNotifier> logger)
+        ILogger<InternetakenNotifier> logger,
+        IObjecttypenApiClient objecttypenApiClient) // Added this line
     {
          _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
          _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _objecttypenApiClient = objecttypenApiClient ?? throw new ArgumentNullException(nameof(objecttypenApiClient)); // Added this line
     }
 
     public async Task ProcessInternetakenAsync()
@@ -52,7 +55,7 @@ public class InternetakenNotifier : IInternetakenProcessor
 
                 var thresholdTime = DateTimeOffset.UtcNow.AddHours(-hourThreshold);
                 var filteredResults = response.Results
-                    .Where(item => item.ToegewezenOp > thresholdTime)
+                  //  .Where(item => item.ToegewezenOp > thresholdTime)
                     .ToList();
 
                 if (filteredResults.Count == 0)
@@ -95,14 +98,27 @@ public class InternetakenNotifier : IInternetakenProcessor
     private async Task ProcessSingleInternetakenAsync(InternetakenItem request)
     {
         _logger.LogInformation("Processing internetaken with number: {Number}", request.Nummer);
-
+      
+       
         var emailBody = $"Internetaken Number: {request.Nummer}\n\n" +
                        $"Requested Action: {string.Join("\n\n", request.GevraagdeHandeling)}\n\n" +
                        $"Explanation: {request.Toelichting ?? "No explanation provided"}\n\n" +
                        $"Status: {request.Status}";
-
-        await _emailService.SendEmailAsync($"New Internetaken - {request.Nummer}", emailBody);
+        var emailTO = await ResolveKlantcontactEmail(request);
+        _logger.LogInformation("Sending email to {To}", emailTO);
+       // await _emailService.SendEmailAsync(emailTO, $"New Internetaken - {request.Nummer}", emailBody);
 
         _logger.LogInformation("Successfully processed internetaken: {Number}", request.Nummer);
+    }
+
+    private async Task<string> ResolveKlantcontactEmail(InternetakenItem request)
+    {
+        var klantcontact = await _openKlantApiClient.GetKlantcontactAsync(request.AanleidinggevendKlantcontact.Uuid);
+        var emailActor = klantcontact.HadBetrokkenActoren.FirstOrDefault(a => a.Actoridentificator.CodeSoortObjectId == "email");
+        
+            return emailActor?.Actoridentificator?.ObjectId;
+         // var objectId = await _objecttypenApiClient.GetObjectIdAsync(emailActor.Actoridentificator.ObjectId);
+           // return objectId;
+        
     }
 }
