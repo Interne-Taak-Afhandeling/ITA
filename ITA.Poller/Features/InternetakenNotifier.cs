@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using ITA.Poller.Services.Openklant;
 using ITA.Poller.Services.Emailservices.SmtpMailService;
 using ITA.Poller.Services.Openklant.Models;
+using System;
 
 namespace ITA.Poller.Features;
 
@@ -15,13 +17,17 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly IOpenKlantApiClient _openKlantApiClient;
     private readonly IEmailService _emailService;
     private readonly ILogger<InternetakenNotifier> _logger;
+    private readonly IConfiguration _configuration;
+  
 
     public InternetakenNotifier(
-        IOpenKlantApiClient openKlantApiClient,
+        IOpenKlantApiClient openKlantApiClient,        
+        IConfiguration configuration,
         IEmailService emailService,
         ILogger<InternetakenNotifier> logger)
     {
-        _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -29,16 +35,36 @@ public class InternetakenNotifier : IInternetakenProcessor
     public async Task ProcessInternetakenAsync()
     {
         try
-        {
-            var internetaken = await _openKlantApiClient.GetInternetakenAsync();
+        { 
+            var hourThreshold = _configuration.GetValue<int>("InternetakenNotifier:HourThreshold");
+            var apiBaseUrl = _configuration.GetValue<string>("OpenKlantApi:BaseUrl");
+            var nextUrl = "internetaken";
 
-            if (internetaken?.Results == null || !internetaken.Results.Any())
+            while (nextUrl != null)
             {
-                _logger.LogInformation("No new internetaken found");
-                return;
-            }
+                var response = await _openKlantApiClient.GetInternetakenAsync(nextUrl);
 
-            await ProcessInternetakenBatchAsync(internetaken.Results);
+                if (response.Results is not { Count: > 0 })
+                {
+                    _logger.LogInformation("No new internetaken found");
+                    break;
+                }
+
+                var thresholdTime = DateTimeOffset.UtcNow.AddHours(-hourThreshold);
+                var filteredResults = response.Results
+                    .Where(item => item.ToegewezenOp > thresholdTime)
+                    .ToList();
+
+                if (filteredResults.Count == 0)
+                {
+                    _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", hourThreshold);
+                    break;
+                }
+
+                await ProcessInternetakenBatchAsync(filteredResults);
+
+                nextUrl = response.Next?.Replace(apiBaseUrl, "");
+            }
         }
         catch (Exception ex)
         {
