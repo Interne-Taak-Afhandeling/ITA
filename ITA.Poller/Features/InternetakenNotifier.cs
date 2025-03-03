@@ -72,7 +72,7 @@ public class InternetakenNotifier : IInternetakenProcessor
 
                 var thresholdTime = DateTimeOffset.UtcNow.AddHours(_hourThreshold);
                 var filteredResults = response.Results
-                  //  .Where(item => item.ToegewezenOp > thresholdTime)
+                    .Where(item => item.ToegewezenOp > thresholdTime)
                     .ToList();
 
                 if (filteredResults.Count == 0)
