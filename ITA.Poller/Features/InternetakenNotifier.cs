@@ -3,8 +3,14 @@ using Microsoft.Extensions.Configuration;
 using ITA.Poller.Services.Openklant;
 using ITA.Poller.Services.Emailservices.SmtpMailService;
 using ITA.Poller.Services.Openklant.Models;
-using System;
 using ITA.Poller.Services.ObjecttypenApi;
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Extensions.Options;
+using ITA.Poller.Services.Contact;
+using ITA.Poller.Services.Emailservices.Content;
 
 namespace ITA.Poller.Features;
 
@@ -13,61 +19,72 @@ public interface IInternetakenProcessor
     Task ProcessInternetakenAsync();
 }
 
+ 
+
 public class InternetakenNotifier : IInternetakenProcessor
 {
     private readonly IOpenKlantApiClient _openKlantApiClient;
     private readonly IEmailService _emailService;
-    private readonly ILogger<InternetakenNotifier> _logger;
-    private readonly IConfiguration _configuration;
-    private readonly IObjecttypenApiClient _objecttypenApiClient; // Added this line
+    private readonly ILogger<InternetakenNotifier> _logger; 
+    private readonly IObjecttypenApiClient _objecttypenApiClient;
+    private readonly string _apiBaseUrl;
+    private readonly int _hourThreshold;
+    private readonly IEmailContentService _emailContentService;
+    private readonly IContactService _contactService;
 
     public InternetakenNotifier(
-        IOpenKlantApiClient openKlantApiClient,        
+        IOpenKlantApiClient openKlantApiClient, 
         IConfiguration configuration,
         IEmailService emailService,
         ILogger<InternetakenNotifier> logger,
-        IObjecttypenApiClient objecttypenApiClient) // Added this line
+        IObjecttypenApiClient objecttypenApiClient,
+        IEmailContentService emailContentService,
+        IContactService contactService)
     {
-         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
-        _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _objecttypenApiClient = objecttypenApiClient ?? throw new ArgumentNullException(nameof(objecttypenApiClient)); // Added this line
+        _objecttypenApiClient = objecttypenApiClient ?? throw new ArgumentNullException(nameof(objecttypenApiClient));
+        _hourThreshold = configuration.GetValue<int>("InternetakenNotifier:HourThreshold");
+        _apiBaseUrl = configuration.GetValue<string>("OpenKlantApi:BaseUrl") 
+            ?? throw new ArgumentException("OpenKlantApi:BaseUrl configuration is missing");
+        _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
+        _contactService = contactService ?? throw new ArgumentNullException(nameof(contactService));
     }
 
     public async Task ProcessInternetakenAsync()
     {
-        try
-        { 
-            var hourThreshold = _configuration.GetValue<int>("InternetakenNotifier:HourThreshold");
-            var apiBaseUrl = _configuration.GetValue<string>("OpenKlantApi:BaseUrl");
-            var nextUrl = "internetaken";
+        
 
-            while (nextUrl != null)
+        try
+        {
+            var nextUrl = "internetaken";
+          
+            while (!string.IsNullOrEmpty(nextUrl))
             {
                 var response = await _openKlantApiClient.GetInternetakenAsync(nextUrl);
 
-                if (response.Results is not { Count: > 0 })
+                if (response?.Results == null || response.Results.Count == 0)
                 {
                     _logger.LogInformation("No new internetaken found");
                     break;
                 }
 
-                var thresholdTime = DateTimeOffset.UtcNow.AddHours(-hourThreshold);
+                var thresholdTime = DateTimeOffset.UtcNow.AddHours(_hourThreshold);
                 var filteredResults = response.Results
                   //  .Where(item => item.ToegewezenOp > thresholdTime)
                     .ToList();
 
                 if (filteredResults.Count == 0)
                 {
-                    _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", hourThreshold);
+                    _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", _hourThreshold);
                     break;
                 }
 
                 await ProcessInternetakenBatchAsync(filteredResults);
-
-                nextUrl = response.Next?.Replace(apiBaseUrl, "");
-            }
+               
+                nextUrl = GetNextPageUrl(response.Next);
+              }
         }
         catch (Exception ex)
         {
@@ -76,49 +93,45 @@ public class InternetakenNotifier : IInternetakenProcessor
         }
     }
 
-    private async Task ProcessInternetakenBatchAsync(IEnumerable<InternetakenItem> requests)
+    private string GetNextPageUrl(string nextUrl)
     {
-        _logger.LogInformation("Starting to process {Count} internetaken", requests.Count());
+        if (string.IsNullOrEmpty(nextUrl)) return null;
+        return nextUrl.Replace(_apiBaseUrl, "");
+    }
 
-        foreach (var request in requests)
-        {
-            try
-            {
-                await ProcessSingleInternetakenAsync(request);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error processing internetaken. Will continue with next request");
-                // Continue processing other requests even if one fails
-            }
-        }
+    private async Task ProcessInternetakenBatchAsync(List<InternetakenItem> requests)
+    {
+        _logger.LogInformation("Starting to process {Count} internetaken", requests.Count);
+
+        await Task.WhenAll(
+            requests.Select(request => ProcessSingleInternetakenAsync(request))
+        );
     }
 
     private async Task ProcessSingleInternetakenAsync(InternetakenItem request)
     {
-        _logger.LogInformation("Processing internetaken with number: {Number}", request.Nummer);
-      
-       
-        var emailBody = $"Internetaken Number: {request.Nummer}\n\n" +
-                       $"Requested Action: {string.Join("\n\n", request.GevraagdeHandeling)}\n\n" +
-                       $"Explanation: {request.Toelichting ?? "No explanation provided"}\n\n" +
-                       $"Status: {request.Status}";
-        var emailTO = await ResolveKlantcontactEmail(request);
-        _logger.LogInformation("Sending email to {To}", emailTO);
-       // await _emailService.SendEmailAsync(emailTO, $"New Internetaken - {request.Nummer}", emailBody);
+        var emailTo = string.Empty;
+        try
+        {
+            _logger.LogInformation("Processing internetaken: {Number}", request.Nummer);
 
-        _logger.LogInformation("Successfully processed internetaken: {Number}", request.Nummer);
-    }
+            emailTo = await _contactService.ResolveKlantcontactEmailAsync(request);
+            if (string.IsNullOrEmpty(emailTo))
+            {
+                _logger.LogWarning("No email address found for internetaken {Number}", request.Nummer);
+                return;
+            }
 
-    private async Task<string> ResolveKlantcontactEmail(InternetakenItem request)
-    {
-        var klantcontact = await _openKlantApiClient.GetKlantcontactAsync(request.AanleidinggevendKlantcontact.Uuid);
-        var emailActor = klantcontact.HadBetrokkenActoren.FirstOrDefault(a => a.Actoridentificator.CodeSoortObjectId == "email");
-        
-            return emailActor?.Actoridentificator?.ObjectId;
-         // var objectId = await _objecttypenApiClient.GetObjectIdAsync(emailActor.Actoridentificator.ObjectId);
-           // return objectId;
-        
+            var emailContent = _emailContentService.BuildInternetakenEmailContent(request);
+
+            await _emailService.SendEmailAsync(emailTo, $"New Internetaken - {request.Nummer}", emailContent);
+
+            _logger.LogInformation("Successfully processed internetaken: {Number}", request.Nummer);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing internetaken {Number}", request.Nummer);
+            throw;
+        }
     }
 }

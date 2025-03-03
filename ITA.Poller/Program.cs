@@ -6,6 +6,8 @@ using ITA.Poller.Features;
 using ITA.Poller.Services.Openklant;
 using ITA.Poller.Services.Emailservices.SmtpMailService;
 using ITA.Poller.Services.ObjecttypenApi;
+using ITA.Poller.Services.Emailservices.Content;
+using ITA.Poller.Services.Contact;
 
 
 
@@ -32,10 +34,12 @@ try
         builder.AddSerilog(dispose: true);
     })
     .AddHttpClient() // Add HttpClient factory
-    .AddTransient<IOpenKlantApiClient, OpenKlantApiClient>() // Register OpenKlantApiClient
-    .AddTransient<IObjecttypenApiClient, ObjecttypenApiClient>() // Register ObjecttypenApiClient
-    .AddSingleton<IEmailService, EmailService>()
-    .AddSingleton<IInternetakenProcessor, InternetakenNotifier>()
+    .AddScoped<IOpenKlantApiClient, OpenKlantApiClient>()  
+    .AddScoped<IObjecttypenApiClient, ObjecttypenApiClient>()  
+    .AddScoped<IEmailService, EmailService>()
+    .AddScoped<IEmailContentService,EmailContentService>()
+    .AddScoped<IContactService,ContactService>()
+    .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
     .BuildServiceProvider();
 
     // Get services
