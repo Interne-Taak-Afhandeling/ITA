@@ -1,0 +1,7 @@
+schedule: "* * * * *"
+image:
+  repository: ghcr.io/pascalicatt/InterneTaakAfhandeling.Poller
+  tag: 0.0.1-546f239
+  pullPolicy: Always
+appsettings:
+  PollerMessage: "testbericht uit helm Poller values"

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: InterneTaakAfhandeling-Web
+description: Helm chart for InterneTaakAfhandeling.Web
+type: application
+version: 0.1.6
+appVersion: 0.1.6
