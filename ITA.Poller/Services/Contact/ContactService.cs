@@ -1,7 +1,10 @@
-using ITA.Poller.Services.ObjecttypenApi;
+using ITA.Poller.Services.ObjectApi;
 using ITA.Poller.Services.Openklant;
 using ITA.Poller.Services.Openklant.Models;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ITA.Poller.Services.Contact;
@@ -14,42 +17,50 @@ public interface IContactService
 public class ContactService : IContactService
 {
     private readonly IOpenKlantApiClient _openKlantApiClient;
-    private readonly IObjecttypenApiClient _objecttypenApiClient;
+    private readonly IObjectApiClient _objectApiClient;
     private readonly ILogger<IContactService> _logger;
 
     public ContactService(
         IOpenKlantApiClient openKlantApiClient,
-        IObjecttypenApiClient objecttypenApiClient,
+        IObjectApiClient objectApiClient,
         ILogger<IContactService> logger)
     {
         _openKlantApiClient = openKlantApiClient;
-        _objecttypenApiClient = objecttypenApiClient;
+        _objectApiClient = objectApiClient;
         _logger = logger;
     }
 
+    private bool IsActorObject(Actoridentificator actorIdentificator) =>
+        actorIdentificator.CodeSoortObjectId == "idf" &&
+        actorIdentificator.CodeObjecttype == "mdw" &&
+        actorIdentificator.CodeRegister == "obj";
+
     public async Task<string> ResolveKlantcontactEmailAsync(InternetakenItem request)
     {
-        var klantcontact = await _openKlantApiClient.GetKlantcontactAsync(request.AanleidinggevendKlantcontact.Uuid);
-        if (klantcontact?.HadBetrokkenActoren == null)
+        var klantcontact = await _openKlantApiClient
+            .GetKlantcontactAsync(request.AanleidinggevendKlantcontact.Uuid);
+
+        var actor = klantcontact?.HadBetrokkenActoren
+            .FirstOrDefault()?.Actoridentificator;
+
+        if (actor == null)
         {
-            _logger.LogWarning("No betrokken actoren found for klantcontact {Uuid}", 
+            _logger.LogWarning("No valid actor found for klantcontact {Uuid}", 
                 request.AanleidinggevendKlantcontact.Uuid);
             return string.Empty;
         }
 
-        var emailActor = klantcontact.HadBetrokkenActoren
-            .FirstOrDefault(a => a.Actoridentificator?.CodeSoortObjectId == "email") 
-            ?? klantcontact.HadBetrokkenActoren.FirstOrDefault();
-
-        if (emailActor?.Actoridentificator?.ObjectId == null)
+        try
         {
-            _logger.LogWarning("No actor identifier found for klantcontact {Uuid}", 
-                request.AanleidinggevendKlantcontact.Uuid);
-            return string.Empty;
+            return IsActorObject(actor)
+                ? await _objectApiClient.GetObjectByIdentificatieAsync(actor.ObjectId) 
+                : actor.ObjectId;
         }
-        // object type client is not fully tested since all the scenarios emailActor.Actoridentificator.CodeSoortObjectId is email
-       return emailActor.Actoridentificator.CodeSoortObjectId == "email"
-            ? emailActor.Actoridentificator.ObjectId
-            : await _objecttypenApiClient.GetObjectIdAsync(emailActor.Actoridentificator.ObjectId);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resolving object ID for klantcontact {Uuid}", 
+                request.AanleidinggevendKlantcontact.Uuid);
+            throw;
+        }
     }
 }

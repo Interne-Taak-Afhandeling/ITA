@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using ITA.Poller.Services.Openklant;
 using ITA.Poller.Services.Emailservices.SmtpMailService;
 using ITA.Poller.Services.Openklant.Models;
-using ITA.Poller.Services.ObjecttypenApi;
+using ITA.Poller.Services.ObjectApi;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -26,7 +26,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly IOpenKlantApiClient _openKlantApiClient;
     private readonly IEmailService _emailService;
     private readonly ILogger<InternetakenNotifier> _logger; 
-    private readonly IObjecttypenApiClient _objecttypenApiClient;
+    private readonly IObjectApiClient _objectApiClient;
     private readonly string _apiBaseUrl;
     private readonly int _hourThreshold;
     private readonly IEmailContentService _emailContentService;
@@ -37,14 +37,14 @@ public class InternetakenNotifier : IInternetakenProcessor
         IConfiguration configuration,
         IEmailService emailService,
         ILogger<InternetakenNotifier> logger,
-        IObjecttypenApiClient objecttypenApiClient,
+        IObjectApiClient objectApiClient,
         IEmailContentService emailContentService,
         IContactService contactService)
     {
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
          _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _objecttypenApiClient = objecttypenApiClient ?? throw new ArgumentNullException(nameof(objecttypenApiClient));
+        _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient));
         _hourThreshold = configuration.GetValue<int>("InternetakenNotifier:HourThreshold");
         _apiBaseUrl = configuration.GetValue<string>("OpenKlantApi:BaseUrl") 
             ?? throw new ArgumentException("OpenKlantApi:BaseUrl configuration is missing");
@@ -72,7 +72,7 @@ public class InternetakenNotifier : IInternetakenProcessor
 
                 var thresholdTime = DateTimeOffset.UtcNow.AddHours(_hourThreshold);
                 var filteredResults = response.Results
-                    .Where(item => item.ToegewezenOp > thresholdTime)
+                //    .Where(item => item.ToegewezenOp > thresholdTime)
                     .ToList();
 
                 if (filteredResults.Count == 0)

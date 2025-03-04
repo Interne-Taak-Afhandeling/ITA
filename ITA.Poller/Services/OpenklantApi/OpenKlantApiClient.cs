@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using ITA.Poller.Services.Openklant.Models;
+using ITA.Poller.Services.Openklant.Models; 
 
 namespace ITA.Poller.Services.Openklant;
 
@@ -86,10 +86,19 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 
     public async Task<Klantcontact> GetKlantcontactAsync(string uuid)
     {
+        _logger.LogInformation("Fetching klantcontact {Uuid}", uuid);
+
         var response = await _httpClient.GetAsync($"klantcontacten/{uuid}");
         response.EnsureSuccessStatusCode();
-        var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>(); 
+         
+        var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
+
+        if (klantcontact == null)
+        {
+            throw new Exception("Klantcontact not found");
+        }
+
+        _logger.LogInformation("Successfully retrieved klantcontact {Uuid}", uuid);
         return klantcontact;
     }
 }
-
