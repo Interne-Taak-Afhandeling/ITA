@@ -55,13 +55,13 @@ jobs:
           
       - name: Build and push internetaakafhandeling.web image
         run: |
-          docker build -t ghcr.io/Interne-Taak-Afhandeling/internetaakafhandelin.web:${{ steps.version.outputs.image_tag }} -f internetaakafhandeling.web/Dockerfile .
-          docker push ghcr.io/Interne-Taak-Afhandeling/internetaakafhandeling.web:${{ steps.version.outputs.image_tag }}
+          docker build -t ghcr.io/interne-taak-afhandeling/internetaakafhandelin.web:${{ steps.version.outputs.image_tag }} -f internetaakafhandeling.web/Dockerfile .
+          docker push ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web:${{ steps.version.outputs.image_tag }}
 
       - name: Build and push internetaakafhandeling.poller image
         run: |
-          docker build -t ghcr.io/Interne-Taak-Afhandeling/internetaakafhandeling.poller:${{ steps.version.outputs.image_tag }} -f internetaakafhandeling.poller/Dockerfile .
-          docker push ghcr.io/Interne-Taak-Afhandeling/internetaakafhandeling.poller:${{ steps.version.outputs.image_tag }}
+          docker build -t ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller:${{ steps.version.outputs.image_tag }} -f internetaakafhandeling.poller/Dockerfile .
+          docker push ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller:${{ steps.version.outputs.image_tag }}
       - name: Set up Git user
         run: |
           git config --global user.email "pascal@icatt.nl"
