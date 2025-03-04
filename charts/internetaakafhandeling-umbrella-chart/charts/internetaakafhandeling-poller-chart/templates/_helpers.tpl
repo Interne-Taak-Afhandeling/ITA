@@ -1,7 +1,7 @@
-{{- define "InterneTaakAfhandeling.Poller.fullname" -}}
-{{- printf "%s-%s" .Release.Name "Poller" | trunc 63 | trimSuffix "-" -}}
+{{- define "internetaakafhandeling.poller.fullname" -}}
+{{- printf "%s-%s" .Release.Name "poller" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "InterneTaakAfhandeling.Poller.appsettings" -}}
+{{- define "internetaakafhandeling.poller.appsettings" -}}
 {{ toYaml .Values.appsettings | nindent 2 }}
 {{- end }}

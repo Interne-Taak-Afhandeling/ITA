@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "InterneTaakAfhandeling.Web.fullname" . }}
+  name: {{ include "internetaakafhandeling.web.fullname" . }}
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: {{ include "InterneTaakAfhandeling.Web.name" . }}
+      app: {{ include "internetaakafhandeling.web.name" . }}
   template:
     metadata:
       labels:
-        app: {{ include "InterneTaakAfhandeling.Web.name" . }}
+        app: {{ include "internetaakafhandeling.web.name" . }}
     spec:
       containers:
-        - name: InterneTaakAfhandeling-Web
+        - name: internetaakafhandeling-web
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -25,4 +25,4 @@ spec:
       volumes:
         - name: appsettings-volume
           configMap:
-            name: {{ include "InterneTaakAfhandeling.Web.fullname" . }}-appsettings
+            name: {{ include "internetaakafhandeling.web.fullname" . }}-appsettings
