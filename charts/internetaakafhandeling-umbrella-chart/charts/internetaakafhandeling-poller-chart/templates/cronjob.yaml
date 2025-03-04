@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Poller
+metadata:
+  name: {{ include "InterneTaakAfhandeling.Poller.fullname" . }}
+spec:
+  schedule: "{{ .Values.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            checksum/config: {{ include "InterneTaakAfhandeling.Poller.appsettings" . | sha256sum }}
+        spec:
+          containers:
+            - name: InterneTaakAfhandeling-Poller
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              volumeMounts:
+              - name: appsettings-volume
+                mountPath: /app/appsettings.json
+                subPath: appsettings.json
+          volumes:
+            - name: appsettings-volume
+              configMap:
+                name: {{ include "InterneTaakAfhandeling.Poller.fullname" . }}-appsettings
+          restartPolicy: OnFailure
