@@ -1,7 +1,7 @@
 apiVersion: batch/v1
-kind: Poller
+kind: CronJob
 metadata:
-  name: {{ include "InterneTaakAfhandeling.Poller.fullname" . }}
+  name: {{ include "internetaakafhandeling.poller.fullname" . }}
 spec:
   schedule: "{{ .Values.schedule }}"
   jobTemplate:
@@ -9,10 +9,10 @@ spec:
       template:
         metadata:
           annotations:
-            checksum/config: {{ include "InterneTaakAfhandeling.Poller.appsettings" . | sha256sum }}
+            checksum/config: {{ include "internetaakafhandeling.poller.appsettings" . | sha256sum }}
         spec:
           containers:
-            - name: InterneTaakAfhandeling-Poller
+            - name: internetaakafhandeling-poller
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
               volumeMounts:
@@ -22,5 +22,5 @@ spec:
           volumes:
             - name: appsettings-volume
               configMap:
-                name: {{ include "InterneTaakAfhandeling.Poller.fullname" . }}-appsettings
+                name: {{ include "internetaakafhandeling.poller.fullname" . }}-appsettings
           restartPolicy: OnFailure

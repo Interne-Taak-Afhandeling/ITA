@@ -2,9 +2,9 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ include "InterneTaakAfhandeling.fullname" . }}-cert
+  name: {{ include "internetaakafhandeling.fullname" . }}-cert
 spec:
-  secretName: {{ include "InterneTaakAfhandeling.fullname" . }}-tls
+  secretName: {{ include "internetaakafhandeling.fullname" . }}-tls
   issuerRef:
     name: {{ .Values.certificates.issuerName }}
     kind: ClusterIssuer

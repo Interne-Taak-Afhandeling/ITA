@@ -1,13 +1,13 @@
 ingress:
   enabled: true
-  host: InterneTaakAfhandeling.local
+  host: ita.test.icatt.nl
   port: 80
 
 certificates:
   enabled: true
-  installClusterIssuer: false
-  issuerName: "selfsigned-issuer"  # use "letsencrypt-prod" in staging/production
-  commonName: InterneTaakAfhandeling.local
+  installClusterIssuer: true      # true for non-local clusters
+  issuerName: "letsencrypt-prod"  # use "letsencrypt-prod" in staging/production and "selfsigned-issuer" for local
+  commonName: ita.test.icatt.nl
   email: pascal@icatt.nl
 
 service:
@@ -19,7 +19,7 @@ config:
 secrets:
   apiKey: "shared-api-key"
 
-InterneTaakAfhandeling-Web:
+internetaakafhandeling-web:
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
     tag: "0.0.1" # deploy overwrites this tag automatically
@@ -28,7 +28,7 @@ InterneTaakAfhandeling-Web:
     setting1: "Umbrella chart setting1 value"
     setting2: "Umbrella chart setting2 value"
     
-InterneTaakAfhandeling-Poller:
+internetaakafhandeling-poller:
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
     tag: "0.0.1" # deploy overwrites this tag automatically

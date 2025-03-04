@@ -1,7 +1,7 @@
-{{- define "InterneTaakAfhandeling.fullname" -}}
+{{- define "internetaakafhandeling.fullname" -}}
 {{- printf "%s" .Release.Name -}}
 {{- end -}}
 
-{{- define "InterneTaakAfhandeling.Web.name" -}}
-{{- printf "%s-Web" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- define "internetaakafhandeling.web.name" -}}
+{{- printf "%s-web" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
