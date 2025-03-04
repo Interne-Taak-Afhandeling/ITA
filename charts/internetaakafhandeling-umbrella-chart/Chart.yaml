@@ -6,7 +6,7 @@ version: 0.0.1
 dependencies:
   - name: InterneTaakAfhandeling-Web
     version: 0.0.1
-    repository: file://charts/InterneTaakAfhandeling-Web-chart
+    repository: file://charts/internetaakafhandeling-web-chart
   - name: InterneTaakAfhandeling-Poller
     version: 0.0.1
-    repository: file://charts/InterneTaakAfhandeling-Poller-chart
+    repository: file://charts/internetaakafhandeling-poller-chart
