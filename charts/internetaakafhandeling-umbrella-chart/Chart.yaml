@@ -2,11 +2,11 @@ apiVersion: v2
 name: InterneTaakAfhandeling
 description: Umbrella chart for InterneTaakAfhandeling including Web API and Poller
 type: application
-version: 3.0.5
+version: 0.0.1
 dependencies:
   - name: InterneTaakAfhandeling-Web
-    version: 0.1.6
-    repository: file://charts/InterneTaakAfhandeling-Web-chart
+    version: 0.0.1
+    repository: file://charts/internetaakafhandeling-web-chart
   - name: InterneTaakAfhandeling-Poller
-    version: 0.2.2
-    repository: file://charts/InterneTaakAfhandeling-Poller-chart
+    version: 0.0.1
+    repository: file://charts/internetaakafhandeling-poller-chart
