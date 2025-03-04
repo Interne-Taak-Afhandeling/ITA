@@ -1,6 +1,6 @@
 schedule: "* * * * *"
 image:
-  repository: ghcr.io/pascalicatt/InterneTaakAfhandeling.Poller
+  repository: ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller
   tag: 0.0.1-546f239
   pullPolicy: Always
 appsettings:

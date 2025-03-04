@@ -21,8 +21,8 @@ secrets:
 
 InterneTaakAfhandeling-Web:
   image:
-    repository: "ghcr.io/pascalicatt/InterneTaakAfhandeling.Web"
-    tag: "0.0.1-546f239" # deploy overwrites this tag automatically
+    repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
+    tag: "0.0.1" # deploy overwrites this tag automatically
     pullPolicy: Always
   appsettings:
     setting1: "Umbrella chart setting1 value"
@@ -30,8 +30,8 @@ InterneTaakAfhandeling-Web:
     
 InterneTaakAfhandeling-Poller:
   image:
-    repository: "ghcr.io/pascalicatt/InterneTaakAfhandeling.Poller"
-    tag: "0.0.1-546f239" # deploy overwrites this tag automatically
+    repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
+    tag: "0.0.1" # deploy overwrites this tag automatically
     pullPolicy: Always
   appsettings:
     PollerMessage: "Umbrella chart value"
