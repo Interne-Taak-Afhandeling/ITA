@@ -40,6 +40,11 @@ try
     var logger = services.GetRequiredService<ILogger<Program>>();
     var processor = services.GetRequiredService<IInternetakenProcessor>();
 
+    // Retrieve the message from the configuration; fallback if not found
+    string message = configuration["PollerMessage"] ?? "Poller executed at";
+
+    Console.WriteLine($"{message} {DateTime.UtcNow}");
+
     logger.LogInformation("Starting ITA Poller application");
 
     try
