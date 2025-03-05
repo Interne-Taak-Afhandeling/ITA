@@ -1,0 +1,7 @@
+image:
+  repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
+  tag: "0.0.1-546f239"
+  pullPolicy: IfNotPresent
+appsettings:
+  setting1: "helm value for Setting1"
+  setting2: "helm value for Setting2"

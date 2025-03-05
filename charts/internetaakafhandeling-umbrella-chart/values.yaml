@@ -1,0 +1,37 @@
+ingress:
+  enabled: true
+  host: ita.test.icatt.nl
+  port: 80
+
+certificates:
+  enabled: true
+  installClusterIssuer: true      # true for non-local clusters
+  issuerName: "letsencrypt-prod"  # use "letsencrypt-prod" in staging/production and "selfsigned-issuer" for local
+  commonName: ita.test.icatt.nl
+  email: pascal@icatt.nl
+
+service:
+  type: LoadBalancer
+
+config:
+  globalSetting: "shared-value"
+
+secrets:
+  apiKey: "shared-api-key"
+
+internetaakafhandeling-web:
+  image:
+    repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
+    tag: "0.0.1" # deploy overwrites this tag automatically
+    pullPolicy: Always
+  appsettings:
+    setting1: "Umbrella chart setting1 value"
+    setting2: "Umbrella chart setting2 value"
+    
+internetaakafhandeling-poller:
+  image:
+    repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
+    tag: "0.0.1" # deploy overwrites this tag automatically
+    pullPolicy: Always
+  appsettings:
+    PollerMessage: "Umbrella chart value"
