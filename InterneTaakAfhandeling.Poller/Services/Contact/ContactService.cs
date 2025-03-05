@@ -11,7 +11,7 @@ namespace InterneTaakAfhandeling.Poller.Services.Contact;
 
 public interface IContactService
 {
-    Task<string> ResolveKlantcontactEmailAsync(InternetakenItem request);
+    Task<string> ResolveKlantcontactEmailAsync(Internetaken request);
 }
 
 public class ContactService : IContactService
@@ -35,12 +35,18 @@ public class ContactService : IContactService
         actorIdentificator.CodeObjecttype == "mdw" &&
         actorIdentificator.CodeRegister == "obj";
 
-    public async Task<string> ResolveKlantcontactEmailAsync(InternetakenItem request)
+    public async Task<string> ResolveKlantcontactEmailAsync(Internetaken request)
     {
+        if (request.AanleidinggevendKlantcontact == null)
+        {
+            _logger.LogWarning("No aanleidinggevend klantcontact found for internetaken {Nummer}",
+                request.Nummer);
+            return string.Empty;
+        }
         var klantcontact = await _openKlantApiClient
             .GetKlantcontactAsync(request.AanleidinggevendKlantcontact.Uuid);
 
-        var actor = klantcontact?.HadBetrokkenActoren
+        var actor = klantcontact?.HadBetrokkenActoren?
             .FirstOrDefault()?.Actoridentificator;
 
         if (actor == null)

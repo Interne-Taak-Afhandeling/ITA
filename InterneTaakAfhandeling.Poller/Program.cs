@@ -55,7 +55,7 @@ class Program
 
     logger.LogInformation("Starting ITA Poller application");
 
-            await processor.ProcessInternetakenAsync();
+     await processor.NotifyAboutNewInternetakenAsync();
 
 
         }

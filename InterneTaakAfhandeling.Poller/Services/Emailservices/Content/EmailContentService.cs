@@ -5,12 +5,12 @@ namespace InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
 
 public interface IEmailContentService
 {
-    string BuildInternetakenEmailContent(InternetakenItem request);
+    string BuildInternetakenEmailContent(Internetaken request);
 }
 
 public class EmailContentService : IEmailContentService
 {
-    public string BuildInternetakenEmailContent(InternetakenItem request)
+    public string BuildInternetakenEmailContent(Internetaken request)
     {
         return new StringBuilder()
             .AppendLine($"Internetaken Number: {request.Nummer}")

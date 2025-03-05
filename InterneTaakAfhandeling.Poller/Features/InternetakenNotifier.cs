@@ -11,7 +11,7 @@ namespace InterneTaakAfhandeling.Poller.Features;
 
 public interface IInternetakenProcessor
 {
-    Task ProcessInternetakenAsync();
+    Task NotifyAboutNewInternetakenAsync();
 }
 
  
@@ -47,7 +47,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         _contactService = contactService ?? throw new ArgumentNullException(nameof(contactService));
     }
 
-    public async Task ProcessInternetakenAsync()
+    public async Task NotifyAboutNewInternetakenAsync()
     {
         
 
@@ -57,28 +57,23 @@ public class InternetakenNotifier : IInternetakenProcessor
           
             while (!string.IsNullOrEmpty(nextUrl))
             {
-                var response = await _openKlantApiClient.GetInternetakenAsync(nextUrl);
+                var internetaken = await _openKlantApiClient.GetInternetakenAsync(nextUrl);
 
-                if (response?.Results == null || response.Results.Count == 0)
+                if (internetaken?.Results == null || internetaken.Results.Count == 0)
                 {
                     _logger.LogInformation("No new internetaken found");
                     break;
                 }
+                var filteredResults = FilterNewInternetakenAsync(internetaken);
 
-                var thresholdTime = DateTimeOffset.UtcNow.AddHours(_hourThreshold);
-                var filteredResults = response.Results
-                    .Where(item => item.ToegewezenOp > thresholdTime)
-                    .ToList();
-
-                if (filteredResults.Count == 0)
+                if (filteredResults == null || filteredResults.Count == 0)
                 {
                     _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", _hourThreshold);
                     break;
                 }
-
                 await ProcessInternetakenBatchAsync(filteredResults);
                
-                nextUrl = GetNextPageUrl(response.Next);
+                nextUrl = GetNextPageUrl(internetaken.Next ?? string.Empty);
               }
         }
         catch (Exception ex)
@@ -90,20 +85,20 @@ public class InternetakenNotifier : IInternetakenProcessor
 
     private string GetNextPageUrl(string nextUrl)
     {
-        if (string.IsNullOrEmpty(nextUrl)) return null;
+        if (string.IsNullOrEmpty(nextUrl)) return string.Empty;
         return nextUrl.Replace(_apiBaseUrl, "");
     }
 
-    private async Task ProcessInternetakenBatchAsync(List<InternetakenItem> requests)
+    private async Task ProcessInternetakenBatchAsync(List<Internetaken> internetaken)
     {
-        _logger.LogInformation("Starting to process {Count} internetaken", requests.Count);
-
+        _logger.LogInformation("Starting to process {Count} internetaken", internetaken.Count); 
+ 
         await Task.WhenAll(
-            requests.Select(request => ProcessSingleInternetakenAsync(request))
+            internetaken.Select(ProcessInternetakenItemAsync)
         );
     }
 
-    private async Task ProcessSingleInternetakenAsync(InternetakenItem request)
+    private async Task ProcessInternetakenItemAsync(Internetaken request)
     {
         var emailTo = string.Empty;
         try
@@ -128,5 +123,13 @@ public class InternetakenNotifier : IInternetakenProcessor
             _logger.LogError(ex, "Error processing internetaken {Number}", request.Nummer);
             throw;
         }
+    }
+
+    private List<Internetaken> FilterNewInternetakenAsync(InternetakenResponse internetaken)
+    {
+        var thresholdTime = DateTimeOffset.UtcNow.AddHours(_hourThreshold);
+        return internetaken.Results
+           // .Where(item => item.ToegewezenOp > thresholdTime)
+            .ToList();
     }
 }

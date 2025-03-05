@@ -9,7 +9,7 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant;
 
 public interface IOpenKlantApiClient
 {
-    Task<Internetaken?> GetInternetakenAsync(string path);
+    Task<InternetakenResponse?> GetInternetakenAsync(string path);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
 }
 
@@ -40,7 +40,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 
     }
 
-    public async Task<Internetaken?> GetInternetakenAsync(string path)
+    public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
     {
         try
         {
@@ -50,7 +50,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
             response.EnsureSuccessStatusCode();
 
 
-            var content = await response.Content.ReadFromJsonAsync<Internetaken>();
+            var content = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
 
             _logger.LogInformation(
                 "Successfully retrieved {Count} internetaken",

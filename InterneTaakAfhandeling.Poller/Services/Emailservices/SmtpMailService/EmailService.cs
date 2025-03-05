@@ -21,7 +21,10 @@ public class EmailService : IEmailService
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        _smtpSettings = _configuration.GetSection("Email:SmtpSettings").Get<SmtpSettings>();
+        var smtpSettingsSection = _configuration.GetSection("Email:SmtpSettings");
+        _smtpSettings = smtpSettingsSection.Exists()
+            ? smtpSettingsSection.Get<SmtpSettings>() ?? throw new InvalidOperationException("SMTP settings are not configured properly.")
+            : throw new InvalidOperationException("SMTP settings section is missing in the configuration.");
     }
 
     public async Task SendEmailAsync(string to, string subject, string body)
