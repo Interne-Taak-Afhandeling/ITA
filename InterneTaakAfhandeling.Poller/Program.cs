@@ -1,20 +1,63 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using ITA.Poller.Features;
+using ITA.Poller.Services.Openklant;
+using ITA.Poller.Services.Emailservices.SmtpMailService;
 
-class Program
+ 
+
+try
 {
-    static async Task Main()
+    // Build configuration  
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddEnvironmentVariables() 
+        .AddUserSecrets<Program>()
+        .Build();
+   
+    Log.Logger = new LoggerConfiguration()
+           .ReadFrom.Configuration(configuration) 
+           .CreateLogger();
+
+    // Setup DI
+    var services = new ServiceCollection()
+        .AddSingleton<IConfiguration>(configuration)
+        .AddLogging(builder =>
+        {  
+            builder.ClearProviders();
+            builder.AddSerilog(dispose: true);
+        })
+        .AddHttpClient<IOpenKlantApiClient, OpenKlantApiClient>() 
+        .Services
+        .AddSingleton<IEmailService, EmailService>()
+        .AddSingleton<IInternetakenProcessor, InternetakenNotifier>()
+        .BuildServiceProvider();
+
+    // Get services
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var processor = services.GetRequiredService<IInternetakenProcessor>();
+
+    logger.LogInformation("Starting ITA Poller application");
+
+    try
     {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .Build();
-
-        // Retrieve the message from the configuration; fallback if not found
-        string message = configuration["PollerMessage"] ?? "Poller executed at";
-
-        Console.WriteLine($"{message} {DateTime.UtcNow}");
-        await Task.Delay(1000);
+        await processor.ProcessInternetakenAsync();
     }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Application error occurred");
+        throw;
+    }
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
 }
