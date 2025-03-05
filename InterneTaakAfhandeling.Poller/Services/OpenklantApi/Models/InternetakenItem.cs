@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace ITA.Poller.Services.Openklant.Models
+namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
 {
 
     public class InternetakenItem

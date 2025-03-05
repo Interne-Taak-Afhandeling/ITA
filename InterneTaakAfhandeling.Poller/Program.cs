@@ -2,12 +2,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using ITA.Poller.Features;
-using ITA.Poller.Services.Openklant;
-using ITA.Poller.Services.Emailservices.SmtpMailService;
-using ITA.Poller.Services.ObjectApi;
-using ITA.Poller.Services.Emailservices.Content;
-using ITA.Poller.Services.Contact; 
+using InterneTaakAfhandeling.Poller.Features;
+using InterneTaakAfhandeling.Poller.Services.Openklant;
+using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
+using InterneTaakAfhandeling.Poller.Services.ObjectApi;
+using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Poller.Services.Contact; 
 
 class Program
 {

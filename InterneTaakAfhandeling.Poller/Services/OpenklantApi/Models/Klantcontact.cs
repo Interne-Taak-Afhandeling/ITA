@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace ITA.Poller.Services.Openklant.Models
+namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
 {
     public class Klantcontact
     {

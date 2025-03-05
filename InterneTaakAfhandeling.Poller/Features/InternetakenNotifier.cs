@@ -1,18 +1,13 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-using ITA.Poller.Services.Openklant;
-using ITA.Poller.Services.Emailservices.SmtpMailService;
-using ITA.Poller.Services.Openklant.Models;
-using ITA.Poller.Services.ObjectApi;
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Extensions.Options;
-using ITA.Poller.Services.Contact;
-using ITA.Poller.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Poller.Services.Openklant;
+using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
+using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
+using InterneTaakAfhandeling.Poller.Services.ObjectApi;
+using InterneTaakAfhandeling.Poller.Services.Contact;
+using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
 
-namespace ITA.Poller.Features;
+namespace InterneTaakAfhandeling.Poller.Features;
 
 public interface IInternetakenProcessor
 {
