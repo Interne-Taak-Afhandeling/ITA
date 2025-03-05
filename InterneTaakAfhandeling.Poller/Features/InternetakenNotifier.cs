@@ -1,11 +1,10 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-using ITA.Poller.Services.Openklant;
-using ITA.Poller.Services.Emailservices.SmtpMailService;
-using ITA.Poller.Services.Openklant.Models;
-using System;
+using InterneTaakAfhandeling.Poller.Services.Openklant;
+using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
+using InterneTaakAfhandeling.Poller.Services.Openklant.Models; 
 
-namespace ITA.Poller.Features;
+namespace InterneTaakAfhandeling.Poller.Features;
 
 public interface IInternetakenProcessor
 {

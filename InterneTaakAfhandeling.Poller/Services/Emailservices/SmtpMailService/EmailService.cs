@@ -3,7 +3,7 @@ using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace ITA.Poller.Services.Emailservices.SmtpMailService;
+namespace InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
 
 public interface IEmailService
 {

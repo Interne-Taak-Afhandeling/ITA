@@ -3,9 +3,9 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using ITA.Poller.Services.Openklant.Models;
+using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
 
-namespace ITA.Poller.Services.Openklant;
+namespace InterneTaakAfhandeling.Poller.Services.Openklant;
 
 public interface IOpenKlantApiClient
 {
