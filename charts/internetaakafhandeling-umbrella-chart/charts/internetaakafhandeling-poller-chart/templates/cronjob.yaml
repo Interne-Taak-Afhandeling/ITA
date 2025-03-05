@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "internetaakafhandeling.poller.fullname" . }}
+spec:
+  schedule: "{{ .Values.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            checksum/config: {{ include "internetaakafhandeling.poller.appsettings" . | sha256sum }}
+        spec:
+          containers:
+            - name: internetaakafhandeling-poller
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              volumeMounts:
+              - name: appsettings-volume
+                mountPath: /app/appsettings.json
+                subPath: appsettings.json
+          volumes:
+            - name: appsettings-volume
+              configMap:
+                name: {{ include "internetaakafhandeling.poller.fullname" . }}-appsettings
+          restartPolicy: OnFailure

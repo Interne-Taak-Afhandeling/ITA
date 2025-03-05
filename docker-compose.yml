@@ -1,0 +1,7 @@
+services:
+  website:
+    build: 
+      context: .
+      dockerfile: InterneTaakAfhandeling.Web/Dockerfile
+    ports:
+    - 8080:8080

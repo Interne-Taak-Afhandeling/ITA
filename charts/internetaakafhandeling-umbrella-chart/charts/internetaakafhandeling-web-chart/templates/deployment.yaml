@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "internetaakafhandeling.web.fullname" . }}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ include "internetaakafhandeling.web.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "internetaakafhandeling.web.name" . }}
+    spec:
+      containers:
+        - name: internetaakafhandeling-web
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+          - name: appsettings-volume
+            mountPath: /app/appsettings.json
+            subPath: appsettings.json
+      volumes:
+        - name: appsettings-volume
+          configMap:
+            name: {{ include "internetaakafhandeling.web.fullname" . }}-appsettings

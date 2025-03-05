@@ -1,0 +1,45 @@
+name: Reusable Version Check
+
+on:
+  workflow_call:
+    inputs:
+      chart_path:
+        description: "Path to the Chart.yaml file"
+        required: true
+        type: string
+    outputs:
+      version: 
+        description: "Umbrella chart version"
+        value: ${{ jobs.version-check.outputs.version }}
+      version_updated: 
+        description: "Is the version updated or not"
+        value: ${{ jobs.version-check.outputs.version_updated }}
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_output.outputs.version }}
+      version_updated: ${{ steps.set_output.outputs.version_updated }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          sudo wget https://github.com/mikefarah/yq/releases/download/v4.6.3/yq_linux_amd64 -O /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+      - run: git fetch origin main
+      - id: check
+        run: |
+          CHART="${{ inputs.chart_path }}"
+          CUR_VER=$(yq eval '.version' $CHART)
+          MAIN_VER=$(git show origin/main:$CHART | yq eval '.version' -)
+          echo "Current: $CUR_VER, Main: $MAIN_VER" 
+          echo "version=$CUR_VER" >> $GITHUB_ENV
+          if [ "$CUR_VER" != "$MAIN_VER" ]; then
+            echo "version_updated=true" >> $GITHUB_ENV
+          else
+            echo "version_updated=false" >> $GITHUB_ENV
+          fi
+      - id: set_output
+        run: |
+          echo "version_updated=${{ env.version_updated }}" >> $GITHUB_OUTPUT
+          echo "version=${{ env.version }}" >> $GITHUB_OUTPUT

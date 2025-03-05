@@ -1,0 +1,6 @@
+@InterneTaakAfhandeling.Web_HostAddress = http://localhost:5103
+
+GET {{InterneTaakAfhandeling.Web_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
