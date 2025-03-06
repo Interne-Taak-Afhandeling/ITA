@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using InterneTaakAfhandeling.Poller.Services.ObjectApi.Models; 
@@ -44,20 +45,22 @@ public class ObjectApiClient : IObjectApiClient
         _logger.LogInformation("Fetching object for identificatie {Identificatie}", identificatie);
 
         var response = await _httpClient.GetAsync($"objects?ordering=record__data__identificatie&data_attr=identificatie__exact__{identificatie}");
+       
         response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<ObjectResponse>(json);
-
-        if (result?.Results?.FirstOrDefault()?.Uuid == null)
+ 
+        var result = await response.Content.ReadFromJsonAsync<ObjectResponse>();
+        
+        if (result?.Results?.Count == 0)
         {
-            throw new Exception("Object not found");
+            _logger.LogInformation("Object Not Found");
+
+            return string.Empty;
         }
 
         _logger.LogInformation("Successfully retrieved object {Uuid} for identificatie {Identificatie}", 
             result.Results.First().Uuid, identificatie);
 
-        return result.Results.First().Record.Data.Email;
+        return result.Results.First().Record.Data.Emails.FirstOrDefault().Email;
     }
  
 }

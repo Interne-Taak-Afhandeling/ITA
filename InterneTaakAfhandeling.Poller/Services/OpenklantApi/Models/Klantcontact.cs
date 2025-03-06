@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
 
 namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
 {
@@ -25,6 +26,17 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
         public  bool? IndicatieActief { get; set; }
         public  Actoridentificator? Actoridentificator { get; set; }
         public  object? ActorIdentificatie { get; set; }
+
+        public static bool IsValid( Actor actor)
+       => actor.Actoridentificator != null && actor.Actoridentificator.CodeObjecttype == "mdw";
+
+        // email validation added for by passing data mapping issue (email address with CodeRegister obj), in the future it needs to be removed 
+        public static bool IsActorObject(Actoridentificator actorIdentificator)
+            => actorIdentificator.CodeSoortObjectId == "idf" &&
+               actorIdentificator.CodeObjecttype == "mdw" &&
+               actorIdentificator.CodeRegister == "obj" && !EmailService.IsValidEmail(actorIdentificator.ObjectId);
+
+
     }
 
     public class Actoridentificator
@@ -33,6 +45,8 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
         public required string CodeObjecttype { get; set; }
         public required string CodeRegister { get; set; }
         public required string CodeSoortObjectId { get; set; }
+
+      
     }
 
     public class Betrokkene

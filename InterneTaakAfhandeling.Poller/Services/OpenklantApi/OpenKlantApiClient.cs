@@ -10,7 +10,7 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant;
 public interface IOpenKlantApiClient
 {
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
-    Task<Klantcontact> GetKlantcontactAsync(string uuid);
+    Task<Actor> GetActorAsync(string uuid);
 }
 
 public class OpenKlantApiClient : IOpenKlantApiClient
@@ -84,21 +84,22 @@ public class OpenKlantApiClient : IOpenKlantApiClient
         }
     }
 
-    public async Task<Klantcontact> GetKlantcontactAsync(string uuid)
+    public async Task<Actor> GetActorAsync(string uuid)
     {
         _logger.LogInformation("Fetching klantcontact {Uuid}", uuid);
 
-        var response = await _httpClient.GetAsync($"klantcontacten/{uuid}");
+        var response = await _httpClient.GetAsync($"actoren/{uuid}");
         response.EnsureSuccessStatusCode();
          
-        var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
+        var actor = await response.Content.ReadFromJsonAsync<Actor>();
 
-        if (klantcontact == null)
+        if (actor == null)
         {
-            throw new Exception("Klantcontact not found");
+            throw new Exception("actor not found");
         }
 
-        _logger.LogInformation("Successfully retrieved klantcontact {Uuid}", uuid);
-        return klantcontact;
+        _logger.LogInformation("Successfully retrieved actor {Uuid}", uuid);
+
+        return actor;
     }
 }

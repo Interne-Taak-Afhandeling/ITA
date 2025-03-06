@@ -6,8 +6,7 @@ using InterneTaakAfhandeling.Poller.Features;
 using InterneTaakAfhandeling.Poller.Services.Openklant;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Poller.Services.ObjectApi;
-using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Poller.Services.Contact; 
+using InterneTaakAfhandeling.Poller.Services.Emailservices.Content; 
 
 class Program
 {
@@ -39,8 +38,7 @@ class Program
             .AddScoped<IOpenKlantApiClient, OpenKlantApiClient>()  
             .AddScoped<IObjectApiClient, ObjectApiClient>()  
             .AddScoped<IEmailService, EmailService>()
-            .AddScoped<IEmailContentService,EmailContentService>()
-            .AddScoped<IContactService,ContactService>()
+            .AddScoped<IEmailContentService,EmailContentService>() 
             .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
             .BuildServiceProvider();
 

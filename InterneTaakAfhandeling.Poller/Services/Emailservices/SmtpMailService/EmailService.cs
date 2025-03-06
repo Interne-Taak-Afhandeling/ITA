@@ -7,7 +7,7 @@ namespace InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
 
 public interface IEmailService
 {
-    Task SendEmailAsync(string to, string subject, string body);
+    Task SendEmailAsync(string to, string subject, string body); 
 }
 
 public class EmailService : IEmailService
@@ -47,13 +47,29 @@ public class EmailService : IEmailService
             };
 
             _logger.LogInformation("Sending email to {To} via {Host}:{Port}", to, _smtpSettings.Host, _smtpSettings.Port);
-            await smtpClient.SendMailAsync(mailMessage);
+             await smtpClient.SendMailAsync(mailMessage);
             _logger.LogInformation("Email sent successfully");
+        }
+        catch (SmtpException smtpEx)
+        {
+            _logger.LogError(smtpEx, "SMTP error occurred while sending email via {Host}:{Port}", _smtpSettings.Host, _smtpSettings.Port);
+            throw new InvalidOperationException("An error occurred while sending the email. Please try again later.", smtpEx);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email via {Host}:{Port}", _smtpSettings.Host, _smtpSettings.Port);
-            throw;
+            throw new InvalidOperationException("An unexpected error occurred while sending the email. Please try again later.", ex);
+        }
+    }
+    public static bool IsValidEmail(string email)
+    {
+        try
+        {
+            return new MailAddress(email).Address == email; 
+        }
+        catch
+        {
+            return false;
         }
     }
 }
