@@ -3,13 +3,14 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
+using InterneTaakAfhandeling.Poller.Services.Openklant.Models; 
 
 namespace InterneTaakAfhandeling.Poller.Services.Openklant;
 
 public interface IOpenKlantApiClient
 {
-    Task<Internetaken?> GetInternetakenAsync(string path);
+    Task<InternetakenResponse?> GetInternetakenAsync(string path);
+    Task<Actor> GetActorAsync(string uuid);
 }
 
 public class OpenKlantApiClient : IOpenKlantApiClient
@@ -17,6 +18,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<OpenKlantApiClient> _logger;
+    private readonly string _baseUrl;
 
     public OpenKlantApiClient(
         HttpClient httpClient,
@@ -28,8 +30,9 @@ public class OpenKlantApiClient : IOpenKlantApiClient
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 
-        _httpClient.BaseAddress = new Uri(_configuration.GetValue<string>("OpenKlantApi:BaseUrl")
-            ?? throw new InvalidOperationException("OpenKlantApi:BaseUrl configuration is missing"));
+        _baseUrl = _configuration.GetValue<string>("OpenKlantApi:BaseUrl")
+            ?? throw new InvalidOperationException("OpenKlantApi:BaseUrl configuration is missing");
+        _httpClient.BaseAddress = new Uri(_baseUrl);
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token",
             _configuration.GetValue<string>("OpenKlantApi:ApiKey") ?? throw new InvalidOperationException("OpenKlantApi:ApiKey configuration is missing"));
 
@@ -37,7 +40,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 
     }
 
-    public async Task<Internetaken?> GetInternetakenAsync(string path)
+    public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
     {
         try
         {
@@ -47,7 +50,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
             response.EnsureSuccessStatusCode();
 
 
-            var content = await response.Content.ReadFromJsonAsync<Internetaken>();
+            var content = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
 
             _logger.LogInformation(
                 "Successfully retrieved {Count} internetaken",
@@ -79,5 +82,25 @@ public class OpenKlantApiClient : IOpenKlantApiClient
                 ex.Message);
             throw;
         }
+    }
+
+    public async Task<Actor> GetActorAsync(string uuid)
+    {
+        _logger.LogInformation("Fetching actor {Uuid}", uuid);
+
+        var response = await _httpClient.GetAsync($"actoren/{uuid}");
+        response.EnsureSuccessStatusCode();
+         
+        var actor = await response.Content.ReadFromJsonAsync<Actor>();
+
+        if (actor == null)
+        {
+            _logger.LogInformation("Actor not found {Uuid}", uuid);
+            throw new Exception("Actor not found");
+        }
+
+        _logger.LogInformation("Successfully retrieved actor {Uuid}", uuid);
+
+        return actor;
     }
 }
