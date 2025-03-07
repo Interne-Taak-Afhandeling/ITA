@@ -123,17 +123,25 @@ public class InternetakenNotifier : IInternetakenProcessor
                 return string.Empty;
             }
 
-            return objectRecords.First().Data?.Emails?.FirstOrDefault()?.Email ?? string.Empty;
-        }
+            var emailAddress = objectRecords.First().Data?.Emails?.FirstOrDefault()?.Email;
 
+            if (!string.IsNullOrEmpty(emailAddress) && EmailService.IsValidEmail(emailAddress))
+            {
+                return emailAddress;
+            }
+
+            _logger.LogWarning("Invalid email address found for object {ObjectId}: {EmailAddress}", objectId, emailAddress);
+            return string.Empty;
+        }
         return objectId;
     }
+
 
     private List<Internetaken> FilterNewInternetaken(InternetakenResponse internetaken)
     {
         var thresholdTime = DateTimeOffset.UtcNow.AddHours(-_hourThreshold);
         return internetaken.Results
-           // .Where(item => item.ToegewezenOp > thresholdTime)
+            .Where(item => item.ToegewezenOp > thresholdTime)
             .ToList();
     }
 }
