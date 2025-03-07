@@ -106,24 +106,24 @@ public class InternetakenNotifier : IInternetakenProcessor
         var actorIdentificator = actor.Actoridentificator;
 
         // Check if we need to fetch email from object API
-        if (actorIdentificator.CodeSoortObjectId == "idf" && 
-            actorIdentificator.CodeRegister == "obj" && 
+        if (actorIdentificator.CodeSoortObjectId == "idf" &&
+            actorIdentificator.CodeRegister == "obj" &&
             !EmailService.IsValidEmail(objectId))
         {
-            var objectResponse = await _objectApiClient.GetObjectByIdentificatie(objectId);
-            if (objectResponse?.Results == null || !objectResponse.Results.Any())
+            var objectRecords = await _objectApiClient.GetObjectsByIdentificatie(objectId);
+            if (objectRecords.Count == 0)
             {
                 _logger.LogWarning("No object found for identificatie {ObjectId}", objectId);
                 return string.Empty;
             }
 
-            return objectResponse.Results
-                .FirstOrDefault()
-                ?.Record
-                ?.Data
-                ?.Emails
-                ?.FirstOrDefault()
-                ?.Email ?? string.Empty;
+            if (objectRecords.Count > 1)
+            {
+                _logger.LogWarning("Multiple objects found for identificatie {ObjectId}. Expected exactly one match.", objectId);
+                return string.Empty;
+            }
+
+            return objectRecords.First().Data?.Emails?.FirstOrDefault()?.Email ?? string.Empty;
         }
 
         return objectId;
@@ -133,7 +133,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     {
         var thresholdTime = DateTimeOffset.UtcNow.AddHours(-_hourThreshold);
         return internetaken.Results
-            .Where(item => item.ToegewezenOp > thresholdTime)
+           // .Where(item => item.ToegewezenOp > thresholdTime)
             .ToList();
     }
 }
