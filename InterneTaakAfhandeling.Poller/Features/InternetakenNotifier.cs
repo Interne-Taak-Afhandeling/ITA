@@ -87,53 +87,57 @@ public class InternetakenNotifier : IInternetakenProcessor
 
     private async Task<string> ResolveActorEmailAsync(Internetaken request)
     {
-        var actorId = request.ToegewezenAanActoren?.FirstOrDefault()?.Uuid;
-        if (string.IsNullOrEmpty(actorId))
+        if (request.ToegewezenAanActoren == null)
         {
             _logger.LogWarning("No toegewezen aan actor found for internetaken {Nummer}", request.Nummer);
             return string.Empty;
         }
 
-        var actor = await _openKlantApiClient.GetActorAsync(actorId);
-        if (actor?.Actoridentificator == null || actor.Actoridentificator.CodeObjecttype != "mdw")
+        foreach (var toegewezenAanActoren in request.ToegewezenAanActoren)
         {
-            _logger.LogWarning("Invalid actor found for actor {Uuid}. ActorIdentificator: {ActorIdentificator}", 
-                actorId, actor?.Actoridentificator);
-            return string.Empty;
+            
+            var actor = await _openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
+            if (actor?.Actoridentificator == null || actor.Actoridentificator.CodeObjecttype != "mdw")
+            {
+                _logger.LogWarning("Invalid actor found for actor {Uuid}.", toegewezenAanActoren.Uuid);
+                continue;
+            }
+
+            var objectId = actor.Actoridentificator.ObjectId;
+            var actorIdentificator = actor.Actoridentificator;
+
+            // Check if we need to fetch email from object API
+            if (actorIdentificator.CodeSoortObjectId == "idf" &&
+                actorIdentificator.CodeRegister == "obj" &&
+                !EmailService.IsValidEmail(objectId))
+            {
+                var objectRecords = await _objectApiClient.GetObjectsByIdentificatie(objectId);
+                if (objectRecords.Count == 0)
+                {
+                    _logger.LogWarning("No object found for identificatie {ObjectId}", objectId);
+                    continue;
+                }
+
+                if (objectRecords.Count > 1)
+                {
+                    _logger.LogWarning("Multiple objects found for identificatie {ObjectId}. Expected exactly one match.", objectId);
+                    continue;
+                }
+
+                var emailAddress = objectRecords.First().Data?.Emails?.FirstOrDefault()?.Email;
+
+                if (!string.IsNullOrEmpty(emailAddress) && EmailService.IsValidEmail(emailAddress))
+                {
+                    return emailAddress;
+                }
+
+                _logger.LogWarning("Invalid email address found for object {ObjectId}: {EmailAddress}", objectId, emailAddress);
+                continue;
+            }
+            return objectId;
         }
 
-        var objectId = actor.Actoridentificator.ObjectId;
-        var actorIdentificator = actor.Actoridentificator;
-
-        // Check if we need to fetch email from object API
-        if (actorIdentificator.CodeSoortObjectId == "idf" &&
-            actorIdentificator.CodeRegister == "obj" &&
-            !EmailService.IsValidEmail(objectId))
-        {
-            var objectRecords = await _objectApiClient.GetObjectsByIdentificatie(objectId);
-            if (objectRecords.Count == 0)
-            {
-                _logger.LogWarning("No object found for identificatie {ObjectId}", objectId);
-                return string.Empty;
-            }
-
-            if (objectRecords.Count > 1)
-            {
-                _logger.LogWarning("Multiple objects found for identificatie {ObjectId}. Expected exactly one match.", objectId);
-                return string.Empty;
-            }
-
-            var emailAddress = objectRecords.First().Data?.Emails?.FirstOrDefault()?.Email;
-
-            if (!string.IsNullOrEmpty(emailAddress) && EmailService.IsValidEmail(emailAddress))
-            {
-                return emailAddress;
-            }
-
-            _logger.LogWarning("Invalid email address found for object {ObjectId}: {EmailAddress}", objectId, emailAddress);
-            return string.Empty;
-        }
-        return objectId;
+        return string.Empty;
     }
 
 
@@ -141,7 +145,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     {
         var thresholdTime = DateTimeOffset.UtcNow.AddHours(-_hourThreshold);
         return internetaken.Results
-            .Where(item => item.ToegewezenOp > thresholdTime)
+          //  .Where(item => item.ToegewezenOp > thresholdTime)
             .ToList();
     }
 }
