@@ -86,7 +86,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 
     public async Task<Actor> GetActorAsync(string uuid)
     {
-        _logger.LogInformation("Fetching klantcontact {Uuid}", uuid);
+        _logger.LogInformation("Fetching Actor {Uuid}", uuid);
 
         var response = await _httpClient.GetAsync($"actoren/{uuid}");
         response.EnsureSuccessStatusCode();

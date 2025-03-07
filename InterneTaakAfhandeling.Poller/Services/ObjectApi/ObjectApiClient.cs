@@ -9,7 +9,7 @@ namespace InterneTaakAfhandeling.Poller.Services.ObjectApi;
 
 public interface IObjectApiClient
 {
-    Task<string> GetObjectByIdentificatieAsync(string identificatie);
+    Task<ObjectResponse> GetObjectByIdentificatie(string identificatie);
 }
 
 public class ObjectApiClient : IObjectApiClient
@@ -40,27 +40,41 @@ public class ObjectApiClient : IObjectApiClient
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", _apiKey);
     }
 
-    public async Task<string> GetObjectByIdentificatieAsync(string identificatie)
+    public async Task<ObjectResponse> GetObjectByIdentificatie(string identificatie)
     {
         _logger.LogInformation("Fetching object for identificatie {Identificatie}", identificatie);
 
-        var response = await _httpClient.GetAsync($"objects?ordering=record__data__identificatie&data_attr=identificatie__exact__{identificatie}");
-       
-        response.EnsureSuccessStatusCode();
- 
-        var result = await response.Content.ReadFromJsonAsync<ObjectResponse>();
-        
-        if (result?.Results?.Count == 0)
+        try
         {
-            _logger.LogInformation("Object Not Found");
+            var response = await _httpClient.GetAsync($"objects?ordering=record__data__identificatie&data_attr=identificatie__exact__{identificatie}");
 
-            return string.Empty;
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ObjectResponse>();
+
+            if (result?.Results == null || !result.Results.Any())
+            {
+                _logger.LogWarning("No object found for identificatie {ObjectId}", identificatie);
+                return new ObjectResponse { Results = new List<ObjectResult>() };
+            }
+
+            if (result.Results.Count > 1)
+            {
+                _logger.LogWarning("Multiple objects found for identificatie {Identificatie}. Expected exactly one match.", identificatie);
+            }
+
+            return result;
         }
-
-        _logger.LogInformation("Successfully retrieved object {Uuid} for identificatie {Identificatie}", 
-            result.Results.First().Uuid, identificatie);
-
-        return result.Results.First().Record.Data.Emails.FirstOrDefault().Email;
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error fetching object for identificatie {Identificatie}", identificatie);
+            return new ObjectResponse { Results = new List<ObjectResult>() };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error occurred while fetching object for identificatie {Identificatie}", identificatie);
+            return new ObjectResponse { Results = new List<ObjectResult>() };
+        }
     }
  
 }

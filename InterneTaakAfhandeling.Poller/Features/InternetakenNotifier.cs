@@ -44,96 +44,96 @@ public class InternetakenNotifier : IInternetakenProcessor
 
     public async Task NotifyAboutNewInternetakenAsync()
     {
-        var nextUrl = "internetaken";
-
-        while (!string.IsNullOrEmpty(nextUrl))
+        var page = "internetaken";
+        while (!string.IsNullOrEmpty(page))
         {
-            var internetaken = await _openKlantApiClient.GetInternetakenAsync(nextUrl);
-
-            if (internetaken?.Results == null)
-            {
-                _logger.LogInformation("No new internetaken found");
+            var response = await _openKlantApiClient.GetInternetakenAsync(page);
+            if (response?.Results == null || !response.Results.Any())
                 break;
-            }
 
-            var filteredResults = FilterNewInternetaken(internetaken);
-
-            if (!filteredResults.Any())
+            var newTaken = FilterNewInternetaken(response);
+            if (newTaken.Any())
             {
-                _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", _hourThreshold);
-                break;
+                await ProcessInternetakenBatchAsync(newTaken);
             }
 
-            await ProcessInternetakenBatchAsync(filteredResults);
-            nextUrl = GetNextPageUrl(internetaken.Next);
+            page = response.Next?.Replace(_apiBaseUrl, string.Empty);
         }
     }
-     
-     
 
-    private string GetNextPageUrl(string? nextUrl)
-        => string.IsNullOrEmpty(nextUrl) ? string.Empty : nextUrl.Replace(_apiBaseUrl, "");
-
-    private async Task ProcessInternetakenBatchAsync(List<Internetaken> internetaken)
+    private async Task ProcessInternetakenBatchAsync(List<Internetaken> internetakens)
     {
-        _logger.LogInformation("Starting to process {Count} internetaken", internetaken.Count);
-        await Task.WhenAll(internetaken.Select(ProcessInternetakenItemAsync));
-    }
-
-    private async Task ProcessInternetakenItemAsync(Internetaken request)
-    {
-        try
+        foreach (var taak in internetakens)
         {
-            _logger.LogInformation("Processing internetaken: {Number}", request.Nummer);
-
-            var emailTo = await ResolveActorEmailAsync(request);
-            if (string.IsNullOrEmpty(emailTo))
+            try
             {
-                _logger.LogWarning("No email address found for internetaken {Number}", request.Nummer);
-                return;
+                _logger.LogInformation("Processing internetaken: {Number}", taak.Nummer);
+                
+                var emailTo = await ResolveActorEmailAsync(taak);
+                if (!string.IsNullOrEmpty(emailTo))
+                {
+                    var emailContent = _emailContentService.BuildInternetakenEmailContent(taak);
+                    await _emailService.SendEmailAsync(emailTo, $"New Internetaken - {taak.Nummer}", emailContent);
+                    _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
+                }
             }
-            var emailContent = _emailContentService.BuildInternetakenEmailContent(request);
-            await _emailService.SendEmailAsync(emailTo, $"New Internetaken - {request.Nummer}", emailContent);
-             
-            _logger.LogInformation("Successfully processed internetaken: {Number}", request.Nummer);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing internetaken {Number}", request.Nummer);
-            throw;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing internetaken {Number}", taak.Nummer);
+                throw;
+            }
         }
     }
- 
+
     private async Task<string> ResolveActorEmailAsync(Internetaken request)
     {
-        if (string.IsNullOrEmpty(request.ToegewezenAanActor?.Uuid))
+        var actorId = request.ToegewezenAanActoren?.FirstOrDefault()?.Uuid;
+        if (string.IsNullOrEmpty(actorId))
         {
             _logger.LogWarning("No toegewezen aan actor found for internetaken {Nummer}", request.Nummer);
             return string.Empty;
         }
 
-        var actor = await _openKlantApiClient.GetActorAsync(request.ToegewezenAanActor.Uuid);
-
-        if (!Actor.IsValid(actor) || actor.Actoridentificator == null)
+        var actor = await _openKlantApiClient.GetActorAsync(actorId);
+        if (actor?.Actoridentificator == null || actor.Actoridentificator.CodeObjecttype != "mdw")
         {
-            _logger.LogWarning("Invalid actor found for actor {Uuid}", request.ToegewezenAanActor.Uuid);
+            _logger.LogWarning("Invalid actor found for actor {Uuid}. ActorIdentificator: {ActorIdentificator}", 
+                actorId, actor?.Actoridentificator);
             return string.Empty;
         }
-       return Actor.IsActorObject(actor.Actoridentificator)
-                ? await _objectApiClient.GetObjectByIdentificatieAsync(actor.Actoridentificator.ObjectId)
-                : actor.Actoridentificator.ObjectId; 
-    }
 
-   
-  
-   
-   
+        var objectId = actor.Actoridentificator.ObjectId;
+        var actorIdentificator = actor.Actoridentificator;
+
+        // Check if we need to fetch email from object API
+        if (actorIdentificator.CodeSoortObjectId == "idf" && 
+            actorIdentificator.CodeRegister == "obj" && 
+            !EmailService.IsValidEmail(objectId))
+        {
+            var objectResponse = await _objectApiClient.GetObjectByIdentificatie(objectId);
+            if (objectResponse?.Results == null || !objectResponse.Results.Any())
+            {
+                _logger.LogWarning("No object found for identificatie {ObjectId}", objectId);
+                return string.Empty;
+            }
+
+            return objectResponse.Results
+                .FirstOrDefault()
+                ?.Record
+                ?.Data
+                ?.Emails
+                ?.FirstOrDefault()
+                ?.Email ?? string.Empty;
+        }
+
+        return objectId;
+    }
 
     private List<Internetaken> FilterNewInternetaken(InternetakenResponse internetaken)
     {
-        var thresholdTime = DateTimeOffset.UtcNow.AddHours(_hourThreshold);
+        var thresholdTime = DateTimeOffset.UtcNow.AddHours(-_hourThreshold);
         return internetaken.Results
-            .Where(item => item.ToegewezenOp > thresholdTime)
+         //   .Where(item => item.ToegewezenOp > thresholdTime)
             .ToList();
     }
 }
