@@ -86,7 +86,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 
     public async Task<Actor> GetActorAsync(string uuid)
     {
-        _logger.LogInformation("Fetching Actor {Uuid}", uuid);
+        _logger.LogInformation("Fetching actor {Uuid}", uuid);
 
         var response = await _httpClient.GetAsync($"actoren/{uuid}");
         response.EnsureSuccessStatusCode();
@@ -95,7 +95,8 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 
         if (actor == null)
         {
-            throw new Exception("actor not found");
+            _logger.LogInformation("Actor not found {Uuid}", uuid);
+            throw new Exception("Actor not found");
         }
 
         _logger.LogInformation("Successfully retrieved actor {Uuid}", uuid);
