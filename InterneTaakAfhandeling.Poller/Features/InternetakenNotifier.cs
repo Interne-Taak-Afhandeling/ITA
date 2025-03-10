@@ -106,6 +106,8 @@ public class InternetakenNotifier : IInternetakenProcessor
             var actorIdentificator = actor.Actoridentificator;
 
             // Check if we need to fetch email from object API
+            // note, this is a temporary solution. https://dimpact.atlassian.net/browse/PC-983 will provide
+            // a better way to distinguish actors with email address from actors with an id
             if (actorIdentificator.CodeSoortObjectId == "idf" &&
                 actorIdentificator.CodeRegister == "obj" &&
                 !EmailService.IsValidEmail(objectId))
