@@ -89,7 +89,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     {
         if (request.ToegewezenAanActoren == null)
         {
-            _logger.LogWarning("No toegewezen aan actor found for internetaken {Nummer}", request.Nummer);
+            _logger.LogWarning("No actor assigned to internetaak {Nummer}", request.Nummer);
             return string.Empty;
         }
 
