@@ -2,13 +2,16 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using InterneTaakAfhandeling.Poller.Services.Openklant;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
-using InterneTaakAfhandeling.Poller.Services.Openklant.Models; 
+using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
+using InterneTaakAfhandeling.Poller.Services.ObjectApi;
+using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Poller.Services.ObjectApi.Models;
 
 namespace InterneTaakAfhandeling.Poller.Features;
 
 public interface IInternetakenProcessor
 {
-    Task ProcessInternetakenAsync();
+    Task NotifyAboutNewInternetakenAsync();
 }
 
 public class InternetakenNotifier : IInternetakenProcessor
@@ -16,92 +19,134 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly IOpenKlantApiClient _openKlantApiClient;
     private readonly IEmailService _emailService;
     private readonly ILogger<InternetakenNotifier> _logger;
-    private readonly IConfiguration _configuration;
-  
+    private readonly IObjectApiClient _objectApiClient;
+    private readonly string _apiBaseUrl;
+    private readonly int _hourThreshold;
+    private readonly IEmailContentService _emailContentService;
 
     public InternetakenNotifier(
-        IOpenKlantApiClient openKlantApiClient,        
+        IOpenKlantApiClient openKlantApiClient,
         IConfiguration configuration,
         IEmailService emailService,
-        ILogger<InternetakenNotifier> logger)
+        ILogger<InternetakenNotifier> logger,
+        IObjectApiClient objectApiClient,
+        IEmailContentService emailContentService)
     {
-         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+        _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient));
+        _hourThreshold = configuration.GetValue<int>("InternetakenNotifier:HourThreshold");
+        _apiBaseUrl = configuration.GetValue<string>("OpenKlantApi:BaseUrl")
+            ?? throw new ArgumentException("OpenKlantApi:BaseUrl configuration is missing");
+        _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
     }
 
-    public async Task ProcessInternetakenAsync()
+    public async Task NotifyAboutNewInternetakenAsync()
     {
-        try
-        { 
-            var hourThreshold = _configuration.GetValue<int>("InternetakenNotifier:HourThreshold");
-            var apiBaseUrl = _configuration.GetValue<string>("OpenKlantApi:BaseUrl");
-            var nextUrl = "internetaken";
-
-            while (nextUrl != null)
-            {
-                var response = await _openKlantApiClient.GetInternetakenAsync(nextUrl);
-
-                if (response.Results is not { Count: > 0 })
-                {
-                    _logger.LogInformation("No new internetaken found");
-                    break;
-                }
-
-                var thresholdTime = DateTimeOffset.UtcNow.AddHours(-hourThreshold);
-                var filteredResults = response.Results
-                    .Where(item => item.ToegewezenOp > thresholdTime)
-                    .ToList();
-
-                if (filteredResults.Count == 0)
-                {
-                    _logger.LogInformation("No new internetaken found within the last {HourThreshold} hour(s)", hourThreshold);
-                    break;
-                }
-
-                await ProcessInternetakenBatchAsync(filteredResults);
-
-                nextUrl = response.Next?.Replace(apiBaseUrl, "");
-            }
-        }
-        catch (Exception ex)
+        var page = "internetaken";
+        while (!string.IsNullOrEmpty(page))
         {
-            _logger.LogError(ex, "Error occurred while processing internetaken batch");
-            throw;
+            var response = await _openKlantApiClient.GetInternetakenAsync(page);
+            if (response?.Results == null || !response.Results.Any())
+                break;
+
+            var newTaken = FilterNewInternetaken(response);
+            if (newTaken.Any())
+            {
+                await ProcessInternetakenBatchAsync(newTaken);
+            }
+
+            page = response.Next?.Replace(_apiBaseUrl, string.Empty);
         }
     }
 
-    private async Task ProcessInternetakenBatchAsync(IEnumerable<InternetakenItem> requests)
+    private async Task ProcessInternetakenBatchAsync(List<Internetaken> internetakens)
     {
-        _logger.LogInformation("Starting to process {Count} internetaken", requests.Count());
-
-        foreach (var request in requests)
+        foreach (var taak in internetakens)
         {
             try
             {
-                await ProcessSingleInternetakenAsync(request);
+                _logger.LogInformation("Processing internetaken: {Number}", taak.Nummer);
+                
+                var emailTo = await ResolveActorEmailAsync(taak);
+                if (!string.IsNullOrEmpty(emailTo))
+                {
+                    var emailContent = _emailContentService.BuildInternetakenEmailContent(taak);
+                    await _emailService.SendEmailAsync(emailTo, $"New Internetaken - {taak.Nummer}", emailContent);
+                    _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error processing internetaken. Will continue with next request");
-                // Continue processing other requests even if one fails
+                _logger.LogError(ex, "Error processing internetaken {Number}", taak.Nummer);
+                throw;
             }
         }
     }
 
-    private async Task ProcessSingleInternetakenAsync(InternetakenItem request)
+    private async Task<string> ResolveActorEmailAsync(Internetaken request)
     {
-        _logger.LogInformation("Processing internetaken with number: {Number}", request.Nummer);
+        if (request.ToegewezenAanActoren == null)
+        {
+            _logger.LogWarning("No actor assigned to internetaak {Nummer}", request.Nummer);
+            return string.Empty;
+        }
 
-        var emailBody = $"Internetaken Number: {request.Nummer}\n\n" +
-                       $"Requested Action: {string.Join("\n\n", request.GevraagdeHandeling)}\n\n" +
-                       $"Explanation: {request.Toelichting ?? "No explanation provided"}\n\n" +
-                       $"Status: {request.Status}";
+        foreach (var toegewezenAanActoren in request.ToegewezenAanActoren)
+        {
+            
+            var actor = await _openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
+            if (actor?.Actoridentificator == null || actor.Actoridentificator.CodeObjecttype != "mdw")
+            {              
+                continue;
+            }
 
-        await _emailService.SendEmailAsync($"New Internetaken - {request.Nummer}", emailBody);
+            var objectId = actor.Actoridentificator.ObjectId;
+            var actorIdentificator = actor.Actoridentificator;
 
-        _logger.LogInformation("Successfully processed internetaken: {Number}", request.Nummer);
+            // Check if we need to fetch email from object API
+            // note, this is a temporary solution. https://dimpact.atlassian.net/browse/PC-983 will provide
+            // a better way to distinguish actors with email address from actors with an id
+            if (actorIdentificator.CodeSoortObjectId == "idf" &&
+                actorIdentificator.CodeRegister == "obj" &&
+                !EmailService.IsValidEmail(objectId))
+            {
+                var objectRecords = await _objectApiClient.GetObjectsByIdentificatie(objectId);
+                if (objectRecords.Count == 0)
+                {
+                    _logger.LogWarning("No medewerker found in overigeobjecten for actorIdentificator {ObjectId}", objectId);
+                    continue;
+                }
+
+                if (objectRecords.Count > 1)
+                {
+                    _logger.LogWarning("Multiple objects found in overigeobjecten for actorIdentificator {ObjectId}. Expected exactly one match.", objectId);
+                    continue;
+                }
+
+                var emailAddress = objectRecords.First().Data?.Emails?.FirstOrDefault()?.Email;
+
+                if (!string.IsNullOrEmpty(emailAddress) && EmailService.IsValidEmail(emailAddress))
+                {
+                    return emailAddress;
+                }
+
+                _logger.LogWarning("Invalid email address found for object {ObjectId}: {EmailAddress}", objectId, emailAddress);
+                continue;
+            }
+            return objectId;
+        }
+
+        return string.Empty;
+    }
+
+
+    private List<Internetaken> FilterNewInternetaken(InternetakenResponse internetaken)
+    {
+        var thresholdTime = DateTimeOffset.UtcNow.AddHours(-_hourThreshold);
+        return internetaken.Results
+          //  .Where(item => item.ToegewezenOp > thresholdTime)
+            .ToList();
     }
 }
