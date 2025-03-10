@@ -115,13 +115,13 @@ public class InternetakenNotifier : IInternetakenProcessor
                 var objectRecords = await _objectApiClient.GetObjectsByIdentificatie(objectId);
                 if (objectRecords.Count == 0)
                 {
-                    _logger.LogWarning("No object found for identificatie {ObjectId}", objectId);
+                    _logger.LogWarning("No medewerker found in overigeobjecten for actorIdentificator {ObjectId}", objectId);
                     continue;
                 }
 
                 if (objectRecords.Count > 1)
                 {
-                    _logger.LogWarning("Multiple objects found for identificatie {ObjectId}. Expected exactly one match.", objectId);
+                    _logger.LogWarning("Multiple objects found in overigeobjecten for actorIdentificator {ObjectId}. Expected exactly one match.", objectId);
                     continue;
                 }
 
