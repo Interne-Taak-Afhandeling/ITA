@@ -98,8 +98,7 @@ public class InternetakenNotifier : IInternetakenProcessor
             
             var actor = await _openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
             if (actor?.Actoridentificator == null || actor.Actoridentificator.CodeObjecttype != "mdw")
-            {
-                _logger.LogWarning("Invalid actor found for actor {Uuid}.", toegewezenAanActoren.Uuid);
+            {              
                 continue;
             }
 
