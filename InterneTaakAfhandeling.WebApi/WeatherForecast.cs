@@ -1,4 +1,4 @@
-namespace InterneTaakAfhandeling.Server
+namespace InterneTaakAfhandeling.WebApi
 {
     public class WeatherForecast
     {

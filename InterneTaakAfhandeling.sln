@@ -5,9 +5,9 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterneTaakAfhandeling.Poller", "InterneTaakAfhandeling.Poller\InterneTaakAfhandeling.Poller.csproj", "{B8CD4898-AA85-4DED-9736-7C2720EA8221}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterneTaakAfhandeling.Server", "InterneTaakAfhandeling.Server\InterneTaakAfhandeling.Server.csproj", "{AD45BDC2-334C-4B61-9E37-996BE4293A90}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterneTaakAfhandeling.WebApi", "InterneTaakAfhandeling.WebApi\InterneTaakAfhandeling.WebApi.csproj", "{AD45BDC2-334C-4B61-9E37-996BE4293A90}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "InterneTaakAfhandeling.Client", "internetaakafhandeling.client\InterneTaakAfhandeling.Client.esproj", "{0DD11CAF-2468-480C-AE2D-D3DD64F2BD48}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "InterneTaakAfhandeling.WebApp", "internetaakafhandeling.WebApp\InterneTaakAfhandeling.WebApp.esproj", "{0DD11CAF-2468-480C-AE2D-D3DD64F2BD48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
