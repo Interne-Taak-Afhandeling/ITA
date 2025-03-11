@@ -5,7 +5,6 @@ using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
 using InterneTaakAfhandeling.Poller.Services.ObjectApi;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Poller.Services.ObjectApi.Models;
 
 namespace InterneTaakAfhandeling.Poller.Features;
 
