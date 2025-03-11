@@ -22,5 +22,7 @@ spec:
           volumes:
             - name: appsettings-volume
               configMap:
-                name: {{ include "internetaakafhandeling.poller.fullname" . }}-appsettings
+                name: ita-config
+              secretMap:
+                name: ita-secrets
           restartPolicy: OnFailure
