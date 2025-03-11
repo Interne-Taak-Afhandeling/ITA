@@ -46,9 +46,11 @@ public class EmailService : IEmailService
                 EnableSsl = false
             };
 
-            _logger.LogInformation("Sending email to {To} via {Host}:{Port}", to, _smtpSettings.Host, _smtpSettings.Port);
+            
+            //log only part of the to address for privacy reasons
+            _logger.LogInformation("Sending email to {To} via {Host}:{Port}", to[..Math.Min(to.Length, 4)], _smtpSettings.Host, _smtpSettings.Port);
              await smtpClient.SendMailAsync(mailMessage);
-            _logger.LogInformation("Email sent successfully");
+           
         }
         catch (SmtpException smtpEx)
         {
