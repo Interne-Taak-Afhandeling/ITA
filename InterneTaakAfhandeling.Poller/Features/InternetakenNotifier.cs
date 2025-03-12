@@ -5,7 +5,6 @@ using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
 using InterneTaakAfhandeling.Poller.Services.ObjectApi;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Poller.Services.ObjectApi.Models;
 
 namespace InterneTaakAfhandeling.Poller.Features;
 
@@ -89,7 +88,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     {
         if (request.ToegewezenAanActoren == null)
         {
-            _logger.LogWarning("No toegewezen aan actor found for internetaken {Nummer}", request.Nummer);
+            _logger.LogWarning("No actor assigned to internetaak {Nummer}", request.Nummer);
             return string.Empty;
         }
 
@@ -98,8 +97,7 @@ public class InternetakenNotifier : IInternetakenProcessor
             
             var actor = await _openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
             if (actor?.Actoridentificator == null || actor.Actoridentificator.CodeObjecttype != "mdw")
-            {
-                _logger.LogWarning("Invalid actor found for actor {Uuid}.", toegewezenAanActoren.Uuid);
+            {              
                 continue;
             }
 
@@ -107,6 +105,8 @@ public class InternetakenNotifier : IInternetakenProcessor
             var actorIdentificator = actor.Actoridentificator;
 
             // Check if we need to fetch email from object API
+            // note, this is a temporary solution. https://dimpact.atlassian.net/browse/PC-983 will provide
+            // a better way to distinguish actors with email address from actors with an id
             if (actorIdentificator.CodeSoortObjectId == "idf" &&
                 actorIdentificator.CodeRegister == "obj" &&
                 !EmailService.IsValidEmail(objectId))
@@ -114,13 +114,13 @@ public class InternetakenNotifier : IInternetakenProcessor
                 var objectRecords = await _objectApiClient.GetObjectsByIdentificatie(objectId);
                 if (objectRecords.Count == 0)
                 {
-                    _logger.LogWarning("No object found for identificatie {ObjectId}", objectId);
+                    _logger.LogWarning("No medewerker found in overigeobjecten for actorIdentificator {ObjectId}", objectId);
                     continue;
                 }
 
                 if (objectRecords.Count > 1)
                 {
-                    _logger.LogWarning("Multiple objects found for identificatie {ObjectId}. Expected exactly one match.", objectId);
+                    _logger.LogWarning("Multiple objects found in overigeobjecten for actorIdentificator {ObjectId}. Expected exactly one match.", objectId);
                     continue;
                 }
 
