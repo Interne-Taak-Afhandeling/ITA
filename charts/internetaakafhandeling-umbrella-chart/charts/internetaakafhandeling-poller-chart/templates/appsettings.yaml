@@ -5,5 +5,9 @@ metadata:
 data:
   appsettings.json: |-
     {
-      "PollerMessage": "{{ .Values.appsettings.PollerMessage }}"
+      "PollerMessage": "{{ .Values.appsettings.PollerMessage }}",
+      "OpenKlantApi": {
+        "BaseUrl": "{{ .Values.appsettings.OpenKlantApi.BaseUrl }}",
+        "ApiKey": "{{ .Values.appsettings.OpenKlantApi.ApiKey }}"
+      }
     }
