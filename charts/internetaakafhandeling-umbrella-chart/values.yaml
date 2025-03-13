@@ -31,7 +31,10 @@ internetaakafhandeling-web:
 internetaakafhandeling-poller:
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
-    tag: "0.0.1" # deploy overwrites this tag automatically
+    tag: "0.0.3-4a39096" # deploy overwrites this tag automatically
     pullPolicy: Always
   appsettings:
-    PollerMessage: "Umbrella chart value"
+    PollerMessage: "Umbrella chaasdfrt value"
+    OpenKlantApi: 
+      BaseUrl: "https://openklant24.dev.kiss-demo.nl/klantinteracties/api/v1/"
+      ApiKey: "nepkey umbrella chart"
