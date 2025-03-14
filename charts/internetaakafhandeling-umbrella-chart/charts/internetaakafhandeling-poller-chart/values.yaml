@@ -5,3 +5,6 @@ image:
   pullPolicy: Always
 appsettings:
   PollerMessage: "testbericht uit helm Poller values"
+  OpenKlantApi: 
+    BaseUrl: "https://openklant24.dev.kiss-demo.nl/klantinteracties/api/v1/"
+    ApiKey: "nepkey poller"

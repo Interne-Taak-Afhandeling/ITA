@@ -3,8 +3,6 @@ name: Build, Push, and Deploy with Helm
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]    
   workflow_dispatch:    
     
 permissions:
