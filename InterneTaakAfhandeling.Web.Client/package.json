@@ -1,5 +1,5 @@
 {
-  "name": "InterneTaakAfhandeling.WebApp",
+  "name": "InterneTaakAfhandeling.Web.Client",
   "version": "0.0.0",
   "private": true,
   "type": "module",

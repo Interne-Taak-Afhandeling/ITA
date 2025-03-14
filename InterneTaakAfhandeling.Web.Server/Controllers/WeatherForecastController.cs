@@ -1,7 +1,7 @@
-using InterneTaakAfhandeling.Web.Models;
+using InterneTaakAfhandeling.Web.Server.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InterneTaakAfhandeling.Web.Controllers
+namespace InterneTaakAfhandeling.Web.Server.Controllers
 {
     [ApiController]
     [Route("[controller]")]

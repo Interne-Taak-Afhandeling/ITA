@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterneTaakAfhandeling.Web", "InterneTaakAfhandeling.Web\InterneTaakAfhandeling.Web.csproj", "{69926DCF-1ABA-47EF-9D41-5A3C9581815B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterneTaakAfhandeling.Web.Server", "InterneTaakAfhandeling.Web.Server\InterneTaakAfhandeling.Web.Server.csproj", "{69926DCF-1ABA-47EF-9D41-5A3C9581815B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterneTaakAfhandeling.Poller", "InterneTaakAfhandeling.Poller\InterneTaakAfhandeling.Poller.csproj", "{B8CD4898-AA85-4DED-9736-7C2720EA8221}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "InterneTaakAfhandeling.WebApp", "InterneTaakAfhandeling.WebApp\InterneTaakAfhandeling.WebApp.esproj", "{B364E5CD-EEAC-4364-9F14-33513C087CC0}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "InterneTaakAfhandeling.Web.Client", "InterneTaakAfhandeling.Web.Client\InterneTaakAfhandeling.Web.Client.esproj", "{B364E5CD-EEAC-4364-9F14-33513C087CC0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

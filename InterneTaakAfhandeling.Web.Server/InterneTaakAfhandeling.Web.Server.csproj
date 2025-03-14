@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>2e684ed9-2bbc-42de-9619-f5df52f37a5f</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<SpaRoot>..\InterneTaakAfhandeling.WebApp</SpaRoot>
+		<SpaRoot>..\InterneTaakAfhandeling.Web.Client</SpaRoot>
 		<SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
 		<SpaProxyServerUrl>https://localhost:56175</SpaProxyServerUrl>
 	</PropertyGroup>
@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\InterneTaakAfhandeling.WebApp\InterneTaakAfhandeling.WebApp.esproj">
+		<ProjectReference Include="..\InterneTaakAfhandeling.Web.Client\InterneTaakAfhandeling.Web.Client.esproj">
 			<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 		</ProjectReference>
 	</ItemGroup>

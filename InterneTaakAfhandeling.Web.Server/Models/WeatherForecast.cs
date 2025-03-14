@@ -1,4 +1,4 @@
-namespace InterneTaakAfhandeling.Web.Models
+namespace InterneTaakAfhandeling.Web.Server.Models
 {
     public class WeatherForecast
     {

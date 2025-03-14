@@ -19,20 +19,20 @@ RUN apt-get -y install nodejs
 FROM with-node AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["InterneTaakAfhandeling.Web/InterneTaakAfhandeling.Web.csproj", "InterneTaakAfhandeling.Web/"]
-COPY ["InterneTaakAfhandeling.WebApp/InterneTaakAfhandeling.WebApp.esproj", "InterneTaakAfhandeling.WebApp/"]
-RUN dotnet restore "./InterneTaakAfhandeling.Web/InterneTaakAfhandeling.Web.csproj"
+COPY ["InterneTaakAfhandeling.Web.Server/InterneTaakAfhandeling.Web.Server.csproj", "InterneTaakAfhandeling.Web.Server/"]
+COPY ["InterneTaakAfhandeling.Web.Client/InterneTaakAfhandeling.Web.Client.esproj", "InterneTaakAfhandeling.Web.Client/"]
+RUN dotnet restore "./InterneTaakAfhandeling.Web.Server/InterneTaakAfhandeling.Web.Server.csproj"
 COPY . .
-WORKDIR "/src/InterneTaakAfhandeling.Web"
-RUN dotnet build "./InterneTaakAfhandeling.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/InterneTaakAfhandeling.Web.Server"
+RUN dotnet build "./InterneTaakAfhandeling.Web.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./InterneTaakAfhandeling.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./InterneTaakAfhandeling.Web.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "InterneTaakAfhandeling.Web.dll"]
+ENTRYPOINT ["dotnet", "InterneTaakAfhandeling.Web.Server.dll"]
