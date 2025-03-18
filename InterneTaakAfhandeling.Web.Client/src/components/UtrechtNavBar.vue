@@ -4,9 +4,25 @@
       <ul role="list" class="utrecht-nav-list" id="menu">
         <li class="utrecht-nav-list__item">
           <router-link
-            :to="{ name: 'home' }"
+            :to="{ name: 'dashboard' }"
             class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-            >Home</router-link
+            >Dashboard</router-link
+          >
+        </li>
+
+        <li class="utrecht-nav-list__item">
+          <router-link
+            :to="{ name: 'afdelingscontacten' }"
+            class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+            >Afdelingscontacten</router-link
+          >
+        </li>
+
+        <li class="utrecht-nav-list__item">
+          <router-link
+            :to="{ name: 'historie' }"
+            class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+            >Historie</router-link
           >
         </li>
       </ul>

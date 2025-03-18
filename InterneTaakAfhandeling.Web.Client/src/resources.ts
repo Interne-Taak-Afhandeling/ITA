@@ -83,7 +83,7 @@ export const loadThemeResources = async (app: App): Promise<void> => {
   const resources = await getResources();
 
   try {
-    // Then load the external resources if provided: theme tokens, logo, and image
+    // Then load the external resources if provided: theme tokens, logo
     // (this is done before mounting the app to prevent layout shifts)
     // Tokens will be loaded directly (as unlayered css, to be sure it takes precedence over the layered project css)
     // Images will be preloaded, waiting to be referenced from the app

@@ -64,16 +64,6 @@
     word-wrap: normal;
   }
 
-  .ita-link--icon {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--utrecht-button-icon-gap);
-
-    .utrecht-article & {
-      --utrecht-icon-size: 0.75rem;
-    }
-  }
-
   .utrecht-textbox--html-input {
     block-size: 2.5rem; // date and text inputs are not the same height otherwise...
   }

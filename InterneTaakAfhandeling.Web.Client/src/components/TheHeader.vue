@@ -5,7 +5,7 @@
     <utrecht-skip-link href="#menu">Naar menu</utrecht-skip-link>
 
     <router-link
-      :to="{ name: 'home' }"
+      :to="{ name: 'dashboard' }"
       class="utrecht-link utrecht-link--html-a utrecht-link--box-content"
     >
       <figure v-if="svg" v-html="svg" class="utrecht-logo"></figure>

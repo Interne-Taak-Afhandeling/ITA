@@ -1,15 +1,33 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
+import DashboardView from "@/views/DashboardView.vue";
+import AfdelingscontactenView from "@/views/AfdelingscontactenView.vue";
+import HistorieView from "@/views/HistorieView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/",
-      name: "home",
-      component: HomeView,
+      name: "dashboard",
+      component: DashboardView,
       meta: {
-        title: "Homepage"
+        title: "Dashboard"
+      }
+    },
+    {
+      path: "/afdelingscontacten",
+      name: "afdelingscontacten",
+      component: AfdelingscontactenView,
+      meta: {
+        title: "Afdelingscontacten"
+      }
+    },
+    {
+      path: "/historie",
+      name: "historie",
+      component: HistorieView,
+      meta: {
+        title: "Historie"
       }
     }
   ]
