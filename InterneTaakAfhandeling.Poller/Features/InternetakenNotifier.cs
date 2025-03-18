@@ -5,6 +5,8 @@ using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
 using InterneTaakAfhandeling.Poller.Services.ObjectApi;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Poller.Services.ZakenApi;
+using InterneTaakAfhandeling.Poller.Services.ZakenApi.Models;
 
 namespace InterneTaakAfhandeling.Poller.Features;
 
@@ -22,6 +24,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly string _apiBaseUrl;
     private readonly int _hourThreshold;
     private readonly IEmailContentService _emailContentService;
+    private readonly IZakenApiClient _zakenApiClient;
 
     public InternetakenNotifier(
         IOpenKlantApiClient openKlantApiClient,
@@ -29,7 +32,8 @@ public class InternetakenNotifier : IInternetakenProcessor
         IEmailService emailService,
         ILogger<InternetakenNotifier> logger,
         IObjectApiClient objectApiClient,
-        IEmailContentService emailContentService)
+        IEmailContentService emailContentService,
+        IZakenApiClient zakenApiClient)
     {
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
@@ -39,6 +43,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         _apiBaseUrl = configuration.GetValue<string>("OpenKlantApi:BaseUrl")
             ?? throw new ArgumentException("OpenKlantApi:BaseUrl configuration is missing");
         _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
+        _zakenApiClient = zakenApiClient;   
     }
 
     public async Task NotifyAboutNewInternetakenAsync()
@@ -67,11 +72,28 @@ public class InternetakenNotifier : IInternetakenProcessor
             try
             {
                 _logger.LogInformation("Processing internetaken: {Number}", taak.Nummer);
-                
+
                 var emailTo = await ResolveActorEmailAsync(taak);
                 if (!string.IsNullOrEmpty(emailTo))
                 {
-                    var emailContent = _emailContentService.BuildInternetakenEmailContent(taak);
+                 var klantContact   = await _openKlantApiClient.GetKlantcontactAsync(taak.AanleidinggevendKlantcontact.Uuid);
+                    var betrokkenen = await _openKlantApiClient.GetBetrokkeneAsync(klantContact.HadBetrokkenen.First().Uuid);
+                 var digitaleAdresTasks = betrokkenen.DigitaleAdressen
+                                         .Select(async x => await _openKlantApiClient.GetDigitaleAdresAsync(x.Uuid))
+                                         .ToList();
+                    var digitaleAdress = await Task.WhenAll(
+                        betrokkenen.DigitaleAdressen.Select(async x => await _openKlantApiClient.GetDigitaleAdresAsync(x.Uuid))
+                    );
+
+                    Zaak? zaak = null;
+                    var onderwerpObjectId = klantContact.Expand?.GingOverOnderwerpobjecten?.FirstOrDefault()?.Onderwerpobjectidentificator?.ObjectId;
+                    if (!string.IsNullOrEmpty(onderwerpObjectId))
+                    {
+                        zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
+                    }
+                    
+                    var emailContent = _emailContentService.BuildInternetakenEmailContent(taak, klantContact, digitaleAdress.ToList(), zaak);
+
                     await _emailService.SendEmailAsync(emailTo, $"New Internetaken - {taak.Nummer}", emailContent);
                     _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
                 }

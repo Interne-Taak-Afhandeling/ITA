@@ -38,8 +38,7 @@ namespace InterneTaakAfhandeling.Poller.Services.ZakenApi
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             var baseUrl = _configuration.GetValue<string>("ZaakSysteem:BaseUrl")
                 ?? throw new InvalidOperationException("ZaakSysteem:BaseUrl configuration is missing");
-            _httpClient.BaseAddress = new Uri(baseUrl); 
-            _httpClient.BaseAddress = new Uri(baseUrl);
+            _httpClient.BaseAddress = new Uri(baseUrl);  
            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GenerateToken());
             _httpClient.DefaultRequestHeaders.Add("Accept-Crs", DefaultCrs);
            
@@ -64,7 +63,7 @@ namespace InterneTaakAfhandeling.Poller.Services.ZakenApi
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             // Set issued-at (iat) timestamp
-            var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); // Adjust if needed
+            var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();  
 
             // Create JWT payload
             var claims = new[]
@@ -79,13 +78,7 @@ namespace InterneTaakAfhandeling.Poller.Services.ZakenApi
             );
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            string jwt = tokenHandler.WriteToken(token);
-
-            Console.WriteLine($"Generated JWT: {jwt}");
-            return jwt;
-
-
-
+            return tokenHandler.WriteToken(token);
         }
 
     }
