@@ -1,0 +1,43 @@
+@use "@utrecht/design-tokens/dist/mixin-theme" as utrecht;
+@use "./mixin-theme" as ita;
+
+.ita-theme {
+  @include utrecht.utrecht-theme;
+
+  // overrides for ita-theme
+  --utrecht-space-around: 1.5;
+
+  --utrecht-surface-background-color: var(--utrecht-color-white);
+
+  --utrecht-page-header-padding-block-start: 2px;
+  --utrecht-page-header-padding-block-end: 2px;
+  --utrecht-page-header-background-color: var(--utrecht-color-white);
+  --utrecht-nav-bar-background-color: transparent;
+
+  --utrecht-logo-max-block-size: auto;
+  --utrecht-logo-max-inline-size: 24rem;
+  --utrecht-logo-min-block-size: 3rem;
+  --utrecht-logo-min-inline-size: 18rem;
+
+  --utrecht-unordered-list-marker-color: var(--utrecht-color-blue-35);
+
+  --utrecht-page-footer-background-color: var(--utrecht-color-blue-35);
+  --utrecht-page-footer-background-image: none;
+
+  --utrecht-link-list-link-font-weight: 400;
+
+  --utrecht-button-icon-size: var(--utrecht-link-icon-size);
+
+  --utrecht-pagination-margin-block-start: var(--utrecht-space-inline-md);
+
+  --utrecht-badge-list-column-gap: 0.5rem;
+  --utrecht-badge-list-row-gap: 0.5rem;
+  --utrecht-badge-font-weight: 400;
+  --utrecht-badge-background-color: var(--utrecht-color-blue-35);
+  --utrecht-badge-border-radius: 0.5ch;
+  --utrecht-badge-padding-block: 1ex;
+  --utrecht-badge-padding-inline: 1ch;
+  --utrecht-badge-font-size: var(--utrecht-typography-scale-xs-font-size);
+
+  @include ita.ita-theme;
+}
