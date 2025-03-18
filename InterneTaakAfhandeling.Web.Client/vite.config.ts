@@ -1,7 +1,7 @@
 import { fileURLToPath, URL } from "node:url";
 
 import { defineConfig } from "vite";
-import plugin from "@vitejs/plugin-vue";
+import vue from "@vitejs/plugin-vue";
 import fs from "fs";
 import path from "path";
 import child_process from "child_process";
@@ -41,7 +41,7 @@ const target = env.ASPNETCORE_HTTPS_PORT
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [plugin()],
+  plugins: [vue()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -49,7 +49,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "^/weatherforecast": {
+      "/api": {
         target,
         secure: false,
       },
