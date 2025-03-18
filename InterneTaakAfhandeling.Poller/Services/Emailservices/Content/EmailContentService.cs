@@ -23,10 +23,12 @@ public class EmailContentService : IEmailContentService
     </head>
     <body>
         <dl>
-            <dt>Starttijd</dt><dd>{Starttijd}</dd>
-            <dt>Toelichting voor de collega</dt><dd class='preserve-newline'>{Toelichting}</dd>
-           <dt>ZaakNummber</dt><dd> {Zaak}</dd>
-           <dt>Naam betrokkene</dt><dd>  {BetrokkeneNaam} </dd> 
+             <dt>Starttijd</dt><dd>{Starttijd}</dd>
+             <dt>Toelichting voor de collega</dt><dd class='preserve-newline'>{Toelichting}</dd>
+             <dt>Status</dt><dd>  {Status} </dd>
+             <dt>ZaakNummber</dt><dd> {Zaak}</dd>
+             <dt>Naam betrokkene</dt><dd>  {BetrokkeneNaam} </dd> 
+             <dt>GevraagdeHandeling</dt><dd>  {GevraagdeHandeling} </dd> 
             {DigitaleAdressen}
             <dt>Aangemaakt door</dt><dd>  {AangemaaktDoor} </dd>
             <dt>Vraag</dt><dd> {Vraag} </dd>
@@ -42,6 +44,8 @@ public class EmailContentService : IEmailContentService
         var sb = new StringBuilder(EmailTemplate);
         sb.Replace("{Starttijd}", klantcontact.PlaatsgevondenOp.ToString("HH:mm"))
           .Replace("{Toelichting}", internetaken.Toelichting ?? "N/A")
+          .Replace("{Status}", internetaken.Status ?? "N/A")
+          .Replace("{GevraagdeHandeling}", internetaken.GevraagdeHandeling ?? "N/A")
           .Replace("{Inhoud}", klantcontact.Inhoud != null ? $"{klantcontact.Inhoud}</dd>" : "")
           .Replace("{Vraag}", klantcontact.Onderwerp != null ? klantcontact.Onderwerp : "")
           .Replace("{AangemaaktDoor}", betrokkene?.Naam != null ? betrokkene.Naam : "")

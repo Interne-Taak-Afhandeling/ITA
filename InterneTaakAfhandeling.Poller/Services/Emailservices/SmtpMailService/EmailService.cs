@@ -54,12 +54,10 @@ public class EmailService : IEmailService
         catch (SmtpException smtpEx)
         {
             _logger.LogError(smtpEx, "SMTP error occurred while sending email via {Host}:{Port}", _smtpSettings.Host, _smtpSettings.Port);
-            throw new InvalidOperationException("An error occurred while sending the email. Please try again later.", smtpEx);
-        }
+         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email via {Host}:{Port}", _smtpSettings.Host, _smtpSettings.Port);
-            throw new InvalidOperationException("An unexpected error occurred while sending the email. Please try again later.", ex);
         }
     }
     public static bool IsValidEmail(string email)
