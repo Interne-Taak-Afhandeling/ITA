@@ -70,7 +70,7 @@
 .ita-dashboard-tables {
   display: flex;
   flex-wrap: wrap;
-  column-gap: 4vw;
+  column-gap: var(--ita-dashboard-tables-column-gap);
 
   section {
     flex: 1;
