@@ -106,7 +106,7 @@ public class OpenKlantApiClient : IOpenKlantApiClient
     {
         _logger.LogInformation("Fetching klantcontact {Uuid}", uuid);
 
-        var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten");
+        var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen");
         response.EnsureSuccessStatusCode();
 
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();

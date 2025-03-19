@@ -56,9 +56,13 @@ public class InternetakenNotifier : IInternetakenProcessor
                 break;
 
             var newTaken = FilterNewInternetaken(response);
-            if (newTaken.Any())
+            if (newTaken.Count != 0)
             {
                 await ProcessInternetakenBatchAsync(newTaken);
+            }
+            else
+            {
+                _logger.LogInformation("No new internetaken found");
             }
 
             page = response.Next?.Replace(_apiBaseUrl, string.Empty);
@@ -76,23 +80,19 @@ public class InternetakenNotifier : IInternetakenProcessor
                 var emailTo = await ResolveActorEmailAsync(taak);
                 if (!string.IsNullOrEmpty(emailTo))
                 {
-                 var klantContact   = await _openKlantApiClient.GetKlantcontactAsync(taak.AanleidinggevendKlantcontact.Uuid);
-                    var betrokkenen = await _openKlantApiClient.GetBetrokkeneAsync(klantContact.HadBetrokkenen.First().Uuid);
-                 var digitaleAdresTasks = betrokkenen.DigitaleAdressen
-                                         .Select(async x => await _openKlantApiClient.GetDigitaleAdresAsync(x.Uuid))
-                                         .ToList();
-                    var digitaleAdress = await Task.WhenAll(
-                        betrokkenen.DigitaleAdressen.Select(async x => await _openKlantApiClient.GetDigitaleAdresAsync(x.Uuid))
-                    );
+                    var klantContact   = await _openKlantApiClient.GetKlantcontactAsync(taak.AanleidinggevendKlantcontact.Uuid);
 
+                    var digitaleAdress = klantContact.Expand?.HadBetrokkenen?.SelectMany(x => x?.Expand?.DigitaleAdressen).ToList();
+                  
                     Zaak? zaak = null;
+                   
                     var onderwerpObjectId = klantContact.Expand?.GingOverOnderwerpobjecten?.FirstOrDefault()?.Onderwerpobjectidentificator?.ObjectId;
                     if (!string.IsNullOrEmpty(onderwerpObjectId))
                     {
                         zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
                     }
                     
-                    var emailContent = _emailContentService.BuildInternetakenEmailContent(taak, klantContact, digitaleAdress.ToList(), zaak);
+                    var emailContent = _emailContentService.BuildInternetakenEmailContent(taak, klantContact, digitaleAdress, zaak);
 
                     await _emailService.SendEmailAsync(emailTo, $"New Internetaken - {taak.Nummer}", emailContent);
                     _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);

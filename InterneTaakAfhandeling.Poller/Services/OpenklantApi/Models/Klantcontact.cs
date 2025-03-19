@@ -102,6 +102,8 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
         public string? Rol { get; set; }
         public string? Organisatienaam { get; set; }
         public bool Initiator { get; set; }
+        [JsonPropertyName("_expand")]
+        public BetrokkeneExpand? Expand { get; set; }
     }
 
     public class Adres
@@ -124,6 +126,12 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
     public class Expand
     {
         public List<Onderwerpobject>? GingOverOnderwerpobjecten { get; set; }
+        public List<Betrokkene>? HadBetrokkenen { get; set; }
         public List<Internetaak>? LeiddeTotInterneTaken { get; set; }
+    }
+
+    public class BetrokkeneExpand
+    {
+        public List<DigitaleAdres>? DigitaleAdressen { get; set; }
     }
 }
