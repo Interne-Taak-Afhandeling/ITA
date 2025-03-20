@@ -12,7 +12,7 @@
       <figure v-if="svg" v-html="svg" class="utrecht-logo"></figure>
 
       <figure v-else class="utrecht-logo">
-        <img :src="resources.logoUrl" :alt="`Logo ${title}`" crossorigin="anonymous" />
+        <img :src="resources.logoUrl" alt="Logo gemeente" crossorigin="anonymous" />
       </figure>
     </router-link>
 
@@ -37,9 +37,7 @@ const svg = computed(() => {
   return (document.getElementById(svgTemplateId) as HTMLTemplateElement)?.innerHTML;
 });
 
-const title = computed(() =>
-  resources?.title ? resources.title : document.title.split("|").pop()
-);
+const title = document.title.split("|").pop();
 </script>
 
 <style lang="scss" scoped>

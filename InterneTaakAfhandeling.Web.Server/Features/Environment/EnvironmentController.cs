@@ -13,7 +13,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Environment
         {
             var response = new
             {
-                _resourcesConfig.Title,
                 _resourcesConfig.Theme,
                 _resourcesConfig.LogoUrl,
                 _resourcesConfig.FaviconUrl,

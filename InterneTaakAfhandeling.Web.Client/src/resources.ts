@@ -2,7 +2,6 @@ import { inject, type App } from "vue";
 import { sanitizeSvg } from "./helpers";
 
 export type Resources = Partial<{
-  title: string;
   theme: string;
   logoUrl: string;
   faviconUrl: string;
@@ -19,8 +18,6 @@ const getResources = async (): Promise<Resources> => {
     return {};
   }
 };
-
-const setTitle = (title?: string) => title && (document.title = title);
 
 const setTheme = (theme?: string) => theme && document.body.classList.add(theme);
 
@@ -89,9 +86,6 @@ export const loadThemeResources = async (app: App): Promise<void> => {
     // Images will be preloaded, waiting to be referenced from the app
     // Svgs will be fetched and appended as a template for further referencing
     await loadResources([resources.tokensUrl, resources.logoUrl]);
-
-    // Set portal title
-    setTitle(resources.title);
 
     // Replace the provided favicon link
     setIcon(resources.faviconUrl);
