@@ -7,7 +7,7 @@ spec:
   jobTemplate:
     spec:
       template:
-      spec:
+        spec:
           containers:
             - name: internetaakafhandeling-poller
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -18,12 +18,10 @@ spec:
                     name: {{ include "internetaakafhandeling.fullname" . }}-shared-config
                 - secretRef:
                     name: {{ include "internetaakafhandeling.fullname" . }}-shared-secret
-
+                
                 # Mount poller-specific config and secrets
                 - configMapRef:
                     name: {{ include "internetaakafhandeling.poller.fullname" . }}-private-config
                 - secretRef:
                     name: {{ include "internetaakafhandeling.poller.fullname" . }}-private-secret
           restartPolicy: OnFailure
-
-          
