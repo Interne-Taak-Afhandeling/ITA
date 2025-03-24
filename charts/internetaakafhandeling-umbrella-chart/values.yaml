@@ -8,33 +8,50 @@ certificates:
   installClusterIssuer: true      # true for non-local clusters
   issuerName: "letsencrypt-prod"  # use "letsencrypt-prod" in staging/production and "selfsigned-issuer" for local
   commonName: ita.test.icatt.nl
-  email: pascal@icatt.nl
+  email: placeholder@placeholder.nl
 
 service:
   type: LoadBalancer
 
+# Shared configuration
 config:
-  globalSetting: "shared-value"
+  pollerMessage: "Poller uitgevoerd om:"
+  openKlantApi:
+    baseUrl: "https://placeholder.placeholder.nl/placeholder/api/v1/"
+  objectApi:
+    baseUrl: "https://placeholder.placeholder.nl/api/v2/"
 
+# Shared secrets
 secrets:
-  apiKey: "shared-api-key"
+  objectApiKey: "placeholder"
+  openKlantApiKey: "placeholder"
 
 internetaakafhandeling-web:
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
     tag: "0.0.1" # deploy overwrites this tag automatically
     pullPolicy: Always
-  appsettings:
+  config:
     setting1: "Umbrella chart setting1 value"
     setting2: "Umbrella chart setting2 value"
+  # If you have any web-specific secrets, add them here
+  secrets: {}
     
 internetaakafhandeling-poller:
+  schedule: "* * * * *"
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
     tag: "0.0.3-4a39096" # deploy overwrites this tag automatically
     pullPolicy: Always
-  appsettings:
-    PollerMessage: "Umbrella chart value"
-    OpenKlantApi: 
-      BaseUrl: "https://openklant24.dev.kiss-demo.nl/klantinteracties/api/v1/"
-      ApiKey: "nepkey umbrella chart"
+  config:
+    smtp:
+      host: "placeholder.placeholder.nl"
+      port: "2525"
+      username: ""
+      fromEmail: "placeholder@placeholder.nl"
+      enableSsl: "true"
+    internetakenNotifier:
+      hourThreshold: "-10000"
+  secrets:
+    smtp:
+      password: "" # value comes from secrets

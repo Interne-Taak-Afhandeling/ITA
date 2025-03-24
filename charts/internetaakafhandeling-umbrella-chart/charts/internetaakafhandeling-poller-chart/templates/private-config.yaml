@@ -3,4 +3,9 @@ kind: ConfigMap
 metadata:
   name: {{ include "internetaakafhandeling.poller.fullname" . }}-private-config 
 data:
-  setting1: "value1 for internetaakafhandeling.poller"
+  Email__SmtpSettings__Host: {{ .Values.config.smtp.host | quote }}
+  Email__SmtpSettings__Port: {{ .Values.config.smtp.port | quote }}
+  Email__SmtpSettings__Username: {{ .Values.config.smtp.username | quote }}
+  Email__SmtpSettings__FromEmail: {{ .Values.config.smtp.fromEmail | quote }}
+  Email__SmtpSettings__EnableSsl: {{ .Values.config.smtp.enableSsl | quote }}
+  InternetakenNotifier__HourThreshold: {{ .Values.config.internetakenNotifier.hourThreshold | quote }}

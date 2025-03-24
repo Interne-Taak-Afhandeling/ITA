@@ -3,8 +3,15 @@ image:
   repository: ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller
   tag: 0.0.1-546f239
   pullPolicy: Always
-appsettings:
-  PollerMessage: "testbericht uit helm Poller values"
-  OpenKlantApi: 
-    BaseUrl: "https://openklant24.dev.kiss-demo.nl/klantinteracties/api/v1/"
-    ApiKey: "nepkey poller"
+config:
+  smtp:
+    host: "placeholder.placeholder.nl"
+    port: "2525"
+    username: ""
+    fromEmail: "placeholder@kiss-demo.nl"
+    enableSsl: "true"
+  internetakenNotifier:
+    hourThreshold: "-10000"
+secrets:
+  smtp:
+    password: ""  # real value comes from secrets

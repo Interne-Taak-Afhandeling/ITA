@@ -7,20 +7,23 @@ spec:
   jobTemplate:
     spec:
       template:
-        metadata:
-          annotations:
-            checksum/config: {{ include "internetaakafhandeling.poller.appsettings" . | sha256sum }}
-        spec:
+      spec:
           containers:
             - name: internetaakafhandeling-poller
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
-              volumeMounts:
-              - name: appsettings-volume
-                mountPath: /app/appsettings.json
-                subPath: appsettings.json
-          volumes:
-            - name: appsettings-volume
-              configMap:
-                name: {{ include "internetaakafhandeling.poller.fullname" . }}-appsettings
+              envFrom:
+                # Mount shared config and secrets
+                - configMapRef:
+                    name: {{ include "internetaakafhandeling.fullname" . }}-shared-config
+                - secretRef:
+                    name: {{ include "internetaakafhandeling.fullname" . }}-shared-secret
+
+                # Mount poller-specific config and secrets
+                - configMapRef:
+                    name: {{ include "internetaakafhandeling.poller.fullname" . }}-private-config
+                - secretRef:
+                    name: {{ include "internetaakafhandeling.poller.fullname" . }}-private-secret
           restartPolicy: OnFailure
+
+          
