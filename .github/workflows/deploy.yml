@@ -56,7 +56,7 @@ jobs:
           
       - name: Build and push internetaakafhandeling.web image
         run: |
-          docker build -t ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web:${{ steps.version.outputs.image_tag }} -f InterneTaakAfhandeling.Web/Dockerfile .
+          docker build -t ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web:${{ steps.version.outputs.image_tag }} -f InterneTaakAfhandeling.Web.Server/Dockerfile .
           docker push ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web:${{ steps.version.outputs.image_tag }}
 
       - name: Build and push internetaakafhandeling.poller image
