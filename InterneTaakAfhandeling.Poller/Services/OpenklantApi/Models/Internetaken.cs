@@ -18,7 +18,7 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
 
         public required string GevraagdeHandeling { get; set; }
 
-        public Klantcontact? AanleidinggevendKlantcontact { get; set; }
+        public Klantcontact AanleidinggevendKlantcontact { get; set; }
 
         public Actor? ToegewezenAanActor { get; set; }
 
