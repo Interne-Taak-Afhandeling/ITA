@@ -52,7 +52,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         while (!string.IsNullOrEmpty(page))
         {
             var response = await _openKlantApiClient.GetInternetakenAsync(page);
-            if (response?.Results == null || !response.Results.Any())
+            if (response?.Results == null || response.Results.Count == 0)
                 break;
 
             var newTaken = FilterNewInternetaken(response);
@@ -165,7 +165,7 @@ public class InternetakenNotifier : IInternetakenProcessor
 
     private List<Internetaken> FilterNewInternetaken(InternetakenResponse internetaken)
     {
-        var thresholdTime = DateTimeOffset.UtcNow.AddHours(-_hourThreshold);
+        var thresholdTime = DateTimeOffset.UtcNow.AddHours(-1*_hourThreshold);
         return internetaken.Results
             .Where(item => item.ToegewezenOp > thresholdTime)
             .ToList();

@@ -1,0 +1,39 @@
+@use "@utrecht/design-tokens/dist/mixin-theme" as utrecht;
+@use "./mixin-theme" as ita;
+
+.ita-theme {
+  // use utrecht-theme as default for ita-theme
+  @include utrecht.utrecht-theme;
+
+  // overrides for ita-theme
+  --utrecht-space-around: 1.5;
+
+  --utrecht-surface-background-color: var(--utrecht-color-white);
+
+  --utrecht-page-header-padding-block-start: 2px;
+  --utrecht-page-header-padding-block-end: 2px;
+  --utrecht-page-header-background-color: var(--utrecht-color-white);
+  --utrecht-nav-bar-background-color: transparent;
+  --utrecht-page-header-border-block-end-color: var(--utrecht-color-green-30);
+  --utrecht-page-header-border-block-end-width: 2px;
+
+  --utrecht-logo-max-block-size: auto;
+  --utrecht-logo-max-inline-size: 24rem;
+  --utrecht-logo-min-block-size: 3rem;
+  --utrecht-logo-min-inline-size: 18rem;
+
+  --utrecht-page-max-inline-size: 90rem;
+
+  --utrecht-link-color: var(--utrecht-color-green-30);
+  --utrecht-link-focus-color: var(--utrecht-color-green-40);
+
+  --utrecht-table-header-background-color: var(--utrecht-color-grey-90);
+
+  --utrecht-unordered-list-marker-color: var(--utrecht-color-green-30);
+
+  --utrecht-page-footer-background-color: var(--utrecht-color-green-30);
+  --utrecht-page-footer-background-image: none;
+
+  // custom ita-theme tokens
+  @include ita.ita-theme;
+}

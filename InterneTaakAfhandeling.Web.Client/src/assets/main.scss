@@ -1,0 +1,70 @@
+@use "sass:meta";
+@use "@/assets/variables";
+
+// Add project css to layers to be sure that the imported external tokens
+// take highest precedence as they are loaded as unlayered css
+@layer base, layout;
+
+@layer base {
+  @include meta.load-css("./design-tokens");
+  @include meta.load-css("@utrecht/component-library-css");
+}
+
+@layer layout {
+  :root {
+    --breakpoint-md: #{variables.$breakpoint-md};
+  }
+
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  #app {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  header {
+    margin-block: 1px;
+    padding-inline: 0;
+
+    img {
+      display: block;
+    }
+
+    nav {
+      inline-size: auto;
+    }
+
+    @media screen and (min-width: #{variables.$breakpoint-md}) {
+      & {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+    }
+  }
+
+  .visually-hidden {
+    position: absolute !important;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    width: 1px;
+    height: 1px;
+    word-wrap: normal;
+  }
+
+  .utrecht-textbox--html-input {
+    block-size: 2.5rem; // date and text inputs are not the same height otherwise...
+  }
+}
