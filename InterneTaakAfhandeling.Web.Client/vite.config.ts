@@ -57,5 +57,10 @@ export default defineConfig({
             key: fs.readFileSync(keyFilePath),
             cert: fs.readFileSync(certFilePath),
         }
+    },
+    build: {
+        outDir: '../InterneTaakAfhandeling.Web.Server/wwwroot',
+        emptyOutDir: true,
+        sourcemap: true
     }
 })
