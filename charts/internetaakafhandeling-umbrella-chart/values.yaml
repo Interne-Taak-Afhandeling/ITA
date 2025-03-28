@@ -22,6 +22,7 @@ config:
     baseUrl: "https://placeholder.placeholder.nl/api/v2/"
   zaakSysteem:
     baseUrl: "https://placeholder.placeholder.nl/"
+    clientId: "placeholder"
 
 # Shared secrets
 secrets:
