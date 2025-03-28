@@ -2,11 +2,11 @@ apiVersion: v2
 name: internetaakafhandeling
 description: Umbrella chart for InterneTaakAfhandeling including Web API and Poller
 type: application
-version: 0.0.9
+version: 0.0.10
 dependencies:
   - name: internetaakafhandeling-web
-    version: 0.0.9
+    version: 0.0.10
     repository: file://charts/internetaakafhandeling-web-chart
   - name: internetaakafhandeling-poller
-    version: 0.0.9
+    version: 0.0.10
     repository: file://charts/internetaakafhandeling-poller-chart
