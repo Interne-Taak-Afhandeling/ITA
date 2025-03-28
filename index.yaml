@@ -19,6 +19,22 @@ entries:
     version: 0.0.1
   internetaakafhandeling:
   - apiVersion: v2
+    created: "2025-03-28T11:32:10.00324083Z"
+    dependencies:
+    - name: internetaakafhandeling-web
+      repository: file://charts/internetaakafhandeling-web-chart
+      version: 0.0.9
+    - name: internetaakafhandeling-poller
+      repository: file://charts/internetaakafhandeling-poller-chart
+      version: 0.0.9
+    description: Umbrella chart for InterneTaakAfhandeling including Web API and Poller
+    digest: 7ff06abd247c1f95836f99c51fd92ebe440c0db7e8fc4ad062d18abd63a2a611
+    name: internetaakafhandeling
+    type: application
+    urls:
+    - https://github.com/Interne-Taak-Afhandeling/ITA/releases/download/internetaakafhandeling-0.0.9/internetaakafhandeling-0.0.9.tgz
+    version: 0.0.9
+  - apiVersion: v2
     created: "2025-03-25T11:45:17.392182998Z"
     dependencies:
     - name: internetaakafhandeling-web
@@ -130,4 +146,4 @@ entries:
     urls:
     - https://github.com/Interne-Taak-Afhandeling/ITA/releases/download/internetaakafhandeling-0.0.2/internetaakafhandeling-0.0.2.tgz
     version: 0.0.2
-generated: "2025-03-25T11:45:17.392209808Z"
+generated: "2025-03-28T11:32:10.003285033Z"
