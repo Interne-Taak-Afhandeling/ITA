@@ -20,11 +20,14 @@ config:
     baseUrl: "https://placeholder.placeholder.nl/placeholder/api/v1/"
   objectApi:
     baseUrl: "https://placeholder.placeholder.nl/api/v2/"
+  zaakSysteem:
+    baseUrl: "https://placeholder.placeholder.nl/"
 
 # Shared secrets
 secrets:
   objectApiKey: "placeholder"
   openKlantApiKey: "placeholder"
+  zaakSysteemKey: "placeholder"
 
 internetaakafhandeling-web:
   image:
