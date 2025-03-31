@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
 using InterneTaakAfhandeling.Poller.Services.ZakenApi.Models;
@@ -26,9 +27,9 @@ public class EmailContentService : IEmailContentService
              <dt>Starttijd</dt><dd>{Starttijd}</dd>
              <dt>Toelichting voor de collega</dt><dd class='preserve-newline'>{Toelichting}</dd>
              <dt>Status</dt><dd>  {Status} </dd>
-             <dt>ZaakNummber</dt><dd> {Zaak}</dd>
+             <dt>ZaakNumber</dt><dd> {Zaak}</dd>
              <dt>Naam betrokkene</dt><dd>  {BetrokkeneNaam} </dd> 
-             <dt>GevraagdeHandeling</dt><dd>  {GevraagdeHandeling} </dd> 
+             <dt>Gevraagde handeling</dt><dd>  {GevraagdeHandeling} </dd> 
             {DigitaleAdressen}
             <dt>Aangemaakt door</dt><dd>  {AangemaaktDoor} </dd>
             <dt>Vraag</dt><dd> {Vraag} </dd>
@@ -42,15 +43,15 @@ public class EmailContentService : IEmailContentService
         var betrokkene = klantcontact.HadBetrokkenActoren.FirstOrDefault();
         
         var sb = new StringBuilder(EmailTemplate);
-        sb.Replace("{Starttijd}", klantcontact.PlaatsgevondenOp.ToString("HH:mm"))
+        sb.Replace("{Starttijd}", FormatDateTime( klantcontact.PlaatsgevondenOp))
           .Replace("{Toelichting}", internetaken.Toelichting ?? "N/A")
           .Replace("{Status}", internetaken.Status ?? "N/A")
           .Replace("{GevraagdeHandeling}", internetaken.GevraagdeHandeling ?? "N/A")
           .Replace("{Inhoud}", klantcontact.Inhoud != null ? $"{klantcontact.Inhoud}</dd>" : "")
           .Replace("{Vraag}", klantcontact.Onderwerp != null ? klantcontact.Onderwerp : "")
           .Replace("{AangemaaktDoor}", betrokkene?.Naam != null ? betrokkene.Naam : "")
-          .Replace("{DigitaleAdressen}", BuildDigitaleAdressen(digitaleAdressen))
-          .Replace("{BetrokkeneNaam}", betrokkene?.Naam != null ? betrokkene.Naam : "")
+          .Replace("{DigitaleAdressen}", digitaleAdressen != null ? BuildDigitaleAdressen(digitaleAdressen) : "" )
+          .Replace("{BetrokkeneNaam}", klantcontact.Expand?.HadBetrokkenen?.First().Contactnaam  != null ? FullName(klantcontact.Expand?.HadBetrokkenen?.First().Contactnaam) : "")
           .Replace("{Zaak}", betrokkene?.Naam != null ? zaak?.Identificatie : "");
 
         return sb.ToString();
@@ -65,6 +66,22 @@ public class EmailContentService : IEmailContentService
         }
         return sb.ToString();
     }
- 
-    
+    public static string FullName(Contactnaam? contact)
+    {
+        if(contact == null)
+        {
+            return string.Empty;
+        }
+        return string.Join(" ", new[] { contact.Voornaam ?? contact.Voorletters, contact.VoorvoegselAchternaam, contact.Achternaam }
+            .Where(s => !string.IsNullOrWhiteSpace(s)));
+    }
+
+    public static string FormatDateTime(DateTime dateTime)
+    { 
+        TimeZoneInfo dutchTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Amsterdam");
+        DateTime dutchTime = TimeZoneInfo.ConvertTime(dateTime, dutchTimeZone);
+
+        return dutchTime.ToString("HH:mm"); 
+    }
+
 }
