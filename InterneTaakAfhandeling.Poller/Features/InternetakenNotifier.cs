@@ -26,6 +26,9 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly IEmailContentService _emailContentService;
     private readonly IZakenApiClient _zakenApiClient;
 
+    private const string EmailCodeSoortObjectId = "email";
+    private const string HandmatigCodeRegister = "handmatig";
+
     public InternetakenNotifier(
         IOpenKlantApiClient openKlantApiClient,
         IConfiguration configuration,
@@ -43,7 +46,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         _apiBaseUrl = configuration.GetValue<string>("OpenKlantApi:BaseUrl")
             ?? throw new ArgumentException("OpenKlantApi:BaseUrl configuration is missing");
         _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
-        _zakenApiClient = zakenApiClient;   
+        _zakenApiClient = zakenApiClient;
     }
 
     public async Task NotifyAboutNewInternetakenAsync()
@@ -80,18 +83,18 @@ public class InternetakenNotifier : IInternetakenProcessor
                 var emailTo = await ResolveActorEmailAsync(taak);
                 if (!string.IsNullOrEmpty(emailTo))
                 {
-                    var klantContact   = await _openKlantApiClient.GetKlantcontactAsync(taak.AanleidinggevendKlantcontact.Uuid);
+                    var klantContact = await _openKlantApiClient.GetKlantcontactAsync(taak.AanleidinggevendKlantcontact.Uuid);
 
                     var digitaleAdress = klantContact.Expand?.HadBetrokkenen?.SelectMany(x => x?.Expand?.DigitaleAdressen).ToList();
-                  
+
                     Zaak? zaak = null;
-                   
+
                     var onderwerpObjectId = klantContact.Expand?.GingOverOnderwerpobjecten?.FirstOrDefault()?.Onderwerpobjectidentificator?.ObjectId;
                     if (!string.IsNullOrEmpty(onderwerpObjectId))
                     {
                         zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
                     }
-                    
+
                     var emailContent = _emailContentService.BuildInternetakenEmailContent(taak, klantContact, digitaleAdress, zaak);
 
                     await _emailService.SendEmailAsync(emailTo, $"New Internetaken - {taak.Nummer}", emailContent);
@@ -116,22 +119,24 @@ public class InternetakenNotifier : IInternetakenProcessor
 
         foreach (var toegewezenAanActoren in request.ToegewezenAanActoren)
         {
-            
+
             var actor = await _openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
             if (actor?.Actoridentificator == null || actor.Actoridentificator.CodeObjecttype != "mdw")
-            {              
+            {
                 continue;
             }
 
             var objectId = actor.Actoridentificator.ObjectId;
             var actorIdentificator = actor.Actoridentificator;
 
+            if (actorIdentificator.CodeSoortObjectId == EmailCodeSoortObjectId &&
+                actorIdentificator.CodeRegister == HandmatigCodeRegister)
+            {
+                  return objectId;
+            }
             // Check if we need to fetch email from object API
-            // note, this is a temporary solution. https://dimpact.atlassian.net/browse/PC-983 will provide
-            // a better way to distinguish actors with email address from actors with an id
             if (actorIdentificator.CodeSoortObjectId == "idf" &&
-                actorIdentificator.CodeRegister == "obj" &&
-                !EmailService.IsValidEmail(objectId))
+                actorIdentificator.CodeRegister == "obj")
             {
                 var objectRecords = await _objectApiClient.GetObjectsByIdentificatie(objectId);
                 if (objectRecords.Count == 0)
@@ -165,7 +170,7 @@ public class InternetakenNotifier : IInternetakenProcessor
 
     private List<Internetaken> FilterNewInternetaken(InternetakenResponse internetaken)
     {
-        var thresholdTime = DateTimeOffset.UtcNow.AddHours(-1*_hourThreshold);
+        var thresholdTime = DateTimeOffset.UtcNow.AddHours(-1 * _hourThreshold);
         return internetaken.Results
             .Where(item => item.ToegewezenOp > thresholdTime)
             .ToList();
