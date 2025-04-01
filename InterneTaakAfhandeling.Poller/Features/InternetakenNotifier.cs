@@ -97,7 +97,7 @@ public class InternetakenNotifier : IInternetakenProcessor
 
                     var emailContent = _emailContentService.BuildInternetakenEmailContent(taak, klantContact, digitaleAdress, zaak);
 
-                    await _emailService.SendEmailAsync(emailTo, $"New Internetaken - {taak.Nummer}", emailContent);
+                    await _emailService.SendEmailAsync(emailTo, $"Nieuw contactverzoek - {taak.Nummer}", emailContent);
                     _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
                 }
             }
