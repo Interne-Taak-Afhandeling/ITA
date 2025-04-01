@@ -51,7 +51,7 @@ public class EmailContentService : IEmailContentService
           .Replace("{Vraag}", klantcontact.Onderwerp != null ? klantcontact.Onderwerp : "")
           .Replace("{AangemaaktDoor}", betrokkene?.Naam != null ? betrokkene.Naam : "")
           .Replace("{DigitaleAdressen}", digitaleAdressen != null ? BuildDigitaleAdressen(digitaleAdressen) : "" )
-          .Replace("{BetrokkeneNaam}", klantcontact.Expand?.HadBetrokkenen?.FirstOrDefault()?.Contactnaam  != null ? FullName(klantcontact.Expand?.HadBetrokkenen?.First().Contactnaam) : "")
+          .Replace("{BetrokkeneNaam}", klantcontact.Expand?.HadBetrokkenen?.FirstOrDefault()?.Contactnaam  != null ? FullName(klantcontact.Expand?.HadBetrokkenen?.FirstOrDefault()?.Contactnaam) : "")
           .Replace("{Zaak}", betrokkene?.Naam != null ? zaak?.Identificatie : "");
 
         return sb.ToString();
