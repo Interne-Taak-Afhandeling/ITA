@@ -27,7 +27,7 @@ public class EmailContentService : IEmailContentService
              <dt>Starttijd</dt><dd>{Starttijd}</dd>
              <dt>Toelichting voor de collega</dt><dd class='preserve-newline'>{Toelichting}</dd>
              <dt>Status</dt><dd>  {Status} </dd>
-             <dt>ZaakNumber</dt><dd> {Zaak}</dd>
+             <dt>Zaaknummer</dt><dd> {Zaak}</dd>
              <dt>Naam betrokkene</dt><dd>  {BetrokkeneNaam} </dd> 
              <dt>Gevraagde handeling</dt><dd>  {GevraagdeHandeling} </dd> 
             {DigitaleAdressen}
@@ -51,7 +51,7 @@ public class EmailContentService : IEmailContentService
           .Replace("{Vraag}", klantcontact.Onderwerp != null ? klantcontact.Onderwerp : "")
           .Replace("{AangemaaktDoor}", betrokkene?.Naam != null ? betrokkene.Naam : "")
           .Replace("{DigitaleAdressen}", digitaleAdressen != null ? BuildDigitaleAdressen(digitaleAdressen) : "" )
-          .Replace("{BetrokkeneNaam}", klantcontact.Expand?.HadBetrokkenen?.First().Contactnaam  != null ? FullName(klantcontact.Expand?.HadBetrokkenen?.First().Contactnaam) : "")
+          .Replace("{BetrokkeneNaam}", klantcontact.Expand?.HadBetrokkenen?.FirstOrDefault()?.Contactnaam  != null ? FullName(klantcontact.Expand?.HadBetrokkenen?.First().Contactnaam) : "")
           .Replace("{Zaak}", betrokkene?.Naam != null ? zaak?.Identificatie : "");
 
         return sb.ToString();
