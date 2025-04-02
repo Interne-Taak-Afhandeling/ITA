@@ -25,6 +25,14 @@
             >Historie</router-link
           >
         </li>
+        
+        <li class="utrecht-nav-list__item">
+          <router-link
+            :to="{ name: 'test' }"
+            class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+            >Database Test</router-link
+          >
+        </li>
       </ul>
     </div>
   </nav>
