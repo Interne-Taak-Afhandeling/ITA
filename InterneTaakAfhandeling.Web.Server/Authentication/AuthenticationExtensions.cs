@@ -25,11 +25,11 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
             {
                 var user = s.GetRequiredService<IHttpContextAccessor>().HttpContext?.User;
                 var isLoggedIn = user?.Identity?.IsAuthenticated ?? false;
-                var name = user?.FindFirst(nameClaimType)?.Value;
-                var id = user?.FindFirst(x => idClaimTypes.Contains(x.Type))?.Value;
+                var name = user?.FindFirst(nameClaimType)?.Value ?? string.Empty;
+                var email = user?.FindFirst(x => idClaimTypes.Contains(x.Type))?.Value ?? string.Empty;
                 var roles = user?.FindAll(roleClaimType).Select(x=> x.Value).ToArray() ?? [];
                 var isAdmin = roles.Contains(authOptions.AdminRole);
-                return new ITAUser { IsLoggedIn = isLoggedIn, FullName = name, Email = id, Roles = roles, IsAdmin = isAdmin };
+                return new ITAUser { IsLoggedIn = isLoggedIn, Name = name, Email = email, Roles = roles, IsAdmin = isAdmin };
             });
 
             var authBuilder = services.AddAuthentication(options =>
