@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace InterneTaakAfhandeling.Poller.Services.ObjectApi.Models
 {
     public class ObjectResponse
@@ -31,18 +33,31 @@ namespace InterneTaakAfhandeling.Poller.Services.ObjectApi.Models
 
     public class ObjectData
     {
-        public required List<Emails> Emails { get; set; }
-        public required string Skills { get; set; }
-        public required string Functie { get; set; }
-        public required List<Groep> Groepen { get; set; }
+        public  List<Emails>? Emails { get; set; }
+        public string? Email { get; set; }
+        public  string? Skills { get; set; }
+        public  string? Functie { get; set; }
+        public  List<Groep>? Groepen { get; set; }
         public  string? Voornaam { get; set; }
-        public required string Achternaam { get; set; }
-        public required List<Afdeling> Afdelingen { get; set; }
+        public  string? Achternaam { get; set; }
+        public  List<Afdeling>? Afdelingen { get; set; }
         public  Vervanging? Vervanging { get; set; }
-        public required string Identificatie { get; set; }
+        public  string? Identificatie { get; set; }
         public  string? VolledigeNaam { get; set; }
-        public required List<Telefoonnummers> Telefoonnummers { get; set; }
-        public required string VoorvoegselAchternaam { get; set; }
+        public  List<Telefoonnummers>? Telefoonnummers { get; set; }
+        public  string? VoorvoegselAchternaam { get; set; }
+
+        // Helper method to get all emails regardless of format
+        [JsonIgnore]
+        public List<string> EmailAddresses
+        {
+            get
+            {
+                return Email != null ? [Email] :
+                       Emails != null ? Emails.Select(e => e.Email).ToList() :
+                       [];
+            }
+        }
     }
 
     public class Emails

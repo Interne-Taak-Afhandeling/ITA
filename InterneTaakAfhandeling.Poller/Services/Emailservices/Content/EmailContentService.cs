@@ -77,11 +77,16 @@ public class EmailContentService : IEmailContentService
     }
 
     public static string FormatDateTime(DateTime dateTime)
-    { 
+    {
+        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
         TimeZoneInfo dutchTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Amsterdam");
-        DateTime dutchTime = TimeZoneInfo.ConvertTime(dateTime, dutchTimeZone);
+        DateTime dutchTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, dutchTimeZone);
 
-        return dutchTime.ToString("HH:mm"); 
+        if (dutchTimeZone.IsDaylightSavingTime(dutchTime))
+        {
+            dutchTime = dutchTime.AddHours(1); // adjust for DST
+        }
+
+        return dutchTime.ToString("HH:mm");
     }
-
 }
