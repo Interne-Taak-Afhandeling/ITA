@@ -1,6 +1,7 @@
 using Duende.IdentityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection.PortableExecutable;
 
 namespace InterneTaakAfhandeling.Web.Server.Authentication
 {
@@ -89,7 +90,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                     options.Events.OnSignedOutCallbackRedirect = RedirectToRoot;
                     options.Events.OnRedirectToIdentityProvider = (ctx) =>
                     {
-                        if (ctx.Request.Headers.ContainsKey("is-api"))
+                        if (!ctx.Request.IsBrowserNavigation())
                         {
                             ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
                             ctx.Response.Headers.Location = ctx.ProtocolMessage.CreateAuthenticationRequestUrl();
@@ -131,7 +132,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
 
         private static Task HandleLoggedOut<TOptions>(RedirectContext<TOptions> ctx) where TOptions : AuthenticationSchemeOptions
         {
-            if (ctx.Request.Headers.ContainsKey("is-api"))
+            if (!ctx.Request.IsBrowserNavigation())
             {
                 ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 ctx.Response.Headers.Location = ctx.RedirectUri;
@@ -162,5 +163,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
             if (string.IsNullOrWhiteSpace(returnUrl) || new Uri(returnUrl, UriKind.RelativeOrAbsolute).IsAbsoluteUri) return "/";
             return $"/{returnUrl.AsSpan().TrimStart('/')}";
         }
+
+        private static bool IsBrowserNavigation(this HttpRequest request) => request.Headers.TryGetValue("Sec-Fetch-Dest", out var secFetchDest) && secFetchDest == "document";
     }
 }
