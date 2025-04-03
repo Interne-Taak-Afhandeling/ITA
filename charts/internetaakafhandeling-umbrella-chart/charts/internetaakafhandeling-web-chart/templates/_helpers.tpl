@@ -5,3 +5,7 @@
 {{- define "internetaakafhandeling.web.name" -}}
 {{- printf "%s-web" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "internetaakafhandeling.fullname" -}}
+{{- printf "%s" .Release.Name -}}
+{{- end -}}

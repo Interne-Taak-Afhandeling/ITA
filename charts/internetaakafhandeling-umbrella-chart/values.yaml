@@ -13,6 +13,26 @@ certificates:
 service:
   type: LoadBalancer
 
+# PostgreSQL configuration
+global:
+  postgresql:
+    auth:
+      postgresPassword: "placeholder"
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    username: placeholder
+    password: placeholder
+    database: InterneTaakAfhandeling
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+  metrics:
+    enabled: false
+
 # Shared configuration
 config:
   pollerMessage: "Poller uitgevoerd om:"
@@ -20,16 +40,22 @@ config:
     baseUrl: "https://placeholder.placeholder.nl/placeholder/api/v1/"
   objectApi:
     baseUrl: "https://placeholder.placeholder.nl/api/v2/"
+  database:
+    host: "itarelease-postgres" #todo, releasename niet hardcodedpakken
+    port: "5432"
+    name: "InterneTaakAfhandeling"
+    username: "placeholder"
 
 # Shared secrets
 secrets:
   objectApiKey: "placeholder"
   openKlantApiKey: "placeholder"
+  databasePassword: "placeholder"
 
 internetaakafhandeling-web:
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
-    tag: "0.0.1" # deploy overwrites this tag automatically
+    tag: "0.0.8-06ffa27" # deploy overwrites this tag automatically
     pullPolicy: Always
   config:
     setting1: "Umbrella chart setting1 value"

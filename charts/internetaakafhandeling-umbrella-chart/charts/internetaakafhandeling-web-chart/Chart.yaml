@@ -2,5 +2,5 @@ apiVersion: v2
 name: internetaakafhandeling-web
 description: Helm chart for InterneTaakAfhandeling.Web
 type: application
-version: 0.0.8
-appVersion: 0.0.8
+version: 0.0.11
+appVersion: 0.0.11
