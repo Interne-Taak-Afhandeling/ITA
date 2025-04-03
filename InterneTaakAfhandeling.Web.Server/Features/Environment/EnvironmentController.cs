@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.Environment
 {
     [Route("api/environment")]
     [ApiController]
+    [Authorize]
     public class EnvironmentController(ResourcesConfig resourcesConfig) : ControllerBase
     {
         private readonly ResourcesConfig _resourcesConfig = resourcesConfig;
