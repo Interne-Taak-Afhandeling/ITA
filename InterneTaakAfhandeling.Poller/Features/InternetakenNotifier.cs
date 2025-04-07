@@ -164,7 +164,7 @@ public class InternetakenNotifier : IInternetakenProcessor
                     }
                     else
                     {
-                      _logger.LogWarning("Invalid email address found for object {ObjectId}: {EmailAddress}", objectId, x);
+                        _logger.LogWarning("Invalid email address found for object {ObjectId}", objectId);
                     }
                 });
 

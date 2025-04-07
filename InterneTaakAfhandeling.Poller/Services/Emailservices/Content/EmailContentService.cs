@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Text;
 using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
@@ -77,10 +78,10 @@ public class EmailContentService : IEmailContentService
     }
 
     public static string FormatDateTime(DateTime dateTime)
-    {
-        dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+    { 
+        var dateTimeOffset = new DateTimeOffset(dateTime);
         TimeZoneInfo dutchTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Amsterdam");
-        DateTime dutchTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, dutchTimeZone);
+        DateTimeOffset dutchTime = TimeZoneInfo.ConvertTime(dateTimeOffset, dutchTimeZone);
 
         if (dutchTimeZone.IsDaylightSavingTime(dutchTime))
         {
