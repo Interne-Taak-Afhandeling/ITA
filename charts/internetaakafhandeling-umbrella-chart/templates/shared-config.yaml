@@ -6,3 +6,5 @@ data:
   pollerMessage: {{ .Values.config.pollerMessage | default "Poller uitgevoerd om:" | quote }}
   OpenKlantApi__BaseUrl: {{ .Values.config.openKlantApi.baseUrl | quote }}
   ObjectApi__BaseUrl: {{ .Values.config.objectApi.baseUrl | quote }}
+  ZaakSysteem__BaseUrl: {{ .Values.config.zaakSysteem.baseUrl | quote }}
+  ZaakSysteem__ClientId: {{ .Values.config.zaakSysteem.clientId | quote }}

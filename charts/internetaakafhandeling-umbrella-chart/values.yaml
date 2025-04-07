@@ -45,12 +45,16 @@ config:
     port: "5432"
     name: "InterneTaakAfhandeling"
     username: "placeholder"
+  zaakSysteem:
+    baseUrl: "https://placeholder.placeholder.nl/"
+    clientId: "placeholder"
 
 # Shared secrets
 secrets:
   objectApiKey: "placeholder"
   openKlantApiKey: "placeholder"
   databasePassword: "placeholder"
+  zaakSysteemKey: "placeholder"
 
 internetaakafhandeling-web:
   image:
