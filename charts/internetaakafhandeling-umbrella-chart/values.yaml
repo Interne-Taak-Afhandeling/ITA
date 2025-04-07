@@ -42,6 +42,7 @@ config:
     baseUrl: "https://placeholder.placeholder.nl/api/v2/"
   database:
     host: "itarelease-postgres" #todo, releasename niet hardcodedpakken
+    host: "" # wordt gevuld in secrets
     port: "5432"
     name: "InterneTaakAfhandeling"
     username: "placeholder"
