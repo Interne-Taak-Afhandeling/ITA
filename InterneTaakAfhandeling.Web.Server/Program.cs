@@ -10,8 +10,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<ResourcesConfig>();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-    "Host=localhost;Database=InterneTaakAfhandeling;Username=postgres;Password=postgres";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
