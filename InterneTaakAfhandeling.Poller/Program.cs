@@ -51,7 +51,7 @@ class Program
     // Retrieve the message from the configuration; fallback if not found
     string message = configuration["PollerMessage"] ?? "Poller executed at";
 
-    Console.WriteLine($"{message} {DateTime.UtcNow}");
+    Console.WriteLine($"{message} {DateTimeOffset.UtcNow}");
 
     logger.LogInformation("Starting ITA Poller application");
 
