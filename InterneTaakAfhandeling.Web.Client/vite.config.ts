@@ -6,6 +6,7 @@ import fs from "fs";
 import path from "path";
 import child_process from "child_process";
 import { env } from "process";
+import vueDevTools from 'vite-plugin-vue-devtools'
 
 const baseFolder =
   env.APPDATA !== undefined && env.APPDATA !== ""
@@ -38,22 +39,25 @@ const target = env.ASPNETCORE_HTTPS_PORT
   : env.ASPNETCORE_URLS
     ? env.ASPNETCORE_URLS.split(";")[0]
     : "https://localhost:7272";
-
+    const proxyCalls = ["/api", "/signin-oidc", "/signout-callback-oidc"];
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(),vueDevTools()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   server: {
-    proxy: {
-      "/api": {
-        target,
-        secure: false,
-      },
-    },
+    proxy:  Object.fromEntries(
+      proxyCalls.map((key) => [
+        key,
+        {
+            target,
+          secure: false
+        }
+      ])
+    ),
     port: 56175,
     https: {
       key: fs.readFileSync(keyFilePath),
