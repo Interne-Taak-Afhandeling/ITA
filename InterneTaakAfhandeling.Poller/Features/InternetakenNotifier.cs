@@ -80,8 +80,8 @@ public class InternetakenNotifier : IInternetakenProcessor
             {
                 _logger.LogInformation("Processing internetaken: {Number}", taak.Nummer);
 
-                var emailTo = await ResolveActorEmailAsync(taak);
-                if (!string.IsNullOrEmpty(emailTo))
+                var actorEmails = await ResolveActorsEmailAsync(taak);
+                if (actorEmails.Count > 0)
                 {
                     var klantContact = await _openKlantApiClient.GetKlantcontactAsync(taak.AanleidinggevendKlantcontact.Uuid);
 
@@ -96,9 +96,8 @@ public class InternetakenNotifier : IInternetakenProcessor
                     }
 
                     var emailContent = _emailContentService.BuildInternetakenEmailContent(taak, klantContact, digitaleAdress, zaak);
-
-                    await _emailService.SendEmailAsync(emailTo, $"Nieuw contactverzoek - {taak.Nummer}", emailContent);
-                    _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
+                    actorEmails.ForEach(async email => await _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {taak.Nummer}", emailContent));
+                   _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
                 }
             }
             catch (Exception ex)
@@ -109,19 +108,24 @@ public class InternetakenNotifier : IInternetakenProcessor
         }
     }
 
-    private async Task<string> ResolveActorEmailAsync(Internetaken request)
+    private async Task<List<string>> ResolveActorsEmailAsync(Internetaken internetaken)
     {
-        if (request.ToegewezenAanActoren == null)
+        if (internetaken.ToegewezenAanActoren == null)
         {
-            _logger.LogWarning("No actor assigned to internetaak {Nummer}", request.Nummer);
-            return string.Empty;
+            _logger.LogWarning("No actor assigned to internetaak {Nummer}", internetaken.Nummer);
+            return [];
         }
 
-        foreach (var toegewezenAanActoren in request.ToegewezenAanActoren)
-        {
+        var emailAddresses = new List<string>();
 
+        foreach (var toegewezenAanActoren in internetaken.ToegewezenAanActoren)
+        {
             var actor = await _openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
-            if (actor?.Actoridentificator == null || actor.Actoridentificator.CodeObjecttype != "mdw")
+
+            List<string> validCodeObjectTypes = new List<string> { "mdw", "afd", "grp" };
+           
+            if (actor?.Actoridentificator == null ||
+                !validCodeObjectTypes.Contains(actor.Actoridentificator.CodeObjecttype))
             {
                 continue;
             }
@@ -132,10 +136,10 @@ public class InternetakenNotifier : IInternetakenProcessor
             if (actorIdentificator.CodeSoortObjectId == EmailCodeSoortObjectId &&
                 actorIdentificator.CodeRegister == HandmatigCodeRegister)
             {
-                  return objectId;
+                emailAddresses.Add(objectId);
             }
             // Check if we need to fetch email from object API
-            if (actorIdentificator.CodeSoortObjectId == "idf" &&
+            else if (actorIdentificator.CodeSoortObjectId == "idf" &&
                 actorIdentificator.CodeRegister == "obj")
             {
                 var objectRecords = await _objectApiClient.GetObjectsByIdentificatie(objectId);
@@ -149,22 +153,25 @@ public class InternetakenNotifier : IInternetakenProcessor
                 {
                     _logger.LogWarning("Multiple objects found in overigeobjecten for actorIdentificator {ObjectId}. Expected exactly one match.", objectId);
                     continue;
-                }
+                } 
 
-                var emailAddress = objectRecords.First().Data?.Emails?.FirstOrDefault()?.Email;
-
-                if (!string.IsNullOrEmpty(emailAddress) && EmailService.IsValidEmail(emailAddress))
+                  objectRecords.First().Data?.EmailAddresses?.ForEach(x =>
                 {
-                    return emailAddress;
-                }
+                   
+                    if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
+                    {
+                        emailAddresses.Add(x);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Invalid email address found for object {ObjectId}", objectId);
+                    }
+                });
 
-                _logger.LogWarning("Invalid email address found for object {ObjectId}: {EmailAddress}", objectId, emailAddress);
-                continue;
             }
-            return objectId;
         }
 
-        return string.Empty;
+        return emailAddresses;
     }
 
 

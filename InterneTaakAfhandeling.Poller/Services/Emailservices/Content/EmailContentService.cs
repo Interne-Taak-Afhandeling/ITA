@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Text;
 using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
@@ -43,7 +44,7 @@ public class EmailContentService : IEmailContentService
         var betrokkene = klantcontact.HadBetrokkenActoren.FirstOrDefault();
         
         var sb = new StringBuilder(EmailTemplate);
-        sb.Replace("{Starttijd}", FormatDateTime( klantcontact.PlaatsgevondenOp))
+        sb.Replace("{Starttijd}", FormatPlaatsgevondenOp(klantcontact.PlaatsgevondenOp))
           .Replace("{Toelichting}", internetaken.Toelichting ?? "N/A")
           .Replace("{Status}", internetaken.Status ?? "N/A")
           .Replace("{GevraagdeHandeling}", internetaken.GevraagdeHandeling ?? "N/A")
@@ -76,12 +77,12 @@ public class EmailContentService : IEmailContentService
             .Where(s => !string.IsNullOrWhiteSpace(s)));
     }
 
-    public static string FormatDateTime(DateTime dateTime)
+    public static string FormatPlaatsgevondenOp(DateTimeOffset plaatsgevondenOp)
     { 
+         
         TimeZoneInfo dutchTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Amsterdam");
-        DateTime dutchTime = TimeZoneInfo.ConvertTime(dateTime, dutchTimeZone);
+        DateTimeOffset dutchTime = TimeZoneInfo.ConvertTime(plaatsgevondenOp, dutchTimeZone);
 
-        return dutchTime.ToString("HH:mm"); 
+        return dutchTime.ToString("HH:mm");
     }
-
 }
