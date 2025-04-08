@@ -18,7 +18,7 @@ registerComponents(app);
 
   // Load router after theme, to be able to use theme settings
   const { default: router } = await import("./router");
-
+     
   app.use(router);
 
   // Initialize auth store
