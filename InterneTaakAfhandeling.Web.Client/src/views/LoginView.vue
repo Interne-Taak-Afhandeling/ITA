@@ -1,5 +1,5 @@
-<template>
-  <div class="login-view">
+<template> 
+<div class="login-view">
     <div class="login-container">
       <h1 class="utrecht-heading-1">Inloggen</h1>
       <div v-if="isLoading" class="login-loading">
@@ -14,8 +14,8 @@
           Inloggen
         </button>
       </div>
+    </div> 
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -47,20 +47,26 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .login-view {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 2rem;
-  margin-bottom: 6rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  padding: 1rem;
+  background-color: var(--utrecht-surface-background-color);
 }
 
 .login-container {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column; 
   background-color: var(--utrecht-surface-background-color);
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: var(--utrecht-border-radius);
+  box-shadow: var(--utrecht-shadow-medium);
   padding: 2.5rem;
   border-left: 4px solid var(--utrecht-color-green-30);
 }
-
+ 
 .utrecht-heading-1 {
   color: var(--utrecht-color-green-30);
   margin-bottom: 1.5rem;
@@ -71,7 +77,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 2.5rem 0;
+  margin: 2rem 0;
 }
 
 .login-content {

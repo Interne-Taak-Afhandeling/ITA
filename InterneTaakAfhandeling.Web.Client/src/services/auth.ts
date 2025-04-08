@@ -35,11 +35,9 @@ class AuthService {
   
    
    
-  async logout(returnUrl: string = '/'): Promise<void> {
+  async logout(): Promise<void> {
     try {
-      const encodedReturnUrl = encodeURIComponent(returnUrl);
-      window.location.href = `/api/logoff?returnUrl=${encodedReturnUrl}`;
-      
+      window.location.href = `/api/logoff`;
     } catch (error) {
       console.error('Logout error:', error);
       throw error;

@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { authGuard, adminGuard, titleGuard } from "@/plugins/routerGuards";
 import DashboardView from "@/views/DashboardView.vue";
 import AfdelingscontactenView from "@/views/AfdelingscontactenView.vue";
 import HistorieView from "@/views/HistorieView.vue";
 import LoginView from "@/views/LoginView.vue";
+import ForbiddenView from "@/views/ForbiddenView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,8 +13,8 @@ const router = createRouter({
       name: "dashboard",
       component: DashboardView,
       meta: {
-        title: "Dashboard",
-        requiresAuth: true
+        title: "Dashboard", 
+        requiresAdmin: true
       }
     },
     {
@@ -22,8 +22,8 @@ const router = createRouter({
       name: "afdelingscontacten",
       component: AfdelingscontactenView,
       meta: {
-        title: "Afdelingscontacten",
-        requiresAuth: true
+        title: "Afdelingscontacten", 
+        requiresAdmin: true
       }
     },
     {
@@ -31,8 +31,8 @@ const router = createRouter({
       name: "historie",
       component: HistorieView,
       meta: {
-        title: "Historie",
-        requiresAuth: true
+        title: "Historie", 
+        requiresAdmin: true
       }
     },
     {
@@ -42,12 +42,17 @@ const router = createRouter({
       meta: {
         title: "Inloggen"
       }
+    },
+    {
+      path: "/forbidden",
+      name: "forbidden",
+      component: ForbiddenView,
+      meta: {
+        title: "Toegang Geweigerd",
+        requiresAuth: true
+      }
     }
   ]
 });
-
-router.beforeEach(titleGuard);
-router.beforeEach(authGuard);
-router.beforeEach(adminGuard);
-
+ 
 export default router;

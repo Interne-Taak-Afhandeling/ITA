@@ -4,7 +4,7 @@
     <div v-if="isAuthenticated" class="user-info">
       <span class="user-name">{{ user?.name }}</span>
       <button 
-        class="utrecht-button utrecht-button--subtle" 
+      class="utrecht-button utrecht-button--primary utrecht-button--action-button" 
         @click="logout"
         :disabled="isLoading"
       >

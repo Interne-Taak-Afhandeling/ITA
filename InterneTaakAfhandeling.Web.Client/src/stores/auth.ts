@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const initialized = computed(() => user.value !== null);
 
   const isAuthenticated = computed(() => user.value?.isLoggedIn || false);
   const isAdmin = computed(() => user.value?.isAdmin || false);
@@ -63,6 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
     error,
     isAuthenticated,
     isAdmin,
+    initialized,
     initialize,
     login,
     logout
