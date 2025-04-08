@@ -13,7 +13,7 @@ certificates:
 service:
   type: LoadBalancer
 
-# PostgreSQL configuration
+# PostgreSQL configuration for superuser
 global:
   postgresql:
     auth:
@@ -25,7 +25,7 @@ postgresql:
   auth:
     username: placeholder
     password: placeholder
-    database: InterneTaakAfhandeling
+    database: placeholder
   primary:
     persistence:
       enabled: true
@@ -41,9 +41,12 @@ config:
   objectApi:
     baseUrl: "https://placeholder.placeholder.nl/api/v2/"
   database:
-    host: "" # wordt gevuld in secrets
+    # When postgresql.enabled=true, host is auto-set to {Release.Name}-postgresql
+    # Specify this host only when postgresql.enabled=false
+    host: ""  
+    # These values are used regardless of postgresql.enabled setting
     port: "5432"
-    name: "InterneTaakAfhandeling"
+    name: "placeholder"
     username: "placeholder"
   zaakSysteem:
     baseUrl: "https://placeholder.placeholder.nl/"
