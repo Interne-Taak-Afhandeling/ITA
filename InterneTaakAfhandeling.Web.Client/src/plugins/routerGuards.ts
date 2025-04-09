@@ -18,12 +18,12 @@ function authGuard(to: RouteLocationNormalized, from: RouteLocationNormalized, n
 }
 
  
-function adminGuard(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
+function itaAccessGuard(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
   const authStore = useAuthStore();
-  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin);
+  const requiresITAAccess = to.matched.some(record => record.meta.requiresITAAccess);
    
   return authGuard(to, from, () => { 
-    if (requiresAdmin && !authStore.isAdmin) {
+    if (requiresITAAccess && !authStore.hasITASystemAccess) {
       return next({ name: 'forbidden' });
     }
     
@@ -65,6 +65,6 @@ export default {
     router.beforeEach(initializeAuthGuard);
     router.beforeEach(titleGuard);
     router.beforeEach(authGuard);
-    router.beforeEach(adminGuard);
+    router.beforeEach(itaAccessGuard);
   }
 };

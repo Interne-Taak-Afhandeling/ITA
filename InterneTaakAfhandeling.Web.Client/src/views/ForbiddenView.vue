@@ -5,7 +5,7 @@
       <div class="forbidden-icon">
         <i class="fas fa-lock"></i>
       </div>
-      <p class="utrecht-paragraph">U heeft geen toegang tot deze pagina. Alleen administrators hebben toegang tot deze functionaliteit.</p>
+      <p class="utrecht-paragraph">U heeft geen toegang tot deze pagina. Alleen ITA gebruikers hebben toegang tot deze functionaliteit.</p>
       <p class="utrecht-paragraph">Neem contact op met de systeembeheerder als u denkt dat dit een fout is.</p>
     </div>
   </div>

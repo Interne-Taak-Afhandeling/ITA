@@ -10,7 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
   const initialized = computed(() => user.value !== null);
 
   const isAuthenticated = computed(() => user.value?.isLoggedIn || false);
-  const isAdmin = computed(() => user.value?.isAdmin || false);
+  const hasITASystemAccess = computed(() => user.value?.hasITASystemAccess || false);
 
   async function initialize() {
     isLoading.value = true;
@@ -63,7 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading,
     error,
     isAuthenticated,
-    isAdmin,
+    hasITASystemAccess,
     initialized,
     initialize,
     login,

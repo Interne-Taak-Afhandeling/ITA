@@ -15,7 +15,7 @@ class AuthService {
           email: data.email || '',
           name: data.name || '',
           roles: data.roles || [],
-          isAdmin: data.isAdmin || false
+          hasITASystemAccess: data.hasITASystemAccess || false
         };
         return userData;
       }

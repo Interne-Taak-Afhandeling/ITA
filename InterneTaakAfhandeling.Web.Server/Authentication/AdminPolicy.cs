@@ -1,7 +1,7 @@
 namespace InterneTaakAfhandeling.Web.Server.Authentication
 {
-    public static class AdminPolicy
+    public static class ITAPolicy
     {
-        public const string Name = "AdminPolicy";
+        public const string Name = "ITAPolicy";
     }
 }

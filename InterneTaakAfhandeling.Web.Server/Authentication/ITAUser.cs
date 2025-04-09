@@ -6,6 +6,6 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
         public required string Name { get; set; }
         public required string Email { get; set; }
         public string[] Roles { get; set; } = [];
-        public bool IsAdmin { get; set; }
+        public bool HasITASystemAccess { get; set; }
     }
 }
