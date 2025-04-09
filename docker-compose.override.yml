@@ -5,3 +5,9 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+  
+  poller:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro

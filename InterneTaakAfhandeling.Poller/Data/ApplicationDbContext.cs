@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace InterneTaakAfhandeling.Web.Server.Data
+namespace InterneTaakAfhandeling.Poller.Data
 {
     public class ApplicationDbContext : DbContext
     {

@@ -1,10 +1,25 @@
 {
   "profiles": {
-    "Docker Compose": {
+    "Web": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
+      "composeLaunchProfiles": [
+        "web"
+      ],
       "serviceActions": {
-        "website": "StartDebugging"
+        "website": "StartDebugging",
+        "postgres": "StartWithoutDebugging"
+      }
+    },
+    "Poller": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "composeLaunchProfiles": [
+        "poller"
+      ],
+      "serviceActions": {
+        "poller": "StartDebugging",
+        "postgres": "StartWithoutDebugging"
       }
     }
   }
