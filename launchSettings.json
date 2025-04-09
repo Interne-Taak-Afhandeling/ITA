@@ -3,6 +3,8 @@
     "Web Profiel": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
+      "composeLaunchServiceName": "website",
+      "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/swagger",
       "serviceActions": {
         "website": "StartDebugging",
         "postgres": "StartWithoutDebugging",
