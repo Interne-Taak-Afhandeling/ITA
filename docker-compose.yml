@@ -1,7 +1,6 @@
 services:
   website:
-    profiles:
-      - web
+    image: internetaakafhandeling-web
     build:
       context: .
       dockerfile: InterneTaakAfhandeling.Web.Server/Dockerfile
@@ -9,6 +8,7 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+  
   postgres:
     image: postgres:17
     ports:
@@ -19,9 +19,9 @@ services:
       - POSTGRES_DB=InterneTaakAfhandeling
     volumes:
       - postgres-data:/var/lib/postgresql/data
+  
   poller:
-    profiles:
-      - poller
+    image: internetaakafhandeling-poller
     build:
       context: .
       dockerfile: InterneTaakAfhandeling.Poller/Dockerfile
