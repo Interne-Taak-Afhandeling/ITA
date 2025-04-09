@@ -5,7 +5,6 @@ import App from "./App.vue";
 import { registerComponents } from "@/components/register";
 import { loadThemeResources } from "./resources";
 import { pinia } from "./stores";
-import "@/plugins/axios";
 
 const app = createApp(App);
 

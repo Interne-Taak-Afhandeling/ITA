@@ -1,5 +1,5 @@
-import axios from 'axios';
 import type { User } from '@/types/user';
+import { get } from '@/utils/fetchWrapper';
 
 
  
@@ -7,15 +7,15 @@ class AuthService {
  
   async getCurrentUser(): Promise<User | null> {
     try {
-      const response = await axios.get(`/api/me`);
+      const data = await get<User>(`/api/me`);
       
-      if (response.data) {
+      if (data) {
         const userData: User = {
-          isLoggedIn: response.data.isLoggedIn,
-          email: response.data.email || '',
-          name: response.data.name || '',
-          roles: response.data.roles || [],
-          isAdmin: response.data.isAdmin || false
+          isLoggedIn: data.isLoggedIn,
+          email: data.email || '',
+          name: data.name || '',
+          roles: data.roles || [],
+          isAdmin: data.isAdmin || false
         };
         return userData;
       }
