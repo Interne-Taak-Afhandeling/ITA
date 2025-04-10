@@ -96,8 +96,10 @@ public class InternetakenNotifier : IInternetakenProcessor
                     }
 
                     var emailContent = _emailContentService.BuildInternetakenEmailContent(taak, klantContact, digitaleAdress, zaak);
-                    actorEmails.ForEach(async email => await _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {taak.Nummer}", emailContent));
-                   _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
+                    
+                    await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {taak.Nummer}", emailContent)));
+                    
+                    _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
                 }
             }
             catch (Exception ex)
@@ -179,7 +181,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     {
         var thresholdTime = DateTimeOffset.UtcNow.AddHours(-1 * _hourThreshold);
         return internetaken.Results
-            .Where(item => item.ToegewezenOp > thresholdTime)
+             .Where(item => item.ToegewezenOp > thresholdTime)
             .ToList();
     }
 }
