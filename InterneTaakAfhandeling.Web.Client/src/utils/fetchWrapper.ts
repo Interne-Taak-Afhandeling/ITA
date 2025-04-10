@@ -5,7 +5,7 @@ interface FetchOptions extends RequestInit {
 }
 
 export async function fetchWrapper<T = any>(url: string, options: FetchOptions = {}): Promise<T> {
-  const { skipAuthCheck = false, ...fetchOptions } = options;
+  let { skipAuthCheck = false, ...fetchOptions } = options;
   
 
   const headers = new Headers(fetchOptions.headers as HeadersInit || {});

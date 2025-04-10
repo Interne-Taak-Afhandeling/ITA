@@ -13,7 +13,7 @@ export const injectResources = () => inject<Resources | null>("resources", null)
 
 const getResources = async (): Promise<Resources> => {
   try {
-    return await get<Resources>("/api/environment/resources");
+    return await get<Resources>("/api/environment/resources",{skipAuthCheck: true});
   } catch {
     return {};
   }

@@ -14,7 +14,7 @@ const router = createRouter({
       component: DashboardView,
       meta: {
         title: "Dashboard", 
-        requiresAdmin: true
+        requiresITAAccess: true
       }
     },
     {
@@ -23,7 +23,7 @@ const router = createRouter({
       component: AfdelingscontactenView,
       meta: {
         title: "Afdelingscontacten", 
-        requiresAdmin: true
+        requiresITAAccess: true
       }
     },
     {
@@ -32,7 +32,7 @@ const router = createRouter({
       component: HistorieView,
       meta: {
         title: "Historie", 
-        requiresAdmin: true
+        requiresITAAccess: true
       }
     },
     {
