@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import DashboardView from "@/views/DashboardView.vue";
 import AfdelingscontactenView from "@/views/AfdelingscontactenView.vue";
 import HistorieView from "@/views/HistorieView.vue";
+import LoginView from "@/views/LoginView.vue";
+import ForbiddenView from "@/views/ForbiddenView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,7 +13,8 @@ const router = createRouter({
       name: "dashboard",
       component: DashboardView,
       meta: {
-        title: "Dashboard"
+        title: "Dashboard", 
+        requiresITAAccess: true
       }
     },
     {
@@ -19,7 +22,8 @@ const router = createRouter({
       name: "afdelingscontacten",
       component: AfdelingscontactenView,
       meta: {
-        title: "Afdelingscontacten"
+        title: "Afdelingscontacten", 
+        requiresITAAccess: true
       }
     },
     {
@@ -27,19 +31,28 @@ const router = createRouter({
       name: "historie",
       component: HistorieView,
       meta: {
-        title: "Historie"
+        title: "Historie", 
+        requiresITAAccess: true
+      }
+    },
+    {
+      path: "/login",
+      name: "login",
+      component: LoginView,
+      meta: {
+        title: "Inloggen"
+      }
+    },
+    {
+      path: "/forbidden",
+      name: "forbidden",
+      component: ForbiddenView,
+      meta: {
+        title: "Toegang Geweigerd",
+        requiresAuth: true
       }
     }
   ]
 });
-
-const title = document.title;
-
-router.beforeEach((to) => {
-  document.title = `${to.meta?.title ? to.meta.title + " | " : ""}${title}`;
-  document.body.setAttribute("tabindex", "-1");
-  document.body.focus();
-  document.body.removeAttribute("tabindex");
-});
-
+ 
 export default router;

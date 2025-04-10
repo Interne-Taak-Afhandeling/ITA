@@ -1,12 +1,11 @@
-using InterneTaakAfhandeling.Web.Server.Config;
-using InterneTaakAfhandeling.Web.Server.Features;
+using InterneTaakAfhandeling.Web.Server.Config; 
+using InterneTaakAfhandeling.Web.Server.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<ResourcesConfig>();
+// Add services to the container.
+builder.Services.RegisterServices(builder.Configuration);
+
 var app = builder.Build();
 
 app.UseDefaultFiles();
@@ -19,9 +18,14 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
 }
 
 app.UseHttpsRedirection();
+
+// Add authentication middleware
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.UseItaSecurityHeaders();
 app.MapControllers();
+app.MapITAAuthEndpoints();
 app.MapFallbackToFile("/index.html");
 
 app.Run();

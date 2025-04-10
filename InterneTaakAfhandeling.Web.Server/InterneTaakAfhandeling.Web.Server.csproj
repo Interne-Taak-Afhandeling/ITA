@@ -12,14 +12,15 @@
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SpaProxy">
-      <Version>8.*-*</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-    <PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="0.24.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Duende.AccessTokenManagement.OpenIdConnect" Version="3.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.SpaProxy">
+			<Version>8.*-*</Version>
+		</PackageReference> 
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+		<PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="0.24.0" /> 
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\InterneTaakAfhandeling.Web.Client\InterneTaakAfhandeling.Web.Client.esproj">
