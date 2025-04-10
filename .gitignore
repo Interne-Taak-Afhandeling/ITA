@@ -400,8 +400,8 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Environment-specific settings
-appsettings.Development.json
+
 .env
-*.Development.json
+
 secrets/
  

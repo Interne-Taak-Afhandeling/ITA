@@ -20,7 +20,7 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
         public bool? IndicatieContactGelukt { get; set; }
         public string? Taal { get; set; }
         public bool? Vertrouwelijk { get; set; }
-        public DateTime PlaatsgevondenOp { get; set; }
+        public DateTimeOffset PlaatsgevondenOp { get; set; }
         [JsonPropertyName("_expand")]
         public Expand? Expand { get; set; }
     }
@@ -72,8 +72,8 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
         public List<Actor>? ToegewezenAanActoren { get; set; }
         public string? Toelichting { get; set; }
         public string? Status { get; set; }
-        public DateTime? ToegewezenOp { get; set; }
-        public DateTime? AfgehandeldOp { get; set; }
+        public DateTimeOffset? ToegewezenOp { get; set; }
+        public DateTimeOffset? AfgehandeldOp { get; set; }
     }
 
     public class DigitaleAdres

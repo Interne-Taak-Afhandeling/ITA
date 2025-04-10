@@ -28,9 +28,9 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
 
         public required string Status { get; set; }
 
-        public required DateTime ToegewezenOp { get; set; }
+        public required DateTimeOffset ToegewezenOp { get; set; }
 
-        public DateTime? AfgehandeldOp { get; set; }
+        public DateTimeOffset? AfgehandeldOp { get; set; }
          
         public Internetaken()
         {
@@ -39,7 +39,7 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
             Nummer = string.Empty;
             GevraagdeHandeling = string.Empty;
             Status = string.Empty;
-            ToegewezenOp = DateTime.UtcNow;
+            ToegewezenOp = DateTimeOffset.UtcNow;
         }
     }
 }
