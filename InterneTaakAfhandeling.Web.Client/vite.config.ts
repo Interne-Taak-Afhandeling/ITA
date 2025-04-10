@@ -5,7 +5,7 @@ import vue from "@vitejs/plugin-vue";
 import fs from "fs";
 import path from "path";
 import child_process from "child_process";
-import { env } from "process";
+import { env } from "process"; 
 
 const baseFolder =
   env.APPDATA !== undefined && env.APPDATA !== ""
@@ -39,6 +39,30 @@ const target = env.ASPNETCORE_HTTPS_PORT
     ? env.ASPNETCORE_URLS.split(";")[0]
     : "https://localhost:7272";
 
+// Proxy configuration with different options per category
+const proxyConfig = { 
+
+  api: {
+    endpoints: ["/api"],
+    options: {
+      target,
+      secure: false, 
+    }
+  },
+  auth: {
+    endpoints: ["/signin-oidc", "/signout-callback-oidc"],
+    options: {
+      target,
+      secure: false, 
+    }
+  },
+ 
+};
+
+// Create proxy entries from the configuration
+const proxyEntries = Object.entries(proxyConfig).flatMap(([_, config]) => 
+  config.endpoints.map(endpoint => [endpoint, config.options])
+);
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
@@ -48,12 +72,7 @@ export default defineConfig({
     },
   },
   server: {
-    proxy: {
-      "/api": {
-        target,
-        secure: false,
-      },
-    },
+    proxy: Object.fromEntries(proxyEntries),
     port: 56175,
     https: {
       key: fs.readFileSync(keyFilePath),

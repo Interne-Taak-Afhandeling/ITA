@@ -29,8 +29,8 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                 var name = user?.FindFirst(nameClaimType)?.Value ?? string.Empty;
                 var email = user?.FindFirst(x => idClaimTypes.Contains(x.Type))?.Value ?? string.Empty;
                 var roles = user?.FindAll(roleClaimType).Select(x=> x.Value).ToArray() ?? [];
-                var isAdmin = roles.Contains(authOptions.AdminRole);
-                return new ITAUser { IsLoggedIn = isLoggedIn, Name = name, Email = email, Roles = roles, IsAdmin = isAdmin };
+                var hasITASystemAccess = roles.Contains(authOptions.ITASystemAccessRole);
+                return new ITAUser { IsLoggedIn = isLoggedIn, Name = name, Email = email, Roles = roles, HasITASystemAccess = hasITASystemAccess };
             });
 
             var authBuilder = services.AddAuthentication(options =>
@@ -101,7 +101,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                 });
             }
             services.AddAuthorizationBuilder()
-                .AddPolicy(AdminPolicy.Name, policy => policy.RequireRole(authOptions.AdminRole))
+                .AddPolicy(ITAPolicy.Name, policy => policy.RequireRole(authOptions.ITASystemAccessRole))
                 .AddFallbackPolicy("LoggedIn", policy => policy.RequireAuthenticatedUser());
             services.AddDistributedMemoryCache();
             services.AddOpenIdConnectAccessTokenManagement();

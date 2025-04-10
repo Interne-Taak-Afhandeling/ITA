@@ -1,5 +1,5 @@
 <template>
-  <utrecht-page-header>
+  <utrecht-page-header v-if="isAuthenticated">
     <utrecht-skip-link href="#main">Naar inhoud</utrecht-skip-link>
 
     <utrecht-skip-link href="#menu">Naar menu</utrecht-skip-link>
@@ -19,6 +19,10 @@
     <utrecht-nav-bar />
 
     <span class="utrecht-heading-2">{{ title }}</span>
+    
+    <div class="user-info-container">
+      <user-info />
+    </div>
   </utrecht-page-header>
 </template>
 
@@ -26,8 +30,12 @@
 import { computed } from "vue";
 import UtrechtNavBar from "./UtrechtNavBar.vue";
 import { injectResources } from "@/resources";
+import UserInfo from "./UserInfo.vue";
+import { useAuthStore } from "@/stores/auth";
 
 const resources = injectResources();
+const authStore = useAuthStore();
+const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 const svg = computed(() => {
   if (!resources?.logoUrl?.endsWith(".svg")) return;
@@ -43,5 +51,19 @@ const title = document.title.split("|").pop();
 <style lang="scss" scoped>
 .utrecht-heading-2 {
   margin-inline: var(--ita-header-heading-margin-inline);
+}
+
+.utrecht-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.user-info-container {
+  margin-left: auto;
+  margin-right: 1.5rem;
+  display: flex;
+  align-items: center;
 }
 </style>

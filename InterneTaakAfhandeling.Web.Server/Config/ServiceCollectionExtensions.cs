@@ -16,7 +16,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
                 options.Authority = GetRequiredConfigValue(configuration,"OIDC_AUTHORITY");
                 options.ClientId = GetRequiredConfigValue(configuration, "OIDC_CLIENT_ID");
                 options.ClientSecret = GetRequiredConfigValue(configuration, "OIDC_CLIENT_SECRET");
-                options.AdminRole = GetRequiredConfigValue(configuration, "OIDC_ADMIN_ROLE");
+                options.ITASystemAccessRole = GetRequiredConfigValue(configuration, "OIDC_ITA_SYSTEM_ACCESS_ROLE");
                 options.NameClaimType = configuration["OIDC_NAME_CLAIM_TYPE"];
                 options.RoleClaimType = configuration["OIDC_ROLE_CLAIM_TYPE"];
                 options.IdClaimType = configuration["OIDC_ID_CLAIM_TYPE"];
