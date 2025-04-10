@@ -181,7 +181,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     {
         var thresholdTime = DateTimeOffset.UtcNow.AddHours(-1 * _hourThreshold);
         return internetaken.Results
-             .Where(item => item.ToegewezenOp > thresholdTime)
+            .Where(item => item.ToegewezenOp > thresholdTime)
             .ToList();
     }
 }
