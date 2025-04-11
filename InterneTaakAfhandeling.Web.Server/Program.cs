@@ -20,12 +20,12 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
 app.UseHttpsRedirection();
 
 // Add authentication middleware
-app.UseAuthentication();
+// Temporary disabled: app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseItaSecurityHeaders();
 app.MapControllers();
-app.MapITAAuthEndpoints();
+// Temporary disabled: app.MapITAAuthEndpoints();
 app.MapFallbackToFile("/index.html");
 
 app.Run();

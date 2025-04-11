@@ -2,13 +2,13 @@ apiVersion: v2
 name: internetaakafhandeling
 description: Umbrella chart for InterneTaakAfhandeling including Web API, Poller, and PostgreSQL
 type: application
-version: 0.0.12
+version: 0.0.13
 dependencies:
   - name: internetaakafhandeling-web
-    version: 0.0.12
+    version: 0.0.13
     repository: file://charts/internetaakafhandeling-web-chart
   - name: internetaakafhandeling-poller
-    version: 0.0.12
+    version: 0.0.13
     repository: file://charts/internetaakafhandeling-poller-chart
   - name: postgresql
     version: 12.5.6
