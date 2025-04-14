@@ -3,4 +3,11 @@ kind: ConfigMap
 metadata:
   name: {{ include "internetaakafhandeling.web.fullname" .}}-private-config
 data:
-  setting1: "value1 for internetaakafhandeling.web"
+  {{- if .Values.oidc }}
+  OIDC_AUTHORITY: {{ .Values.oidc.authority }}
+  OIDC_CLIENT_ID: {{ .Values.oidc.clientId }}
+  OIDC_ITA_SYSTEM_ACCESS_ROLE: {{ .Values.oidc.itaSystemAccessRole }}
+  OIDC_NAME_CLAIM_TYPE: {{ .Values.oidc.nameClaimType }}
+  OIDC_ROLE_CLAIM_TYPE: {{ .Values.oidc.roleClaimType }}
+  OIDC_ID_CLAIM_TYPE: {{ .Values.oidc.idClaimType }}
+  {{- end }}
