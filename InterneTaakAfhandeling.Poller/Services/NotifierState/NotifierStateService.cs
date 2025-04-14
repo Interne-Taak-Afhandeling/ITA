@@ -40,7 +40,8 @@ namespace InterneTaakAfhandeling.Poller.Services.NotifierState
 
         public async Task<InternetakenNotifierState> StartJobAsync()
         {
-            var state = await _dbContext.InternetakenNotifierStates.LastAsync();
+            // by default there will be only one record but just incase want to be sure that we're picking the latest
+            var state = await _dbContext.InternetakenNotifierStates.OrderByDescending(x => x.UpdatedAt).FirstOrDefaultAsync();
             if (state == null)
             {
                 state = new InternetakenNotifierState
