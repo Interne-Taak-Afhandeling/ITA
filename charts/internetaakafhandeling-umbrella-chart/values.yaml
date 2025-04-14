@@ -73,6 +73,11 @@ internetaakafhandeling-web:
       nameClaimType: ""
       roleClaimType: ""
       idClaimType: ""
+    resources:
+      logoUrl: ""
+      faviconUrl: ""
+      designTokensUrl: ""
+      webFontSources: []
       
   # If you have any web-specific secrets, add them here
   secrets: {}

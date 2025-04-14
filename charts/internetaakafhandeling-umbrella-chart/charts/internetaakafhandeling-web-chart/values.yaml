@@ -11,3 +11,8 @@ config:
     nameClaimType: ""
     roleClaimType: ""
     idClaimType: ""
+  resources:
+    logoUrl: ""
+    faviconUrl: ""
+    designTokensUrl: ""
+    webFontSources: []
