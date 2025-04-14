@@ -24,6 +24,6 @@ app.UseAuthorization();
 app.UseItaSecurityHeaders();
 app.MapControllers();
 app.MapITAAuthEndpoints();
-app.MapFallbackToFile("/index.html");
+app.MapFallbackToFile("/index.html").AllowAnonymous();
 
 app.Run();
