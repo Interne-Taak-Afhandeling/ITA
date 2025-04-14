@@ -12,6 +12,6 @@ data:
         }
       },
       "AllowedHosts": "*",
-      "Setting1": "{{ .Values.appsettings.setting1 }}",
-      "Setting2": "{{ .Values.appsettings.setting2 }}"
+      "Setting1": "{{ (.Values.appsettings).setting1 }}",
+      "Setting2": "{{ (.Values.appsettings).setting2 }}"
     }

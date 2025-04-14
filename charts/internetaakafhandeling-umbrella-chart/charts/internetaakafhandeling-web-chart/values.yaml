@@ -2,6 +2,17 @@ image:
   repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
   tag: "0.0.8-06ffa27"
   pullPolicy: IfNotPresent
-appsettings:
-  setting1: "helm value for Setting1"
-  setting2: "helm value for Setting2"
+config:
+  oidc:
+    authority: ""
+    clientId: ""
+    clientSecret: ""
+    itaSystemAccessRole: ""
+    nameClaimType: ""
+    roleClaimType: ""
+    idClaimType: ""
+  resources:
+    logoUrl: ""
+    faviconUrl: ""
+    designTokensUrl: ""
+    webFontSources: []

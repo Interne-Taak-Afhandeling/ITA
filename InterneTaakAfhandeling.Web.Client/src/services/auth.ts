@@ -7,11 +7,8 @@ class AuthService {
  
   async getCurrentUser(): Promise<User | null> {
     try {
-
-      // Temporary disabled: 
-      // const data = await get<User>(`/api/me`);
-      const data = { isLoggedIn: true, email: "sdsdf@sdfsf.sdfsd", name: "fsdfs", roles: [], hasITASystemAccess : true}
-
+      const data = await get<User>(`/api/me`);
+      
       if (data) {
         const userData: User = {
           isLoggedIn: data.isLoggedIn,

@@ -3,4 +3,17 @@ kind: ConfigMap
 metadata:
   name: {{ include "internetaakafhandeling.web.fullname" .}}-private-config
 data:
-  setting1: "value1 for internetaakafhandeling.web"
+  {{- if (.Values.config).oidc }}
+  OIDC_AUTHORITY: {{ .Values.config.oidc.authority }}
+  OIDC_CLIENT_ID: {{ .Values.config.oidc.clientId }}
+  OIDC_ITA_SYSTEM_ACCESS_ROLE: {{ .Values.config.oidc.itaSystemAccessRole }}
+  OIDC_NAME_CLAIM_TYPE: {{ .Values.config.oidc.nameClaimType }}
+  OIDC_ROLE_CLAIM_TYPE: {{ .Values.config.oidc.roleClaimType }}
+  OIDC_ID_CLAIM_TYPE: {{ .Values.config.oidc.idClaimType }}
+  {{- end }}
+  {{- if (.Values.config).resources }}
+  RESOURCES__LOGO_URL	: {{ .Values.config.resources.logoUrl | toString | quote }}
+  RESOURCES__FAVICON_URL	: {{ .Values.config.resources.faviconUrl | toString | quote }}
+  RESOURCES__DESIGN_TOKENS_URL	: {{ .Values.config.resources.designTokensUrl | toString | quote }}
+  RESOURCES__WEB_FONT_SOURCES	: {{ join " " .Values.config.resources.webFontSources | quote }}
+  {{- end }}

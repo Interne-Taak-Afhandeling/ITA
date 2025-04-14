@@ -65,8 +65,20 @@ internetaakafhandeling-web:
     tag: "0.0.8-06ffa27" # deploy overwrites this tag automatically
     pullPolicy: Always
   config:
-    setting1: "Umbrella chart setting1 value"
-    setting2: "Umbrella chart setting2 value"
+    oidc:
+      authority: ""
+      clientId: ""
+      clientSecret: ""
+      itaSystemAccessRole: ""
+      nameClaimType: ""
+      roleClaimType: ""
+      idClaimType: ""
+    resources:
+      logoUrl: ""
+      faviconUrl: ""
+      designTokensUrl: ""
+      webFontSources: []
+      
   # If you have any web-specific secrets, add them here
   secrets: {}
     
