@@ -3,6 +3,7 @@ kind: ConfigMap
 metadata:
   name: {{ include "internetaakafhandeling.web.fullname" .}}-private-config
 data:
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
   {{- if (.Values.config).oidc }}
   OIDC_AUTHORITY: {{ .Values.config.oidc.authority }}
   OIDC_CLIENT_ID: {{ .Values.config.oidc.clientId }}
