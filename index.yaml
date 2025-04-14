@@ -19,6 +19,27 @@ entries:
     version: 0.0.1
   internetaakafhandeling:
   - apiVersion: v2
+    created: "2025-04-14T17:06:17.683447634Z"
+    dependencies:
+    - name: internetaakafhandeling-web
+      repository: file://charts/internetaakafhandeling-web-chart
+      version: 0.0.18
+    - name: internetaakafhandeling-poller
+      repository: file://charts/internetaakafhandeling-poller-chart
+      version: 0.0.18
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 12.5.6
+    description: Umbrella chart for InterneTaakAfhandeling including Web API, Poller,
+      and PostgreSQL
+    digest: 4c22563f788f12477a7f04459f1b03f3a2f761d11e900fd169daaebe5c45ef24
+    name: internetaakafhandeling
+    type: application
+    urls:
+    - https://github.com/Interne-Taak-Afhandeling/ITA/releases/download/internetaakafhandeling-0.0.18/internetaakafhandeling-0.0.18.tgz
+    version: 0.0.18
+  - apiVersion: v2
     created: "2025-04-14T16:38:45.486348132Z"
     dependencies:
     - name: internetaakafhandeling-web
@@ -309,4 +330,4 @@ entries:
     urls:
     - https://github.com/Interne-Taak-Afhandeling/ITA/releases/download/internetaakafhandeling-0.0.2/internetaakafhandeling-0.0.2.tgz
     version: 0.0.2
-generated: "2025-04-14T16:38:45.486478727Z"
+generated: "2025-04-14T17:06:17.683538715Z"
