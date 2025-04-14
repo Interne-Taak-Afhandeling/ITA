@@ -5,7 +5,7 @@ public class InternetakenNotifierState
 {
     public Guid Id { get; set; }
     public DateTimeOffset LastRunAt { get; set; }
-    public long LastProcessedId { get; set; }
+    public Guid LastInternetakenId { get; set; }
     public DateTimeOffset? LastSuccessAt { get; set; }
     public int FailureCount { get; set; }
     public bool IsRunning { get; set; }
