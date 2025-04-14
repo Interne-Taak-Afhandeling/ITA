@@ -17,11 +17,9 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
     app.UseSwaggerUI();
 }
 
-// Add authentication middleware
-app.UseAuthentication();
+app.UseItaSecurityHeaders();
 app.UseAuthorization();
 
-app.UseItaSecurityHeaders();
 app.MapControllers();
 app.MapITAAuthEndpoints();
 app.MapFallbackToFile("/index.html").AllowAnonymous();
