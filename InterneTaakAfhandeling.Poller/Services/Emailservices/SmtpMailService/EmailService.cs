@@ -48,7 +48,7 @@ public class EmailService : IEmailService
 
              
             _logger.LogInformation("Sending email to {To} via {Host}:{Port}", to[..Math.Min(to.Length, 4)], _smtpSettings.Host, _smtpSettings.Port);
-             await smtpClient.SendMailAsync(mailMessage);
+            await smtpClient.SendMailAsync(mailMessage);
            
         }
         catch (SmtpException smtpEx)

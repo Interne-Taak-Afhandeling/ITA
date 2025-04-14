@@ -127,12 +127,9 @@ public async IAsyncEnumerable<ProcessingResult> ProcessInternetakenAsync(List<In
                     }
 
                     var emailContent = _emailContentService.BuildInternetakenEmailContent(taak, klantContact, digitaleAdress, zaak);
-                     
-                    foreach (var email in actorEmails)
-                    {
-                        await _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {taak.Nummer}", emailContent);
-                    }
-
+                    
+                    await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {taak.Nummer}", emailContent)));
+                    
                     _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
                 }
                 else
