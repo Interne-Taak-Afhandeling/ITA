@@ -17,8 +17,6 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 // Add authentication middleware
 app.UseAuthentication();
 app.UseAuthorization();
