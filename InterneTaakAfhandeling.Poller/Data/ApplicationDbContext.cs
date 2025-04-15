@@ -1,4 +1,4 @@
-﻿using InterneTaakAfhandeling.Poller.Features.Entities;
+﻿using InterneTaakAfhandeling.Poller.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InterneTaakAfhandeling.Poller.Data

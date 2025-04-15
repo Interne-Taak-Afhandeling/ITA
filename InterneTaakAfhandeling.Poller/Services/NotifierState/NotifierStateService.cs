@@ -1,5 +1,5 @@
 ﻿using InterneTaakAfhandeling.Poller.Data;
-using InterneTaakAfhandeling.Poller.Features.Entities;
+using InterneTaakAfhandeling.Poller.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InterneTaakAfhandeling.Poller.Services.NotifierState

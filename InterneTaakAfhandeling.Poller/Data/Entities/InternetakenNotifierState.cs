@@ -1,4 +1,4 @@
-﻿namespace InterneTaakAfhandeling.Poller.Features.Entities;
+﻿namespace InterneTaakAfhandeling.Poller.Data.Entities;
 
 
 public class InternetakenNotifierState
