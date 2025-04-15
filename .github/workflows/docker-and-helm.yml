@@ -75,10 +75,16 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha
 
-      - name: Set version output from meta (fallback if empty)
+      - name: Set version output
         id: set-version
         run: |
-          VERSION=$(echo '${{ steps.meta.outputs.json }}' | jq -r '.labels["org.opencontainers.image.version"] // "0.0.0"')
+          VERSION=$(echo '${{ steps.meta.outputs.json }}' | jq -r '.labels["org.opencontainers.image.version"] // ""')
+          if [ -z "$VERSION" ]; then
+            VERSION="${{ github.event.inputs.release_tag }}"
+          fi
+          if [ -z "$VERSION" ]; then
+            VERSION="0.0.0-dev"
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Build & push Web image
@@ -127,8 +133,9 @@ jobs:
 
       - name: Update Helm chart version & values
         env:
-          VERSION: ${{ needs.build.outputs.version }}
+          VERSION: ${{ needs.build.outputs.version || github.event.inputs.release_tag || '0.0.0-dev' }}
         run: |
+          echo "🛠️ Helm versie: $VERSION"
           yq eval ".appVersion = \"$VERSION\"" -i charts/internetaakafhandeling-umbrella-chart/Chart.yaml
           yq eval ".version = \"$VERSION\"" -i charts/internetaakafhandeling-umbrella-chart/Chart.yaml
           yq eval ".internetaakafhandeling-web.image.tag = \"$VERSION\"" -i charts/internetaakafhandeling-umbrella-chart/values.yaml
