@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Simuleer release-tag (bijv. v0.1.0)'
+        required: false
 
 env:
   REGISTRY: ghcr.io
@@ -30,12 +34,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check if this is the latest release tag
+      - name: Simuleer tag voor workflow_dispatch
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag != ''
+        run: echo "GITHUB_REF=refs/tags/${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
+
+      - name: Bepaal of dit de laatste release is
         id: latest
-        if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          LATEST=$(git tag -l --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
-          if [ "${GITHUB_REF#refs/tags/}" = "$LATEST" ]; then
+          TAGS=$(git tag -l --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$')
+          LATEST=$(echo "$TAGS" | head -n1)
+          CURRENT_TAG="${GITHUB_REF#refs/tags/}"
+          if [ "$CURRENT_TAG" = "$LATEST" ]; then
             echo "IS_LATEST=true" >> $GITHUB_ENV
           fi
 
@@ -65,7 +74,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha
 
-      - name: Build & push internetaakafhandeling.web
+      - name: Build & push Web image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -76,7 +85,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build & push internetaakafhandeling.poller
+      - name: Build & push Poller image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -88,9 +97,12 @@ jobs:
           cache-to: type=gha,mode=max
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(env.GITHUB_REF, 'refs/tags/')
     needs: build
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -99,7 +111,7 @@ jobs:
           wget https://github.com/mikefarah/yq/releases/download/v4.34.1/yq_linux_amd64 -O /usr/local/bin/yq
           chmod +x /usr/local/bin/yq
 
-      - name: Set version in Chart.yaml & values.yaml
+      - name: Update Helm chart version & values
         env:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
@@ -108,32 +120,40 @@ jobs:
           yq eval ".internetaakafhandeling-web.image.tag = \"$VERSION\"" -i charts/internetaakafhandeling-umbrella-chart/values.yaml
           yq eval ".internetaakafhandeling-poller.image.tag = \"$VERSION\"" -i charts/internetaakafhandeling-umbrella-chart/values.yaml
 
-      - name: Set up Git user
-        run: |
-          git config --global user.email "pascal@icatt.nl"
-          git config --global user.name "PascalIcatt"
-
-      # Install Helm to prepare dependencies
       - name: Set up Helm
         uses: azure/setup-helm@v3
         with:
-          version: 'latest'
+          version: latest
 
-      # Update chart dependencies before packaging
-      - name: Update Helm chart dependencies
+      - name: Update chart dependencies
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           cd charts/internetaakafhandeling-umbrella-chart
           helm dependency update
           cd ../../
 
-      - name: Release Helm Charts to GitHub Pages
-        uses: helm/chart-releaser-action@v1.7.0
-        with:
-          skip_existing: false
-          charts_dir: charts
+      - name: Get GitHub Pages URL
         env:
-          CR_TOKEN: ${{ secrets.PACKAGE_SECRET }}
-          CR_OWNER: ${{ github.repository_owner }}
-          CR_REPO: ${{ github.event.repository.name }}
-          CR_FORCE: "true"
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          URL=$(gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '.html_url')
+          echo "PAGES_URL=$URL" >> $GITHUB_ENV
+
+      - name: Package chart & update index
+        working-directory: charts
+        run: |
+          helm package ./internetaakafhandeling-umbrella-chart
+          curl --output _index.yaml ${{ env.PAGES_URL }}/index.yaml || echo "No existing index"
+          helm repo index . --url ${{ env.PAGES_URL }} --merge ./_index.yaml
+          mkdir -p ../pages
+          mv *.tgz ../pages/
+          mv index.yaml ../pages/
+
+      - name: Upload Helm chart artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
