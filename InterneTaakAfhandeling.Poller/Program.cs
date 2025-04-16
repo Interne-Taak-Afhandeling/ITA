@@ -10,6 +10,7 @@ using InterneTaakAfhandeling.Poller.Services.ObjectApi;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Poller.Services.ZakenApi;
 using InterneTaakAfhandeling.Poller.Data;
+using InterneTaakAfhandeling.Poller.Services.NotifierState;
 
 class Program
 {
@@ -49,7 +50,8 @@ class Program
                 .AddScoped<IEmailService, EmailService>()
                 .AddScoped<IEmailContentService, EmailContentService>()
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
-                .AddScoped<IZakenApiClient, ZakenApiClient>();
+                .AddScoped<IZakenApiClient, ZakenApiClient>()
+                .AddScoped<INotifierStateService, NotifierStateService>();
 
             var serviceProvider = services.BuildServiceProvider();
 
@@ -59,6 +61,7 @@ class Program
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbContext.Database.Migrate();
             }
+         
 
             // Get services
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
@@ -67,7 +70,7 @@ class Program
             // Retrieve the message from the configuration; fallback if not found
             string message = configuration["PollerMessage"] ?? "Poller executed at";
 
-    Console.WriteLine($"{message} {DateTimeOffset.UtcNow}");
+            Console.WriteLine($"{message} {DateTimeOffset.UtcNow}");
 
             logger.LogInformation("Starting ITA Poller application");
 
