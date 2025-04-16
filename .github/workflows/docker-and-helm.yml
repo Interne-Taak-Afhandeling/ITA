@@ -26,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+      web_tag: ${{ steps.set-tags.outputs.web_tag }}
+      poller_tag: ${{ steps.set-tags.outputs.poller_tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +47,13 @@ jobs:
           if [ "$TAG" = "${{ github.ref }}" ] ; then
               echo "IS_LATEST=true" >> "$GITHUB_ENV"
           fi
+
+      - name: Set custom image tags
+        id: set-tags
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          echo "web_tag=web-${SHA}" >> $GITHUB_OUTPUT
+          echo "poller_tag=poller-${SHA}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -78,7 +87,9 @@ jobs:
           context: .
           file: InterneTaakAfhandeling.Web.Server/Dockerfile
           push: ${{ fromJSON(env.SHOULD_PUSH) }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ env.WEB_IMAGE }}:${{ steps.set-tags.outputs.web_tag }}
+            ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -89,7 +100,9 @@ jobs:
           context: .
           file: InterneTaakAfhandeling.Poller/Dockerfile
           push: ${{ fromJSON(env.SHOULD_PUSH) }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ env.POLLER_IMAGE }}:${{ steps.set-tags.outputs.poller_tag }}
+            ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -116,12 +129,14 @@ jobs:
         uses: mikefarah/yq@v4.34.1
         env:
           VERSION: ${{ needs.build.outputs.version }}
+          WEB_TAG: ${{ needs.build.outputs.web_tag }}
+          POLLER_TAG: ${{ needs.build.outputs.poller_tag }}
         with:
           cmd: |
             yq eval '.appVersion = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/Chart.yaml
             yq eval '.version = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/Chart.yaml
-            yq eval '.web.image.tag = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/values.yaml
-            yq eval '.poller.image.tag = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/values.yaml
+            yq eval '.web.image.tag = "${{ env.WEB_TAG }}"' -i charts/internetaakafhandeling/values.yaml
+            yq eval '.poller.image.tag = "${{ env.POLLER_TAG }}"' -i charts/internetaakafhandeling/values.yaml
 
       - name: Set GitHub Pages URL
         env:
