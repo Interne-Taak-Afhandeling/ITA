@@ -112,17 +112,17 @@ jobs:
           version: v3.8.1
 
       - name: Update chart values with new image tag
-        uses: mikefarah/yq@master
+        uses: mikefarah/yq@v4.34.1
         env:
           VERSION: ${{ needs.build.outputs.version }}
         with:
           cmd: |
-            yq eval '.appVersion = "${{ env.VERSION }}"' -i charts/internetaakafhandeling-umbrella-chart/Chart.yaml
-            yq eval '.version = "${{ env.VERSION }}"' -i charts/internetaakafhandeling-umbrella-chart/Chart.yaml
-            yq eval '.internetaakafhandeling-web.image.tag = "${{ env.VERSION }}"' -i charts/internetaakafhandeling-umbrella-chart/values.yaml
-            yq eval '.internetaakafhandeling-poller.image.tag = "${{ env.VERSION }}"' -i charts/internetaakafhandeling-umbrella-chart/values.yaml
+            yq eval '.appVersion = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/Chart.yaml
+            yq eval '.version = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/Chart.yaml
+            yq eval '.web.image.tag = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/values.yaml
+            yq eval '.poller.image.tag = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/values.yaml
 
-      - name: set github pages url
+      - name: Set GitHub Pages URL
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -130,16 +130,16 @@ jobs:
           echo "PAGES_URL=$url" >> "$GITHUB_ENV"
 
       - name: Update chart dependencies
-        working-directory: charts/internetaakafhandeling-umbrella-chart
+        working-directory: charts/internetaakafhandeling
         run: helm dependency update
 
-      - name: package chart and create new index
+      - name: Package chart and create new index
         working-directory: charts
         run: |
-          helm package ./internetaakafhandeling-umbrella-chart
+          helm package ./internetaakafhandeling
           curl --output _index.yaml ${{env.PAGES_URL}}/index.yaml || echo "No existing index"
           helm repo index . --url ${{env.PAGES_URL}} --merge ./_index.yaml
-          mkdir ../pages
+          mkdir -p ../pages
           mv index.yaml ../pages/
           mv *.tgz ../pages/
 
