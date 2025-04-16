@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InterneTaakAfhandeling.Poller.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace InterneTaakAfhandeling.Poller.Data
 {
@@ -12,5 +13,7 @@ namespace InterneTaakAfhandeling.Poller.Data
         {
             base.OnModelCreating(modelBuilder);
         }
+
+       public DbSet<InternetakenNotifierState> InternetakenNotifierStates { get; set; }
     }
 }
