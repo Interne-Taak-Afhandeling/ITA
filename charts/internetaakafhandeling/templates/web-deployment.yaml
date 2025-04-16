@@ -1,0 +1,37 @@
+{{- if .Values.web.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "internetaakafhandeling.web.fullname" . }}
+  labels:
+    {{- include "internetaakafhandeling.web.labels" . | nindent 4 }}
+spec:
+  replicas: 1 # we need to persist data protection keys before we can add more replicas. otherwise login with oidc breaks
+  selector:
+    matchLabels:
+      {{- include "internetaakafhandeling.web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "internetaakafhandeling.web.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: internetaakafhandeling-web
+          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.web.service.targetPort }}
+          volumeMounts:
+            - name: appsettings-volume
+              mountPath: /app/appsettings.json
+              subPath: appsettings.json
+          envFrom:
+            - configMapRef:
+                name: {{ include "internetaakafhandeling.web.fullname" . }}-config
+            - secretRef:
+                name: {{ include "internetaakafhandeling.web.fullname" . }}-secret
+      volumes:
+        - name: appsettings-volume
+          configMap:
+            name: {{ include "internetaakafhandeling.web.fullname" . }}-appsettings
+{{- end }}

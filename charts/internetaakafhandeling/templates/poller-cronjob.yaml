@@ -1,0 +1,27 @@
+{{- if .Values.poller.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "internetaakafhandeling.poller.fullname" . }}
+  labels:
+    {{- include "internetaakafhandeling.poller.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.poller.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "internetaakafhandeling.poller.selectorLabels" . | nindent 12 }}
+        spec:
+          containers:
+            - name: internetaakafhandeling-poller
+              image: "{{ .Values.poller.image.repository }}:{{ .Values.poller.image.tag }}"
+              imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
+              envFrom:
+                - configMapRef:
+                    name: {{ include "internetaakafhandeling.poller.fullname" . }}-config
+                - secretRef:
+                    name: {{ include "internetaakafhandeling.poller.fullname" . }}-secret
+          restartPolicy: OnFailure
+{{- end }}

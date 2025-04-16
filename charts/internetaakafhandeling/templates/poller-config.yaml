@@ -1,0 +1,25 @@
+{{- if .Values.poller.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "internetaakafhandeling.poller.fullname" . }}-config
+  labels:
+    {{- include "internetaakafhandeling.poller.labels" . | nindent 4 }}
+data:
+  # API configurations
+  OpenKlantApi__BaseUrl: {{ .Values.poller.apiConnections.openKlant.baseUrl | quote }}
+  ObjectApi__BaseUrl: {{ .Values.poller.apiConnections.object.baseUrl | quote }}
+  ZaakSysteem__BaseUrl: {{ .Values.poller.apiConnections.zaakSysteem.baseUrl | quote }}
+  ZaakSysteem__ClientId: {{ .Values.poller.apiConnections.zaakSysteem.clientId | quote }}
+  
+  # SMTP Configuration
+  Email__SmtpSettings__Host: {{ .Values.poller.smtp.host | quote }}
+  Email__SmtpSettings__Port: {{ .Values.poller.smtp.port | quote }}
+  Email__SmtpSettings__Username: {{ .Values.poller.smtp.username | quote }}
+  Email__SmtpSettings__FromEmail: {{ .Values.poller.smtp.fromEmail | quote }}
+  Email__SmtpSettings__EnableSsl: {{ .Values.poller.smtp.enableSsl | quote }}
+  
+  # Notification settings
+  pollerMessage: {{ .Values.poller.notification.pollerMessage | quote }}
+  InternetakenNotifier__HourThreshold: {{ .Values.poller.notification.hourThreshold | quote }}
+{{- end }}

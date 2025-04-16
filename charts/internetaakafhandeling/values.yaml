@@ -1,0 +1,123 @@
+# Global PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    username: ""
+    password: ""
+    database: "interneTaakAfhandeling"
+    postgresPassword: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+  metrics:
+    enabled: false
+
+# Certificate configuration
+certificates:
+  enabled: true
+  installClusterIssuer: true
+  issuerName: "letsencrypt-prod" 
+  commonName: ""
+  email: ""
+
+# Web Application Configuration
+web:
+  enabled: true
+  image:
+    repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
+    tag: "latest"
+    pullPolicy: Always
+  
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+  
+  ingress:
+    enabled: true
+    host: ""
+    port: 80
+  
+  database:
+    # When postgresql.enabled=true, host is auto-set to {Release.Name}-postgresql
+    # Specify this host only when postgresql.enabled=false
+    host: ""
+    port: "5432"
+    name: "interneTaakAfhandeling"
+    username: ""
+    password: ""
+  
+  apiConnections:
+    openKlant:
+      baseUrl: ""
+      apiKey: ""
+    object:
+      baseUrl: ""
+      apiKey: ""
+    zaakSysteem:
+      baseUrl: ""
+      clientId: ""
+      key: ""
+  
+  oidc:
+    authority: ""
+    clientId: ""
+    clientSecret: ""
+    itaSystemAccessRole: ""
+    nameClaimType: ""
+    roleClaimType: ""
+    idClaimType: ""
+  
+  resources:
+    logoUrl: ""
+    faviconUrl: ""
+    designTokensUrl: ""
+    webFontSources: []
+  
+  appsettings:
+    setting1: ""
+    setting2: ""
+
+# Poller Configuration
+poller:
+  enabled: true
+  schedule: "*/15 * * * *"
+  
+  image:
+    repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
+    tag: "latest"
+    pullPolicy: Always
+  
+  database:
+    # When postgresql.enabled=true, host is auto-set to {Release.Name}-postgresql
+    # Specify this host only when postgresql.enabled=false
+    host: ""
+    port: "5432"
+    name: "interneTaakAfhandeling"
+    username: ""
+    password: ""
+  
+  apiConnections:
+    openKlant:
+      baseUrl: ""
+      apiKey: ""
+    object:
+      baseUrl: ""
+      apiKey: ""
+    zaakSysteem:
+      baseUrl: ""
+      clientId: ""
+      key: ""
+  
+  notification:
+    pollerMessage: "Poller uitgevoerd om:"
+    hourThreshold: "-24"
+  
+  smtp:
+    host: ""
+    port: "25"
+    username: ""
+    password: ""
+    fromEmail: ""
+    enableSsl: "true"
