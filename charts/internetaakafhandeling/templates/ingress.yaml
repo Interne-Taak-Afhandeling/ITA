@@ -1,10 +1,10 @@
-{{- if and .Values.web.enabled .Values.web.ingress.enabled }}
+{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "internetaakafhandeling.web.fullname" . }}-ingress
+  name: {{ include "internetaakafhandeling.fullname" . }}-ingress
   labels:
-    {{- include "internetaakafhandeling.web.labels" . | nindent 4 }}
+    {{- include "internetaakafhandeling.labels" . | nindent 4 }}
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: {{ .Values.certificates.issuerName }}
@@ -15,14 +15,14 @@ spec:
         - {{ .Values.certificates.commonName }}
       secretName: {{ include "internetaakafhandeling.fullname" . }}-tls
   rules:
-    - host: {{ .Values.web.ingress.host }}
+    - host: {{ .Values.ingress.host }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ include "internetaakafhandeling.web.fullname" . }}-svc
+                name: {{ include "internetaakafhandeling.web.name" . }}-svc
                 port:
-                  number: {{ .Values.web.ingress.port }}
+                  number: {{ .Values.ingress.port }}
 {{- end }}

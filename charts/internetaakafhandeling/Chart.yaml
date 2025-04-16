@@ -1,6 +1,6 @@
 apiVersion: v2
 name: internetaakafhandeling
-description: Helm chart for InterneTaakAfhandeling with independently deployable Web API and Poller components
+description: Helm chart for InterneTaakAfhandeling including Web API and Poller
 type: application
 version: 0.1.0
 appVersion: 0.1.0

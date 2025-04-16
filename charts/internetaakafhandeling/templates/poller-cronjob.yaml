@@ -1,8 +1,7 @@
-{{- if .Values.poller.enabled }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "internetaakafhandeling.poller.fullname" . }}
+  name: {{ include "internetaakafhandeling.poller.name" . }}
   labels:
     {{- include "internetaakafhandeling.poller.labels" . | nindent 4 }}
 spec:
@@ -20,8 +19,7 @@ spec:
               imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
               envFrom:
                 - configMapRef:
-                    name: {{ include "internetaakafhandeling.poller.fullname" . }}-config
+                    name: {{ include "internetaakafhandeling.fullname" . }}-config
                 - secretRef:
-                    name: {{ include "internetaakafhandeling.poller.fullname" . }}-secret
+                    name: {{ include "internetaakafhandeling.fullname" . }}-secrets
           restartPolicy: OnFailure
-{{- end }}

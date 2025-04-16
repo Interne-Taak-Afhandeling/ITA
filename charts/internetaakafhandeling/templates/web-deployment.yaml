@@ -1,8 +1,7 @@
-{{- if .Values.web.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "internetaakafhandeling.web.fullname" . }}
+  name: {{ include "internetaakafhandeling.web.name" . }}
   labels:
     {{- include "internetaakafhandeling.web.labels" . | nindent 4 }}
 spec:
@@ -27,11 +26,10 @@ spec:
               subPath: appsettings.json
           envFrom:
             - configMapRef:
-                name: {{ include "internetaakafhandeling.web.fullname" . }}-config
+                name: {{ include "internetaakafhandeling.fullname" . }}-config
             - secretRef:
-                name: {{ include "internetaakafhandeling.web.fullname" . }}-secret
+                name: {{ include "internetaakafhandeling.fullname" . }}-secrets
       volumes:
         - name: appsettings-volume
           configMap:
-            name: {{ include "internetaakafhandeling.web.fullname" . }}-appsettings
-{{- end }}
+            name: {{ include "internetaakafhandeling.web.name" . }}-appsettings

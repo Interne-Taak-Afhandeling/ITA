@@ -12,16 +12,8 @@
 {{- printf "%s-web" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "internetaakafhandeling.web.fullname" -}}
-{{- printf "%s-web" .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{/* Poller specific names */}}
 {{- define "internetaakafhandeling.poller.name" -}}
-{{- printf "%s-poller" .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "internetaakafhandeling.poller.fullname" -}}
 {{- printf "%s-poller" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -50,29 +42,18 @@ app.kubernetes.io/component: poller
 {{- define "internetaakafhandeling.web.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "internetaakafhandeling.web.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: web
 {{- end -}}
 
 {{- define "internetaakafhandeling.poller.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "internetaakafhandeling.poller.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: poller
 {{- end -}}
 
-{{/* Database connection string helper for web */}}
-{{- define "internetaakafhandeling.web.databaseConnectionString" -}}
+{{/* Database connection string helper */}}
+{{- define "internetaakafhandeling.databaseConnectionString" -}}
 {{- if .Values.postgresql.enabled -}}
-  {{- printf "Host=%s-postgresql;Port=%s;Database=%s;Username=%s;Password=%s;" .Release.Name .Values.web.database.port .Values.web.database.name .Values.web.database.username .Values.web.database.password -}}
+  {{- printf "Host=%s-postgresql;Port=%s;Database=%s;Username=%s;Password=%s;" .Release.Name .Values.database.port .Values.database.name .Values.database.username .Values.database.password -}}
 {{- else -}}
-  {{- printf "Host=%s;Port=%s;Database=%s;Username=%s;Password=%s;" .Values.web.database.host .Values.web.database.port .Values.web.database.name .Values.web.database.username .Values.web.database.password -}}
-{{- end -}}
-{{- end -}}
-
-{{/* Database connection string helper for poller */}}
-{{- define "internetaakafhandeling.poller.databaseConnectionString" -}}
-{{- if .Values.postgresql.enabled -}}
-  {{- printf "Host=%s-postgresql;Port=%s;Database=%s;Username=%s;Password=%s;" .Release.Name .Values.poller.database.port .Values.poller.database.name .Values.poller.database.username .Values.poller.database.password -}}
-{{- else -}}
-  {{- printf "Host=%s;Port=%s;Database=%s;Username=%s;Password=%s;" .Values.poller.database.host .Values.poller.database.port .Values.poller.database.name .Values.poller.database.username .Values.poller.database.password -}}
+  {{- printf "Host=%s;Port=%s;Database=%s;Username=%s;Password=%s;" .Values.database.host .Values.database.port .Values.database.name .Values.database.username .Values.database.password -}}
 {{- end -}}
 {{- end -}}

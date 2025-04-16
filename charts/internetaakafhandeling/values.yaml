@@ -21,9 +21,37 @@ certificates:
   commonName: ""
   email: ""
 
+# Ingress Configuration
+ingress:
+  enabled: true
+  host: ""
+  port: 80
+
+# Database Configuration
+database:
+  # When postgresql.enabled=true, host is auto-set to {Release.Name}-postgresql
+  # Specify this host only when postgresql.enabled=false
+  host: ""
+  port: "5432"
+  name: "interneTaakAfhandeling"
+  username: ""
+  password: ""
+
+# API Connections
+apiConnections:
+  openKlant:
+    baseUrl: ""
+    apiKey: ""
+  object:
+    baseUrl: ""
+    apiKey: ""
+  zaakSysteem:
+    baseUrl: ""
+    clientId: ""
+    key: ""
+
 # Web Application Configuration
 web:
-  enabled: true
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
     tag: "latest"
@@ -33,32 +61,6 @@ web:
     type: ClusterIP
     port: 80
     targetPort: 8080
-  
-  ingress:
-    enabled: true
-    host: ""
-    port: 80
-  
-  database:
-    # When postgresql.enabled=true, host is auto-set to {Release.Name}-postgresql
-    # Specify this host only when postgresql.enabled=false
-    host: ""
-    port: "5432"
-    name: "interneTaakAfhandeling"
-    username: ""
-    password: ""
-  
-  apiConnections:
-    openKlant:
-      baseUrl: ""
-      apiKey: ""
-    object:
-      baseUrl: ""
-      apiKey: ""
-    zaakSysteem:
-      baseUrl: ""
-      clientId: ""
-      key: ""
   
   oidc:
     authority: ""
@@ -81,34 +83,12 @@ web:
 
 # Poller Configuration
 poller:
-  enabled: true
   schedule: "*/15 * * * *"
   
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
     tag: "latest"
     pullPolicy: Always
-  
-  database:
-    # When postgresql.enabled=true, host is auto-set to {Release.Name}-postgresql
-    # Specify this host only when postgresql.enabled=false
-    host: ""
-    port: "5432"
-    name: "interneTaakAfhandeling"
-    username: ""
-    password: ""
-  
-  apiConnections:
-    openKlant:
-      baseUrl: ""
-      apiKey: ""
-    object:
-      baseUrl: ""
-      apiKey: ""
-    zaakSysteem:
-      baseUrl: ""
-      clientId: ""
-      key: ""
   
   notification:
     pollerMessage: "Poller uitgevoerd om:"
