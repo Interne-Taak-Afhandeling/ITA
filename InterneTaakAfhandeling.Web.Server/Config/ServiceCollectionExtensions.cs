@@ -1,5 +1,7 @@
 ﻿using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features;
+using InterneTaakAfhandeling.Web.Server.Services.ObjectApi;
+using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
@@ -12,17 +14,20 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddSwaggerGen();
             services.AddSingleton<ResourcesConfig>();
 
-            // Temporary disabled: 
-            //services.AddAuth(options =>
-            //{
-            //    options.Authority = GetRequiredConfigValue(configuration,"OIDC_AUTHORITY");
-            //    options.ClientId = GetRequiredConfigValue(configuration, "OIDC_CLIENT_ID");
-            //    options.ClientSecret = GetRequiredConfigValue(configuration, "OIDC_CLIENT_SECRET");
-            //    options.ITASystemAccessRole = GetRequiredConfigValue(configuration, "OIDC_ITA_SYSTEM_ACCESS_ROLE");
-            //    options.NameClaimType = configuration["OIDC_NAME_CLAIM_TYPE"];
-            //    options.RoleClaimType = configuration["OIDC_ROLE_CLAIM_TYPE"];
-            //    options.IdClaimType = configuration["OIDC_ID_CLAIM_TYPE"];
-            //});
+            services.AddAuth(options =>
+          {
+              options.Authority = GetRequiredConfigValue(configuration,"OIDC_AUTHORITY");
+              options.ClientId = GetRequiredConfigValue(configuration, "OIDC_CLIENT_ID");
+              options.ClientSecret = GetRequiredConfigValue(configuration, "OIDC_CLIENT_SECRET");
+              options.ITASystemAccessRole = GetRequiredConfigValue(configuration, "OIDC_ITA_SYSTEM_ACCESS_ROLE");
+              options.NameClaimType = configuration["OIDC_NAME_CLAIM_TYPE"];
+              options.RoleClaimType = configuration["OIDC_ROLE_CLAIM_TYPE"];
+              options.IdClaimType = configuration["OIDC_ID_CLAIM_TYPE"];
+          });
+
+
+            services.AddScoped<IOpenKlantApiClient,OpenKlantApiClient>();
+            services.AddScoped<IObjectApiClient,ObjectApiClient>();
 
             return services;
         }
