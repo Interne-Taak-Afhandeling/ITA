@@ -1,7 +1,7 @@
 ﻿using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features;
 using InterneTaakAfhandeling.Web.Server.Services.ObjectApi;
-using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi; 
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
@@ -9,7 +9,12 @@ namespace InterneTaakAfhandeling.Web.Server.Config
     {
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddControllers();
+            services.AddControllers(); 
+            services.AddRouting(options =>
+            {
+             options.LowercaseUrls = true;
+             options.LowercaseQueryStrings = true;
+            });
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
             services.AddSingleton<ResourcesConfig>();

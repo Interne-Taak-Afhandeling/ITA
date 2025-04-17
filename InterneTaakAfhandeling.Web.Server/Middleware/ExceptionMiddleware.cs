@@ -32,9 +32,10 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
                     _ => StatusCodes.Status500InternalServerError
                 };
 
-                var result = JsonSerializer.Serialize(new
+                var result = JsonSerializer.Serialize(new ITAException
                 {
-                    error = ex.Message
+                    Message = ex.Message,
+                    Code = (ex as ConflictException)?.Code                    
                 });
 
                 await context.Response.WriteAsync(result);
@@ -46,6 +47,12 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
     public class ConflictException(string message, string? code = null) : Exception(message)
     {
         public string? Code { get; } = code;
+    }
+    public class ITAException
+    {
+        public string? Code { get; set; }
+
+        public string? Message { get; set; }
     }
 }
 
