@@ -14,7 +14,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
 
-        [ProducesResponseType(typeof(List<Internetaken>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<AssignedInternetaken>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
         [HttpGet("internetaken")]
         public async Task<IActionResult> GetInternetaken()

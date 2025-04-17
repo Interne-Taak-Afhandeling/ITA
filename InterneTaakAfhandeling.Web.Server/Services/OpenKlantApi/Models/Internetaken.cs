@@ -18,7 +18,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models
 
         public required string GevraagdeHandeling { get; set; }
 
-        public Klantcontact AanleidinggevendKlantcontact { get; set; }
+        public Klantcontact? AanleidinggevendKlantcontact { get; set; }
 
         public Actor? ToegewezenAanActor { get; set; }
 
@@ -41,5 +41,12 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models
             Status = string.Empty;
             ToegewezenOp = DateTimeOffset.UtcNow;
         }
+    }
+
+    public class AssignedInternetaken { 
+    
+        public DateTimeOffset? Datum { get; set; }
+        public string? Naam { get; set; }
+        public string? Onderwerp { get; set; }
     }
 }
