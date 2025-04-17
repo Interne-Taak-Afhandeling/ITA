@@ -25,7 +25,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+      version: ${{ fromJSON(steps.meta-web.outputs.json).labels['org.opencontainers.image.version'] }}
 
     steps:
       - uses: actions/checkout@v4
@@ -57,14 +57,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PACKAGE_SECRET }}
 
-      - name: Extract Docker metadata
-        id: meta
+      # Separate metadata action for Web image
+      - name: Extract Docker metadata for Web
+        id: meta-web
         uses: docker/metadata-action@v5
         with:
           flavor: |
             latest=${{ env.IS_LATEST }}
           images: |
             ${{ env.WEB_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      # Separate metadata action for Poller image
+      - name: Extract Docker metadata for Poller
+        id: meta-poller
+        uses: docker/metadata-action@v5
+        with:
+          flavor: |
+            latest=${{ env.IS_LATEST }}
+          images: |
             ${{ env.POLLER_IMAGE }}
           tags: |
             type=ref,event=branch
@@ -78,8 +93,8 @@ jobs:
           context: .
           file: InterneTaakAfhandeling.Web.Server/Dockerfile
           push: ${{ fromJSON(env.SHOULD_PUSH) }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -89,8 +104,8 @@ jobs:
           context: .
           file: InterneTaakAfhandeling.Poller/Dockerfile
           push: ${{ fromJSON(env.SHOULD_PUSH) }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-poller.outputs.tags }}
+          labels: ${{ steps.meta-poller.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
