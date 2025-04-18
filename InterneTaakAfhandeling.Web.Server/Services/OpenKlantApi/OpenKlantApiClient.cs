@@ -113,7 +113,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
         public async Task<Klantcontact?> GetKlantcontactAsync(string uuid)
         {
          
-            var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen");
+            var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=hadBetrokkenen");
             response.EnsureSuccessStatusCode();
 
             var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();           
