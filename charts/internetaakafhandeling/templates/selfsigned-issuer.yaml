@@ -1,0 +1,10 @@
+{{- if not .Values.certificates.installClusterIssuer }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+  labels:
+    {{- include "internetaakafhandeling.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+{{- end }}

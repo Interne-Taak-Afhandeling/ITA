@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "internetaakafhandeling.fullname" . }}-config
+  labels:
+    {{- include "internetaakafhandeling.labels" . | nindent 4 }}
+data:
+  # Shared configuration
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+  
+  # API Connections
+  OpenKlantApi__BaseUrl: {{ .Values.apiConnections.openKlant.baseUrl | quote }}
+  ObjectApi__BaseUrl: {{ .Values.apiConnections.object.baseUrl | quote }}
+  ZaakSysteem__BaseUrl: {{ .Values.apiConnections.zaakSysteem.baseUrl | quote }}
+  ZaakSysteem__ClientId: {{ .Values.apiConnections.zaakSysteem.clientId | quote }}
+  
+  # OIDC Configuration
+  {{- if .Values.web.oidc.authority }}
+  OIDC_AUTHORITY: {{ .Values.web.oidc.authority }}
+  OIDC_CLIENT_ID: {{ .Values.web.oidc.clientId }}
+  OIDC_ITA_SYSTEM_ACCESS_ROLE: {{ .Values.web.oidc.itaSystemAccessRole }}
+  OIDC_NAME_CLAIM_TYPE: {{ .Values.web.oidc.nameClaimType }}
+  OIDC_ROLE_CLAIM_TYPE: {{ .Values.web.oidc.roleClaimType }}
+  OIDC_ID_CLAIM_TYPE: {{ .Values.web.oidc.idClaimType }}
+  {{- end }}
+  
+  # Resource configuration
+  {{- if .Values.web.resources.logoUrl }}
+  RESOURCES__LOGO_URL: {{ .Values.web.resources.logoUrl | toString | quote }}
+  RESOURCES__FAVICON_URL: {{ .Values.web.resources.faviconUrl | toString | quote }}
+  RESOURCES__DESIGN_TOKENS_URL: {{ .Values.web.resources.designTokensUrl | toString | quote }}
+  RESOURCES__WEB_FONT_SOURCES: {{ join " " .Values.web.resources.webFontSources | quote }}
+  {{- end }}
+  
+  # SMTP Configuration
+  Email__SmtpSettings__Host: {{ .Values.poller.smtp.host | quote }}
+  Email__SmtpSettings__Port: {{ .Values.poller.smtp.port | quote }}
+  Email__SmtpSettings__Username: {{ .Values.poller.smtp.username | quote }}
+  Email__SmtpSettings__FromEmail: {{ .Values.poller.smtp.fromEmail | quote }}
+  Email__SmtpSettings__EnableSsl: {{ .Values.poller.smtp.enableSsl | quote }}
+  
+  # Notification settings
+  pollerMessage: {{ .Values.poller.notification.pollerMessage | quote }}
+  InternetakenNotifier__HourThreshold: {{ .Values.poller.notification.hourThreshold | quote }}
