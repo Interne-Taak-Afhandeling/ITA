@@ -1,5 +1,6 @@
 using InterneTaakAfhandeling.Web.Server.Config; 
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,7 @@ app.UseAuthorization();
 app.UseItaSecurityHeaders();
 app.MapControllers();
 app.MapITAAuthEndpoints();
-app.MapFallbackToFile("/index.html").AllowAnonymous();
+app.MapFallbackToFile("/index.html");
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.Run();
