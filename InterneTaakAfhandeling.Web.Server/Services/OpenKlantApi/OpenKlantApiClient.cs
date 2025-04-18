@@ -10,8 +10,9 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
 {
     public interface IOpenKlantApiClient
     {
-          Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail);
+          Task<List<AssignedInternetaken>> GetInterneTakenByAssignedUser(string? userEmail);
           Task<Actor?> GetActorByEmail(string userEmail);
+          Task<Klantcontact?> GetKlantcontactAsync(string uuid);
     }
     public class OpenKlantApiClient : IOpenKlantApiClient
     {
@@ -67,7 +68,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
             }
         }
 
-        public async Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail)
+        public async Task<List<AssignedInternetaken>> GetInterneTakenByAssignedUser(string? userEmail)
         {
             try
             {
@@ -79,17 +80,45 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
                 var actor = await GetActorByEmail(userEmail) ?? throw new ConflictException("No actor found for the current user.",
                                                  code: "NO_ACTOR_FOUND");
 
-                var response = await _httpClient.GetAsync($"internetaken?toegewezenAanActor__uuid={actor?.Uuid}");
-                response.EnsureSuccessStatusCode();
 
-                var content = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
 
-                return content?.Results?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];
+               List<Internetaken> content = new List<Internetaken>();
+                var page = $"internetaken?toegewezenAanActor__uuid={actor?.Uuid}";
+                while (!string.IsNullOrEmpty(page))
+                {
+                    var response = await _httpClient.GetAsync(page);
+                    response.EnsureSuccessStatusCode();
+                    var  currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
+
+                     await Task.WhenAll(currentContent?.Results?.Select(async x =>
+                    {
+                        x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);                      
+                    }) ?? []);
+                    content.AddRange(currentContent?.Results ?? []);
+                    page = currentContent?.Next?.Replace(_baseUrl, string.Empty);
+                }
+
+                return content?.OrderBy(x => x.ToegewezenOp).Select(x => new AssignedInternetaken
+                {
+                Datum = x.AanleidinggevendKlantcontact?.PlaatsgevondenOp,
+                Onderwerp = x.AanleidinggevendKlantcontact?.Onderwerp,
+                Naam= x.AanleidinggevendKlantcontact?.HadBetrokkenActoren.FirstOrDefault()?.Naam
+                }).ToList() ?? [];
             }
             catch (Exception)
             {
                  throw;
             }
+        }
+        public async Task<Klantcontact?> GetKlantcontactAsync(string uuid)
+        {
+         
+            var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=hadBetrokkenen");
+            response.EnsureSuccessStatusCode();
+
+            var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();           
+           
+            return klantcontact;
         }
     }
 }
