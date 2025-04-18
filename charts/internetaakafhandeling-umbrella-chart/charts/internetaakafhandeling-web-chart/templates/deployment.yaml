@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "internetaakafhandeling.web.fullname" . }}
 spec:
-  replicas: 2
+  replicas: 1 # we need to persist data protection keys before we can add more replicas. otherwise login with oidc breaks
   selector:
     matchLabels:
       app: {{ include "internetaakafhandeling.web.name" . }}
