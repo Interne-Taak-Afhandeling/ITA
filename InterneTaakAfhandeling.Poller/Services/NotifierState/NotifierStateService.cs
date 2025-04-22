@@ -9,18 +9,11 @@ namespace InterneTaakAfhandeling.Poller.Services.NotifierState
         Task<InternetakenNotifierState> StartJobAsync();
         Task FinishJobAsync(ProcessingResult processingResult);
     }
-    public class ProcessingResult
+    public class ProcessingResult(bool success, Guid lastInternetakenId, string? errorMessage = null)
     {
-        public bool Success { get; set; }
-        public Guid LastInternetakenId { get; set; }
-        public string? ErrorMessage { get; set; }
-
-        public ProcessingResult(bool success, Guid lastInternetakenId, string? errorMessage = null)
-        {
-            LastInternetakenId = lastInternetakenId;
-            Success = success;
-            ErrorMessage = errorMessage;
-        }
+        public bool Success { get; set; } = success;
+        public Guid LastInternetakenId { get; set; } = lastInternetakenId;
+        public string? ErrorMessage { get; set; } = errorMessage;
     }
 
 
@@ -46,8 +39,7 @@ namespace InterneTaakAfhandeling.Poller.Services.NotifierState
             {
                 state = new InternetakenNotifierState
                 {
-                    Id = Guid.NewGuid(),
-                    LastRunAt = DateTime.MinValue.ToUniversalTime(),
+                    Id = Guid.NewGuid(), 
                     LastInternetakenId = Guid.Empty,
                     LastSuccessAt = null,
                     FailureCount = 0,
@@ -68,8 +60,7 @@ namespace InterneTaakAfhandeling.Poller.Services.NotifierState
         public async Task FinishJobAsync(ProcessingResult processingResult)
         {
             var state = await _dbContext.InternetakenNotifierStates.FirstAsync(x=> x.IsRunning);
-            state.IsRunning = false;
-            state.LastRunAt = DateTime.UtcNow;
+            state.IsRunning = false; 
             state.LastInternetakenId = processingResult.LastInternetakenId;
             state.UpdatedAt = DateTime.UtcNow;
             state.Remark = processingResult.ErrorMessage;

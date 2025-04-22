@@ -59,17 +59,16 @@ public class InternetakenNotifier : IInternetakenProcessor
         var page = "internetaken";
         var notifierState = await _notifierStateService.StartJobAsync();
  
-        ProcessingResult processResult = new ProcessingResult(true,notifierState.LastInternetakenId);
-
-      
+        ProcessingResult processResult = new ProcessingResult(true,notifierState.LastInternetakenId); 
+        var lastInternetakenToegewezenOp = notifierState.LastInternetakenId != Guid.Empty ? (await _openKlantApiClient.GetInternetakenByIdAsync(notifierState.LastInternetakenId))?.ToegewezenOp : DateTimeOffset.MinValue;
             while (!string.IsNullOrEmpty(page))
             {
                 var response = await _openKlantApiClient.GetInternetakenAsync(page);
                 if (response?.Results == null || response.Results.Count == 0)
                     break;
 
-                var newTaken = response.Results
-                      .Where(item => item.ToegewezenOp > notifierState.LastRunAt)
+                var newTaken = response.Results.OrderBy(item => item.ToegewezenOp)
+                      .Where(item => item.ToegewezenOp > lastInternetakenToegewezenOp)
                       .ToList();
 
                 if (newTaken.Count != 0)
