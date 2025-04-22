@@ -100,6 +100,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
 
                 return content?.OrderBy(x => x.ToegewezenOp).Select(x => new AssignedInternetaken
                 {
+                Id = x.Uuid,
                 Datum = x.AanleidinggevendKlantcontact?.PlaatsgevondenOp,
                 Onderwerp = x.AanleidinggevendKlantcontact?.Onderwerp,
                 Naam= x.AanleidinggevendKlantcontact?.HadBetrokkenActoren.FirstOrDefault()?.Naam

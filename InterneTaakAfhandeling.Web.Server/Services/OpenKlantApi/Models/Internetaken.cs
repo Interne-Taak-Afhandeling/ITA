@@ -44,7 +44,8 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models
     }
 
     public class AssignedInternetaken { 
-    
+
+        public required string Id { get; set; }
         public DateTimeOffset? Datum { get; set; }
         public string? Naam { get; set; }
         public string? Onderwerp { get; set; }

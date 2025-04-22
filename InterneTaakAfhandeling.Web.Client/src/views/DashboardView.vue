@@ -83,10 +83,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { userService } from '@/services/user';
-import type { Internetaken } from '@/types/internetaken';
+  import type { AssignedInternetaken } from '@/types/internetaken';
 import { formatDate } from '@/utils/dateUtils';
 
-const assignedInternetaken = ref<Internetaken[]>([]);
+const assignedInternetaken = ref<AssignedInternetaken[]>([]);
 const isLoading = ref<boolean>(true);
 const error = ref<string | null>(null);
 
