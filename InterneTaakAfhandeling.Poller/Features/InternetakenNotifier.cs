@@ -59,43 +59,45 @@ public class InternetakenNotifier : IInternetakenProcessor
         var page = "internetaken";
         var notifierState = await _notifierStateService.StartJobAsync();
  
-        ProcessingResult processResult = new ProcessingResult(true,notifierState.LastInternetakenId); 
-        var lastInternetakenToegewezenOp = notifierState.LastInternetakenId != Guid.Empty ? (await _openKlantApiClient.GetInternetakenByIdAsync(notifierState.LastInternetakenId))?.ToegewezenOp : DateTimeOffset.MinValue;
-            while (!string.IsNullOrEmpty(page))
+        ProcessingResult processResult = new(true,notifierState.LastInternetakenId,notifierState.LastInternetakenToegewezenOp,"");
+
+        List<Internetaken> internetakens = [];
+
+             while (!string.IsNullOrEmpty(page))
             {
                 var response = await _openKlantApiClient.GetInternetakenAsync(page);
                 if (response?.Results == null || response.Results.Count == 0)
                     break;
+                 var newInternetaken = response.Results.Where(item => item.ToegewezenOp > notifierState.LastInternetakenToegewezenOp);
+            if (!newInternetaken.Any())
+                break;
+            internetakens.AddRange(newInternetaken); 
 
-                var newTaken = response.Results.OrderBy(item => item.ToegewezenOp)
-                      .Where(item => item.ToegewezenOp > lastInternetakenToegewezenOp)
-                      .ToList();
-
-                if (newTaken.Count != 0)
-                {
-                     await foreach (var result in ProcessInternetakenAsync(newTaken))
-                    {
-
-                        processResult = result;
-
-                    if (!result.Success)
-                    {
-                        _logger.LogError("Failed to process internetaken: {ErrorMessage}", result.ErrorMessage);
-                        break;
-                    }
-                      
-                        
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation("No new internetaken found");
-                }
-
-                page = response.Next?.Replace(_apiBaseUrl, string.Empty);
+            page = response.Next?.Replace(_apiBaseUrl, string.Empty);
             }
+        internetakens = [.. internetakens.OrderBy(x=> x.ToegewezenOp)];
+        if (internetakens.Count != 0)
+        {
+            await foreach (var result in ProcessInternetakenAsync(internetakens))
+            {
 
-           await _notifierStateService.FinishJobAsync(processResult);
+                processResult = result;
+
+                if (!result.Success)
+                {
+                    _logger.LogError("Failed to process internetaken: {ErrorMessage}", result.ErrorMessage);
+                    break;
+                }
+
+                await _notifierStateService.TrackInternetakenAsync(result.LastInternetakenId, result.LastInternetakenToegewezenOp);
+            }
+        }
+        else
+        {
+            _logger.LogInformation("No new internetaken found");
+        }
+
+        await _notifierStateService.FinishJobAsync(processResult);
          
     }
      
@@ -144,7 +146,7 @@ public async IAsyncEnumerable<ProcessingResult> ProcessInternetakenAsync(List<In
                 errorMessage = ex.Message;
             }
              
-            yield return new ProcessingResult(success, Guid.Parse(taak.Uuid), errorMessage);
+            yield return new ProcessingResult(success, Guid.Parse(taak.Uuid), taak.ToegewezenOp, errorMessage);
         }
     }
 

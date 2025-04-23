@@ -9,8 +9,7 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant;
 
 public interface IOpenKlantApiClient
 {
-    Task<InternetakenResponse?> GetInternetakenAsync(string path);
-    Task<Internetaken> GetInternetakenByIdAsync(Guid id);
+    Task<InternetakenResponse?> GetInternetakenAsync(string path); 
     Task<Actor> GetActorAsync(string uuid);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> GetBetrokkeneAsync(string uuid);
@@ -163,23 +162,5 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 
         return digitaleAdres;
     }
-
-    public async Task<Internetaken> GetInternetakenByIdAsync(Guid id)
-    {
-        _logger.LogInformation("Fetching Internetaken {Uuid}", id);
-
-        var response = await _httpClient.GetAsync($"internetaken/{id}");
-        response.EnsureSuccessStatusCode();
-
-        var actor = await response.Content.ReadFromJsonAsync<Internetaken>();
-
-        if (actor == null)
-        {
-            _logger.LogInformation("Internetaken not found {id}", id);
-            throw new Exception("Internetaken not found");
-        }
-        _logger.LogInformation("Successfully retrieved Internetaken {id}", id);
-
-        return actor;
-    }
+ 
 }
