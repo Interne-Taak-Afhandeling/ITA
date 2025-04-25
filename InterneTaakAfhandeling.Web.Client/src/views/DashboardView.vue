@@ -19,10 +19,10 @@
             <utrecht-table-cell colspan="3">Geen interne taken gevonden</utrecht-table-cell>
           </utrecht-table-row>
           
-          <utrecht-table-row v-for="taak in assignedInternetaken" :key="taak.id">
-            <utrecht-table-cell>{{ formatDate(taak.aanleidinggevendKlantcontact.plaatsgevondenOp) }}</utrecht-table-cell>
-            <utrecht-table-cell>{{ taak.betrokken.naam }}</utrecht-table-cell>
-            <utrecht-table-cell>{{ taak.aanleidinggevendKlantcontact.onderwerp }}</utrecht-table-cell>
+          <utrecht-table-row v-for="taak in assignedInternetaken" :key="taak.uuid">
+            <utrecht-table-cell>{{ formatDate(taak.aanleidinggevendKlantcontact?.plaatsgevondenOp) }}</utrecht-table-cell>
+            <utrecht-table-cell>{{ taak.betrokken?.naam }}</utrecht-table-cell>
+            <utrecht-table-cell>{{ taak.aanleidinggevendKlantcontact?.onderwerp }}</utrecht-table-cell>
           </utrecht-table-row>
         </utrecht-table-body>
       </utrecht-table>
