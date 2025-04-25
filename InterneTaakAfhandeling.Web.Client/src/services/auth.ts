@@ -7,8 +7,9 @@ class AuthService {
  
   async getCurrentUser(): Promise<User | null> {
     try {
+
       const data = await get<User>(`/api/me`);
-      
+     
       if (data) {
         const userData: User = {
           isLoggedIn: data.isLoggedIn,
