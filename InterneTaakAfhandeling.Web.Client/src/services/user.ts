@@ -1,9 +1,9 @@
 import { get } from '@/utils/fetchWrapper';
-import type { AssignedInternetaken } from '@/types/internetaken';
+import type { Internetaken } from '@/types/internetaken';
 
 export const userService = {
 
-  getAssignedInternetaken: (): Promise<AssignedInternetaken[]> => {
-    return get<AssignedInternetaken[]>('/api/user/internetaken');
+  getAssignedInternetaken: (): Promise<Internetaken[]> => {
+    return get<Internetaken[]>('/api/user/internetaken');
   }
 };

@@ -31,23 +31,11 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models
         public required DateTimeOffset ToegewezenOp { get; set; }
 
         public DateTimeOffset? AfgehandeldOp { get; set; }
+        public List<DigitaleAdres>? DigitaleAdress { get { return AanleidinggevendKlantcontact?.Expand?.HadBetrokkenen?.SelectMany(x => x?.Expand?.DigitaleAdressen).ToList(); } }
+        public Actor? Betrokken { get { return AanleidinggevendKlantcontact?.HadBetrokkenActoren.FirstOrDefault(); }   }
 
-        public Internetaken()
-        {
-            Uuid = string.Empty;
-            Url = string.Empty;
-            Nummer = string.Empty;
-            GevraagdeHandeling = string.Empty;
-            Status = string.Empty;
-            ToegewezenOp = DateTimeOffset.UtcNow;
-        }
+         
     }
 
-    public class AssignedInternetaken { 
-
-        public required string Id { get; set; }
-        public DateTimeOffset? Datum { get; set; }
-        public string? Naam { get; set; }
-        public string? Onderwerp { get; set; }
-    }
+   
 }

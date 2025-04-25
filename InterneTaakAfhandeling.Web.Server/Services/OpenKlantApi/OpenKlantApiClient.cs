@@ -10,7 +10,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
 {
     public interface IOpenKlantApiClient
     {
-          Task<List<AssignedInternetaken>> GetInterneTakenByAssignedUser(string? userEmail);
+          Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail);
           Task<Actor?> GetActorByEmail(string userEmail);
           Task<Klantcontact?> GetKlantcontactAsync(string uuid);
     }
@@ -68,7 +68,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
             }
         }
 
-        public async Task<List<AssignedInternetaken>> GetInterneTakenByAssignedUser(string? userEmail)
+        public async Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail)
         {
             try
             {
@@ -98,13 +98,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
                     page = currentContent?.Next?.Replace(_baseUrl, string.Empty);
                 }
 
-                return content?.OrderBy(x => x.ToegewezenOp).Select(x => new AssignedInternetaken
-                {
-                Id = x.Uuid,
-                Datum = x.AanleidinggevendKlantcontact?.PlaatsgevondenOp,
-                Onderwerp = x.AanleidinggevendKlantcontact?.Onderwerp,
-                Naam= x.AanleidinggevendKlantcontact?.HadBetrokkenActoren.FirstOrDefault()?.Naam
-                }).ToList() ?? [];
+                return content?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];
             }
             catch (Exception)
             {
@@ -114,7 +108,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
         public async Task<Klantcontact?> GetKlantcontactAsync(string uuid)
         {
          
-            var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=hadBetrokkenen");
+            var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen");
             response.EnsureSuccessStatusCode();
 
             var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();           

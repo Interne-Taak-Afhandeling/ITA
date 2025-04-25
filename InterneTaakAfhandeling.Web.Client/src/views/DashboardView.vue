@@ -15,14 +15,14 @@
         </utrecht-table-header>
 
         <utrecht-table-body>
-          <utrecht-table-row v-if="assignedInternetaken.length === 0">
+          <utrecht-table-row v-if="assignedInternetaken.length === 0 && !isLoading">
             <utrecht-table-cell colspan="3">Geen interne taken gevonden</utrecht-table-cell>
           </utrecht-table-row>
           
           <utrecht-table-row v-for="taak in assignedInternetaken" :key="taak.id">
-            <utrecht-table-cell>{{ formatDate(taak.datum) }}</utrecht-table-cell>
-            <utrecht-table-cell>{{ taak.naam }}</utrecht-table-cell>
-            <utrecht-table-cell>{{ taak.onderwerp }}</utrecht-table-cell>
+            <utrecht-table-cell>{{ formatDate(taak.aanleidinggevendKlantcontact.plaatsgevondenOp) }}</utrecht-table-cell>
+            <utrecht-table-cell>{{ taak.betrokken.naam }}</utrecht-table-cell>
+            <utrecht-table-cell>{{ taak.aanleidinggevendKlantcontact.onderwerp }}</utrecht-table-cell>
           </utrecht-table-row>
         </utrecht-table-body>
       </utrecht-table>
@@ -81,30 +81,17 @@
 </style>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { userService } from '@/services/user';
-  import type { AssignedInternetaken } from '@/types/internetaken';
-import { formatDate } from '@/utils/dateUtils';
+  import { ref, onMounted } from 'vue';
+  import { useUserStore } from '@/stores/user';
+  import { storeToRefs } from 'pinia';
+  import type { Internetaken } from '@/types/internetaken';
+  import { formatDate } from '@/utils/dateUtils';
 
-const assignedInternetaken = ref<AssignedInternetaken[]>([]);
-const isLoading = ref<boolean>(true);
-const error = ref<string | null>(null);
-
-const fetchInternetaken = async () => {
-  isLoading.value = true;
-  error.value = null;
-  
-  try {
-    assignedInternetaken.value = await userService.getAssignedInternetaken();
-  } catch (err: any) {
-    error.value = err.message || 'Er is een fout opgetreden bij het ophalen van de interne taken';
-    console.error('Error fetching internetaken:', err);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
+  const userStore = useUserStore();
+  const { assignedInternetaken, isLoading, error } = storeToRefs(userStore);
+   
+ 
 onMounted(() => {
-  fetchInternetaken();
+  userStore.fetchAssignedInternetaken();
 });
 </script>
