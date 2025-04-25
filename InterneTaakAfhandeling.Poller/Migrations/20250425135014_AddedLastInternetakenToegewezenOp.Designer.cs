@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InterneTaakAfhandeling.Poller.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250423125624_AddedLastInternetakenToegewezenOpAndLastRunAt")]
-    partial class AddedLastInternetakenToegewezenOpAndLastRunAt
+    [Migration("20250425135014_AddedLastInternetakenToegewezenOp")]
+    partial class AddedLastInternetakenToegewezenOp
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
