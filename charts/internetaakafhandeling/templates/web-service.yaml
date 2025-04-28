@@ -10,4 +10,4 @@ spec:
     {{- include "internetaakafhandeling.web.selectorLabels" . | nindent 4 }}
   ports:
     - port: {{ .Values.web.service.port }}
-      targetPort: {{ .Values.web.service.targetPort }}
+      targetPort: 8080
