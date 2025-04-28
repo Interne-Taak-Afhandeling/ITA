@@ -138,8 +138,6 @@ jobs:
       - name: Update chart values with new image tag
         if: ${{ fromJson(env.SHOULD_RELEASE) }}
         uses: mikefarah/yq@v4.34.1
-        env:
-          VERSION: ${{ needs.build.outputs.version }}
         with:
           cmd: |
             yq eval '.appVersion = "${{ env.VERSION }}"' -i charts/${{ env.CHART_NAME }}/Chart.yaml
