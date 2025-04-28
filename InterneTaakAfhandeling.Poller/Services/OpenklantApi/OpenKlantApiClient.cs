@@ -9,11 +9,12 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant;
 
 public interface IOpenKlantApiClient
 {
-    Task<InternetakenResponse?> GetInternetakenAsync(string path);
+    Task<InternetakenResponse?> GetInternetakenAsync(string path); 
     Task<Actor> GetActorAsync(string uuid);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> GetBetrokkeneAsync(string uuid);
-    Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid); // Added method signature
+    Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);  
+
 }
 
 public class OpenKlantApiClient : IOpenKlantApiClient
@@ -161,4 +162,5 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 
         return digitaleAdres;
     }
+ 
 }
