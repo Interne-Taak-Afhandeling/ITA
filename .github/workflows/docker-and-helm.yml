@@ -13,19 +13,21 @@ env:
   WEB_IMAGE: ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web
   POLLER_IMAGE: ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller
   SHOULD_PUSH: ${{ github.event_name != 'pull_request' }}
+  SHOULD_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
   IS_LATEST: false
+  CHART_NAME: internetaakafhandeling
+  VERSION:
+  REVISION:
 
 permissions:
   contents: write
   packages: write
+  attestations: write
   id-token: write
-  pages: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ fromJSON(steps.meta-web.outputs.json).labels['org.opencontainers.image.version'] }}
 
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +52,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ fromJson(env.SHOULD_PUSH) }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -87,6 +89,11 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha
 
+      - name: set version and revision in env
+        run: |
+          echo "VERSION=${{ fromJson(env.SHOULD_RELEASE) && fromJSON(steps.meta-web.outputs.json).labels['org.opencontainers.image.version'] || '0.0.0' }}" >> "$GITHUB_ENV"
+          echo "REVISION=${{ fromJSON(steps.meta-web.outputs.json).labels['org.opencontainers.image.revision'] }}" >> "$GITHUB_ENV"
+
       - name: Build & push Web image
         uses: docker/build-push-action@v6
         with:
@@ -95,6 +102,9 @@ jobs:
           push: ${{ fromJSON(env.SHOULD_PUSH) }}
           tags: ${{ steps.meta-web.outputs.tags }}
           labels: ${{ steps.meta-web.outputs.labels }}
+          build-args: |
+            VERSION=${{ env.VERSION }}
+            REVISION=${{ env.REVISION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -106,64 +116,41 @@ jobs:
           push: ${{ fromJSON(env.SHOULD_PUSH) }}
           tags: ${{ steps.meta-poller.outputs.tags }}
           labels: ${{ steps.meta-poller.outputs.labels }}
+          build-args: |
+            VERSION=${{ env.VERSION }}
+            REVISION=${{ env.REVISION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  release:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
           version: v3.8.1
+      
+      - name: Update chart dependencies
+        working-directory: charts/${{ env.CHART_NAME }}
+        run: helm dependency update
+
+      - name: test helm chart
+        working-directory: charts/${{ env.CHART_NAME }}
+        run: helm template . --debug
 
       - name: Update chart values with new image tag
+        if: ${{ fromJson(env.SHOULD_RELEASE) }}
         uses: mikefarah/yq@v4.34.1
         env:
           VERSION: ${{ needs.build.outputs.version }}
         with:
           cmd: |
-            yq eval '.appVersion = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/Chart.yaml
-            yq eval '.version = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/Chart.yaml
-            yq eval '.web.image.tag = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/values.yaml
-            yq eval '.poller.image.tag = "${{ env.VERSION }}"' -i charts/internetaakafhandeling/values.yaml
+            yq eval '.appVersion = "${{ env.VERSION }}"' -i charts/${{ env.CHART_NAME }}/Chart.yaml
+            yq eval '.version = "${{ env.VERSION }}"' -i charts/${{ env.CHART_NAME }}/Chart.yaml
+            yq eval '.web.image.tag = "${{ env.VERSION }}"' -i charts/${{ env.CHART_NAME }}/values.yaml
+            yq eval '.poller.image.tag = "${{ env.VERSION }}"' -i charts/${{ env.CHART_NAME }}/values.yaml
 
-      - name: Set GitHub Pages URL
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          url=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')
-          echo "PAGES_URL=$url" >> "$GITHUB_ENV"
-
-      - name: Update chart dependencies
-        working-directory: charts/internetaakafhandeling
-        run: helm dependency update
-
-      - name: Package chart and create new index
+      - name: push helm chart to oci
+        if: ${{ fromJson(env.SHOULD_RELEASE) }}
         working-directory: charts
         run: |
-          helm package ./internetaakafhandeling
-          curl --output _index.yaml ${{env.PAGES_URL}}/index.yaml || echo "No existing index"
-          helm repo index . --url ${{env.PAGES_URL}} --merge ./_index.yaml
-          mkdir -p ../pages
-          mv index.yaml ../pages/
-          mv *.tgz ../pages/
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: pages
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          helm package ./${{env.CHART_NAME}}
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io/${{ github.repository }} --username ${{ github.actor }} --password-stdin
+          helm push ${{env.CHART_NAME}}-${{ env.VERSION }}.tgz oci://ghcr.io/${{ github.repository }}
