@@ -1,6 +1,0 @@
-apiVersion: v2
-name: internetaakafhandeling-poller
-description: Helm chart for InterneTaakAfhandeling.Poller
-type: application
-version: 0.0.19
-appVersion: 0.0.19
