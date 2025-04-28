@@ -1,0 +1,28 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "internetaakafhandeling.fullname" . }}-ingress
+  labels:
+    {{- include "internetaakafhandeling.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: {{ .Values.certificates.issuerName }}
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ .Values.certificates.commonName }}
+      secretName: {{ include "internetaakafhandeling.fullname" . }}-tls
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "internetaakafhandeling.web.name" . }}-svc
+                port:
+                  number: {{ .Values.ingress.port }}
+{{- end }}
