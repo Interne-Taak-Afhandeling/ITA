@@ -12,6 +12,7 @@ env:
   REGISTRY: ghcr.io
   WEB_IMAGE: ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web
   POLLER_IMAGE: ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller
+  CHART_URL: ghcr.io/interne-taak-afhandeling
   SHOULD_PUSH: ${{ github.event_name != 'pull_request' }}
   SHOULD_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
   IS_LATEST: false
@@ -150,5 +151,5 @@ jobs:
         working-directory: charts
         run: |
           helm package ./${{env.CHART_NAME}}
-          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io/${{ github.repository }} --username ${{ github.actor }} --password-stdin
-          helm push ${{env.CHART_NAME}}-${{ env.VERSION }}.tgz oci://ghcr.io/${{ github.repository }}
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.CHART_URL }} --username ${{ github.actor }} --password-stdin
+          helm push ${{env.CHART_NAME}}-${{ env.VERSION }}.tgz oci://${{ env.CHART_URL }}
