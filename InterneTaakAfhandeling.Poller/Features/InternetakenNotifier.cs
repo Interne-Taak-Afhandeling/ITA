@@ -1,14 +1,13 @@
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
-using InterneTaakAfhandeling.Poller.Services.Openklant;
-using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
-using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
-using InterneTaakAfhandeling.Poller.Services.ObjectApi;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
+using InterneTaakAfhandeling.Poller.Services.NotifierState;
+using InterneTaakAfhandeling.Poller.Services.ObjectApi;
+using InterneTaakAfhandeling.Poller.Services.Openklant;
+using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
 using InterneTaakAfhandeling.Poller.Services.ZakenApi;
 using InterneTaakAfhandeling.Poller.Services.ZakenApi.Models;
-using InterneTaakAfhandeling.Poller.Services.NotifierState;
-using System.Linq.Expressions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace InterneTaakAfhandeling.Poller.Features;
 
@@ -58,38 +57,38 @@ public class InternetakenNotifier : IInternetakenProcessor
     {
         var page = "internetaken";
         var notifierState = await _notifierStateService.StartJobAsync();
- 
-        ProcessingResult processResult = new(true,notifierState.LastInternetakenId,notifierState.LastInternetakenToegewezenOp,"");
+
+        ProcessingResult processResult = new(true, notifierState.LastInternetakenId, notifierState.LastInternetakenToegewezenOp, "");
 
         List<Internetaken> internetakens = [];
 
-             while (!string.IsNullOrEmpty(page))
-            {
-                var response = await _openKlantApiClient.GetInternetakenAsync(page);
-                if (response?.Results == null || response.Results.Count == 0)
-                    break;
-                 var newInternetaken = response.Results.Where(item => item.ToegewezenOp > notifierState.LastInternetakenToegewezenOp);
+        while (!string.IsNullOrEmpty(page))
+        {
+            var response = await _openKlantApiClient.GetInternetakenAsync(page);
+            if (response?.Results == null || response.Results.Count == 0)
+                break;
+            var newInternetaken = response.Results.Where(item => item.ToegewezenOp > notifierState.LastInternetakenToegewezenOp);
             if (!newInternetaken.Any())
                 break;
-            internetakens.AddRange(newInternetaken); 
+            internetakens.AddRange(newInternetaken);
 
             page = response.Next?.Replace(_apiBaseUrl, string.Empty);
-            }
-        internetakens = [.. internetakens.OrderBy(x=> x.ToegewezenOp)];
+        }
+        internetakens = [.. internetakens.OrderBy(x => x.ToegewezenOp)];
         if (internetakens.Count != 0)
         {
-            await foreach (var result in ProcessInternetakenAsync(internetakens))
+            foreach (var taak in internetakens)
             {
 
-                processResult = result;
+                processResult = await ProcessInternetakenAsync(taak);
 
-                if (!result.Success)
+                if (!processResult.Success)
                 {
-                    _logger.LogError("Failed to process internetaken: {ErrorMessage}", result.ErrorMessage);
+                    _logger.LogError("Failed to process internetaken: {ErrorMessage}", processResult.ErrorMessage);
                     break;
                 }
 
-                await _notifierStateService.TrackInternetakenAsync(result.LastInternetakenId, result.LastInternetakenToegewezenOp);
+                await _notifierStateService.TrackInternetakenAsync(processResult.LastInternetakenId, processResult.LastInternetakenToegewezenOp);
             }
         }
         else
@@ -98,56 +97,54 @@ public class InternetakenNotifier : IInternetakenProcessor
         }
 
         await _notifierStateService.FinishJobAsync(processResult);
-         
+
     }
-     
-public async IAsyncEnumerable<ProcessingResult> ProcessInternetakenAsync(List<Internetaken> internetakens)
+
+    public async Task<ProcessingResult> ProcessInternetakenAsync(Internetaken internetaken)
     {
-        foreach (var taak in internetakens)
+        bool success = true;
+        string? errorMessage = null;
+
+        try
         {
-            bool success = true;
-            string? errorMessage = null;
+            _logger.LogInformation("Processing internetaken: {Number}", internetaken.Nummer);
 
-            try
+            var actorEmails = await ResolveActorsEmailAsync(internetaken);
+            if (actorEmails.Count > 0)
             {
-                _logger.LogInformation("Processing internetaken: {Number}", taak.Nummer);
+                var klantContact = await _openKlantApiClient.GetKlantcontactAsync(internetaken.AanleidinggevendKlantcontact.Uuid);
 
-                var actorEmails = await ResolveActorsEmailAsync(taak);
-                if (actorEmails.Count > 0)
+                var digitaleAdress = klantContact.Expand?.HadBetrokkenen?.SelectMany(x => x?.Expand?.DigitaleAdressen).ToList();
+
+                Zaak? zaak = null;
+
+                var onderwerpObjectId = klantContact.Expand?.GingOverOnderwerpobjecten?.FirstOrDefault()?.Onderwerpobjectidentificator?.ObjectId;
+                if (!string.IsNullOrEmpty(onderwerpObjectId))
                 {
-                    var klantContact = await _openKlantApiClient.GetKlantcontactAsync(taak.AanleidinggevendKlantcontact.Uuid);
-
-                    var digitaleAdress = klantContact.Expand?.HadBetrokkenen?.SelectMany(x => x?.Expand?.DigitaleAdressen).ToList();
-
-                    Zaak? zaak = null;
-
-                    var onderwerpObjectId = klantContact.Expand?.GingOverOnderwerpobjecten?.FirstOrDefault()?.Onderwerpobjectidentificator?.ObjectId;
-                    if (!string.IsNullOrEmpty(onderwerpObjectId))
-                    {
-                        zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
-                    }
-
-                    var emailContent = _emailContentService.BuildInternetakenEmailContent(taak, klantContact, digitaleAdress, zaak);
-                    
-                    await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {taak.Nummer}", emailContent)));
-                    
-                    _logger.LogInformation("Successfully processed internetaken: {Number}", taak.Nummer);
+                    zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
                 }
-                else
-                {
-                    _logger.LogInformation("No actor emails found for internetaken: {Number}, skipping", taak.Nummer);
-                    errorMessage = "No actor emails found";
-                }
+
+                var emailContent = _emailContentService.BuildInternetakenEmailContent(internetaken, klantContact, digitaleAdress, zaak);
+
+                await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {internetaken.Nummer}", emailContent)));
+
+                _logger.LogInformation("Successfully processed internetaken: {Number}", internetaken.Nummer);
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Error processing internetaken {Number}", taak.Nummer);
-                success = false;
-                errorMessage = ex.Message;
+                _logger.LogInformation("No actor emails found for internetaken: {Number}, skipping", internetaken.Nummer);
+                errorMessage = "No actor emails found";
             }
-             
-            yield return new ProcessingResult(success, Guid.Parse(taak.Uuid), taak.ToegewezenOp, errorMessage);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing internetaken {Number}", internetaken.Nummer);
+            success = false;
+            errorMessage = ex.Message;
+        }
+
+        return new ProcessingResult(success, Guid.Parse(internetaken.Uuid), internetaken.ToegewezenOp, errorMessage);
+
     }
 
     private async Task<List<string>> ResolveActorsEmailAsync(Internetaken internetaken)
@@ -165,7 +162,7 @@ public async IAsyncEnumerable<ProcessingResult> ProcessInternetakenAsync(List<In
             var actor = await _openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
 
             List<string> validCodeObjectTypes = new List<string> { "mdw", "afd", "grp" };
-           
+
             if (actor?.Actoridentificator == null ||
                 !validCodeObjectTypes.Contains(actor.Actoridentificator.CodeObjecttype))
             {
@@ -195,20 +192,20 @@ public async IAsyncEnumerable<ProcessingResult> ProcessInternetakenAsync(List<In
                 {
                     _logger.LogWarning("Multiple objects found in overigeobjecten for actorIdentificator {ObjectId}. Expected exactly one match.", objectId);
                     continue;
-                } 
+                }
 
-                  objectRecords.First().Data?.EmailAddresses?.ForEach(x =>
-                {
-                   
-                    if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
-                    {
-                        emailAddresses.Add(x);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Invalid email address found for object {ObjectId}", objectId);
-                    }
-                });
+                objectRecords.First().Data?.EmailAddresses?.ForEach(x =>
+              {
+
+                  if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
+                  {
+                      emailAddresses.Add(x);
+                  }
+                  else
+                  {
+                      _logger.LogWarning("Invalid email address found for object {ObjectId}", objectId);
+                  }
+              });
 
             }
         }
@@ -216,5 +213,5 @@ public async IAsyncEnumerable<ProcessingResult> ProcessInternetakenAsync(List<In
         return emailAddresses;
     }
 
-     
+
 }
