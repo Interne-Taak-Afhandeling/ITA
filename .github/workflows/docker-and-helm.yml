@@ -91,7 +91,7 @@ jobs:
 
       - name: set version and revision in env
         run: |
-          echo "VERSION=${{ env.SHOULD_RELEASE && fromJSON(steps.meta-web.outputs.json).labels['org.opencontainers.image.version'] || '0.0.0' }}" >> "$GITHUB_ENV"
+          echo "VERSION=${{ fromJson(env.SHOULD_RELEASE) && fromJSON(steps.meta-web.outputs.json).labels['org.opencontainers.image.version'] || '0.0.0' }}" >> "$GITHUB_ENV"
           echo "REVISION=${{ fromJSON(steps.meta-web.outputs.json).labels['org.opencontainers.image.revision'] }}" >> "$GITHUB_ENV"
 
       - name: Build & push Web image
