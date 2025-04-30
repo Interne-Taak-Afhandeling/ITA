@@ -1,14 +1,13 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-using InterneTaakAfhandeling.Poller.Services.Openklant;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
-using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
-using InterneTaakAfhandeling.Poller.Services.ObjectApi;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Poller.Services.ZakenApi;
-using InterneTaakAfhandeling.Poller.Services.ZakenApi.Models;
-using InterneTaakAfhandeling.Poller.Services.NotifierState;
-using System.Linq.Expressions;
+using InterneTaakAfhandeling.Poller.Services.NotifierState; 
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.ZakenApi;
+using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 
 namespace InterneTaakAfhandeling.Poller.Features;
 

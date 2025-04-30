@@ -56,17 +56,14 @@ namespace InterneTaakAfhandeling.Common.Extensions
             services.Configure<ZakenApiOptions>(options =>
             {
 
-                options.BaseUrl = configuration.GetValue<string>("ZakenApi:BaseUrl") ??
+                options.BaseUrl = configuration.GetValue<string>("ZaakSysteem:BaseUrl") ??
                                   throw new InvalidOperationException("ZakenApi BaseUrl configuration is missing");
+ 
 
-                options.ApiKey = configuration.GetValue<string>("ZakenApi:ApiKey") ??
-                                 throw new InvalidOperationException("ZakenApi ApiKey configuration is missing");
-
-
-                options.JwtSecretKey = configuration.GetValue<string>("ZakenApi:Key") ??
+                options.JwtSecretKey = configuration.GetValue<string>("ZaakSysteem:Key") ??
                                           throw new InvalidOperationException("ZakenApi Key configuration is missing");
 
-                options.ClientId = configuration.GetValue<string>("ZakenApi:ClientId")
+                options.ClientId = configuration.GetValue<string>("ZaakSysteem:ClientId")
                                     ?? throw new InvalidOperationException("ZakenApi ClientId configuration is missing");
             });
 
