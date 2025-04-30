@@ -22,8 +22,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly IEmailService _emailService;
     private readonly ILogger<InternetakenNotifier> _logger;
     private readonly IObjectApiClient _objectApiClient;
-    private readonly string _apiBaseUrl;
-    private readonly int _hourThreshold;
+    private readonly string _apiBaseUrl; 
     private readonly IEmailContentService _emailContentService;
     private readonly IZakenApiClient _zakenApiClient;
     private readonly INotifierStateService _notifierStateService;
@@ -44,8 +43,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient));
-        _hourThreshold = configuration.GetValue<int>("InternetakenNotifier:HourThreshold");
+        _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient)); 
         _apiBaseUrl = configuration.GetValue<string>("OpenKlantApi:BaseUrl")
             ?? throw new ArgumentException("OpenKlantApi:BaseUrl configuration is missing");
         _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
