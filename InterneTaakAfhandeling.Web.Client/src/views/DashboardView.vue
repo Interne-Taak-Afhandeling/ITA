@@ -18,7 +18,7 @@
           <utrecht-table-row v-if="assignedInternetaken.length === 0 && !isLoading">
             <utrecht-table-cell colspan="3">Geen interne taken gevonden</utrecht-table-cell>
           </utrecht-table-row>
-          
+
           <utrecht-table-row v-for="taak in assignedInternetaken" :key="taak.uuid">
             <utrecht-table-cell>{{ formatDate(taak.aanleidinggevendKlantcontact?.plaatsgevondenOp) }}</utrecht-table-cell>
             <utrecht-table-cell>{{ taak.betrokken?.naam }}</utrecht-table-cell>
@@ -69,28 +69,18 @@
   }
 }
 
-.loading {
-  padding: 1rem 0;
-  color: var(--ita-color-text, #333);
-}
-
-.error {
-  padding: 1rem 0;
-  color: var(--ita-color-error, #d52b1e);
-}
 </style>
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
+  import { onMounted } from 'vue';
   import { useUserStore } from '@/stores/user';
   import { storeToRefs } from 'pinia';
-  import type { Internetaken } from '@/types/internetaken';
   import { formatDate } from '@/utils/dateUtils';
 
   const userStore = useUserStore();
-  const { assignedInternetaken, isLoading, error } = storeToRefs(userStore);
-   
- 
+  const { assignedInternetaken, isLoading } = storeToRefs(userStore);
+
+
 onMounted(() => {
   userStore.fetchAssignedInternetaken();
 });
