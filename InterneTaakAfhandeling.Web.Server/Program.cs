@@ -4,6 +4,11 @@ using InterneTaakAfhandeling.Web.Server.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.EnvironmentName == "Docker")
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+
 // Add services to the container.
 builder.Services.RegisterServices(builder.Configuration);
 
