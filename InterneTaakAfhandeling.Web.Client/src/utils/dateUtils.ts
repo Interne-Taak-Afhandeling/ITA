@@ -1,37 +1,28 @@
 export type DateLike = string | number | Date | null | undefined;
 
-const padZero = (v: string | number, count: number) => {
-  v = v.toString();
-  while (v.length < count) {
-    v = "0" + v;
-  }
-  return v;
-};
-
 export const parseValidDate = (date: DateLike) => {
   if (!date) return undefined;
   date = new Date(date);
-  if (date instanceof Date && !isNaN(date.getTime())) return date;
-  return date;
+  const time = date.getTime();
+  if (date instanceof Date && !isNaN(time)) return date;
+  return undefined;
 };
 
-export const formatNlDate = (date: string | number | Date | null | undefined) => {
+export const formatNlDateTime = (date: string | number | Date | null | undefined) => {
   date = parseValidDate(date);
-  if (!date) {
-    return undefined;
-  }
-  return new Date(date).toLocaleString("nl-NL", {
+  if (!date) return undefined;
+  const dateStr = date.toLocaleString("nl-NL", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric"
   });
+  const time = date.toLocaleString("nl-NL", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+  return `${dateStr} ${time}`;
 };
 
-export const formatIsoDate = (date: DateLike) => {
-  date = parseValidDate(date);
-  if (!date) return undefined;
-  const year = padZero(date.getFullYear(), 4),
-    month = padZero(date.getMonth() + 1, 2),
-    day = padZero(date.getDate(), 2);
-  return [year, month, day].join("-");
+export const formatIsoDateTime = (date: DateLike) => {
+  return parseValidDate(date)?.toISOString();
 };
