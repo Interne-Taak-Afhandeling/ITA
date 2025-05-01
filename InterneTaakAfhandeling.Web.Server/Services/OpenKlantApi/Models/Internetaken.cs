@@ -32,7 +32,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models
 
         public DateTimeOffset? AfgehandeldOp { get; set; }
         public List<DigitaleAdres>? DigitaleAdress { get { return AanleidinggevendKlantcontact?.Expand?.HadBetrokkenen?.SelectMany(x => x?.Expand?.DigitaleAdressen).ToList(); } }
-        public Actor? Betrokken { get { return AanleidinggevendKlantcontact?.HadBetrokkenActoren.FirstOrDefault(); }   }
+        public Betrokkene? Betrokkene { get { return AanleidinggevendKlantcontact?.Expand?.HadBetrokkenen?.FirstOrDefault(); }   }
 
          
     }
