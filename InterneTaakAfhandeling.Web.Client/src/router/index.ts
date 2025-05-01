@@ -4,6 +4,7 @@ import AfdelingscontactenView from "@/views/AfdelingscontactenView.vue";
 import HistorieView from "@/views/HistorieView.vue";
 import LoginView from "@/views/LoginView.vue";
 import ForbiddenView from "@/views/ForbiddenView.vue";
+import ContactverzoekDetailView from "@/views/ContactverzoekDetailView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,7 +14,7 @@ const router = createRouter({
       name: "dashboard",
       component: DashboardView,
       meta: {
-        title: "Dashboard", 
+        title: "Dashboard",
         requiresITAAccess: true
       }
     },
@@ -22,7 +23,7 @@ const router = createRouter({
       name: "afdelingscontacten",
       component: AfdelingscontactenView,
       meta: {
-        title: "Afdelingscontacten", 
+        title: "Afdelingscontacten",
         requiresITAAccess: true
       }
     },
@@ -31,7 +32,7 @@ const router = createRouter({
       name: "historie",
       component: HistorieView,
       meta: {
-        title: "Historie", 
+        title: "Historie",
         requiresITAAccess: true
       }
     },
@@ -51,8 +52,17 @@ const router = createRouter({
         title: "Toegang Geweigerd",
         requiresAuth: true
       }
+    },
+    {
+      path: "/contactverzoek/:number",
+      name: "contactverzoekDetail",
+      component: ContactverzoekDetailView,
+      meta: {
+        title: "Contactverzoek",
+        requiresAuth: true
+      }
     }
   ]
 });
- 
+
 export default router;

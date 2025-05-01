@@ -6,7 +6,8 @@ const _staticRecords: _DeepPartial<Internetaken>[] = [
     uuid: "1",
     aanleidinggevendKlantcontact: {
       plaatsgevondenOp: "2025-01-01T15:00+01:00",
-      onderwerp: "Lorem ipsum"
+      onderwerp: "Lorem ipsum",
+      nummer: "1"
     },
     betrokkene: { volledigeNaam: "Saskia Swart" }
   },
@@ -14,7 +15,8 @@ const _staticRecords: _DeepPartial<Internetaken>[] = [
     uuid: "2",
     aanleidinggevendKlantcontact: {
       plaatsgevondenOp: "2025-01-02T15:00+01:00",
-      onderwerp: "Dolor sit amet"
+      onderwerp: "Dolor sit amet",
+      nummer: "2"
     },
     betrokkene: { volledigeNaam: "Martijn de Groot" }
   }
