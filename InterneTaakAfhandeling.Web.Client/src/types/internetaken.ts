@@ -8,10 +8,10 @@ export interface Internetaken {
   toegewezenAanActoren?: Actor[];
   toelichting?: string;
   status: string;
-  toegewezenOp: string;   
-  afgehandeldOp?: string;   
+  toegewezenOp: string;
+  afgehandeldOp?: string;
   digitaleAdress?: DigitaleAdres[];
-  betrokken?: Actor;
+  betrokkene?: Betrokkene;
 }
 
 export interface Klantcontact {
@@ -26,7 +26,7 @@ export interface Klantcontact {
   inhoud?: string;
   taal?: string;
   vertrouwelijk?: boolean;
-  plaatsgevondenOp: string;   
+  plaatsgevondenOp: string;
   expand?: Expand;
 }
 

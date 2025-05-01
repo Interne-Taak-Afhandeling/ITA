@@ -1,0 +1,102 @@
+# Global PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    username: ""
+    password: ""
+    database: "interneTaakAfhandeling"
+    postgresPassword: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+  metrics:
+    enabled: false
+
+# Certificate configuration
+certificates:
+  enabled: true
+  installClusterIssuer: true
+  issuerName: "letsencrypt-prod" 
+  commonName: ""
+  email: ""
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  host: ""
+  port: 80
+
+# Database Configuration
+database:
+  # When postgresql.enabled=true, host is auto-set to {Release.Name}-postgresql
+  # Specify this host only when postgresql.enabled=false
+  host: ""
+  port: "5432"
+  name: "interneTaakAfhandeling"
+  username: ""
+  password: ""
+
+# API Connections
+apiConnections:
+  openKlant:
+    baseUrl: ""
+    apiKey: ""
+  object:
+    baseUrl: ""
+    apiKey: ""
+  zaakSysteem:
+    baseUrl: ""
+    clientId: ""
+    key: ""
+
+# Web Application Configuration
+web:
+  image:
+    repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
+    tag: "latest"
+    pullPolicy: Always
+  
+  service:
+    type: ClusterIP
+    port: 80
+  
+  oidc:
+    authority: ""
+    clientId: ""
+    clientSecret: ""
+    itaSystemAccessRole: ""
+    nameClaimType: ""
+    roleClaimType: ""
+    idClaimType: ""
+  
+  resources:
+    logoUrl: ""
+    faviconUrl: ""
+    designTokensUrl: ""
+    webFontSources: []
+  
+  appsettings:
+    setting1: ""
+    setting2: ""
+
+# Poller Configuration
+poller:
+  schedule: "*/15 * * * *"
+  
+  image:
+    repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
+    tag: "latest"
+    pullPolicy: Always
+  
+  notification:
+    pollerMessage: "Poller uitgevoerd om:"
+    hourThreshold: "-24"
+  
+  smtp:
+    host: ""
+    port: "25"
+    username: ""
+    password: ""
+    fromEmail: ""
+    enableSsl: "true"
