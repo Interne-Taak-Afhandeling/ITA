@@ -11,7 +11,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
 public interface IOpenKlantApiClient
 {
-    Task<InternetakenResponse?> GetInternetakenAsync(string path);
+    Task<InternetakenResponse?> GetInternetakenAsync(string path); 
     Task<Actor> GetActorAsync(string uuid);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> GetBetrokkeneAsync(string uuid);
