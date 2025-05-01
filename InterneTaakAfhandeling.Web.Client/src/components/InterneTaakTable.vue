@@ -15,7 +15,7 @@
 
       <utrecht-table-row v-for="taak in interneTaken" :key="taak.uuid">
         <utrecht-table-cell>
-          <date-or-nvt :date="taak.aanleidinggevendKlantcontact?.plaatsgevondenOp" />
+          <date-time-or-nvt :date="taak.aanleidinggevendKlantcontact?.plaatsgevondenOp" />
         </utrecht-table-cell>
         <utrecht-table-cell>{{ taak.betrokkene?.volledigeNaam }}</utrecht-table-cell>
         <utrecht-table-cell>{{ taak.aanleidinggevendKlantcontact?.onderwerp }}</utrecht-table-cell>
@@ -26,6 +26,6 @@
 
 <script setup lang="ts">
 import type { Internetaken } from "@/types/internetaken";
-import DateOrNvt from "./DateOrNvt.vue";
+import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 defineProps<{ interneTaken: Internetaken[] }>();
 </script>
