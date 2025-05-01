@@ -1,6 +1,6 @@
-export const formatDate = (dateString: string | undefined): string => {  
+export const formatDate = (dateString: string | number | Date | null | undefined): string => {  
    if (!dateString) {  
-       return "N/A";  
+       return "N.v.t";  
    }  
    return new Date(dateString).toLocaleString("nl-NL", {  
        day: "2-digit",  
