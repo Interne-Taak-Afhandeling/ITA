@@ -2,23 +2,21 @@
   <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
   <router-link to="/">Terug</router-link>
   <div class="ita-cv-detail-sections">
-    <section class="vraag">
+    <section>
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Vraag</utrecht-data-list-key>
-          <utrecht-data-list-value value="x" multiline>
-            Loterij organiseren - Mevrouw Moulin wil graag weten hoe ze een loterij organiseert
+          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.onderwerp" multiline>
+            {{ taak.aanleidinggevendKlantcontact?.onderwerp }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-spotlight-section>
             <utrecht-data-list-key>Interne toelichting KCC</utrecht-data-list-key>
-            <utrecht-data-list-value value="x" multiline>
-              Niet op woensdagmiddag bellen.<br />
-              Is de loterij voor een goed doel?; Ja<br />
-              Is de locatie openbaar?; Nee, het is bij Mevrouw Moulin thuis.
-            </utrecht-data-list-value>
+            <utrecht-data-list-value :value="taak.toelichting" multiline class="preserve-newline">{{
+              taak.toelichting
+            }}</utrecht-data-list-value>
           </utrecht-spotlight-section>
         </utrecht-data-list-item>
       </utrecht-data-list>
@@ -28,45 +26,55 @@
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Klantnaam</utrecht-data-list-key>
-          <utrecht-data-list-value value="x">Suzanne Moulin</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak.betrokkene?.volledigeNaam">{{
+            taak.betrokkene?.volledigeNaam
+          }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Telefoonnummer</utrecht-data-list-key>
-          <utrecht-data-list-value value="x">02012345678</utrecht-data-list-value>
+          <utrecht-data-list-value :value="phoneNumber1">{{
+            phoneNumber1
+          }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Telefoonnummer 2</utrecht-data-list-key>
-          <utrecht-data-list-value></utrecht-data-list-value>
+          <utrecht-data-list-value :value="phoneNumber2">{{
+            phoneNumber2
+          }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
-          <utrecht-data-list-value></utrecht-data-list-value>
+          <utrecht-data-list-value :value="email">{{ email }}</utrecht-data-list-value>
         </utrecht-data-list-item>
-        <utrecht-data-list-item>
+        <utrecht-data-list-item v-for="zaakUuid in zaakUuids" :key="zaakUuid">
           <utrecht-data-list-key>Gekoppelde zaak</utrecht-data-list-key>
-          <utrecht-data-list-value value="x">ZAAK-2025-XXXXYZ</utrecht-data-list-value>
+          <utrecht-data-list-value :value="zaakUuid">{{ zaakUuid }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Datum aangemaakt</utrecht-data-list-key>
           <utrecht-data-list-value value="x"
-            ><date-time-or-nvt date="2025-01-01T11:54"
+            ><date-time-or-nvt :date="taak.aanleidinggevendKlantcontact?.plaatsgevondenOp"
           /></utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
-          <utrecht-data-list-value value="x">Telefoon</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.kanaal">{{
+            taak.aanleidinggevendKlantcontact?.kanaal
+          }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Behandelaar</utrecht-data-list-key>
-          <utrecht-data-list-value value="x">Piet van Gelre</utrecht-data-list-value>
+          <utrecht-data-list-value :value="behandelaar">{{ behandelaar }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Status</utrecht-data-list-key>
-          <utrecht-data-list-value value="x">Te verwerken</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak.status">{{ taak.status }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Aangemaakt door</utrecht-data-list-key>
-          <utrecht-data-list-value value="x">Amber Gerritsen</utrecht-data-list-value>
+          <utrecht-data-list-value :value="aangemaaktDoor">{{
+            aangemaaktDoor
+          }}</utrecht-data-list-value>
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
@@ -76,10 +84,40 @@
 <script lang="ts" setup>
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
+import { fakeInterneTaken } from "@/helpers/fake-data";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 const route = useRoute();
 const cvId = computed(() => route.params.number);
+
+const taak = fakeInterneTaken[0];
+const phoneNumbers = computed(() =>
+  taak.digitaleAdress
+    ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "telefoonnummer")
+    .map(({ adres }) => adres)
+);
+const phoneNumber1 = computed(() => phoneNumbers.value?.[0]);
+const phoneNumber2 = computed(() => phoneNumbers.value?.[1]);
+const email = computed(() =>
+  taak.digitaleAdress
+    ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "email")
+    .map(({ adres }) => adres)
+    .find(Boolean)
+);
+const behandelaar = computed(() => taak.toegewezenAanActoren?.map((x) => x.naam).find(Boolean));
+const aangemaaktDoor = computed(() =>
+  taak.aanleidinggevendKlantcontact?.hadBetrokkenActoren.map((x) => x.naam).find(Boolean)
+);
+const zaakUuids = computed(() =>
+  taak.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
+    ?.map((x) => x.onderwerpobjectidentificator?.objectId)
+    .filter(Boolean)
+);
+// TODO:
+// 1. get zaak from openzaak by uuid
+// 2. get the deeplink url config from an environment variable (same as in KISS)
+// 3. build a deeplink to the zaak using the zaaknummer of the zaak and the deeplink url config (same as in KISS)
+// 4. show the zaaknummer as a link in the data-list
 </script>
 
 <style lang="scss" scoped>
@@ -97,6 +135,7 @@ const cvId = computed(() => route.params.number);
 .contact-data {
   container-type: inline-size;
   .utrecht-data-list {
+    gap: 1rem;
     @container (min-width: 25rem) {
       columns: 2;
     }
@@ -104,13 +143,5 @@ const cvId = computed(() => route.params.number);
       columns: 3;
     }
   }
-}
-
-.utrecht-data-list:has(.utrecht-spotlight-section)
-  .utrecht-data-list__item:not(:has(.utrecht-spotlight-section)) {
-  padding-block-end: var(--utrecht-spotlight-section-padding-block-end);
-  padding-block-start: var(--utrecht-spotlight-section-padding-block-start);
-  padding-inline-end: var(--utrecht-spotlight-section-padding-inline-end);
-  padding-inline-start: var(--utrecht-spotlight-section-padding-inline-start);
 }
 </style>

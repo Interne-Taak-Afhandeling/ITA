@@ -6,10 +6,24 @@ const _staticRecords: _DeepPartial<Internetaken>[] = [
     uuid: "1",
     aanleidinggevendKlantcontact: {
       plaatsgevondenOp: "2025-01-01T15:00+01:00",
-      onderwerp: "Lorem ipsum",
-      nummer: "1"
+      onderwerp:
+        "Loterij organiseren - Mevrouw Swart wil graag weten hoe ze een loterij organiseert.",
+      nummer: "1",
+      kanaal: "Telefoon",
+      gingOverOnderwerpobjecten: [
+        { onderwerpobjectidentificator: { objectId: "02e2b0e9-d7cc-428e-83f0-edaa1847bea8" } }
+      ],
+      hadBetrokkenActoren: [{ naam: "Amber Gerritsen" }]
     },
-    betrokkene: { volledigeNaam: "Saskia Swart" }
+    status: "Te verwerken",
+    digitaleAdress: [{ soortDigitaalAdres: "telefoonnummer", adres: "020123567" }],
+    betrokkene: {
+      volledigeNaam: "Saskia Swart"
+    },
+    toegewezenAanActoren: [{ naam: "Piet van Gelre" }],
+    toelichting: `Niet op woensdagmiddag bellen.
+Is de loterij voor een goed doel?: Ja
+Is de locatie openbaar?: Nee, het is bij Mevrouw Moulin thuis.`
   },
   {
     uuid: "2",
