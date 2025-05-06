@@ -7,8 +7,8 @@
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Vraag</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.onderwerp" multiline>
-            {{ taak.aanleidinggevendKlantcontact?.onderwerp }}
+          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.onderwerp" multiline
+            >{{ taak.aanleidinggevendKlantcontact?.onderwerp }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
