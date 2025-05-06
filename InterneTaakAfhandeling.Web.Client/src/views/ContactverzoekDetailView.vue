@@ -115,9 +115,7 @@ const zaakUuids = computed(() =>
 );
 // TODO:
 // 1. get zaak from openzaak by uuid
-// 2. get the deeplink url config from an environment variable (same as in KISS)
-// 3. build a deeplink to the zaak using the zaaknummer of the zaak and the deeplink url config (same as in KISS)
-// 4. show the zaaknummer as a link in the data-list
+// 2. show the zaaknummer in the data-list
 </script>
 
 <style lang="scss" scoped>
