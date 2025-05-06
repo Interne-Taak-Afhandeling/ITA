@@ -30,6 +30,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
               options.NameClaimType = configuration["OIDC_NAME_CLAIM_TYPE"];
               options.RoleClaimType = configuration["OIDC_ROLE_CLAIM_TYPE"];
               options.IdClaimType = configuration["OIDC_ID_CLAIM_TYPE"];
+              options.EmailClaimType = configuration["OIDC_EMAIL_CLAIM_TYPE"];
           });
 
              
