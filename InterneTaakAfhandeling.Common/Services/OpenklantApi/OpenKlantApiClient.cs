@@ -1,11 +1,8 @@
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+ 
+using System.Net.Http.Json; 
+using Microsoft.Extensions.Logging; 
 using System.Text.Json;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models; 
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
@@ -17,27 +14,15 @@ public interface IOpenKlantApiClient
     Task<Betrokkene> GetBetrokkeneAsync(string uuid);
     Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);
     Task<List<Internetaken>> GetInternetakenByToegewezenAanActor(string uuid);
+    Task<Actor?> GetActorenByObjectidAsync(string objectId);
 }
 
-public class OpenKlantApiClient : IOpenKlantApiClient
+public class OpenKlantApiClient(
+    HttpClient httpClient,
+    ILogger<OpenKlantApiClient> logger) : IOpenKlantApiClient
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<OpenKlantApiClient> _logger;
-    private readonly OpenKlantApiOptions _options;
-
-    public OpenKlantApiClient(
-        HttpClient httpClient,
-        IOptions<OpenKlantApiOptions> options,
-        ILogger<OpenKlantApiClient> logger)
-    {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        
-        _httpClient.BaseAddress = new Uri(_options.BaseUrl);
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", _options.ApiKey);
-      
-    }
+    private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+    private readonly ILogger<OpenKlantApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
     {
@@ -164,22 +149,35 @@ public class OpenKlantApiClient : IOpenKlantApiClient
 
     public async Task<List<Internetaken>> GetInternetakenByToegewezenAanActor(string uuid)
     {
-        List<Internetaken> content = new List<Internetaken>();
+        List<Internetaken> content = [];
         var page = $"internetaken?toegewezenAanActor__uuid={uuid}";
-        while (!string.IsNullOrEmpty(page))
-        {
+       // while (!string.IsNullOrEmpty(page))
+       // {
             var response = await _httpClient.GetAsync(page);
             response.EnsureSuccessStatusCode();
             var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
 
             await Task.WhenAll(currentContent?.Results?.Select(async x =>
             {
+
+               
                 x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
             }) ?? []);
             content.AddRange(currentContent?.Results ?? []);
-            page = currentContent?.Next?.Replace(_options.BaseUrl, string.Empty);
-        }
+          //  page = currentContent?.Next?.Replace(_httpClient.BaseAddress.AbsoluteUri, string.Empty);
+      //  }
 
         return content?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];
+    }
+
+    public async Task<Actor?> GetActorenByObjectidAsync(string objectId)
+    {
+
+        var response = await _httpClient.GetAsync($"actoren?actoridentificatorObjectId={objectId}");
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadFromJsonAsync<ActorResponse>();
+
+        return content?.Results?.FirstOrDefault();
     }
 }

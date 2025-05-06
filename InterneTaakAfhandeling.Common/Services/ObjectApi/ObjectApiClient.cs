@@ -1,10 +1,8 @@
-using System.Net.Http.Headers;
+
 using System.Net.Http.Json;
 using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models; 
+using Microsoft.Extensions.Logging; 
 
 namespace InterneTaakAfhandeling.Common.Services.ObjectApi;
 
@@ -13,25 +11,12 @@ public interface IObjectApiClient
     Task<List<ObjectRecord>> GetObjectsByIdentificatie(string identificatie);
 }
 
-public class ObjectApiClient : IObjectApiClient
+public class ObjectApiClient(
+    HttpClient httpClient,
+    ILogger<ObjectApiClient> logger) : IObjectApiClient
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<ObjectApiClient> _logger;
-    private readonly ObjectApiOptions _options;
-
-    public ObjectApiClient(
-        HttpClient httpClient,
-        IOptions<ObjectApiOptions> options,
-        ILogger<ObjectApiClient> logger)
-    {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        
-        _httpClient.BaseAddress = new Uri(_options.BaseUrl);
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", _options.ApiKey);
-        
-    }
+    private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+    private readonly ILogger<ObjectApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<List<ObjectRecord>> GetObjectsByIdentificatie(string identificatie)
     {
