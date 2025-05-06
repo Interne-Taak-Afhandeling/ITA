@@ -1,7 +1,8 @@
-﻿using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features;
-using InterneTaakAfhandeling.Web.Server.Services.ObjectApi;
-using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi; 
+using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Web.Server.Services;
+using InterneTaakAfhandeling.Web.Server.Middleware;
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
@@ -9,6 +10,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
     {
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
+            
             services.AddControllers(); 
             services.AddRouting(options =>
             {
@@ -30,9 +32,15 @@ namespace InterneTaakAfhandeling.Web.Server.Config
               options.IdClaimType = configuration["OIDC_ID_CLAIM_TYPE"];
           });
 
+             
+            services.AddITAApiClients(configuration); 
 
-            services.AddScoped<IOpenKlantApiClient,OpenKlantApiClient>();
-            services.AddScoped<IObjectApiClient,ObjectApiClient>();
+            services.AddScoped<IUserService, UserService>();
+
+            services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
+
+            services.AddProblemDetails();
+
 
             return services;
         }
