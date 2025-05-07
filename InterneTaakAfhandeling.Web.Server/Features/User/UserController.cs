@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Duende.IdentityModel;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class UserController(IUserService userService) : Controller
+    public class UserController(IUserService userService, ITAUser user) : Controller
     {
         private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
@@ -20,7 +21,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
         [HttpGet("internetaken")]
         public async Task<IActionResult> GetInternetaken()
         {
-          return Ok(await _userService.GetInterneTakenByAssignedUser(User.FindFirstValue(JwtClaimTypes.Email), User.FindFirstValue(JwtClaimTypes.PreferredUserName)));
+          return Ok(await _userService.GetInterneTakenByAssignedUser(user));
         }
     }
 }

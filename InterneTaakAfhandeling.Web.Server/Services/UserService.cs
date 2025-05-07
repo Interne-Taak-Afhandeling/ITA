@@ -1,98 +1,84 @@
-﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
+﻿using InterneTaakAfhandeling.Common.Services.OpenklantApi;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Middleware;
+using InterneTaakAfhandeling.Web.Server.Authentication;
 
 namespace InterneTaakAfhandeling.Web.Server.Services
 {
     public interface IUserService
     {
-        Task<List<Actor>> GetActorsByUser(string? userEmail, string? userId);
-        Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail, string? userId);
+        Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user);
     }
-    public class UserService(IObjectApiClient objectApiClient, IOpenKlantApiClient openKlantApiClient, ILogger<UserService> logger) : IUserService
+    public class UserService(IOpenKlantApiClient openKlantApiClient) : IUserService
     {
-        private readonly IObjectApiClient _objectApiClient = objectApiClient;
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-        
 
-        public async Task<List<Actor>> GetActorsByUser(string? userEmail, string? userId)
+
+        public async Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user)
         {
-            try
-            {
-                var actors = new List<Actor>();
-                if (!string.IsNullOrEmpty(userEmail))
-                {
-                    var objectRecords = await _objectApiClient.GetObject(userEmail, "email", "handmatig", "mdw");
-                    var objectId = objectRecords?.FirstOrDefault()?.Data?.Identificatie;
-                    if (objectId != null)
-                    {
-                        var actor = await _openKlantApiClient.GetActorenByObjectidAsync(objectId);
-                        if (actor != null)
-                        {
-                            actors.Add(actor);
-                        }
-                    }
-                      objectRecords = await _objectApiClient.GetObject(userEmail, "email", "msei", "mdw");
-                      objectId = objectRecords?.FirstOrDefault()?.Data?.Identificatie;
-                    if (objectId != null)
-                    {
-                        var actor = await _openKlantApiClient.GetActorenByObjectidAsync(objectId);
-                        if (actor != null)
-                        {
-                            actors.Add(actor);
-                        }
-                    }
-                }
-                if (!string.IsNullOrEmpty(userId))
-                {
-                   var objectRecords = await _objectApiClient.GetObject(userId, "idf", "obj", "mdw");
-                   var objectId = objectRecords?.FirstOrDefault()?.Data?.Identificatie;
-                    if (objectId != null)
-                    {
-                        var actor = await _openKlantApiClient.GetActorenByObjectidAsync(objectId);
-                        if (actor != null)
-                        {
-                            actors.Add(actor);
-                        }
-                    }
-                }
-
-                return actors;
-
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            var actorIds = await GetActorIds(user);
+            var tasks = actorIds.Select(a => _openKlantApiClient.GetOutstandingInternetakenByToegewezenAanActor(a));
+            var all = await Task.WhenAll(tasks);
+            return all.SelectMany(x => x).OrderByDescending(x => x.ToegewezenOp).ToList();
         }
 
-
-        public async Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail, string? userId)
+        private async Task<IReadOnlyList<string>> GetActorIds(ITAUser user)
         {
-            try
-            {
-                var actors = await GetActorsByUser(userEmail, userId);
+            var actorIds = new List<string>();
 
-                if (actors.Count == 0)
-                {
-                    return [];
-                }
-                var interneTakens = new List<Internetaken>();
-                foreach (var actor in actors)
-                {
-                    if (!string.IsNullOrEmpty(actor.Uuid))
-                    {
-                        interneTakens.AddRange(await _openKlantApiClient.GetInternetakenByToegewezenAanActor(actor.Uuid));
-                    }
-                }
-                return interneTakens;
-            }
-            catch (Exception)
+            if (!string.IsNullOrWhiteSpace(user.Email))
             {
-                throw;
+                var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.medewerker,
+                    ActoridentificatorObjectId = user.Email
+                });
+
+                if (fromEntra != null)
+                {
+                    actorIds.Add(fromEntra.Uuid);
+                }
+
+                var fromHandmatig = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.medewerker,
+                    ActoridentificatorObjectId = user.Email
+                });
+
+                if (fromHandmatig != null)
+                {
+                    actorIds.Add(fromHandmatig.Uuid);
+                }
             }
+
+            if (!string.IsNullOrWhiteSpace(user.Id))
+            {
+                var fromObjecten = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.IdFromObjectRegistration.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.IdFromObjectRegistration.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.IdFromObjectRegistration.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.medewerker,
+                    ActoridentificatorObjectId = user.Id
+                });
+
+                if (fromObjecten != null)
+                {
+                    actorIds.Add(fromObjecten.Uuid);
+                }
+            }
+
+            return actorIds;
         }
-
     }
 }
