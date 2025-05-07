@@ -1,16 +1,13 @@
 
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
+using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
-using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models; 
-using Microsoft.Extensions.Logging; 
 
 namespace InterneTaakAfhandeling.Common.Services.ObjectApi;
 
 public interface IObjectApiClient
 {
     Task<List<ObjectRecord>> GetObjectsByIdentificatie(string identificatie);
-    Task<List<ObjectRecord>> GetObject(string identificatie, string codeSoortObjectId, string codeRegister, string codeObjecttype);
-
 }
 
 public class ObjectApiClient(
@@ -20,39 +17,10 @@ public class ObjectApiClient(
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly ILogger<ObjectApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public async Task<List<ObjectRecord>> GetObject(string identificatie, string codeSoortObjectId, string codeRegister, string codeObjecttype)
-    {
-       
-        try
-        {
-            var response = await _httpClient.GetAsync($"objects?ordering=record__data__identificatie&data_attr=codeSoortObjectId__exact__{codeSoortObjectId}&data_attr=codeRegister__exact__{codeRegister}&data_attr=codeObjecttype__exact__{codeObjecttype}&data_attr=identificatie__exact__{identificatie}");
-            response.EnsureSuccessStatusCode();
-
-            var result = await response.Content.ReadFromJsonAsync<ObjectResponse>();
-
-            if (result?.Results == null || result.Results.Count == 0)
-            {
-                _logger.LogWarning("No objects found for identificatie {Identificatie}", identificatie);
-                return [];
-            }
-
-
-            return result.Results
-                .Where(r => r?.Record != null)
-                .Select(r => r.Record)
-                .ToList();
-        }
-        
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error occurred while fetching objects for identificatie {Identificatie}", identificatie);
-            return [];
-        }
-    }
-
     public async Task<List<ObjectRecord>> GetObjectsByIdentificatie(string identificatie)
     {
-        _logger.LogInformation("Fetching objects for identificatie {Identificatie}", identificatie);
+        var truncated = TruncateId(identificatie);
+        _logger.LogInformation("Fetching objects for identificatie {Identificatie}", truncated);
 
         try
         {
@@ -60,14 +28,14 @@ public class ObjectApiClient(
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<ObjectResponse>();
-            
+
             if (result?.Results == null || result.Results.Count == 0)
             {
-                _logger.LogWarning("No objects found for identificatie {Identificatie}", identificatie);
+                _logger.LogWarning("No objects found for identificatie {Identificatie}", truncated);
                 return [];
             }
 
-            
+
             return result.Results
                 .Where(r => r?.Record != null)
                 .Select(r => r.Record)
@@ -75,13 +43,19 @@ public class ObjectApiClient(
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Error fetching objects for identificatie {Identificatie}", identificatie);
+            _logger.LogError(ex, "Error fetching objects for identificatie {Identificatie}", truncated);
             return [];
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error occurred while fetching objects for identificatie {Identificatie}", identificatie);
+            _logger.LogError(ex, "Unexpected error occurred while fetching objects for identificatie {Identificatie}", truncated);
             return [];
         }
     }
+
+    const int TruncatedLength = 3;
+
+    private static string TruncateId(string id) =>
+        id.Length < TruncatedLength ? "***"
+        : $"{id.AsSpan()[..TruncatedLength]}***";
 }
