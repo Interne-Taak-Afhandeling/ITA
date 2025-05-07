@@ -90,6 +90,7 @@
               id="contact-gelukt"
               :value="RESULTS.contactGelukt"
               v-model="form.resultaat"
+              required
             />
             <utrecht-form-label for="contact-gelukt" type="radio">{{
               RESULTS.contactGelukt
@@ -101,6 +102,7 @@
               id="geen-gehoor"
               :value="RESULTS.geenGehoor"
               v-model="form.resultaat"
+              required
             />
             <utrecht-form-label for="geen-gehoor" type="radio">{{
               RESULTS.geenGehoor
@@ -115,7 +117,11 @@
           <utrecht-form-label for="informatie-burger"
             >Informatie voor burger / bedrijf</utrecht-form-label
           >
-          <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
+          <utrecht-textarea
+            :required="form.resultaat === RESULTS.contactGelukt"
+            id="informatie-burger"
+            v-model="form.informatieBurger"
+          />
         </utrecht-form-field>
         <utrecht-button type="submit" appearance="primary-action-button">Opslaan</utrecht-button>
       </form>
@@ -170,7 +176,7 @@ const kanalen = [
 ];
 
 const form = ref({
-  resultaat: RESULTS.contactGelukt,
+  resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
   kanaal: "",
   informatieBurger: ""
 });
