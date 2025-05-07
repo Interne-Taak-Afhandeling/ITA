@@ -17,7 +17,11 @@
         <utrecht-table-cell>
           <date-time-or-nvt :date="taak.aanleidinggevendKlantcontact?.plaatsgevondenOp" />
         </utrecht-table-cell>
-        <utrecht-table-cell>{{ taak.betrokkene?.volledigeNaam }}</utrecht-table-cell>
+        <utrecht-table-cell>{{
+          taak.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
+            ?.map((x) => x.volledigeNaam)
+            .find(Boolean)
+        }}</utrecht-table-cell>
         <utrecht-table-cell>{{ taak.aanleidinggevendKlantcontact?.onderwerp }}</utrecht-table-cell>
       </utrecht-table-row>
     </utrecht-table-body>
