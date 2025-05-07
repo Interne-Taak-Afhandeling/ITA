@@ -7,34 +7,59 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 {
     public interface IUserService
     {
-        Task<Actor?> GetActorByEmail(string? userEmail);
-        Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail);
+        Task<List<Actor>> GetActorsByUser(string? userEmail, string? userId);
+        Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail, string? userId);
     }
-    public class UserService( IObjectApiClient objectApiClient, IOpenKlantApiClient openKlantApiClient, ILogger<UserService> logger) : IUserService
+    public class UserService(IObjectApiClient objectApiClient, IOpenKlantApiClient openKlantApiClient, ILogger<UserService> logger) : IUserService
     {
         private readonly IObjectApiClient _objectApiClient = objectApiClient;
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-        private readonly ILogger<UserService> _logger = logger;
+        
 
-
-        public async Task<Actor?> GetActorByEmail(string? userEmail)
+        public async Task<List<Actor>> GetActorsByUser(string? userEmail, string? userId)
         {
             try
             {
-                var objectRecords = await _objectApiClient.GetObjectsByIdentificatie(userEmail);                 
-
-                if (objectRecords.Count > 1)
-                    throw new ConflictException("Multiple object records found for the current user.",
-                                                  code: "MULTIPLE_OBJECT_RECORDS_FOUND");
-
-                var objectId = objectRecords?.FirstOrDefault()?.Data?.Identificatie;
-                if (objectId != null)
+                var actors = new List<Actor>();
+                if (!string.IsNullOrEmpty(userEmail))
                 {
-                    return await _openKlantApiClient.GetActorenByObjectidAsync(objectId);
-                } 
-                    return null;  
-              
-               
+                    var objectRecords = await _objectApiClient.GetObject(userEmail, "email", "handmatig", "mdw");
+                    var objectId = objectRecords?.FirstOrDefault()?.Data?.Identificatie;
+                    if (objectId != null)
+                    {
+                        var actor = await _openKlantApiClient.GetActorenByObjectidAsync(objectId);
+                        if (actor != null)
+                        {
+                            actors.Add(actor);
+                        }
+                    }
+                      objectRecords = await _objectApiClient.GetObject(userEmail, "email", "msei", "mdw");
+                      objectId = objectRecords?.FirstOrDefault()?.Data?.Identificatie;
+                    if (objectId != null)
+                    {
+                        var actor = await _openKlantApiClient.GetActorenByObjectidAsync(objectId);
+                        if (actor != null)
+                        {
+                            actors.Add(actor);
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(userId))
+                {
+                   var objectRecords = await _objectApiClient.GetObject(userId, "idf", "obj", "mdw");
+                   var objectId = objectRecords?.FirstOrDefault()?.Data?.Identificatie;
+                    if (objectId != null)
+                    {
+                        var actor = await _openKlantApiClient.GetActorenByObjectidAsync(objectId);
+                        if (actor != null)
+                        {
+                            actors.Add(actor);
+                        }
+                    }
+                }
+
+                return actors;
+
             }
             catch (Exception)
             {
@@ -43,18 +68,25 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         }
 
 
-        public async Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail)
+        public async Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail, string? userId)
         {
             try
             {
-                var actor = await GetActorByEmail(userEmail);
-                 
-                if (actor == null || string.IsNullOrEmpty(actor.Uuid))
+                var actors = await GetActorsByUser(userEmail, userId);
+
+                if (actors.Count == 0)
                 {
                     return [];
                 }
-
-                return await _openKlantApiClient.GetInternetakenByToegewezenAanActor(actor.Uuid);
+                var interneTakens = new List<Internetaken>();
+                foreach (var actor in actors)
+                {
+                    if (!string.IsNullOrEmpty(actor.Uuid))
+                    {
+                        interneTakens.AddRange(await _openKlantApiClient.GetInternetakenByToegewezenAanActor(actor.Uuid));
+                    }
+                }
+                return interneTakens;
             }
             catch (Exception)
             {
