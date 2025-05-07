@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace InterneTaakAfhandeling.Poller.Services.ObjectApi.Models
+namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 {
     public class ObjectResponse
     {

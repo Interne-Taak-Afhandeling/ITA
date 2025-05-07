@@ -16,21 +16,23 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
             var authOptions = new AuthOptions();
             setOptions(authOptions);
 
+            var idClaimType = string.IsNullOrWhiteSpace(authOptions.IdClaimType) ? JwtClaimTypes.PreferredUserName : authOptions.IdClaimType;
+            var emailClaimType = string.IsNullOrWhiteSpace(authOptions.EmailClaimType) ? JwtClaimTypes.Email : authOptions.EmailClaimType;
             var nameClaimType = string.IsNullOrWhiteSpace(authOptions.NameClaimType) ? JwtClaimTypes.Name : authOptions.NameClaimType;
             var roleClaimType = string.IsNullOrWhiteSpace(authOptions.RoleClaimType) ? JwtClaimTypes.Roles : authOptions.RoleClaimType;
-            string[] idClaimTypes = string.IsNullOrWhiteSpace(authOptions.IdClaimType) ? [JwtClaimTypes.PreferredUserName, JwtClaimTypes.Email] : [authOptions.IdClaimType];
-
+          
             services.AddHttpContextAccessor();
 
             services.AddScoped<ITAUser>(s =>
             {
                 var user = s.GetRequiredService<IHttpContextAccessor>().HttpContext?.User;
                 var isLoggedIn = user?.Identity?.IsAuthenticated ?? false;
+                var id = user?.FindFirst(idClaimType)?.Value ?? string.Empty;
                 var name = user?.FindFirst(nameClaimType)?.Value ?? string.Empty;
-                var email = user?.FindFirst(x => idClaimTypes.Contains(x.Type))?.Value ?? string.Empty;
+                var email = user?.FindFirst(emailClaimType)?.Value ?? string.Empty;
                 var roles = user?.FindAll(roleClaimType).Select(x=> x.Value).ToArray() ?? [];
                 var hasITASystemAccess = roles.Contains(authOptions.ITASystemAccessRole);
-                return new ITAUser { IsLoggedIn = isLoggedIn, Name = name, Email = email, Roles = roles, HasITASystemAccess = hasITASystemAccess };
+                return new ITAUser {Id= id , IsLoggedIn = isLoggedIn, Name = name, Email = email, Roles = roles, HasITASystemAccess = hasITASystemAccess };
             });
 
             var authBuilder = services.AddAuthentication(options =>

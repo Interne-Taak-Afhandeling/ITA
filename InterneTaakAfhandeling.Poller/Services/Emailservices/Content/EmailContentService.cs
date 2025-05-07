@@ -1,8 +1,7 @@
-using System;
-using System.Globalization;
-using System.Text;
-using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
-using InterneTaakAfhandeling.Poller.Services.ZakenApi.Models;
+ 
+using System.Text; 
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 
 namespace InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
 

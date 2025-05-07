@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
+namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
+
     public class Klantcontact
     {
         public required string Uuid { get; set; }
@@ -41,11 +42,20 @@ namespace InterneTaakAfhandeling.Poller.Services.Openklant.Models
         public required string CodeRegister { get; set; }
         public required string CodeSoortObjectId { get; set; }
     }
+    public class ActorResponse
+    {
+        public int Count { get; set; }
 
+        public string? Next { get; set; }
+
+        public string? Previous { get; set; }
+
+        public List<Actor> Results { get; set; } = new();
+    }
     public class Actor
     {
         public required string Uuid { get; set; }
-        public required string Url { get; set; }
+        public  string? Url { get; set; }
         public string? Naam { get; set; }
         public string? SoortActor { get; set; }
         public bool? IndicatieActief { get; set; }

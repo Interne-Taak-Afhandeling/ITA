@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InterneTaakAfhandeling.Poller.Services.ZakenApi.Models
+namespace InterneTaakAfhandeling.Common.Services.ZakenApi.Models
 {
     public class Zaak
     { 

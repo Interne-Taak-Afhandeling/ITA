@@ -4,13 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using InterneTaakAfhandeling.Poller.Features;
-using InterneTaakAfhandeling.Poller.Services.Openklant;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
-using InterneTaakAfhandeling.Poller.Services.ObjectApi;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Poller.Services.ZakenApi;
 using InterneTaakAfhandeling.Poller.Data;
-using InterneTaakAfhandeling.Poller.Services.NotifierState;
+using InterneTaakAfhandeling.Poller.Services.NotifierState; 
+using InterneTaakAfhandeling.Common.Extensions;
 
 class Program
 {
@@ -44,13 +42,11 @@ class Program
                     builder.AddSerilog(dispose: true);
                 })
                 .AddHttpClient() // Add HttpClient factory
-                .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString))
-                .AddScoped<IOpenKlantApiClient, OpenKlantApiClient>()
-                .AddScoped<IObjectApiClient, ObjectApiClient>()
+                .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString)) 
+                .AddITAApiClients(configuration) 
                 .AddScoped<IEmailService, EmailService>()
                 .AddScoped<IEmailContentService, EmailContentService>()
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
-                .AddScoped<IZakenApiClient, ZakenApiClient>()
                 .AddScoped<INotifierStateService, NotifierStateService>();
 
             var serviceProvider = services.BuildServiceProvider();

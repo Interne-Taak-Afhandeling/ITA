@@ -1,11 +1,11 @@
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.ZakenApi;
+using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Poller.Services.NotifierState;
-using InterneTaakAfhandeling.Poller.Services.ObjectApi;
-using InterneTaakAfhandeling.Poller.Services.Openklant;
-using InterneTaakAfhandeling.Poller.Services.Openklant.Models;
-using InterneTaakAfhandeling.Poller.Services.ZakenApi;
-using InterneTaakAfhandeling.Poller.Services.ZakenApi.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -23,7 +23,6 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly ILogger<InternetakenNotifier> _logger;
     private readonly IObjectApiClient _objectApiClient;
     private readonly string _apiBaseUrl;
-    private readonly int _hourThreshold;
     private readonly IEmailContentService _emailContentService;
     private readonly IZakenApiClient _zakenApiClient;
     private readonly INotifierStateService _notifierStateService;
@@ -45,7 +44,6 @@ public class InternetakenNotifier : IInternetakenProcessor
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient));
-        _hourThreshold = configuration.GetValue<int>("InternetakenNotifier:HourThreshold");
         _apiBaseUrl = configuration.GetValue<string>("OpenKlantApi:BaseUrl")
             ?? throw new ArgumentException("OpenKlantApi:BaseUrl configuration is missing");
         _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));

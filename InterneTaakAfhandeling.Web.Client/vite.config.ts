@@ -5,7 +5,7 @@ import vue from "@vitejs/plugin-vue";
 import fs from "fs";
 import path from "path";
 import child_process from "child_process";
-import { env } from "process"; 
+import { env } from "process";
 
 const baseFolder =
   env.APPDATA !== undefined && env.APPDATA !== ""
@@ -34,33 +34,33 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
 }
 
 const target = env.ASPNETCORE_HTTPS_PORT
-  ? `http://localhost:${env.ASPNETCORE_HTTPS_PORT}`
+  ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}`
   : env.ASPNETCORE_URLS
     ? env.ASPNETCORE_URLS.split(";")[0]
     : "http://localhost:8080";
 
 // Proxy configuration with different options per category
-const proxyConfig = { 
+const proxyConfig = {
 
   api: {
     endpoints: ["/api"],
     options: {
       target,
-      secure: false, 
+      secure: false,
     }
   },
   auth: {
     endpoints: ["/signin-oidc", "/signout-callback-oidc"],
     options: {
       target,
-      secure: false, 
+      secure: false,
     }
   },
- 
+
 };
 
 // Create proxy entries from the configuration
-const proxyEntries = Object.entries(proxyConfig).flatMap(([_, config]) => 
+const proxyEntries = Object.entries(proxyConfig).flatMap(([_, config]) =>
   config.endpoints.map(endpoint => [endpoint, config.options])
 );
 // https://vitejs.dev/config/

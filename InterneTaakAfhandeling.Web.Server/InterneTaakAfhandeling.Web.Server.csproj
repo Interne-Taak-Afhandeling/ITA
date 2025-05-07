@@ -23,6 +23,7 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\InterneTaakAfhandeling.Common\InterneTaakAfhandeling.Common.csproj" />
     <ProjectReference Include="..\InterneTaakAfhandeling.Web.Client\InterneTaakAfhandeling.Web.Client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
