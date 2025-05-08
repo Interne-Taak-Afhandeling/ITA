@@ -23,27 +23,10 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
-  const createKlantcontact = async (request: CreateKlantcontactRequest) => {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
-      const response = await klantcontactService.createKlantcontact(request);
-      return response;
-    } catch (err: any) {
-      error.value = err.message || 'Er is een fout opgetreden bij het aanmaken van het klantcontact';
-      console.error('Error creating klantcontact:', err);
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
   return {
     assignedInternetaken,
     isLoading,
     error,
     fetchAssignedInternetaken,
-    createKlantcontact
   };
 });

@@ -1,7 +1,6 @@
 import { post } from '@/utils/fetchWrapper';
 import type { Klantcontact } from '@/types/internetaken';
 
-// Interface voor het aanmaken van een klantcontact
 export interface CreateKlantcontactRequest {
   nummer?: string;
   kanaal: string;
@@ -13,12 +12,25 @@ export interface CreateKlantcontactRequest {
   plaatsgevondenOp: string;
 }
 
+export interface ActorKlantcontact {
+  uuid: string;
+  url: string;
+  actor: {
+    uuid: string;
+    url: string;
+  };
+  klantcontact: {
+    uuid: string;
+    url: string;
+  };
+}
+export interface KlantcontactWithActorResult {
+  klantcontact: Klantcontact;
+  actorKlantcontact: ActorKlantcontact;
+}
+
 export const klantcontactService = {
-  /**
-   * Maakt een nieuw klantcontact aan via de API
-   * POST /api/klantcontact/klantcontacten
-   */
-  createKlantcontact: (request: CreateKlantcontactRequest): Promise<Klantcontact> => {
-    return post<Klantcontact>('/api/user/klantcontacten', request);
+  createKlantcontactWithCurrentActor: (request: CreateKlantcontactRequest): Promise<KlantcontactWithActorResult> => {
+    return post<KlantcontactWithActorResult>('/api/user/klantcontactenmetactor', request);
   }
 };

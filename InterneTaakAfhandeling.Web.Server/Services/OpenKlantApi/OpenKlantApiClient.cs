@@ -10,11 +10,15 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
 {
     public interface IOpenKlantApiClient
     {
-          Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail);
-          Task<Actor?> GetActorByEmail(string userEmail);
-          Task<Klantcontact?> GetKlantcontactAsync(string uuid);
-          Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
+        Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail);
+        Task<Actor?> GetActorByEmailFromObjects(string userEmail);
 
+        Task<Actor?> GetActorByEmail(string userEmail);
+        Task<Actor?> CreateActorAsync(ActorRequest request);
+        Task<Klantcontact?> GetKlantcontactAsync(string uuid);
+        Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
+        Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
+        Task<Actor?> GetOrCreateActorByEmail(string email, string? naam = null);
     }
     public class OpenKlantApiClient : IOpenKlantApiClient
     {
@@ -40,6 +44,109 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
             _httpClient.BaseAddress = new Uri(_baseUrl);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token",
                 _configuration.GetValue<string>("OpenKlantApi:ApiKey") ?? throw new InvalidOperationException("OpenKlantApi:ApiKey configuration is missing"));
+        }
+        public async Task<Actor?> GetActorByEmail(string userEmail)
+        {
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                throw new ConflictException("Email must not be empty",
+                                            code: "EMPTY_EMAIL_ADDRESS");
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"actoren?actoridentificatorObjectId={userEmail}");
+                response.EnsureSuccessStatusCode();
+
+                var content = await response.Content.ReadFromJsonAsync<ActorResponse>();
+                return content?.Results?.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                // Specifieke exception handling en logging kan hier worden toegevoegd
+                throw new ConflictException($"Error retrieving actor by email: {ex.Message}",
+                                            code: "ACTOR_RETRIEVAL_ERROR");
+            }
+        }
+
+        public async Task<Actor?> CreateActorAsync(ActorRequest request)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("actoren", request);
+                response.EnsureSuccessStatusCode();
+
+                var actor = await response.Content.ReadFromJsonAsync<Actor>();
+                return actor;
+            }
+            catch (Exception ex)
+            {
+                throw new ConflictException($"Error creating actor: {ex.Message}",
+                                           code: "ACTOR_CREATION_ERROR");
+            }
+        }
+
+        public async Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("actorklantcontacten", request);
+                response.EnsureSuccessStatusCode();
+
+                var actorKlantcontact = await response.Content.ReadFromJsonAsync<ActorKlantcontact>();
+
+                if (actorKlantcontact == null)
+                {
+                    throw new ConflictException("Failed to deserialize created actor-klantcontact response",
+                        code: "ACTOR_KLANTCONTACT_DESERIALIZATION_FAILED");
+                }
+
+                return actorKlantcontact;
+            }
+            catch (Exception ex)
+            {
+                throw new ConflictException($"Error linking actor to klantcontact: {ex.Message}",
+                                           code: "ACTOR_KLANTCONTACT_LINKING_ERROR");
+            }
+        }
+
+        public async Task<Actor?> GetOrCreateActorByEmail(string email, string? naam = null)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new ConflictException("Email must not be empty", code: "EMPTY_EMAIL_ADDRESS");
+            }
+
+            // Probeer eerst de actor op te halen
+            var actor = await GetActorByEmail(email);
+
+            // Als actor niet bestaat, maak een nieuwe aan
+            if (actor == null)
+            {
+                // Maak een nieuwe actor request
+                var actorRequest = new ActorRequest
+                {
+                    Naam = naam ?? email, // Als naam niet opgegeven is, gebruik email als naam
+                    SoortActor = "medewerker",
+                    IndicatieActief = true,
+                    Actoridentificator = new ActorIdentificator
+                    {
+                        ObjectId = email,
+                        CodeObjecttype = "mdw",
+                        CodeRegister = "msei",
+                        CodeSoortObjectId = "email"
+                    },
+                    ActorIdentificatie = new ActorIdentificatie
+                    {
+                        Emailadres = email
+                    }
+                };
+
+                // Maak de actor aan
+                actor = await CreateActorAsync(actorRequest);
+            }
+
+            return actor;
         }
 
         public async Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request)
@@ -67,7 +174,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
             }
         }
 
-        public async Task<Actor?> GetActorByEmail(string userEmail)
+        public async Task<Actor?> GetActorByEmailFromObjects(string userEmail)
         {
             try
             {

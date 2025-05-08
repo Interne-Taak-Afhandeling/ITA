@@ -188,7 +188,6 @@ const zaakUuids = computed(() =>
 // TODO:
 // 1. get zaak from openzaak by uuid
 // 2. show the zaaknummer in the data-list
-
 const kanalen = [
   { label: "Selecteer een kanaal", value: "" },
   ...["Balie", "Telefoon"].map((value) => ({ label: value, value }))
@@ -199,11 +198,10 @@ const form = ref({
   kanaal: "",
   informatieBurger: ""
 });
+
 const submit = async () => {
   error.value = null;
   success.value = false;
-
-  
   
   if (!form.value.kanaal) {
     error.value = "Kies een kanaal voor het contactmoment";
@@ -216,11 +214,8 @@ const submit = async () => {
   }
   
   isLoading.value = true;
-  console.log("Taak:", taak);
-console.log("Klantcontact:", taak.aanleidinggevendKlantcontact);
-console.log("UUID:", taak.aanleidinggevendKlantcontact?.uuid);
+  
   try {
-    // Maak het nieuwe klantcontact request object
     const createRequest: CreateKlantcontactRequest = {
       kanaal: form.value.kanaal,
       onderwerp: taak.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
@@ -231,8 +226,7 @@ console.log("UUID:", taak.aanleidinggevendKlantcontact?.uuid);
       plaatsgevondenOp: new Date().toISOString()
     };
     
-    const response = await klantcontactService.createKlantcontact(createRequest);
-    console.log('Klantcontact aangemaakt:', response);
+    const result = await klantcontactService.createKlantcontactWithCurrentActor(createRequest);
     
     success.value = true;
     // Reset formulier na succesvol aanmaken
@@ -242,7 +236,6 @@ console.log("UUID:", taak.aanleidinggevendKlantcontact?.uuid);
       informatieBurger: ""
     };
   } catch (err: any) {
-    console.error('Error bij aanmaken klantcontact:', err);
     error.value = err.message || 'Er is een fout opgetreden bij het aanmaken van het contactmoment';
   } finally {
     isLoading.value = false;
