@@ -30,7 +30,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models
         public required string Uuid { get; set; }
         public required string Url { get; set; }
         public Klantcontact? Klantcontact { get; set; }
-        public object? WasKlantcontact { get; set; }
+        public Klantcontact? WasKlantcontact { get; set; }
         public Onderwerpobjectidentificator? Onderwerpobjectidentificator { get; set; }
     }
 

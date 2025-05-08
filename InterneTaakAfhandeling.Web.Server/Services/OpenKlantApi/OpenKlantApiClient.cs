@@ -19,6 +19,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
         Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
         Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
         Task<Actor?> GetOrCreateActorByEmail(string email, string? naam = null);
+        Task<Onderwerpobject> CreateOnderwerpobjectAsync(Onderwerpobject request);
     }
     public class OpenKlantApiClient : IOpenKlantApiClient
     {
@@ -44,6 +45,36 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
             _httpClient.BaseAddress = new Uri(_baseUrl);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token",
                 _configuration.GetValue<string>("OpenKlantApi:ApiKey") ?? throw new InvalidOperationException("OpenKlantApi:ApiKey configuration is missing"));
+        }
+        public async Task<Onderwerpobject> CreateOnderwerpobjectAsync(Onderwerpobject request)
+        {
+            try
+            {
+                var minimalRequest = new
+                {
+                    klantcontact = request.Klantcontact != null ? new { uuid = request.Klantcontact.Uuid } : null,
+                    wasKlantcontact = request.WasKlantcontact != null ? new { uuid = request.WasKlantcontact.Uuid } : null,
+                    onderwerpobjectidentificator = request.Onderwerpobjectidentificator
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("onderwerpobjecten", minimalRequest);
+                response.EnsureSuccessStatusCode();
+
+                var onderwerpobject = await response.Content.ReadFromJsonAsync<Onderwerpobject>();
+
+                if (onderwerpobject == null)
+                {
+                    throw new ConflictException("Failed to deserialize created onderwerpobject response",
+                        code: "ONDERWERPOBJECT_DESERIALIZATION_FAILED");
+                }
+
+                return onderwerpobject;
+            }
+            catch (Exception ex)
+            {
+                throw new ConflictException($"Error creating onderwerpobject: {ex.Message}",
+                                           code: "ONDERWERPOBJECT_CREATION_ERROR");
+            }
         }
         public async Task<Actor?> GetActorByEmail(string userEmail)
         {

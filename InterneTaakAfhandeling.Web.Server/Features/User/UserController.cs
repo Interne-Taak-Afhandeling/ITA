@@ -91,5 +91,24 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
                 });
             }
         }
+        [ProducesResponseType(typeof(Onderwerpobject), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
+        [HttpPost("onderwerpobjecten")]
+        public async Task<IActionResult> CreateOnderwerpobject([FromBody] Onderwerpobject request)
+        {
+            try
+            {
+                var onderwerpobject = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
+                return StatusCode(StatusCodes.Status201Created, onderwerpobject);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(409, new ITAException
+                {
+                    Message = ex.Message,
+                    Code = (ex as ConflictException)?.Code
+                });
+            }
+        }
     }
 }
