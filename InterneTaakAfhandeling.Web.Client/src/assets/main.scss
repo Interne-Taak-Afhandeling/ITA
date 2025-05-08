@@ -67,4 +67,8 @@
   .utrecht-textbox--html-input {
     block-size: 2.5rem; // date and text inputs are not the same height otherwise...
   }
+
+  .no-wrap {
+    white-space: nowrap;
+  }
 }
