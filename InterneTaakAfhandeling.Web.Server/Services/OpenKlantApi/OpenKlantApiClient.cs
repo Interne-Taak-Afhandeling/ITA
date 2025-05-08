@@ -13,6 +13,8 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
           Task<List<Internetaken>> GetInterneTakenByAssignedUser(string? userEmail);
           Task<Actor?> GetActorByEmail(string userEmail);
           Task<Klantcontact?> GetKlantcontactAsync(string uuid);
+          Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
+
     }
     public class OpenKlantApiClient : IOpenKlantApiClient
     {
@@ -38,6 +40,31 @@ namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi
             _httpClient.BaseAddress = new Uri(_baseUrl);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token",
                 _configuration.GetValue<string>("OpenKlantApi:ApiKey") ?? throw new InvalidOperationException("OpenKlantApi:ApiKey configuration is missing"));
+        }
+
+        public async Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("klantcontacten", request);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error response: {responseContent}");
+                var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
+
+
+
+                if (klantcontact == null)
+                {
+                    throw new ConflictException("Failed to deserialize created klantcontact response",
+                        code: "KLANTCONTACT_DESERIALIZATION_FAILED");
+                }
+
+                return klantcontact;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<Actor?> GetActorByEmail(string userEmail)

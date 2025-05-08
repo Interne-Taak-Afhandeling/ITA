@@ -1,6 +1,10 @@
 <template>
   <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
   <router-link to="/">Terug</router-link>
+  
+  <utrecht-alert v-if="error" appeareance="error">{{ error }}</utrecht-alert>
+  <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
+  
   <div class="ita-cv-detail-sections">
     <section>
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
@@ -80,7 +84,7 @@
     </section>
 
     <section>
-      <utrecht-heading :level="2">Contactmoment maken</utrecht-heading>
+      <utrecht-heading :level="2">Contactmoment bijwerken</utrecht-heading>
       <form @submit.prevent="submit">
         <utrecht-fieldset>
           <utrecht-legend>Resultaat</utrecht-legend>
@@ -123,7 +127,14 @@
             v-model="form.informatieBurger"
           />
         </utrecht-form-field>
-        <utrecht-button type="submit" appearance="primary-action-button">Opslaan</utrecht-button>
+        <utrecht-button 
+          type="submit" 
+          appearance="primary-action-button"
+          :disabled="isLoading"
+        >
+          <span v-if="isLoading">Bezig met opslaan...</span>
+          <span v-else>Opslaan</span>
+        </utrecht-button>
       </form>
     </section>
   </div>
@@ -132,9 +143,12 @@
 <script lang="ts" setup>
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
+import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import { fakeInterneTaken } from "@/helpers/fake-data";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
+import { klantcontactService, type CreateKlantcontactRequest } from "@/services/klantcontactService";
+
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
   geenGehoor: "Contact opnemen niet gelukt"
@@ -143,7 +157,12 @@ const RESULTS = {
 const route = useRoute();
 const cvId = computed(() => route.params.number);
 
+const isLoading = ref(false);
+const error = ref<string | null>(null);
+const success = ref(false);
+
 const taak = fakeInterneTaken[0];
+const klantcontactUuid = computed(() => taak.aanleidinggevendKlantcontact?.uuid || '');
 const phoneNumbers = computed(() =>
   taak.digitaleAdress
     ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "telefoonnummer")
@@ -180,8 +199,55 @@ const form = ref({
   kanaal: "",
   informatieBurger: ""
 });
+const submit = async () => {
+  error.value = null;
+  success.value = false;
 
-const submit = () => alert("submit!");
+  
+  
+  if (!form.value.kanaal) {
+    error.value = "Kies een kanaal voor het contactmoment";
+    return;
+  }
+  
+  if (!form.value.informatieBurger) {
+    error.value = "Vul informatie voor de burger in";
+    return;
+  }
+  
+  isLoading.value = true;
+  console.log("Taak:", taak);
+console.log("Klantcontact:", taak.aanleidinggevendKlantcontact);
+console.log("UUID:", taak.aanleidinggevendKlantcontact?.uuid);
+  try {
+    // Maak het nieuwe klantcontact request object
+    const createRequest: CreateKlantcontactRequest = {
+      kanaal: form.value.kanaal,
+      onderwerp: taak.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
+      inhoud: form.value.informatieBurger,
+      indicatieContactGelukt: form.value.resultaat === RESULTS.contactGelukt,
+      taal: "nld", // ISO 639-2/B formaat
+      vertrouwelijk: false,
+      plaatsgevondenOp: new Date().toISOString()
+    };
+    
+    const response = await klantcontactService.createKlantcontact(createRequest);
+    console.log('Klantcontact aangemaakt:', response);
+    
+    success.value = true;
+    // Reset formulier na succesvol aanmaken
+    form.value = {
+      resultaat: RESULTS.contactGelukt,
+      kanaal: "",
+      informatieBurger: ""
+    };
+  } catch (err: any) {
+    console.error('Error bij aanmaken klantcontact:', err);
+    error.value = err.message || 'Er is een fout opgetreden bij het aanmaken van het contactmoment';
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -211,5 +277,9 @@ const submit = () => alert("submit!");
 
 .utrecht-form-label {
   display: block;
+}
+
+.utrecht-alert {
+  margin-bottom: 1rem;
 }
 </style>
