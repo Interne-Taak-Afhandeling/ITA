@@ -14,7 +14,7 @@
       </utrecht-table-row>
 
       <utrecht-table-row v-for="taak in interneTaken" :key="taak.uuid">
-        <utrecht-table-cell class="no-wrap">
+        <utrecht-table-cell class="ita-no-wrap">
           <date-time-or-nvt :date="taak.aanleidinggevendKlantcontact?.plaatsgevondenOp" />
         </utrecht-table-cell>
         <utrecht-table-cell>{{
