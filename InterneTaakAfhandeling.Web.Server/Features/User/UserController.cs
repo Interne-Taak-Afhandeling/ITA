@@ -55,7 +55,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
                     });
                 }
 
-                // Verkrijg of maak een actor voor de huidige gebruiker
                 var actor = await _openKlantApiClient.GetOrCreateActorByEmail(UserEmail, User?.Identity?.Name);
 
                 if (actor == null)
@@ -67,10 +66,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
                     });
                 }
 
-                // Maak het klantcontact aan
                 var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(request);
-
-                // Koppel de actor aan het klantcontact
                 var actorKlantcontactRequest = new ActorKlantcontactRequest
                 {
                     Actor = new ActorReference { Uuid = actor.Uuid },
@@ -78,8 +74,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
                 };
 
                 var actorKlantcontact = await _openKlantApiClient.CreateActorKlantcontactAsync(actorKlantcontactRequest);
-
-                // Combineer de resultaten in een anoniem object
                 var result = new
                 {
                     Klantcontact = klantcontact,
