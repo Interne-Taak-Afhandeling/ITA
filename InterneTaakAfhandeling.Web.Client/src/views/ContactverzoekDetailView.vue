@@ -210,7 +210,7 @@ const submit = async () => {
     return;
   }
   
-  if (!form.value.informatieBurger) {
+  if (form.value.resultaat !== RESULTS.geenGehoor && !form.value.informatieBurger) {
     error.value = "Vul informatie voor de burger in";
     return;
   }
