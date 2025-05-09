@@ -68,16 +68,7 @@
     block-size: 2.5rem; // date and text inputs are not the same height otherwise...
   }
 
-  // make sure every data-list item uses the same padding if there is a spotlight section within
-  .utrecht-data-list:has(.utrecht-spotlight-section)
-    .utrecht-data-list__item:not(:has(.utrecht-spotlight-section)) {
-    padding-block-end: var(--utrecht-spotlight-section-padding-block-end);
-    padding-block-start: var(--utrecht-spotlight-section-padding-block-start);
-    padding-inline-end: var(--utrecht-spotlight-section-padding-inline-end);
-    padding-inline-start: var(--utrecht-spotlight-section-padding-inline-start);
-  }
-
-  .preserve-newline {
-    white-space: pre-line;
+  .ita-no-wrap {
+    white-space: nowrap;
   }
 }

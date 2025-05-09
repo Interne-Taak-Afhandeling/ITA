@@ -55,7 +55,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
     public class Actor
     {
         public required string Uuid { get; set; }
-        public required string Url { get; set; }
+        public  string? Url { get; set; }
         public string? Naam { get; set; }
         public string? SoortActor { get; set; }
         public bool? IndicatieActief { get; set; }

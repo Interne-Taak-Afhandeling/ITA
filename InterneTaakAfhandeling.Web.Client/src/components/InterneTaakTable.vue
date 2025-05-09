@@ -15,10 +15,14 @@
       </utrecht-table-row>
 
       <utrecht-table-row v-for="taak in interneTaken" :key="taak.uuid">
-        <utrecht-table-cell>
+        <utrecht-table-cell class="ita-no-wrap">
           <date-time-or-nvt :date="taak.aanleidinggevendKlantcontact?.plaatsgevondenOp" />
         </utrecht-table-cell>
-        <utrecht-table-cell>{{ taak.betrokkene?.volledigeNaam }}</utrecht-table-cell>
+        <utrecht-table-cell>{{
+          taak.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
+            ?.map((x) => x.volledigeNaam)
+            .find(Boolean)
+        }}</utrecht-table-cell>
         <utrecht-table-cell>{{ taak.aanleidinggevendKlantcontact?.onderwerp }}</utrecht-table-cell>
         <utrecht-table-cell
           ><router-link :to="`/contactverzoek/${taak.aanleidinggevendKlantcontact?.nummer}`"

@@ -13,7 +13,7 @@ if (builder.Environment.EnvironmentName == "Docker")
 builder.Services.RegisterServices(builder.Configuration);
 
 var app = builder.Build();
-
+app.UseExceptionHandler();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -32,7 +32,6 @@ app.UseAuthorization();
 app.UseItaSecurityHeaders();
 app.MapControllers();
 app.MapITAAuthEndpoints();
-app.MapFallbackToFile("/index.html");
-app.UseMiddleware<ExceptionMiddleware>();
+app.MapFallbackToFile("/index.html"); 
 
 app.Run();

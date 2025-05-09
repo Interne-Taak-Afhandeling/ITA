@@ -22,6 +22,7 @@ data:
   OIDC_NAME_CLAIM_TYPE: {{ .Values.web.oidc.nameClaimType }}
   OIDC_ROLE_CLAIM_TYPE: {{ .Values.web.oidc.roleClaimType }}
   OIDC_ID_CLAIM_TYPE: {{ .Values.web.oidc.idClaimType }}
+  OIDC_EMAIL_CLAIM_TYPE: {{ .Values.web.oidc.emailClaimType }}
   {{- end }}
   
   # Resource configuration
