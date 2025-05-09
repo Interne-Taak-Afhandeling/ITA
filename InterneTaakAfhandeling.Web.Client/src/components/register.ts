@@ -25,7 +25,13 @@ import {
   Select as UtrechtSelect,
   FormFieldset as UtrechtFieldset,
   FormFieldsetLegend as UtrechtLegend,
-  Document as UtrechtDocument
+  Document as UtrechtDocument,
+  DataList as UtrechtDataList,
+  DataListItem as UtrechtDataListItem,
+  DataListKey as UtrechtDataListKey,
+  DataListValue as UtrechtDataListValue,
+  Textarea as UtrechtTextarea,
+  RadioButton as UtrechtRadiobutton
 } from "@utrecht/component-library-vue";
 
 const components = {
@@ -53,7 +59,13 @@ const components = {
   UtrechtSelect,
   UtrechtFieldset,
   UtrechtLegend,
-  UtrechtDocument
+  UtrechtDocument,
+  UtrechtDataList,
+  UtrechtDataListItem,
+  UtrechtDataListKey,
+  UtrechtDataListValue,
+  UtrechtTextarea,
+  UtrechtRadiobutton
 } as const;
 
 export type OurComponents = typeof components;

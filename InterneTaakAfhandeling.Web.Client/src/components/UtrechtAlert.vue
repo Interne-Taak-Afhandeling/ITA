@@ -1,5 +1,8 @@
 <template>
-  <div class="utrecht-alert utrecht-alert--error">
+  <div :class="[
+    'utrecht-alert', 
+    `utrecht-alert--${appeareance}`
+  ]">
     <div class="utrecht-alert__content">
       <div class="utrecht-alert__message" role="alert">
         <slot></slot>
@@ -7,3 +10,16 @@
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  name: 'UtrechtAlert',
+  props: {
+    appeareance: {
+      type: String,
+      default: 'info',
+      validator: (value) => ['info', 'error', 'warning', 'ok', 'success'].includes(value)
+    }
+  }
+}
+</script>

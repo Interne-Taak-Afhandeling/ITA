@@ -1,8 +1,8 @@
-
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { userService } from '@/services/user';
 import type { Internetaken } from '@/types/internetaken';
+import { klantcontactService, type CreateKlantcontactRequest } from '@/services/klantcontactService';
 
 export const useUserStore = defineStore('user', () => {
   const assignedInternetaken = ref<Internetaken[]>([]);
@@ -27,6 +27,6 @@ export const useUserStore = defineStore('user', () => {
     assignedInternetaken,
     isLoading,
     error,
-    fetchAssignedInternetaken
+    fetchAssignedInternetaken,
   };
 });
