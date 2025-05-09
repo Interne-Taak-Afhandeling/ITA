@@ -1,4 +1,4 @@
-﻿namespace InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models
+﻿namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
     public class ActorRequest
     {

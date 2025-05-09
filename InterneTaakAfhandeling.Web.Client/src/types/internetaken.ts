@@ -11,7 +11,6 @@ export interface Internetaken {
   toegewezenOp: string;
   afgehandeldOp?: string;
   digitaleAdress?: DigitaleAdres[];
-  betrokkene?: Betrokkene;
 }
 
 export interface Klantcontact {
@@ -19,7 +18,6 @@ export interface Klantcontact {
   url: string;
   gingOverOnderwerpobjecten?: Onderwerpobject[];
   hadBetrokkenActoren: Actor[];
-  hadBetrokkenen: Betrokkene[];
   nummer?: string;
   kanaal?: string;
   onderwerp?: string;
@@ -27,7 +25,7 @@ export interface Klantcontact {
   taal?: string;
   vertrouwelijk?: boolean;
   plaatsgevondenOp: string;
-  expand?: Expand;
+  _expand?: Expand;
 }
 
 export interface Onderwerpobject {

@@ -31,7 +31,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public required string Uuid { get; set; }
         public required string Url { get; set; }
         public Klantcontact? Klantcontact { get; set; }
-        public object? WasKlantcontact { get; set; }
+        public Klantcontact? WasKlantcontact { get; set; }
         public Onderwerpobjectidentificator? Onderwerpobjectidentificator { get; set; }
     }
 
@@ -55,7 +55,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
     public class Actor
     {
         public required string Uuid { get; set; }
-        public required string Url { get; set; }
+        public  string? Url { get; set; }
         public string? Naam { get; set; }
         public string? SoortActor { get; set; }
         public bool? IndicatieActief { get; set; }

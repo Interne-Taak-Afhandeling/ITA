@@ -1,7 +1,8 @@
-﻿using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features;
-using InterneTaakAfhandeling.Web.Server.Services.ObjectApi;
-using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi; 
+using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Web.Server.Services;
+using InterneTaakAfhandeling.Web.Server.Middleware;
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
@@ -9,6 +10,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
     {
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
+            
             services.AddControllers(); 
             services.AddRouting(options =>
             {
@@ -28,11 +30,18 @@ namespace InterneTaakAfhandeling.Web.Server.Config
               options.NameClaimType = configuration["OIDC_NAME_CLAIM_TYPE"];
               options.RoleClaimType = configuration["OIDC_ROLE_CLAIM_TYPE"];
               options.IdClaimType = configuration["OIDC_ID_CLAIM_TYPE"];
+              options.EmailClaimType = configuration["OIDC_EMAIL_CLAIM_TYPE"];
           });
 
+             
+            services.AddITAApiClients(configuration); 
 
-            services.AddScoped<IOpenKlantApiClient,OpenKlantApiClient>();
-            services.AddScoped<IObjectApiClient,ObjectApiClient>();
+            services.AddScoped<IUserService, UserService>();
+
+            services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
+
+            services.AddProblemDetails();
+
 
             return services;
         }

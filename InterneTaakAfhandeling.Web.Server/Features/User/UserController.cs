@@ -1,25 +1,33 @@
-﻿using Duende.IdentityModel;
-using InterneTaakAfhandeling.Web.Server.Features.Base;
-using InterneTaakAfhandeling.Web.Server.Middleware;
-using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi;
+﻿using System.Security.Claims;
+using Duende.IdentityModel;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
- 
+using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
+
 namespace InterneTaakAfhandeling.Web.Server.Features.User
-{ 
+{
+    [Route("api/[controller]")]
+    [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class UserController(IOpenKlantApiClient openKlantApiClient) : BaseController
+    public class UserController(IOpenKlantApiClient openKlantApiClient, IUserService userService, ITAUser user) : Controller
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
- 
+        private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+
+
         [ProducesResponseType(typeof(List<Internetaken>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("internetaken")]
         public async Task<IActionResult> GetInternetaken()
         {
-            return Ok(await _openKlantApiClient.GetInterneTakenByAssignedUser(UserEmail));
+          return Ok(await _userService.GetInterneTakenByAssignedUser(user));
         }
         
         [ProducesResponseType(typeof(Klantcontact), StatusCodes.Status201Created)]
@@ -46,7 +54,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
         {
             try
             {
-                if (string.IsNullOrEmpty(UserEmail))
+                if (string.IsNullOrEmpty(user.Email))
                 {
                     return StatusCode(409, new ITAException
                     {
@@ -55,7 +63,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
                     });
                 }
 
-                var actor = await _openKlantApiClient.GetOrCreateActorByEmail(UserEmail, User?.Identity?.Name);
+                var actor = await _openKlantApiClient.GetOrCreateActorByEmail(user.Email, User?.Identity?.Name);
 
                 if (actor == null)
                 {
