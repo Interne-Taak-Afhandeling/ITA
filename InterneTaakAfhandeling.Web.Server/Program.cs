@@ -14,6 +14,7 @@ builder.Services.RegisterServices(builder.Configuration);
 
 var app = builder.Build();
 app.UseExceptionHandler();
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -28,6 +29,8 @@ app.UseHttpsRedirection();
 // Add authentication middleware
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<AuthorizationGuardMiddleware>();
 
 app.UseItaSecurityHeaders();
 app.MapControllers();
