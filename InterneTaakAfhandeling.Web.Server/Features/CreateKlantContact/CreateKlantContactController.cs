@@ -10,35 +10,28 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.User
+namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class UserController(IOpenKlantApiClient openKlantApiClient, IUserService userService, ITAUser user) : Controller
+    public class CreateKlantContactController(IOpenKlantApiClient openKlantApiClient, IUserService userService, ITAUser user) : Controller
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
-        private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
 
-        [ProducesResponseType(typeof(List<Internetaken>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [HttpGet("internetaken")]
-        public async Task<IActionResult> GetInternetaken()
-        {
-          return Ok(await _userService.GetInterneTakenByAssignedUser(user));
-        }
+        //todo: checken of deze gebruikt wordt        
+        //[ProducesResponseType(typeof(Klantcontact), StatusCodes.Status201Created)]
+        //[ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
+        //[HttpPost("klantcontacten")]
+        //public async Task<IActionResult> CreateKlantcontact([FromBody] KlantcontactRequest request)
+        //{
+        //    var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(request);
+        //    return StatusCode(StatusCodes.Status201Created, klantcontact);
+        //}
+
         
-        [ProducesResponseType(typeof(Klantcontact), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost("klantcontacten")]
-        public async Task<IActionResult> CreateKlantcontact([FromBody] KlantcontactRequest request)
-        {
-            var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(request);
-            return StatusCode(StatusCodes.Status201Created, klantcontact);
-        }
-
         [ProducesResponseType(typeof(ActorKlantcontact), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
         [HttpPost("actorklantcontacten")]
@@ -47,6 +40,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
             var actorKlantcontact = await _openKlantApiClient.CreateActorKlantcontactAsync(request);
             return StatusCode(StatusCodes.Status201Created, actorKlantcontact);
         }
+        
+        
         [ProducesResponseType(typeof(Klantcontact), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
         [HttpPost("klantcontactenmetactor")]
@@ -99,6 +94,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
                 });
             }
         }
+        
+        
         [ProducesResponseType(typeof(Onderwerpobject), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
         [HttpPost("onderwerpobjecten")]

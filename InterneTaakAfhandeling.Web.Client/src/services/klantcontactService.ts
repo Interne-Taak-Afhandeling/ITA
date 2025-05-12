@@ -38,22 +38,22 @@ export interface RelatedKlantcontactResult {
 export const klantcontactService = {
   /**
    * Maakt een nieuw klantcontact aan en koppelt het automatisch aan de huidige ingelogde gebruiker
-   * POST /api/user/klantcontactenmetactor
+   * POST /api/createklantcontact/klantcontactenmetactor
    */
   createKlantcontactWithCurrentActor: (request: CreateKlantcontactRequest): Promise<KlantcontactWithActorResult> => {
-    return post<KlantcontactWithActorResult>('/api/user/klantcontactenmetactor', request);
+    return post<KlantcontactWithActorResult>('/api/createklantcontact/klantcontactenmetactor', request);
   },
 
   /**
    * Koppelt een klantcontact aan een ander klantcontact als onderwerpobject
-   * POST /api/user/onderwerpobjecten
+   * POST /api/createklantcontact/onderwerpobjecten
    */
   createOnderwerpobject: (onderwerpobject: {
     klantcontact?: { uuid: string };
     wasKlantcontact?: { uuid: string };
     onderwerpobjectidentificator?: Onderwerpobjectidentificator;
   }): Promise<Onderwerpobject> => {
-    return post<Onderwerpobject>('/api/user/onderwerpobjecten', onderwerpobject);
+    return post<Onderwerpobject>('/api/createklantcontact/onderwerpobjecten', onderwerpobject);
   },
 
   /**
