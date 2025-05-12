@@ -134,9 +134,7 @@ const zaakUuids = computed(() =>
     ?.map((x) => x.onderwerpobjectidentificator?.objectId)
     .filter(Boolean)
 );
-// TODO:
-// 1. get zaak from openzaak by uuid
-// 2. show the zaaknummer in the data-list
+ 
 </script>
 
 <style lang="scss" scoped>
