@@ -1,5 +1,7 @@
 
- 
+
+
+using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
@@ -27,6 +29,8 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public required DateTimeOffset ToegewezenOp { get; set; }
 
         public DateTimeOffset? AfgehandeldOp { get; set; }
+
+        public Zaak? Zaak { get; set; }
          
         public Internetaken()
         {

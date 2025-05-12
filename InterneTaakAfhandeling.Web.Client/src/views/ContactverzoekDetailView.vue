@@ -7,16 +7,28 @@
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Vraag</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.onderwerp" multiline
-            >{{ taak.aanleidinggevendKlantcontact?.onderwerp }}
+          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.onderwerp" multiline>
+            {{ taak.aanleidinggevendKlantcontact?.onderwerp }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-spotlight-section>
             <utrecht-data-list-key>Interne toelichting KCC</utrecht-data-list-key>
-            <utrecht-data-list-value :value="taak.toelichting" multiline class="preserve-newline">{{
+            <utrecht-data-list-value :value="taak.toelichting" multiline class="preserve-newline">
+              {{
               taak.toelichting
-            }}</utrecht-data-list-value>
+              }}
+            </utrecht-data-list-value>
+          </utrecht-spotlight-section>
+        </utrecht-data-list-item>
+        <utrecht-data-list-item>
+          <utrecht-spotlight-section>
+            <utrecht-data-list-key>Zaaknummer</utrecht-data-list-key>
+            <utrecht-data-list-value :value="taak.zaak?.identificatie" multiline class="preserve-newline">
+              {{
+       taak.zaak?.identificatie
+              }}
+            </utrecht-data-list-value>
           </utrecht-spotlight-section>
         </utrecht-data-list-item>
       </utrecht-data-list>
@@ -84,13 +96,22 @@
 <script lang="ts" setup>
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
-import { fakeInterneTaken } from "@/helpers/fake-data";
+  import { fakeInterneTaken } from "@/helpers/fake-data";
+  import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-const route = useRoute();
+import { useUserStore } from '@/stores/user';
+
+  const route = useRoute();
+  const userStore = useUserStore();
+  const { assignedInternetaken } = storeToRefs(userStore);
 const cvId = computed(() => route.params.number);
 
-const taak = fakeInterneTaken[0];
+  const taak = computed(() => {
+   return assignedInternetaken.value.find(
+     (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == cvId.value
+   );
+  });
 const phoneNumbers = computed(() =>
   taak.digitaleAdress
     ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "telefoonnummer")
@@ -106,7 +127,7 @@ const email = computed(() =>
 );
 const behandelaar = computed(() => taak.toegewezenAanActoren?.map((x) => x.naam).find(Boolean));
 const aangemaaktDoor = computed(() =>
-  taak.aanleidinggevendKlantcontact?.hadBetrokkenActoren.map((x) => x.naam).find(Boolean)
+  taak.aanleidinggevendKlantcontact?.hadBetrokkenActoren?.map((x) => x.naam).find(Boolean)
 );
 const zaakUuids = computed(() =>
   taak.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
