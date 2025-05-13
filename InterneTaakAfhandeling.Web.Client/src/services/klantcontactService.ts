@@ -37,13 +37,6 @@ export interface CreateRelatedKlantcontactRequest {
 }
 
 export const klantcontactService = {
-  /**
-   * Maakt een nieuw klantcontact aan dat gekoppeld is aan de huidige actor en optioneel aan een vorig klantcontact in één request
-   * POST /api/createklantcontact/relatedklantcontact
-   * 
-   * Deze methode combineert het aanmaken van een klantcontact, koppelen aan de huidige actor,
-   * en eventueel koppelen aan een vorig klantcontact in één API call.
-   */
   createRelatedKlantcontact: (
     klantcontactRequest: CreateKlantcontactRequest, 
     previousKlantcontactUuid?: string
