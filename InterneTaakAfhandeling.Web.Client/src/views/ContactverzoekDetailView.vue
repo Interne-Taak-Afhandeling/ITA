@@ -151,7 +151,9 @@ import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import { fakeInterneTaken } from "@/helpers/fake-data";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
+import type { Klantcontact } from "@/types/internetaken";
 import { klantcontactService, type CreateKlantcontactRequest } from "@/services/createKlantcontactService";
+
 
 import ContactverzoekContactmomenten from '@/components/ContactverzoekContactmomenten.vue'
 
@@ -204,7 +206,8 @@ const form = ref({
   kanaal: "",
   informatieBurger: ""
 });
-// In submit function in ContactverzoekDetailView.vue
+
+// In de submit functie in ContactverzoekDetailView.vue
 async function submit() {
   error.value = null;
   success.value = false;
@@ -222,7 +225,21 @@ async function submit() {
   isLoading.value = true;
   
   try {
-    const createRequest: CreateKlantcontactRequest = {
+    // Extract partijUuid from the expand data if available
+    let partijUuid: string | undefined = undefined;
+    
+    // Check if we have expand data with hadBetrokkenen
+    if (taak.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.length > 0) {
+      const betrokkene = taak.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
+      
+      // Check if wasPartij is available and has a uuid
+      if (betrokkene.wasPartij && 'uuid' in betrokkene.wasPartij) {
+        partijUuid = betrokkene.wasPartij.uuid;
+        console.log('Using partijUuid from expand data:', partijUuid);
+      }
+    }
+    
+    const klantcontactRequest: CreateKlantcontactRequest = {
       kanaal: form.value.kanaal,
       onderwerp: taak.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
       inhoud: form.value.informatieBurger,
@@ -233,8 +250,9 @@ async function submit() {
     };
     
     await klantcontactService.createRelatedKlantcontact(
-      createRequest,
-      taak.aanleidinggevendKlantcontact?.uuid
+      klantcontactRequest,
+      taak.aanleidinggevendKlantcontact?.uuid,
+      partijUuid
     );
         
     success.value = true;

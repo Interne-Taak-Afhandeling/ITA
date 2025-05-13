@@ -15,6 +15,7 @@ public interface IOpenKlantApiClient
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> GetBetrokkeneAsync(string uuid);
+    Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
     Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);
     Task<List<Internetaken>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
     Task<Actor?> QueryActorAsync(ActorQuery query);
@@ -328,6 +329,47 @@ public class OpenKlantApiClient(
         return await response.Content.ReadFromJsonAsync<Internetaken>();
     }
 
+    public async Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("Creating betrokkene with partij {PartijUuid} for klantcontact {KlantcontactUuid}",
+                request.WasPartij.Uuid, request.HadKlantcontact.Uuid);
+
+            var response = await _httpClient.PostAsJsonAsync("betrokkenen", request);
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogDebug("CreateBetrokkeneAsync response: {Response}", responseContent);
+
+            var betrokkene = await response.Content.ReadFromJsonAsync<Betrokkene>();
+
+            if (betrokkene == null)
+            {
+                throw new ConflictException("Failed to deserialize created betrokkene response",
+                    code: "BETROKKENE_DESERIALIZATION_FAILED");
+            }
+
+            _logger.LogInformation("Successfully created betrokkene {Uuid}", betrokkene.Uuid);
+            return betrokkene;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP error in CreateBetrokkeneAsync: {Message}", ex.Message);
+            throw new ConflictException($"Error creating betrokkene: {ex.Message}",
+                                       code: "BETROKKENE_HTTP_ERROR");
+        }
+        catch (ConflictException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error in CreateBetrokkeneAsync: {Message}", ex.Message);
+            throw new ConflictException($"Error creating betrokkene: {ex.Message}",
+                                       code: "BETROKKENE_CREATION_ERROR");
+        }
+    }
 
     public async Task<Klantcontact?> GetKlantcontact(string uuid)
     {

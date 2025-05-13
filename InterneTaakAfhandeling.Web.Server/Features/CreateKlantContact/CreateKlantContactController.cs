@@ -1,11 +1,12 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
+using InterneTaakAfhandeling.Web.Server.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 {
@@ -13,11 +14,21 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class CreateKlantContactController(
-        ITAUser user,
-        ICreateKlantContactService createKlantContactService) : Controller
+    public class CreateKlantContactController : Controller
     {
-        private readonly ICreateKlantContactService _createKlantContactService = createKlantContactService ?? throw new ArgumentNullException(nameof(createKlantContactService));
+        private readonly ITAUser _user;
+        private readonly ICreateKlantContactService _createKlantContactService;
+        private readonly ILogger<CreateKlantContactController> _logger;
+
+        public CreateKlantContactController(
+            ITAUser user,
+            ICreateKlantContactService createKlantContactService,
+            ILogger<CreateKlantContactController> logger)
+        {
+            _user = user ?? throw new ArgumentNullException(nameof(user));
+            _createKlantContactService = createKlantContactService ?? throw new ArgumentNullException(nameof(createKlantContactService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
         [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
@@ -26,17 +37,21 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
         {
             try
             {
+                _logger.LogInformation($"Creating related klantcontact with previous UUID: {request.PreviousKlantcontactUuid}, partij UUID: {request.PartijUuid}");
+
                 var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                     request.KlantcontactRequest,
                     request.PreviousKlantcontactUuid,
-                    user.Email,
-                    user.Name
+                    _user.Email,
+                    _user.Name,
+                    request.PartijUuid
                 );
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }
             catch (ConflictException ex)
             {
+                _logger.LogWarning(ex, $"Conflict error creating related klantcontact: {ex.Message}");
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,
@@ -45,6 +60,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Unexpected error creating related klantcontact: {ex.Message}");
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,
@@ -52,5 +68,18 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 });
             }
         }
+    }
+
+    public class CreateRelatedKlantcontactRequest
+    {
+        public required KlantcontactRequest KlantcontactRequest { get; set; }
+        public string? PreviousKlantcontactUuid { get; set; }
+        public string? PartijUuid { get; set; }
+    }
+
+    public class ITAException
+    {
+        public string Message { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
     }
 }
