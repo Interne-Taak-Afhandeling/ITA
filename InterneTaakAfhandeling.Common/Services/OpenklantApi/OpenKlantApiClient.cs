@@ -21,6 +21,8 @@ public interface IOpenKlantApiClient
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(Onderwerpobject request);
+    Task<Internetaken?> GetInternetaak(string uuid);
+    Task<Klantcontact> GetKlantcontact(string uuid);
 }
 
 public class OpenKlantApiClient(
@@ -317,6 +319,23 @@ public class OpenKlantApiClient(
 
         return content?.Results?.FirstOrDefault();
     }
+
+
+    public async Task<Internetaken?> GetInternetaak(string uuid)
+    {
+        var response = await _httpClient.GetAsync($"internetaken/{uuid}");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Internetaken>();
+    }
+
+
+    public async Task<Klantcontact?> GetKlantcontact(string uuid)
+    {
+        var response = await _httpClient.GetAsync($"klantcontact/{uuid}?expand=gingOverOnderwerpobjecten");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Klantcontact>();
+    }
+
 
     public class ConflictException : Exception
     {
