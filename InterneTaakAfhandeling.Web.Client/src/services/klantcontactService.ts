@@ -1,5 +1,5 @@
-import { post, get } from '@/utils/fetchWrapper';
-import type { Klantcontact, Onderwerpobject, Onderwerpobjectidentificator } from '@/types/internetaken';
+import { post } from '@/utils/fetchWrapper';
+import type { Klantcontact, Onderwerpobject } from '@/types/internetaken';
 
 export interface CreateKlantcontactRequest {
   nummer?: string;
@@ -25,60 +25,34 @@ export interface ActorKlantcontact {
   };
 }
 
-export interface KlantcontactWithActorResult {
+export interface RelatedKlantcontactResult {
   klantcontact: Klantcontact;
   actorKlantcontact: ActorKlantcontact;
+  onderwerpobject?: Onderwerpobject;
 }
 
-export interface RelatedKlantcontactResult {
-  klantcontactResult: KlantcontactWithActorResult;
-  onderwerpobject: Onderwerpobject;
+export interface CreateRelatedKlantcontactRequest {
+  klantcontactRequest: CreateKlantcontactRequest;
+  previousKlantcontactUuid?: string;
 }
 
 export const klantcontactService = {
   /**
-   * Maakt een nieuw klantcontact aan en koppelt het automatisch aan de huidige ingelogde gebruiker
-   * POST /api/createklantcontact/klantcontactenmetactor
+   * Maakt een nieuw klantcontact aan dat gekoppeld is aan de huidige actor en optioneel aan een vorig klantcontact in één request
+   * POST /api/createklantcontact/relatedklantcontact
+   * 
+   * Deze methode combineert het aanmaken van een klantcontact, koppelen aan de huidige actor,
+   * en eventueel koppelen aan een vorig klantcontact in één API call.
    */
-  createKlantcontactWithCurrentActor: (request: CreateKlantcontactRequest): Promise<KlantcontactWithActorResult> => {
-    return post<KlantcontactWithActorResult>('/api/createklantcontact/klantcontactenmetactor', request);
-  },
-
-  /**
-   * Koppelt een klantcontact aan een ander klantcontact als onderwerpobject
-   * POST /api/createklantcontact/onderwerpobjecten
-   */
-  createOnderwerpobject: (onderwerpobject: {
-    klantcontact?: { uuid: string };
-    wasKlantcontact?: { uuid: string };
-    onderwerpobjectidentificator?: Onderwerpobjectidentificator;
-  }): Promise<Onderwerpobject> => {
-    return post<Onderwerpobject>('/api/createklantcontact/onderwerpobjecten', onderwerpobject);
-  },
-
-  /**
-   * Helper methode om een nieuw klantcontact aan te maken en te koppelen aan een vorig klantcontact
-   */
-  createRelatedKlantcontact: async (
+  createRelatedKlantcontact: (
     klantcontactRequest: CreateKlantcontactRequest, 
-    previousKlantcontactUuid: string
+    previousKlantcontactUuid?: string
   ): Promise<RelatedKlantcontactResult> => {
-    // Maak eerst het nieuwe klantcontact aan
-    const klantcontactResult = await klantcontactService.createKlantcontactWithCurrentActor(klantcontactRequest);
-    
-    // Maak een onderwerpobject aan dat het nieuwe klantcontact koppelt aan het vorige
-    const onderwerpobject = await klantcontactService.createOnderwerpobject({
-      klantcontact: {
-        uuid: klantcontactResult.klantcontact.uuid
-      },
-      wasKlantcontact: {
-        uuid: previousKlantcontactUuid
-      }
-    });
-    
-    return {
-      klantcontactResult,
-      onderwerpobject
+    const request: CreateRelatedKlantcontactRequest = {
+      klantcontactRequest,
+      previousKlantcontactUuid
     };
+    
+    return post<RelatedKlantcontactResult>('/api/createklantcontact/relatedklantcontact', request);
   }
 };
