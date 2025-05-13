@@ -203,8 +203,8 @@ const form = ref({
   kanaal: "",
   informatieBurger: ""
 });
-
-const submit = async () => {
+// In submit function in ContactverzoekDetailView.vue
+async function submit() {
   error.value = null;
   success.value = false;
   
@@ -221,7 +221,6 @@ const submit = async () => {
   isLoading.value = true;
   
   try {
-    // Maak het nieuwe klantcontact request object
     const createRequest: CreateKlantcontactRequest = {
       kanaal: form.value.kanaal,
       onderwerp: taak.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
@@ -232,27 +231,12 @@ const submit = async () => {
       plaatsgevondenOp: new Date().toISOString()
     };
     
-    // Check of we een vorig klantcontact hebben om aan te koppelen
-    if (taak.aanleidinggevendKlantcontact) {
-      // Maak het klantcontact aan en koppel het aan het vorige klantcontact
-      try {
-        await klantcontactService.createRelatedKlantcontact(
-          createRequest, 
-          taak.aanleidinggevendKlantcontact.uuid
-        );
+    const result = await klantcontactService.createRelatedKlantcontact(
+      createRequest,
+      taak.aanleidinggevendKlantcontact?.uuid
+    );
         
-      } catch {
-        // Als het koppelen mislukt, maar het klantcontact wel is aangemaakt, 
-        // tonen we een succes, maar loggen we de fout
-      }
-    } else {
-      // Maak alleen het klantcontact aan (zonder koppeling aan vorig klantcontact)
-      const result = await klantcontactService.createKlantcontactWithCurrentActor(createRequest);
-      console.log('Klantcontact aangemaakt:', result);
-    }
-    
     success.value = true;
-    // Reset formulier na succesvol aanmaken
     form.value = {
       resultaat: RESULTS.contactGelukt,
       kanaal: "",
@@ -264,7 +248,7 @@ const submit = async () => {
   } finally {
     isLoading.value = false;
   }
-};
+}
 </script>
 
 <style lang="scss" scoped>

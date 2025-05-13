@@ -1,10 +1,7 @@
-﻿using System.Security.Claims;
-using Duende.IdentityModel;
-using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Web.Server.Services;
+using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
 using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,104 +13,57 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class CreateKlantContactController(IOpenKlantApiClient openKlantApiClient, IUserService userService, ITAUser user) : Controller
+    public class CreateKlantContactController(
+        ITAUser user,
+        ICreateKlantContactService createKlantContactService) : Controller
     {
-        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+        private readonly ICreateKlantContactService _createKlantContactService = createKlantContactService ?? throw new ArgumentNullException(nameof(createKlantContactService));
 
-
-        //todo: checken of deze gebruikt wordt        
-        //[ProducesResponseType(typeof(Klantcontact), StatusCodes.Status201Created)]
-        //[ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        //[HttpPost("klantcontacten")]
-        //public async Task<IActionResult> CreateKlantcontact([FromBody] KlantcontactRequest request)
-        //{
-        //    var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(request);
-        //    return StatusCode(StatusCodes.Status201Created, klantcontact);
-        //}
-
-        
-        [ProducesResponseType(typeof(ActorKlantcontact), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost("actorklantcontacten")]
-        public async Task<IActionResult> CreateActorKlantcontact([FromBody] ActorKlantcontactRequest request)
-        {
-            var actorKlantcontact = await _openKlantApiClient.CreateActorKlantcontactAsync(request);
-            return StatusCode(StatusCodes.Status201Created, actorKlantcontact);
-        }
-        
-        
-        [ProducesResponseType(typeof(Klantcontact), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost("klantcontactenmetactor")]
-        public async Task<IActionResult> CreateKlantcontactWithCurrentActor([FromBody] KlantcontactRequest request)
+        [HttpPost("relatedklantcontact")]
+        public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequest request)
         {
             try
             {
-                if (string.IsNullOrEmpty(user.Email))
-                {
-                    return StatusCode(409, new ITAException
-                    {
-                        Message = "No email found in the current user's claims.",
-                        Code = "MISSING_EMAIL_CLAIM"
-                    });
-                }
-
-                var actor = await _openKlantApiClient.GetOrCreateActorByEmail(user.Email, User?.Identity?.Name);
-
-                if (actor == null)
-                {
-                    return StatusCode(409, new ITAException
-                    {
-                        Message = "Failed to get or create actor for the current user.",
-                        Code = "ACTOR_CREATION_FAILED"
-                    });
-                }
-
-                var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(request);
-                var actorKlantcontactRequest = new ActorKlantcontactRequest
-                {
-                    Actor = new ActorReference { Uuid = actor.Uuid },
-                    Klantcontact = new KlantcontactReference { Uuid = klantcontact.Uuid }
-                };
-
-                var actorKlantcontact = await _openKlantApiClient.CreateActorKlantcontactAsync(actorKlantcontactRequest);
-                var result = new
-                {
-                    Klantcontact = klantcontact,
-                    ActorKlantcontact = actorKlantcontact
-                };
+                var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
+                    request.KlantcontactRequest,
+                    request.PreviousKlantcontactUuid,
+                    user.Email,
+                    user.Name
+                );
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }
-            catch (Exception ex)
+            catch (ConflictException ex)
             {
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,
-                    Code = (ex as ConflictException)?.Code
+                    Code = ex.Code
                 });
-            }
-        }
-        
-        
-        [ProducesResponseType(typeof(Onderwerpobject), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost("onderwerpobjecten")]
-        public async Task<IActionResult> CreateOnderwerpobject([FromBody] Onderwerpobject request)
-        {
-            try
-            {
-                var onderwerpobject = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
-                return StatusCode(StatusCodes.Status201Created, onderwerpobject);
             }
             catch (Exception ex)
             {
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,
-                    Code = (ex as ConflictException)?.Code
+                    Code = "UNEXPECTED_ERROR"
                 });
             }
         }
+    }
+
+    public class CreateRelatedKlantcontactRequest
+    {
+        public required KlantcontactRequest KlantcontactRequest { get; set; }
+        public string? PreviousKlantcontactUuid { get; set; }
+    }
+
+    public class RelatedKlantcontactResult
+    {
+        public required Klantcontact Klantcontact { get; set; }
+        public required ActorKlantcontact ActorKlantcontact { get; set; }
+        public Onderwerpobject? Onderwerpobject { get; set; }
     }
 }

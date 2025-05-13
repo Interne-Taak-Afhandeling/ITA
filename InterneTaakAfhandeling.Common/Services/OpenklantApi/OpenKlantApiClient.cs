@@ -1,4 +1,3 @@
-
 using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models;
@@ -14,15 +13,15 @@ public interface IOpenKlantApiClient
 {
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
     Task<Actor> GetActorAsync(string uuid);
+    Task<Actor?> GetActorByEmail(string userEmail);
+    Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> GetBetrokkeneAsync(string uuid);
     Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);
     Task<List<Internetaken>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
     Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
-
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
-    Task<Actor?> GetOrCreateActorByEmail(string email, string? naam = null);
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(Onderwerpobject request);
 }
 
@@ -33,17 +32,13 @@ public class OpenKlantApiClient(
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly ILogger<OpenKlantApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-
     public async Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request)
     {
         try
         {
             var response = await _httpClient.PostAsJsonAsync("klantcontacten", request);
             var responseContent = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Error response: {responseContent}");
             var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
-
-
 
             if (klantcontact == null)
             {
@@ -58,7 +53,6 @@ public class OpenKlantApiClient(
             throw;
         }
     }
-
 
     public async Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request)
     {
@@ -84,47 +78,6 @@ public class OpenKlantApiClient(
         }
     }
 
-
-    public async Task<Actor?> GetOrCreateActorByEmail(string email, string? naam = null)
-    {
-        if (string.IsNullOrEmpty(email))
-        {
-            throw new ConflictException("Email must not be empty", code: "EMPTY_EMAIL_ADDRESS");
-        }
-
-        // Probeer eerst de actor op te halen
-        var actor = await GetActorByEmail(email);
-
-        // Als actor niet bestaat, maak een nieuwe aan
-        if (actor == null)
-        {
-            // Maak een nieuwe actor request
-            var actorRequest = new ActorRequest
-            {
-                Naam = naam ?? email, // Als naam niet opgegeven is, gebruik email als naam
-                SoortActor = "medewerker",
-                IndicatieActief = true,
-                Actoridentificator = new ActorIdentificator
-                {
-                    ObjectId = email,
-                    CodeObjecttype = "mdw",
-                    CodeRegister = "msei",
-                    CodeSoortObjectId = "email"
-                },
-                ActorIdentificatie = new ActorIdentificatie
-                {
-                    Emailadres = email
-                }
-            };
-
-            // Maak de actor aan
-            actor = await CreateActorAsync(actorRequest);
-        }
-
-        return actor;
-    }
-
-
     public async Task<Actor?> CreateActorAsync(ActorRequest request)
     {
         try
@@ -141,7 +94,6 @@ public class OpenKlantApiClient(
                                        code: "ACTOR_CREATION_ERROR");
         }
     }
-
 
     public async Task<Actor?> GetActorByEmail(string userEmail)
     {
@@ -166,7 +118,6 @@ public class OpenKlantApiClient(
                                         code: "ACTOR_RETRIEVAL_ERROR");
         }
     }
-
 
     public async Task<Onderwerpobject> CreateOnderwerpobjectAsync(Onderwerpobject request)
     {
@@ -334,8 +285,6 @@ public class OpenKlantApiClient(
 
         await Task.WhenAll(currentContent?.Results?.Select(async x =>
         {
-
-
             x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
         }) ?? []);
         content.AddRange(currentContent?.Results ?? []);
@@ -367,7 +316,6 @@ public class OpenKlantApiClient(
         return content?.Results?.FirstOrDefault();
     }
 
- 
     public class ConflictException : Exception
     {
         public string? Code { get; set; }
@@ -379,7 +327,6 @@ public class OpenKlantApiClient(
             Code = code;
         }
     }
-
 
     public class ITAException
     {

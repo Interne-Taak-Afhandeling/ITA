@@ -3,6 +3,7 @@ using InterneTaakAfhandeling.Web.Server.Features;
 using InterneTaakAfhandeling.Common.Extensions;
 using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Middleware;
+using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
@@ -37,6 +38,8 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddITAApiClients(configuration); 
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
+
 
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 
