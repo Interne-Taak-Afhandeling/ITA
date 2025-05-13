@@ -137,6 +137,10 @@
         </utrecht-button>
       </form>
     </section>
+
+    <section>
+ <ContactverzoekContactmomenten :contactverzoekId="cvId" />
+    </section>
   </div>
 </template>
 
@@ -148,6 +152,7 @@ import { fakeInterneTaken } from "@/helpers/fake-data";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { klantcontactService, type CreateKlantcontactRequest } from "@/services/klantcontactService";
+import ContactverzoekContactmomenten from '@/components/ContactverzoekContactmomenten.vue'
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -162,7 +167,7 @@ const error = ref<string | null>(null);
 const success = ref(false);
 
 const taak = fakeInterneTaken[0];
-const klantcontactUuid = computed(() => taak.aanleidinggevendKlantcontact?.uuid || '');
+computed(() => taak.aanleidinggevendKlantcontact?.uuid || '');
 const phoneNumbers = computed(() =>
   taak.digitaleAdress
     ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "telefoonnummer")
@@ -231,12 +236,12 @@ const submit = async () => {
     if (taak.aanleidinggevendKlantcontact) {
       // Maak het klantcontact aan en koppel het aan het vorige klantcontact
       try {
-        const result = await klantcontactService.createRelatedKlantcontact(
+        await klantcontactService.createRelatedKlantcontact(
           createRequest, 
           taak.aanleidinggevendKlantcontact.uuid
         );
         
-      } catch (linkErr) {
+      } catch {
         // Als het koppelen mislukt, maar het klantcontact wel is aangemaakt, 
         // tonen we een succes, maar loggen we de fout
       }
