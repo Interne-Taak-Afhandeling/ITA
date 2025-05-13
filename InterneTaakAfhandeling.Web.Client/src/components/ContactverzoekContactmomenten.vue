@@ -31,7 +31,7 @@
 
 <script setup lang="ts" >
 import { ref } from 'vue';
-import { klantcontactService, type Contactmoment  } from "@/services/klantcontactService";
+import { klantcontactService, type Contactmoment  } from "@/services/createKlantcontactService";
 
 const props = defineProps<{ contactverzoekId : string }>();
 

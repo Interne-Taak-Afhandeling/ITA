@@ -1,16 +1,9 @@
-﻿using System.Security.Claims;
-using Duende.IdentityModel;
-using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
-using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenController
 {

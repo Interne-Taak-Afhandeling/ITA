@@ -4,7 +4,6 @@ using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
-using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models;
 using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
 
 public interface ICreateKlantContactService
@@ -38,13 +37,8 @@ public class CreateKlantContactService : ICreateKlantContactService
                 "MISSING_EMAIL_CLAIM");
         }
 
-        // Get or create actor for the current user (nu roepen we onze eigen methode aan)
         var actor = await GetOrCreateActorAsync(userEmail, userName);
-
-        // Create the new klantcontact
         var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(klantcontactRequest);
-
-        // Link the klantcontact to the current actor
         var actorKlantcontactRequest = new ActorKlantcontactRequest
         {
             Actor = new ActorReference { Uuid = actor.Uuid },
@@ -53,7 +47,6 @@ public class CreateKlantContactService : ICreateKlantContactService
 
         var actorKlantcontact = await _openKlantApiClient.CreateActorKlantcontactAsync(actorKlantcontactRequest);
 
-        // Initialize the result
         var result = new RelatedKlantcontactResult
         {
             Klantcontact = klantcontact,
@@ -61,24 +54,21 @@ public class CreateKlantContactService : ICreateKlantContactService
             Onderwerpobject = null
         };
 
-        // If there's a previous klantcontact, create the onderwerpobject link
         if (!string.IsNullOrEmpty(previousKlantcontactUuid))
         {
             var onderwerpobject = new Onderwerpobject
             {
-                Uuid = string.Empty, // This will be filled by the API
-                Url = string.Empty, // This will be filled by the API
+                Uuid = string.Empty, 
+                Url = string.Empty, 
                 Klantcontact = new Klantcontact
                 {
                     Uuid = klantcontact.Uuid,
-                    Url = klantcontact.Url,
-                    HadBetrokkenActoren = new List<Actor>() // Minimale instantie
+                    Url = klantcontact.Url
                 },
                 WasKlantcontact = new Klantcontact
                 {
                     Uuid = previousKlantcontactUuid,
-                    Url = string.Empty, // The URL is not needed for the request
-                    HadBetrokkenActoren = new List<Actor>() // Minimale instantie
+                    Url = string.Empty
                 }
             };
 
@@ -98,16 +88,12 @@ public class CreateKlantContactService : ICreateKlantContactService
                 "EMPTY_EMAIL_ADDRESS");
         }
 
-        // Probeer eerst de actor op te halen
         var actor = await GetActorByEmailAsync(email);
-
-        // Als actor niet bestaat, maak een nieuwe aan
         if (actor == null)
         {
-            // Maak een nieuwe actor request
             var actorRequest = new ActorRequest
             {
-                Naam = naam ?? email, // Als naam niet opgegeven is, gebruik email als naam
+                Naam = naam ?? email, 
                 SoortActor = "medewerker",
                 IndicatieActief = true,
                 Actoridentificator = new ActorIdentificator
@@ -123,7 +109,6 @@ public class CreateKlantContactService : ICreateKlantContactService
                 }
             };
 
-            // Maak de actor aan
             actor = await CreateActorAsync(actorRequest);
         }
 
