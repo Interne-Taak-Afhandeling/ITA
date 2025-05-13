@@ -2,9 +2,9 @@
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
-using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
@@ -52,18 +52,5 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 });
             }
         }
-    }
-
-    public class CreateRelatedKlantcontactRequest
-    {
-        public required KlantcontactRequest KlantcontactRequest { get; set; }
-        public string? PreviousKlantcontactUuid { get; set; }
-    }
-
-    public class RelatedKlantcontactResult
-    {
-        public required Klantcontact Klantcontact { get; set; }
-        public required ActorKlantcontact ActorKlantcontact { get; set; }
-        public Onderwerpobject? Onderwerpobject { get; set; }
     }
 }

@@ -5,7 +5,6 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
-using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
@@ -27,7 +26,21 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
         [HttpGet("internetaken")]
         public async Task<IActionResult> GetInternetaken()
         {
-          return Ok(await _userService.GetInterneTakenByAssignedUser(user));
-        }      
+            var result = await _userService.GetInterneTakenByAssignedUser(user);
+
+            Console.WriteLine($"Found {result.Count} internetaken for user {user.Email}");
+            foreach (var item in result)
+            {
+                Console.WriteLine($"Internetaak: {item.Uuid}, Status: {item.Status}, Onderwerp: {item.AanleidinggevendKlantcontact?.Onderwerp}");
+            }
+
+            var json = System.Text.Json.JsonSerializer.Serialize(result, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true,
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve
+            });
+
+            return Ok(result);
+        }
     }
 }

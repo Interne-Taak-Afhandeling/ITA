@@ -147,7 +147,7 @@ import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import { fakeInterneTaken } from "@/helpers/fake-data";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-import { klantcontactService, type CreateKlantcontactRequest } from "@/services/klantcontactService";
+import { klantcontactService, type CreateKlantcontactRequest } from "@/services/createKlantcontactService";
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",

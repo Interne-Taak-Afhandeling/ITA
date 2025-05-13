@@ -1,8 +1,6 @@
 using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Services.OpenKlantApi.Models;
 using Microsoft.Extensions.Logging;
-using System.Collections.Specialized;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Web;
@@ -220,15 +218,19 @@ public class OpenKlantApiClient(
         var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen");
         response.EnsureSuccessStatusCode();
 
+        var jsonString = await response.Content.ReadAsStringAsync();
+        _logger.LogInformation("API Response: {JsonString}", jsonString);
+
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
 
-        if (klantcontact == null)
+        // Log specifiek de gingOverOnderwerpobjecten
+        _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
+        foreach (var obj in klantcontact?.GingOverOnderwerpobjecten ?? [])
         {
-            _logger.LogInformation("Klantcontact not found {Uuid}", uuid);
-            throw new Exception("Klantcontact not found");
+            _logger.LogInformation("Onderwerpobject: {Uuid}, Identificator: {Id}",
+                obj.Uuid,
+                obj.Onderwerpobjectidentificator?.ObjectId);
         }
-
-        _logger.LogInformation("Successfully retrieved klantcontact {Uuid}", uuid);
 
         return klantcontact;
     }
