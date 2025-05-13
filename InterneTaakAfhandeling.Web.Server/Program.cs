@@ -30,8 +30,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<AuthorizationGuardMiddleware>();
-
 app.UseItaSecurityHeaders();
 app.MapControllers();
 app.MapITAAuthEndpoints();
