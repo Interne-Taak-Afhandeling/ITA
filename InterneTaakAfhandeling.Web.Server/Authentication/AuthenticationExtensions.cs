@@ -16,7 +16,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
             var authOptions = new AuthOptions();
             setOptions(authOptions);
 
-            var ObjectregisterMedewerkerIdClaimType = authOptions.ObjectregisterMedewerkerIdClaimType;
+            var objectregisterMedewerkerIdClaimType = authOptions.ObjectregisterMedewerkerIdClaimType;
             var emailClaimType = string.IsNullOrWhiteSpace(authOptions.EmailClaimType) ? JwtClaimTypes.Email : authOptions.EmailClaimType;
             var nameClaimType = string.IsNullOrWhiteSpace(authOptions.NameClaimType) ? JwtClaimTypes.Name : authOptions.NameClaimType;
             var roleClaimType = string.IsNullOrWhiteSpace(authOptions.RoleClaimType) ? JwtClaimTypes.Roles : authOptions.RoleClaimType;
@@ -27,13 +27,13 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
             {
                 var user = s.GetRequiredService<IHttpContextAccessor>().HttpContext?.User;
                 var isLoggedIn = user?.Identity?.IsAuthenticated ?? false;
-                var objectregisterMedewerkerId = string.IsNullOrWhiteSpace(ObjectregisterMedewerkerIdClaimType) ? string.Empty : user?.FindFirst(ObjectregisterMedewerkerIdClaimType)?.Value ?? string.Empty;
+                var objectregisterMedewerkerId = string.IsNullOrWhiteSpace(objectregisterMedewerkerIdClaimType) ? string.Empty : user?.FindFirst(objectregisterMedewerkerIdClaimType)?.Value ?? string.Empty;
                 var name = user?.FindFirst(nameClaimType)?.Value ?? string.Empty;
                 var email = user?.FindFirst(emailClaimType)?.Value ?? string.Empty;
                 var roles = user?.FindAll(roleClaimType).Select(x=> x.Value).ToArray() ?? [];
                 var hasITASystemAccess = roles.Contains(authOptions.ITASystemAccessRole);
 
-                if(!string.IsNullOrWhiteSpace(ObjectregisterMedewerkerIdClaimType) && string.IsNullOrWhiteSpace(objectregisterMedewerkerId))
+                if(!string.IsNullOrWhiteSpace(objectregisterMedewerkerIdClaimType) && string.IsNullOrWhiteSpace(objectregisterMedewerkerId))
                 {
                     throw new Exception($"Verwachtewaarde voor de {authOptions.ObjectregisterMedewerkerIdClaimType} ontbreekt. Neem contact op met de beheerder.");
                 }
