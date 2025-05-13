@@ -68,7 +68,7 @@ web:
     itaSystemAccessRole: ""
     nameClaimType: ""
     roleClaimType: ""
-    idClaimType: ""
+    objectregisterMedewerkerIdClaimType: ""
     emailClaimType: ""
   
   resources:

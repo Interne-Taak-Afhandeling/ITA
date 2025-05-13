@@ -1,11 +1,10 @@
 
-using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using Microsoft.Extensions.Logging;
-using System.Collections.Specialized;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Web;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using Microsoft.Extensions.Logging;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
@@ -154,21 +153,19 @@ public class OpenKlantApiClient(
     {
         List<Internetaken> content = [];
         var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status=te_verwerken";
-        // while (!string.IsNullOrEmpty(page))
-        // {
-        var response = await _httpClient.GetAsync(page);
-        response.EnsureSuccessStatusCode();
-        var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
-
-        await Task.WhenAll(currentContent?.Results?.Select(async x =>
+        while (!string.IsNullOrEmpty(page))
         {
+            var response = await _httpClient.GetAsync(page);
+            response.EnsureSuccessStatusCode();
+            var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
 
-
-            x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
-        }) ?? []);
-        content.AddRange(currentContent?.Results ?? []);
-        //  page = currentContent?.Next?.Replace(_httpClient.BaseAddress.AbsoluteUri, string.Empty);
-        //  }
+            await Task.WhenAll(currentContent?.Results?.Select(async x =>
+            { 
+                x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
+            }) ?? []);
+            content.AddRange(currentContent?.Results ?? []); 
+            page = currentContent?.Next?.Replace(_httpClient.BaseAddress?.AbsoluteUri ?? string.Empty, string.Empty);
+        }
 
         return content?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];
     }

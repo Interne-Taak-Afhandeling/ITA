@@ -21,7 +21,7 @@ data:
   OIDC_ITA_SYSTEM_ACCESS_ROLE: {{ .Values.web.oidc.itaSystemAccessRole }}
   OIDC_NAME_CLAIM_TYPE: {{ .Values.web.oidc.nameClaimType }}
   OIDC_ROLE_CLAIM_TYPE: {{ .Values.web.oidc.roleClaimType }}
-  OIDC_ID_CLAIM_TYPE: {{ .Values.web.oidc.idClaimType }}
+  OIDC_OBJECTREGISTER_MEDEWERKER_ID_CLAIM_TYPE: {{ .Values.web.oidc.objectregisterMedewerkerIdClaimType }}
   OIDC_EMAIL_CLAIM_TYPE: {{ .Values.web.oidc.emailClaimType }}
   {{- end }}
   

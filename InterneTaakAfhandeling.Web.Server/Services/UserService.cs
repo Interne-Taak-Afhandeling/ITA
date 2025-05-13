@@ -60,16 +60,16 @@ namespace InterneTaakAfhandeling.Web.Server.Services
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(user.Id))
+            if (!string.IsNullOrWhiteSpace(user.ObjectregisterMedewerkerId))
             {
                 var fromObjecten = await _openKlantApiClient.QueryActorAsync(new ActorQuery
                 {
-                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.IdFromObjectRegistration.CodeObjecttype,
-                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.IdFromObjectRegistration.CodeRegister,
-                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.IdFromObjectRegistration.CodeSoortObjectId,
+                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectregisterId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId,
                     IndicatieActief = true,
                     SoortActor = SoortActor.medewerker,
-                    ActoridentificatorObjectId = user.Id
+                    ActoridentificatorObjectId = user.ObjectregisterMedewerkerId
                 });
 
                 if (fromObjecten != null)

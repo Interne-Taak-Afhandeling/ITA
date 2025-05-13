@@ -16,7 +16,7 @@
             CodeSoortObjectId = "email"
         };
 
-        public static readonly KnownMedewerkerIdentificators IdFromObjectRegistration = new()
+        public static readonly KnownMedewerkerIdentificators ObjectregisterId = new()
         {
             CodeObjecttype = "mdw",
             CodeRegister = "obj",
