@@ -231,7 +231,7 @@ async function submit() {
       plaatsgevondenOp: new Date().toISOString()
     };
     
-    const result = await klantcontactService.createRelatedKlantcontact(
+    await klantcontactService.createRelatedKlantcontact(
       createRequest,
       taak.aanleidinggevendKlantcontact?.uuid
     );

@@ -1,4 +1,4 @@
-import { post } from '@/utils/fetchWrapper';
+import { get, post } from '@/utils/fetchWrapper';
 import type { Klantcontact, Onderwerpobject } from '@/types/internetaken';
 
 export interface CreateKlantcontactRequest {
@@ -36,6 +36,14 @@ export interface CreateRelatedKlantcontactRequest {
   previousKlantcontactUuid?: string;
 }
 
+export interface Contactmoment {
+  contactGelukt: boolean,
+   tekst: string, 
+   datum: string, 
+   medewerker : string, 
+   kanaal : string
+}
+
 export const klantcontactService = {
   createRelatedKlantcontact: (
     klantcontactRequest: CreateKlantcontactRequest, 
@@ -47,5 +55,8 @@ export const klantcontactService = {
     };
     
     return post<RelatedKlantcontactResult>('/api/createklantcontact/relatedklantcontact', request);
-  }
+  },
+ 
+  getInterneTaakContactmomenten: (contactverzoekId : string ): Promise<Contactmoment[]> => get<Contactmoment[]>(`/api/internetaak/${contactverzoekId}/contactmomenten`)
+
 };

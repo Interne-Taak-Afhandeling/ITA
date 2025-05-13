@@ -2,7 +2,7 @@
 
 
   <utrecht-heading :level="2">
-    Contactmomenten {{contactverzoekId}}</utrecht-heading>
+    Contactmomenten</utrecht-heading>
 <utrecht-data-list v-for="contactmoment in  contactmomenten" :key="contactmoment.tekst" >
     <utrecht-data-list-item>
     <utrecht-data-list-key>Contact gelukt</utrecht-data-list-key>
@@ -31,8 +31,9 @@
 
 <script setup lang="ts" >
 import { ref } from 'vue';
+import { klantcontactService  } from "@/services/klantcontactService";
 
-defineProps<{ contactverzoekId : string }>();
+const props = defineProps<{ contactverzoekId : string }>();
 
 const isLoading = ref(true);
 const error = ref(true);
@@ -44,10 +45,14 @@ const fetchContactmomenten = async () => {
     error.value = null;
 
     try {
-        contactmomenten.value = [ 
-            { contactGelukt: true, tekst: "sdfsfdsdf", datum: "15-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" } , 
-            { contactGelukt: true, tekst: "rtfdgdtyerert", datum: "12-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" }
-        ];  //todo: await seviceGetsomething();
+
+
+        contactmomenten.value = await klantcontactService.getInterneTaakContactmomenten(props.contactverzoekId);
+
+        // contactmomenten.value = [ 
+        //     { contactGelukt: true, tekst: "sdfsfdsdf", datum: "15-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" } , 
+        //     { contactGelukt: true, tekst: "rtfdgdtyerert", datum: "12-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" }
+        // ];  
     } catch (err: any) {
       error.value = err.message || 'Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek';
     } finally {
