@@ -31,18 +31,18 @@
 
 <script setup lang="ts" >
 import { ref } from 'vue';
-import { klantcontactService  } from "@/services/klantcontactService";
+import { klantcontactService, type Contactmoment  } from "@/services/klantcontactService";
 
 const props = defineProps<{ contactverzoekId : string }>();
 
 const isLoading = ref(true);
-const error = ref(true);
+const error = ref("");
 
-const contactmomenten = ref([]);
+const contactmomenten = ref<Contactmoment[]>([]);
 
 const fetchContactmomenten = async () => {
     isLoading.value = true;
-    error.value = null;
+    error.value = "";
 
     try {
 
@@ -53,7 +53,7 @@ const fetchContactmomenten = async () => {
         //     { contactGelukt: true, tekst: "sdfsfdsdf", datum: "15-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" } , 
         //     { contactGelukt: true, tekst: "rtfdgdtyerert", datum: "12-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" }
         // ];  
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err.message || 'Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek';
     } finally {
       isLoading.value = false;
