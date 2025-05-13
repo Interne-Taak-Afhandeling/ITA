@@ -7,16 +7,16 @@
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Vraag</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.onderwerp" multiline>
-            {{ taak.aanleidinggevendKlantcontact?.onderwerp }}
+          <utrecht-data-list-value :value="taak?.aanleidinggevendKlantcontact?.onderwerp" multiline>
+            {{ taak?.aanleidinggevendKlantcontact?.onderwerp }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-spotlight-section>
             <utrecht-data-list-key>Interne toelichting KCC</utrecht-data-list-key>
-            <utrecht-data-list-value :value="taak.toelichting" multiline class="preserve-newline">
+            <utrecht-data-list-value :value="taak?.toelichting" multiline class="preserve-newline">
               {{
-              taak.toelichting
+              taak?.toelichting
               }}
             </utrecht-data-list-value>
           </utrecht-spotlight-section>
@@ -24,9 +24,9 @@
         <utrecht-data-list-item>
           <utrecht-spotlight-section>
             <utrecht-data-list-key>Zaaknummer</utrecht-data-list-key>
-            <utrecht-data-list-value :value="taak.zaak?.identificatie" multiline class="preserve-newline">
+            <utrecht-data-list-value :value="taak?.zaak?.identificatie" multiline class="preserve-newline">
               {{
-       taak.zaak?.identificatie
+       taak?.zaak?.identificatie
               }}
             </utrecht-data-list-value>
           </utrecht-spotlight-section>
@@ -38,9 +38,11 @@
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Klantnaam</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.betrokkene?.volledigeNaam">{{
-            taak.betrokkene?.volledigeNaam
-          }}</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam">
+            {{
+           taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam
+            }}
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Telefoonnummer</utrecht-data-list-key>
@@ -65,13 +67,13 @@
         <utrecht-data-list-item>
           <utrecht-data-list-key>Datum aangemaakt</utrecht-data-list-key>
           <utrecht-data-list-value value="x"
-            ><date-time-or-nvt :date="taak.aanleidinggevendKlantcontact?.plaatsgevondenOp"
+            ><date-time-or-nvt :date="taak?.aanleidinggevendKlantcontact?.plaatsgevondenOp"
           /></utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.kanaal">{{
-            taak.aanleidinggevendKlantcontact?.kanaal
+          <utrecht-data-list-value :value="taak?.aanleidinggevendKlantcontact?.kanaal">{{
+            taak?.aanleidinggevendKlantcontact?.kanaal
           }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
@@ -80,7 +82,7 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Status</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.status">{{ taak.status }}</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak?.status">{{ taak?.status }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Aangemaakt door</utrecht-data-list-key>
@@ -96,11 +98,13 @@
 <script lang="ts" setup>
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
-  import { fakeInterneTaken } from "@/helpers/fake-data";
+  
   import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { useUserStore } from '@/stores/user';
+import type { Internetaken, Actor, Onderwerpobject } from '@/types/internetaken';
+
 
   const route = useRoute();
   const userStore = useUserStore();
@@ -110,29 +114,29 @@ const cvId = computed(() => route.params.number);
   const taak = computed(() => {
    return assignedInternetaken.value.find(
      (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == cvId.value
-   );
+   ) || null;
   });
 const phoneNumbers = computed(() =>
-  taak.digitaleAdress
-    ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "telefoonnummer")
-    .map(({ adres }) => adres)
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.digitaleAdressen
+    ?.filter(({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "telefoonnummer")
+    .map(({ adres }: { adres?: string }) => adres || '') || []
 );
 const phoneNumber1 = computed(() => phoneNumbers.value?.[0]);
 const phoneNumber2 = computed(() => phoneNumbers.value?.[1]);
 const email = computed(() =>
-  taak.digitaleAdress
-    ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "email")
-    .map(({ adres }) => adres)
-    .find(Boolean)
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.digitaleAdressen
+    ?.filter(({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "email")
+    .map(({ adres }: { adres?: string }) => adres || '')
+    .find(Boolean) || ''
 );
-const behandelaar = computed(() => taak.toegewezenAanActoren?.map((x) => x.naam).find(Boolean));
+const behandelaar = computed(() => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean) || '');
 const aangemaaktDoor = computed(() =>
-  taak.aanleidinggevendKlantcontact?.hadBetrokkenActoren?.map((x) => x.naam).find(Boolean)
+  taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren?.map((x: Actor) => x.naam).find(Boolean) || ''
 );
 const zaakUuids = computed(() =>
-  taak.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
-    ?.map((x) => x.onderwerpobjectidentificator?.objectId)
-    .filter(Boolean)
+  taak.value?.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
+    ?.map((x:Onderwerpobject) => x.onderwerpobjectidentificator?.objectId)
+    .filter(Boolean) || []
 );
  
 </script>
