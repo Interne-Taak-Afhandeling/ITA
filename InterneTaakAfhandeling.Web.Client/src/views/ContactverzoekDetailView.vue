@@ -139,7 +139,7 @@
     </section>
 
     <section>
- <ContactverzoekContactmomenten v-if="cvId" :contactmomentNummer="cvId" />
+      <ContactverzoekContactmomenten :contactverzoekId="cvId" />
     </section>
   </div>
 </template>
@@ -148,12 +148,11 @@
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
-
+import { fakeInterneTaken } from "@/helpers/fake-data";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { klantcontactService, type CreateKlantcontactRequest } from "@/services/createKlantcontactService";
-
-import ContactverzoekContactmomenten from '@/components/ContactverzoekContactmomenten.vue'
+import ContactverzoekContactmomenten from '@/components/ContactverzoekContactmomenten.vue';
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
 import type { Internetaken } from "@/types/internetaken";
@@ -170,44 +169,34 @@ const isLoading = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
 
- 
+const userStore = useUserStore();
+const { assignedInternetaken } = storeToRefs(userStore);
 
- 
-  const userStore = useUserStore();
-  const { assignedInternetaken } = storeToRefs(userStore);
- 
+const taak = computed(() => {
+  return assignedInternetaken.value.find(
+    (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == cvId.value
+  ) || null;
+});
 
-  const taak = computed(() => {
-   return assignedInternetaken.value.find(
-     (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == cvId.value
-   ) || null;
-  });
-
-
-
-
-
-
-computed(() => taak.value?.aanleidinggevendKlantcontact?.uuid || '');
 const phoneNumbers = computed(() =>
-taak.value?.digitaleAdress
+  taak.value?.digitaleAdress
     ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "telefoonnummer")
     .map(({ adres }) => adres)
 );
 const phoneNumber1 = computed(() => phoneNumbers.value?.[0]);
 const phoneNumber2 = computed(() => phoneNumbers.value?.[1]);
 const email = computed(() =>
-taak.value?.digitaleAdress
+  taak.value?.digitaleAdress
     ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "email")
     .map(({ adres }) => adres)
     .find(Boolean)
 );
 const behandelaar = computed(() => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean));
 const aangemaaktDoor = computed(() =>
-taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren.map((x) => x.naam).find(Boolean)
+  taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren.map((x) => x.naam).find(Boolean)
 );
 const zaakUuids = computed(() =>
-taak.value?.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
+  taak.value?.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
     ?.map((x) => x.onderwerpobjectidentificator?.objectId)
     .filter(Boolean)
 );
@@ -224,7 +213,7 @@ const form = ref({
   kanaal: "",
   informatieBurger: ""
 });
-// In submit function in ContactverzoekDetailView.vue
+
 async function submit() {
   error.value = null;
   success.value = false;
@@ -252,9 +241,32 @@ async function submit() {
       plaatsgevondenOp: new Date().toISOString()
     };
     
+    let partijUuid: string | undefined = undefined;
+    
+    if (taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.length > 0) {
+      const betrokkene = taak.value.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
+      
+      if (betrokkene.wasPartij && 'uuid' in betrokkene.wasPartij) {
+        partijUuid = betrokkene.wasPartij.uuid;
+        console.log('Using partijUuid from expand data:', partijUuid);
+      }
+    }
+    
+    let aanleidinggevendKlantcontactUuid = taak.value?.aanleidinggevendKlantcontact?.uuid;
+    let laatsteBekendKlantcontactUuid;
+    
+    try {
+      if (aanleidinggevendKlantcontactUuid) {
+        laatsteBekendKlantcontactUuid = await klantcontactService.getLaatsteKlantcontactUuid(aanleidinggevendKlantcontactUuid);
+      }
+    } catch (err) {
+      console.error('Fout bij ophalen laatste klantcontact UUID:', err);
+    }
+    
     await klantcontactService.createRelatedKlantcontact(
       createRequest,
-      taak.value?.aanleidinggevendKlantcontact?.uuid // voor nu even de eerste dit moet juist de laatste worden... maar die hebben we nog niet...
+      laatsteBekendKlantcontactUuid,
+      partijUuid
     );
         
     success.value = true;

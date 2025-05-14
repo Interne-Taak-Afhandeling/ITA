@@ -23,7 +23,7 @@ public interface IOpenKlantApiClient
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(Onderwerpobject request);
     Task<Internetaken?> GetInternetaak(string uuid);
-    //Task<Klantcontact> GetKlantcontact(string uuid);
+    Task<List<Klantcontact>> GetKlantcontactenVerwijzendNaarKlantcontact(string klantcontactUuid);
 }
 
 public class OpenKlantApiClient(
@@ -369,6 +369,32 @@ public class OpenKlantApiClient(
             throw new ConflictException($"Error creating betrokkene: {ex.Message}",
                                        code: "BETROKKENE_CREATION_ERROR");
         }
+    }
+
+    public async Task<List<Klantcontact>> GetKlantcontactenVerwijzendNaarKlantcontact(string klantcontactUuid)
+    {
+        try
+        {
+            // Deze query vraagt om klantcontacten waarvan wasOnderwerpobject__uuid overeenkomt met het opgegeven klantcontactUuid
+            var response = await _httpClient.GetAsync($"klantcontacten?wasOnderwerpobject__uuid={klantcontactUuid}&expand=gingOverOnderwerpobjecten,hadBetrokkenActoren");
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<KlantcontactResponse>();
+
+            return result?.Results ?? new List<Klantcontact>();
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+    private class KlantcontactResponse
+    {
+        public int Count { get; set; }
+        public string? Next { get; set; }
+        public string? Previous { get; set; }
+        public List<Klantcontact> Results { get; set; } = [];
     }
 
     //public async Task<Klantcontact?> GetKlantcontact(string uuid)

@@ -19,4 +19,12 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
     {
         public required string Uuid { get; set; }
     }
+
+    public class KlantcontactenResponse
+    {
+        public int Count { get; set; }
+        public string? Next { get; set; }
+        public string? Previous { get; set; }
+        public List<Klantcontact> Results { get; set; } = new List<Klantcontact>();
+    }
 }
