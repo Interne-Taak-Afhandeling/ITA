@@ -23,7 +23,7 @@ public interface IOpenKlantApiClient
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(Onderwerpobject request);
     Task<Internetaken?> GetInternetaak(string uuid);
-    Task<List<Klantcontact>> GetKlantcontactenVerwijzendNaarKlantcontact(string klantcontactUuid);
+    Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
 }
 
 public class OpenKlantApiClient(
@@ -380,21 +380,28 @@ public class OpenKlantApiClient(
         }
     }
 
-    public async Task<List<Klantcontact>> GetKlantcontactenVerwijzendNaarKlantcontact(string klantcontactUuid)
+    public async Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId)
     {
         try
         {
-            // Deze query vraagt om klantcontacten waarvan wasOnderwerpobject__uuid overeenkomt met het opgegeven klantcontactUuid
-            var response = await _httpClient.GetAsync($"klantcontacten?wasOnderwerpobject__uuid={klantcontactUuid}&expand=gingOverOnderwerpobjecten,hadBetrokkenActoren");
+            _logger.LogInformation("Fetching klantcontacten with onderwerpobject__onderwerpobjectidentificatorObjectId={ObjectId}", objectId);
+
+            // Query om klantcontacten te vinden die verwijzen naar dit objectId via onderwerpobjectidentificator
+            var response = await _httpClient.GetAsync($"klantcontacten?onderwerpobject__onderwerpobjectidentificatorObjectId={objectId}");
             response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadFromJsonAsync<KlantcontactResponse>();
+            var klantcontactResponse = await response.Content.ReadFromJsonAsync<KlantcontactResponse>();
+            var klantcontacten = klantcontactResponse?.Results ?? [];
 
-            return result?.Results ?? new List<Klantcontact>();
+            _logger.LogInformation("Found {Count} klantcontacten referring to objectId {ObjectId}",
+                klantcontacten.Count, objectId);
+
+            return klantcontacten;
         }
         catch (Exception ex)
         {
-            throw;
+            _logger.LogError(ex, "Error retrieving klantcontacten by onderwerpobject ObjectId: {Message}", ex.Message);
+            return [];
         }
     }
 

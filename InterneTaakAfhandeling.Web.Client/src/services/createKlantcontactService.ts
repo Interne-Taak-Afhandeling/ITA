@@ -1,4 +1,3 @@
-// In createKlantcontactService.ts
 import type { 
   CreateKlantcontactRequest, 
   RelatedKlantcontactResult,
@@ -7,7 +6,6 @@ import type {
 } from "@/types/internetaken";
 import { get, post } from '@/utils/fetchWrapper';
 
-// In createKlantcontactService.ts
 export const klantcontactService = {
   createRelatedKlantcontact: (
     klantcontactRequest: CreateKlantcontactRequest, 
@@ -24,15 +22,13 @@ export const klantcontactService = {
   },
  
   getInterneTaakContactmomenten: (contactverzoekId: string): Promise<Contactmoment[]> => 
-    get<Contactmoment[]>(`/api/internetaak/${contactverzoekId}/contactmomenten`),
+    get<Contactmoment[]>(`/api/klantcontacten/${contactverzoekId}/contactmomenten`),
     
-  // Methode wijzigen om de contactmomenten response te gebruiken
   getLaatsteKlantcontactUuid: (aanleidinggevendKlantcontactId: string): Promise<string> => 
-    get<ContactmomentenResponse>(`/api/internetaak/klantcontacten/${aanleidinggevendKlantcontactId}/contactmomenten`)
+    get<ContactmomentenResponse>(`/api/klantcontacten/${aanleidinggevendKlantcontactId}/contactketen`)
       .then(response => response.laatsteBekendKlantcontactUuid)
 };
 
-// Voeg deze interface toe
 interface ContactmomentenResponse {
   contactmomenten: Contactmoment[];
   laatsteBekendKlantcontactUuid: string;

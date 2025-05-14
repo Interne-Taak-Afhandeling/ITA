@@ -39,13 +39,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                     "MISSING_EMAIL_CLAIM");
             }
 
-            // Get or create actor based on value
             var actor = await GetOrCreateActorAsync(userEmail, userName);
-
-            // Create the klantcontact
             var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(klantcontactRequest);
-
-            // Associate actor with klantcontact
             var actorKlantcontactRequest = new ActorKlantcontactRequest
             {
                 Actor = new ActorReference { Uuid = actor.Uuid },
@@ -53,21 +48,16 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             };
 
             var actorKlantcontact = await _openKlantApiClient.CreateActorKlantcontactAsync(actorKlantcontactRequest);
-
             var result = new RelatedKlantcontactResult
             {
                 Klantcontact = klantcontact,
                 ActorKlantcontact = actorKlantcontact
             };
 
-            // If we have a previous klantcontact, establish relationships
             if (!string.IsNullOrEmpty(previousKlantcontactUuid))
             {
-                // Create relationship with previous klantcontact
                 var onderwerpobject = await CreateOnderwerpobjectAsync(klantcontact.Uuid, previousKlantcontactUuid);
                 result.Onderwerpobject = onderwerpobject;
-
-                // Create betrokkene relationship
                 await CreateBetrokkeneRelationshipAsync(result, klantcontact.Uuid, previousKlantcontactUuid, partijUuid);
             }
 
@@ -82,7 +72,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
         {
             try
             {
-                // If partijUuid is directly provided, use it
                 if (!string.IsNullOrEmpty(providedPartijUuid))
                 {
                     if (Guid.TryParse(providedPartijUuid, out Guid parsedprovidedPartijUuid))
@@ -95,8 +84,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                     return;
                 }
 
-                // Try to get partijUuid from previous klantcontact
-
                 if (Guid.TryParse(previousKlantcontactUuid, out Guid parsedpreviousKlantcontactUuid))
                 {
                     _logger.LogInformation($"Fetching previous klantcontact {parsedpreviousKlantcontactUuid} to extract partijUuid");
@@ -105,18 +92,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 
                 var previousKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(previousKlantcontactUuid);
 
-                // Check if we have betrokkenen in the expand data
                 if (previousKlantcontact?.Expand?.HadBetrokkenen != null &&
                     previousKlantcontact.Expand.HadBetrokkenen.Count > 0)
                 {
                     var firstBetrokkene = previousKlantcontact.Expand.HadBetrokkenen[0];
 
-                    // Try direct property access first (most common case)
                     if (firstBetrokkene.WasPartij != null)
                     {
                         string? extractedPartijUuid = null;
-
-                        // Try to get uuid property through reflection
                         try
                         {
                             var partijType = firstBetrokkene.WasPartij.GetType();
@@ -155,7 +138,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
             catch (Exception ex)
             {
-                // Log but don't fail if we can't create the betrokkene
                 _logger.LogError(ex, $"Could not create betrokkene for klantcontact {klantcontactUuid}");
             }
         }
@@ -170,13 +152,20 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 {
                     Uuid = klantcontactUuid,
                     Url = $"/klantinteracties/api/v1/klantcontacten/{klantcontactUuid}",
-                    HadBetrokkenActoren = new List<Actor>() // Initialize to empty list to prevent null reference
+                    HadBetrokkenActoren = new List<Actor>() 
                 },
                 WasKlantcontact = new Klantcontact
                 {
                     Uuid = wasKlantcontactUuid,
                     Url = $"/klantinteracties/api/v1/klantcontacten/{wasKlantcontactUuid}",
-                    HadBetrokkenActoren = new List<Actor>() // Initialize to empty list to prevent null reference
+                    HadBetrokkenActoren = new List<Actor>() 
+                },
+                Onderwerpobjectidentificator = new Onderwerpobjectidentificator
+                {
+                    ObjectId = wasKlantcontactUuid,
+                    CodeObjecttype = "klantcontact",
+                    CodeRegister = "openklant",
+                    CodeSoortObjectId = "uuid"
                 }
             };
 
@@ -307,7 +296,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
         }
 
-        //show only the first part of a string. up to 6 characters 
         private static string Mask(string value)
         {
             return value[..(value.Length < 6 ? value.Length : 5)];

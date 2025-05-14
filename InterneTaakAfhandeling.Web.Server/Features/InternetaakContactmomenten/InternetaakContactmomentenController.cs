@@ -17,13 +17,11 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenC
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
-        // Endpoint voor contactmomenten van een internetaak
         [ProducesResponseType(typeof(ContactmomentenResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpGet("{contactverzoekId}/contactmomenten")]
         public async Task<IActionResult> GetContactmomenten(string contactverzoekId)
         {
-            // Haal de internetaak op
             var internetaak = await _openKlantApiClient.GetInternetaak(contactverzoekId);
 
             if (internetaak == null)
@@ -38,30 +36,24 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenC
                 return NotFound("Geen aanleidinggevend klantcontact gevonden voor deze internetaak");
             }
 
-            // Roep de andere endpoint aan om de klantcontact keten op te halen
             var ketenResponse = await GetKlantcontactKetenInternal(aanleidinggevendKlantcontactId);
 
             return Ok(ketenResponse);
         }
 
-        // Endpoint voor klantcontact keten op basis van een aanleidinggevend klantcontact
         [ProducesResponseType(typeof(ContactmomentenResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpGet("klantcontacten/{aanleidinggevendKlantcontactId}/contactmomenten")]
+        [HttpGet("{aanleidinggevendKlantcontactId}/contactketen")]
         public async Task<IActionResult> GetKlantcontactKeten(string aanleidinggevendKlantcontactId)
         {
             var response = await GetKlantcontactKetenInternal(aanleidinggevendKlantcontactId);
             return Ok(response);
         }
 
-        // Interne methode voor het ophalen van de klantcontact keten
         private async Task<ContactmomentenResponse> GetKlantcontactKetenInternal(string aanleidinggevendKlantcontactUuid)
         {
-            // We beginnen met een lege lijst van klantcontacten
             var klantcontactenInKeten = new List<Klantcontact>();
             var verwerkte_uuids = new HashSet<string>();
-
-            // We halen het startklantcontact op
             var aanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(aanleidinggevendKlantcontactUuid);
 
             if (aanleidinggevendKlantcontact == null)
@@ -69,17 +61,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenC
                 throw new Exception("Klantcontact niet gevonden");
             }
 
-            // We zoeken de keten van klantcontacten, uitgaande van het aanleidinggevende klantcontact
             var ketenVolgorde = await BouwKlantcontactKeten(aanleidinggevendKlantcontact);
 
-            // Nu hebben we de keten in chronologische volgorde (eerst aanleidinggevend, laatst het nieuwste)
-            // We draaien de volgorde om zodat de nieuwste bovenaan staat
+
             ketenVolgorde.Reverse();
 
-            // Het laatste klantcontact is nu de eerste in de lijst (na het omdraaien)
             var laatsteKlantcontactUuid = ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : aanleidinggevendKlantcontactUuid;
-
-            // Zet om naar ContactmomentResponse objecten
             var contactmomenten = ketenVolgorde.Select(k => new ContactmomentResponse(
                 ContactGelukt: k.IndicatieContactGelukt ?? false,
                 Tekst: k.Inhoud ?? string.Empty,
@@ -94,10 +81,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenC
             );
         }
 
-        // Helper methode voor datumformattering die rekening houdt met eventuele null waarden
         private string FormateerDatum(DateTimeOffset datum)
         {
-            // Controleer op de standaardwaarde die gebruikt wordt voor niet-ingevulde datums
             if (datum.Year == 1 && datum.Month == 1 && datum.Day == 1)
             {
                 return "Onbekend";
@@ -106,59 +91,38 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenC
             return datum.ToString("dd-MM-yyyy");
         }
 
-        // Methode om de keten van klantcontacten op te bouwen
         private async Task<List<Klantcontact>> BouwKlantcontactKeten(Klantcontact aanleidinggevendKlantcontact)
         {
             var keten = new List<Klantcontact>();
             var verwerkte_uuids = new HashSet<string>();
 
-            // Voeg aanleidinggevend klantcontact toe aan de keten
             keten.Add(aanleidinggevendKlantcontact);
             verwerkte_uuids.Add(aanleidinggevendKlantcontact.Uuid);
 
-            // Begin bij het aanleidinggevend klantcontact
-            var huidigKlantcontact = aanleidinggevendKlantcontact;
-
-            // Blijf zoeken naar nieuwere klantcontacten zolang we ze kunnen vinden
-            bool nieuwKlantcontactGevonden;
-            do
-            {
-                nieuwKlantcontactGevonden = false;
-
-                try
-                {
-                    // Zoek klantcontacten die verwijzen naar het huidige klantcontact
-                    var nieuwereKlantcontacten = await _openKlantApiClient.GetKlantcontactenVerwijzendNaarKlantcontact(huidigKlantcontact.Uuid);
-
-                    foreach (var nieuwKlantcontact in nieuwereKlantcontacten)
-                    {
-                        if (!verwerkte_uuids.Contains(nieuwKlantcontact.Uuid))
-                        {
-                            // Voeg nieuw klantcontact toe aan de keten
-                            keten.Add(nieuwKlantcontact);
-                            verwerkte_uuids.Add(nieuwKlantcontact.Uuid);
-
-                            // Update huidige klantcontact zodat we verder zoeken vanaf dit punt
-                            huidigKlantcontact = nieuwKlantcontact;
-                            nieuwKlantcontactGevonden = true;
-
-                            // We gaan uit van één keten, dus als we een nieuwer klantcontact hebben gevonden,
-                            // stoppen we met zoeken naar alternatieven op hetzelfde niveau
-                            break;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Bij fout stoppen we de lus
-                    nieuwKlantcontactGevonden = false;
-                }
-            } while (nieuwKlantcontactGevonden);
+            await VoegKlantcontactenToeAanKeten(aanleidinggevendKlantcontact.Uuid, keten, verwerkte_uuids);
 
             return keten;
         }
 
-        // Response types
+        private async Task VoegKlantcontactenToeAanKeten(
+            string klantcontactUuid,
+            List<Klantcontact> keten,
+            HashSet<string> verwerkte_uuids)
+        {
+            var klantcontacten = await _openKlantApiClient.GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(klantcontactUuid);
+
+            foreach (var klantcontact in klantcontacten)
+            {
+                if (!verwerkte_uuids.Contains(klantcontact.Uuid))
+                {
+                    keten.Add(klantcontact);
+                    verwerkte_uuids.Add(klantcontact.Uuid);
+
+                    await VoegKlantcontactenToeAanKeten(klantcontact.Uuid, keten, verwerkte_uuids);
+                }
+            }
+        }
+
         public record ContactmomentResponse(
             bool ContactGelukt,
             string Tekst,
