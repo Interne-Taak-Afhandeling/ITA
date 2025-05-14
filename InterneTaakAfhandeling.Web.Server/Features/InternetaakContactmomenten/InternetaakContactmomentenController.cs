@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenController
 {
-    [Route("api/internetaak")]
+    [Route("api/klantcontacten")]
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -19,71 +19,16 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenC
 
         [ProducesResponseType(typeof(List<Internetaken>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [HttpGet("klantcontacten/{aanleidinggevendKlantcontactId}")]
-        public async Task<IActionResult> Get(string aanleidinggevendKlantcontactId)
+        [HttpGet("{aanleidinggevendKlantcontactId}")]
+        public IActionResult Get(string aanleidinggevendKlantcontactId)
         {
-
-            //get the internetaak
-            //var internetaak = await _openKlantApiClient.GetInternetaak(contactverzoekId);
-
-
-            //if(internetaak == null )
-            //{
-            //    return NotFound();
-            //}
-
-            //var klantcontactId = internetaak.AanleidinggevendKlantcontact?.Uuid;
-
-            //if (string.IsNullOrWhiteSpace(klantcontactId))
-            //{
-            //    return NotFound();
-            //}
-
-            //get the klantcontact the initiated this internetaak
-           //todo gebruik de andere bestaande call
-            var contactmoment = await _openKlantApiClient.GetKlantcontactAsync(aanleidinggevendKlantcontactId);
-
-
-            if (contactmoment == null)
-            {
-                return NotFound();
-            }
-
-            //get the onderwerpobjecten (of type klantcontact) related to that klantcontact
-
-            var ondewerpobjecten = contactmoment.GingOverOnderwerpobjecten;
-
-            if (ondewerpobjecten == null)
-            {
-                return Ok(new List<ContactmomentResponse>());
-               
-            }
-
-
-            var result = new List<ContactmomentResponse>();
-
-            foreach (var ondewerpobject in ondewerpobjecten)
-            {
-
-                //voor elke weer dat contactophalen en daar dan weer de onderwerpobkecten van ophalen etc.... 
-
-                //get the klantcontacten that those onderwerpobjecten refer to
-
-                // var onderwerpobject = _openKlantApiClient.GetOnderwerpObject();
-                // var contactmoment = await _openKlantApiClient.GetKlantcontact(onderwerpobject.Klantcontact.Uuid);
-                // result.Add(contactmoment);
-
-            }
-
-            // return result;
-
-            return Ok(new List<ContactmomentResponse>() {
-               new ContactmomentResponse( true, "test " , "15-04-2025", "Piet van Gelre", "Telefoon" ),
-                 new ContactmomentResponse( true, "teeeeest", "15-04-2025", "Piet van Gelre", "Telefoon" )
-            });
-
+            //todo: implement in story pc-1245
+            //haal recursief de onderwerpobjecten op van het contactmoment. haal de contactmomenten op war die naar verwijzien. repeat    
+            return Ok(new List<ContactmomentResponse>());
 
         }
+
+
         record ContactmomentResponse(
           bool ContactGelukt,
           string Tekst,

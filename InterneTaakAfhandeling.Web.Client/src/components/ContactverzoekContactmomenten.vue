@@ -1,6 +1,10 @@
 <template>
 
-
+<!-- 
+  todo: this is an initial setup. implement in pc-1245 
+  https://denhaagdesignsystem.azurewebsites.net/components/detail/card.html is probably the best component for this. 
+  there is no vue version. duplicate the html and import the denhaag css
+ -->
   <utrecht-heading :level="2">
     Contactmomenten</utrecht-heading>
 <utrecht-data-list v-for="contactmoment in  contactmomenten" :key="contactmoment.tekst" >
@@ -56,11 +60,6 @@ const { assignedInternetaken } = storeToRefs(userStore);
     if(taak.value?.aanleidinggevendKlantcontact?.uuid) {
       try {
         contactmomenten.value = await klantcontactService.getInterneTaakContactmomenten(taak.value.aanleidinggevendKlantcontact?.uuid);
-
-          // contactmomenten.value = [ 
-          //     { contactGelukt: true, tekst: "sdfsfdsdf", datum: "15-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" } , 
-          //     { contactGelukt: true, tekst: "rtfdgdtyerert", datum: "12-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" }
-          // ];  
       } catch (err: unknown) {
         error.value = err instanceof Error && err.message ? err.message : 'Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek';
       } finally {
