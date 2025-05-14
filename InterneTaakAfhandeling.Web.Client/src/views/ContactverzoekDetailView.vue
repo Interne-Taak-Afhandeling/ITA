@@ -21,16 +21,6 @@
             </utrecht-data-list-value>
           </utrecht-spotlight-section>
         </utrecht-data-list-item>
-        <utrecht-data-list-item>
-          <utrecht-spotlight-section>
-            <utrecht-data-list-key>Zaaknummer</utrecht-data-list-key>
-            <utrecht-data-list-value :value="taak?.zaak?.identificatie" multiline class="preserve-newline">
-              {{
-       taak?.zaak?.identificatie
-              }}
-            </utrecht-data-list-value>
-          </utrecht-spotlight-section>
-        </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
     <section class="contact-data">
@@ -60,9 +50,9 @@
           <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
           <utrecht-data-list-value :value="email">{{ email }}</utrecht-data-list-value>
         </utrecht-data-list-item>
-        <utrecht-data-list-item v-for="zaakUuid in zaakUuids" :key="zaakUuid">
+        <utrecht-data-list-item>
           <utrecht-data-list-key>Gekoppelde zaak</utrecht-data-list-key>
-          <utrecht-data-list-value :value="zaakUuid">{{ zaakUuid }}</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak?.zaak?.identificatie">{{ taak?.zaak?.identificatie }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Datum aangemaakt</utrecht-data-list-key>
@@ -133,11 +123,7 @@ const behandelaar = computed(() => taak.value?.toegewezenAanActoren?.map((x) => 
 const aangemaaktDoor = computed(() =>
   taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren?.map((x: Actor) => x.naam).find(Boolean) || ''
 );
-const zaakUuids = computed(() =>
-  taak.value?.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
-    ?.map((x:Onderwerpobject) => x.onderwerpobjectidentificator?.objectId)
-    .filter(Boolean) || []
-);
+ 
  
 </script>
 
