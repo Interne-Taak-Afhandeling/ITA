@@ -9,8 +9,8 @@ export interface Internetaken {
   toelichting?: string;
   status: string;
   toegewezenOp: string;
-  afgehandeldOp?: string; 
-  zaak?: Zaak;  
+  afgehandeldOp?: string;
+  zaak?: Zaak;
 }
 
 export interface Klantcontact {
@@ -113,20 +113,20 @@ export interface Zaak {
   omschrijving: string;
   toelichting: string;
   zaaktype: string;
-  registratiedatum: string;   
+  registratiedatum: string;
   verantwoordelijkeOrganisatie: string;
-  startdatum?: string;   
-  einddatum?: string;   
-  einddatumGepland?: string;   
-  uiterlijkeEinddatumAfdoening?: string;   
-  publicatiedatum?: string;   
+  startdatum?: string;
+  einddatum?: string;
+  einddatumGepland?: string;
+  uiterlijkeEinddatumAfdoening?: string;
+  publicatiedatum?: string;
   communicatiekanaal: string;
   communicatiekanaalNaam: string;
   productenOfDiensten: any[];
   vertrouwelijkheidaanduiding: string;
   betalingsindicatie: string;
   betalingsindicatieWeergave: string;
-  laatsteBetaaldatum?: string;   
+  laatsteBetaaldatum?: string;
   zaakgeometrie?: any;
   verlenging?: any;
   opschorting: any;
@@ -142,11 +142,33 @@ export interface Zaak {
   kenmerken: any[];
   archiefnominatie: string;
   archiefstatus: string;
-  archiefactiedatum?: string;   
+  archiefactiedatum?: string;
   resultaat?: any;
   opdrachtgevendeOrganisatie: string;
   processobjectaard: string;
-  startdatumBewaartermijn?: string;   
+  startdatumBewaartermijn?: string;
   processobject: any;
   zaaksysteemId: string;
+}
+
+export interface InterneTaakQueryParameters {
+  value: string;
+  AanleidinggevendKlantcontact_Url?: string;
+  AanleidinggevendKlantcontact_Uuid?: string;
+
+  Actoren_Naam?: string;
+  Klantcontact_Nummer?: string;
+  Klantcontact_Uuid?: string;
+
+  Nummer?: string;
+
+  Page?: number;
+  PageSize?: number;
+
+  Status?: string;
+
+  ToegewezenAanActor_Url?: string;
+  ToegewezenAanActor_Uuid?: string;
+
+  ToegewezenOp?: Date;
 }

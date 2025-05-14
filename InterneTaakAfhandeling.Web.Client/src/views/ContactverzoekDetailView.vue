@@ -1,7 +1,7 @@
 <template>
   <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
   <router-link to="/">Terug</router-link>
-  <div class="ita-cv-detail-sections">
+  <div class="ita-cv-detail-sections" v-if="taak">
     <section>
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
       <utrecht-data-list>
@@ -16,7 +16,7 @@
             <utrecht-data-list-key>Interne toelichting KCC</utrecht-data-list-key>
             <utrecht-data-list-value :value="taak?.toelichting" multiline class="preserve-newline">
               {{
-              taak?.toelichting
+                taak?.toelichting
               }}
             </utrecht-data-list-value>
           </utrecht-spotlight-section>
@@ -28,9 +28,10 @@
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Klantnaam</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam">
+          <utrecht-data-list-value
+            :value="taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam">
             {{
-           taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam
+              taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam
             }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
@@ -52,13 +53,13 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Gekoppelde zaak</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak?.zaak?.identificatie">{{ taak?.zaak?.identificatie }}</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak?.zaak?.identificatie">{{ taak?.zaak?.identificatie
+          }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Datum aangemaakt</utrecht-data-list-key>
-          <utrecht-data-list-value value="x"
-            ><date-time-or-nvt :date="taak?.aanleidinggevendKlantcontact?.plaatsgevondenOp"
-          /></utrecht-data-list-value>
+          <utrecht-data-list-value value="x"><date-time-or-nvt
+              :date="taak?.aanleidinggevendKlantcontact?.plaatsgevondenOp" /></utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
@@ -88,24 +89,23 @@
 <script lang="ts" setup>
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
-  
-  import { storeToRefs } from "pinia";
-import { computed } from "vue";
+
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useUserStore } from '@/stores/user';
-import type { Internetaken, Actor, Onderwerpobject } from '@/types/internetaken';
+import { internetakenService } from '@/services/internetaken'
+import type { Internetaken } from '@/types/internetaken';
 
 
-  const route = useRoute();
-  const userStore = useUserStore();
-  const { assignedInternetaken } = storeToRefs(userStore);
+const route = useRoute();
 const cvId = computed(() => route.params.number);
 
-  const taak = computed(() => {
-   return assignedInternetaken.value.find(
-     (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == cvId.value
-   ) || null;
-  });
+
+let taak = ref<Internetaken[]>(null);;
+
+onMounted(async () => {
+  taak.value = await internetakenService.getInternetaak({ Klantcontact_Nummer: cvId.value });
+});
+
 const phoneNumbers = computed(() =>
   taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.digitaleAdressen
     ?.filter(({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "telefoonnummer")
@@ -123,8 +123,7 @@ const behandelaar = computed(() => taak.value?.toegewezenAanActoren?.map((x) => 
 const aangemaaktDoor = computed(() =>
   taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren?.map((x: Actor) => x.naam).find(Boolean) || ''
 );
- 
- 
+
 </script>
 
 <style lang="scss" scoped>
@@ -141,11 +140,14 @@ const aangemaaktDoor = computed(() =>
 
 .contact-data {
   container-type: inline-size;
+
   .utrecht-data-list {
     gap: 1rem;
+
     @container (min-width: 25rem) {
       columns: 2;
     }
+
     @container (min-width: 40rem) {
       columns: 3;
     }
