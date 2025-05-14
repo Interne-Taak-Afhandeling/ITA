@@ -59,7 +59,7 @@ const router = createRouter({
       component: ContactverzoekDetailView,
       meta: {
         title: "Contactverzoek",
-        requiresAuth: true
+        requiresITAAccess: true
       }
     }
   ]
