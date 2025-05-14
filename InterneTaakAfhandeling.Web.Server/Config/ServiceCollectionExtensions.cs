@@ -37,6 +37,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddITAApiClients(configuration); 
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IInternetakenService, InternetakenService>();
 
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 

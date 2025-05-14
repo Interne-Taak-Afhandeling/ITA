@@ -19,31 +19,11 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         public async Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user)
         {
             var actorIds = await GetActorIds(user);
-            var internetakenTasks = actorIds.Select(async a =>
-            {
-                var internetaken = await _openKlantApiClient.GetOutstandingInternetakenByToegewezenAanActor(a);
-                if (internetaken != null)
-                {
-                    foreach (var taak in internetaken)
-                    {
-                        if (taak != null)
-                        {
-                            var onderwerpObjectId = taak.AanleidinggevendKlantcontact?.Expand?.GingOverOnderwerpobjecten?.FirstOrDefault()?.Onderwerpobjectidentificator?.ObjectId;
-                            if (!string.IsNullOrEmpty(onderwerpObjectId))
-                            {
-                                taak.Zaak = await zakenApiClient.GetZaakAsync(onderwerpObjectId);
-                            }
-                        }
-                    }
-                }
-                return internetaken;
-            });
+            var internetakenTasks = actorIds.Select(a => _openKlantApiClient.GetOutstandingInternetakenByToegewezenAanActor(a));
 
             var results = await Task.WhenAll(internetakenTasks);
 
-
-
-            return results.SelectMany(x => x).OrderByDescending(x => x.ToegewezenOp).ToList();
+            return [.. results.SelectMany(x=>x).OrderByDescending(x => x.ToegewezenOp)];
         }
 
         private async Task<IReadOnlyList<string>> GetActorIds(ITAUser user)

@@ -18,6 +18,7 @@ public interface IOpenKlantApiClient
     Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);
     Task<List<Internetaken>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
     Task<Actor?> QueryActorAsync(ActorQuery query);
+    Task<Internetaken> GetInternetakenByNummerAsync(string nummer);
 }
 
 public class OpenKlantApiClient(
@@ -193,5 +194,19 @@ public class OpenKlantApiClient(
         var content = await response.Content.ReadFromJsonAsync<ActorResponse>();
 
         return content?.Results?.FirstOrDefault();
+    }
+
+    public async Task<Internetaken> GetInternetakenByNummerAsync(string nummer)
+    {
+        var path = $"internetaken?nummer={HttpUtility.UrlEncode(nummer)}";
+        var response = await GetInternetakenAsync(path);
+        if (response?.Results?.Count > 0)
+        {
+            return response.Results[0];
+        }
+        else
+        {
+            throw new InvalidOperationException($"No internetaken found with nummer {nummer}");
+        }
     }
 }
