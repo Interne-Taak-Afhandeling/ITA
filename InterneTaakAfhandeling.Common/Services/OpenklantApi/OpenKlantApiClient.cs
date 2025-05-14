@@ -1,6 +1,7 @@
 
 using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 using Microsoft.Extensions.Logging;
 using System.Collections.Specialized;
 using System.Net.Http.Json;
@@ -18,7 +19,7 @@ public interface IOpenKlantApiClient
     Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);
     Task<List<Internetaken>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
     Task<Actor?> QueryActorAsync(ActorQuery query);
-    Task<Internetaken> GetInternetakenByNummerAsync(string nummer);
+    Task<Internetaken?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters);
 }
 
 public class OpenKlantApiClient(
@@ -155,8 +156,8 @@ public class OpenKlantApiClient(
     {
         List<Internetaken> content = [];
         var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status=te_verwerken";
-        // while (!string.IsNullOrEmpty(page))
-        // {
+        while (!string.IsNullOrEmpty(page))
+         {
         var response = await _httpClient.GetAsync(page);
         response.EnsureSuccessStatusCode();
         var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
@@ -168,8 +169,8 @@ public class OpenKlantApiClient(
             x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
         }) ?? []);
         content.AddRange(currentContent?.Results ?? []);
-        //  page = currentContent?.Next?.Replace(_httpClient.BaseAddress.AbsoluteUri, string.Empty);
-        //  }
+         page = currentContent?.Next?.Replace(_httpClient.BaseAddress.AbsoluteUri, string.Empty);
+          }
 
         return content?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];
     }
@@ -196,17 +197,28 @@ public class OpenKlantApiClient(
         return content?.Results?.FirstOrDefault();
     }
 
-    public async Task<Internetaken> GetInternetakenByNummerAsync(string nummer)
+    public async Task<Internetaken?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters)
     {
-        var path = $"internetaken?nummer={HttpUtility.UrlEncode(nummer)}";
+        var queryString = string.Join("&",
+            interneTaakQueryParameters.GetType().GetProperties()
+                .Where(prop => prop.GetValue(interneTaakQueryParameters) != null)
+                .Select(prop => $"{HttpUtility.UrlEncode(prop.Name.ToLower())}={HttpUtility.UrlEncode(prop.GetValue(interneTaakQueryParameters)?.ToString())}"));
+
+        var path = $"internetaken?{queryString}";
         var response = await GetInternetakenAsync(path);
         if (response?.Results?.Count > 0)
         {
-            return response.Results[0];
+            var internetaken = response.Results.FirstOrDefault();
+            if (internetaken != null)
+            {
+                internetaken.AanleidinggevendKlantcontact = await GetKlantcontactAsync(internetaken.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
+                return internetaken;
+            }
+            return null;
         }
         else
         {
-            throw new InvalidOperationException($"No internetaken found with nummer {nummer}");
+            throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
         }
     }
 }

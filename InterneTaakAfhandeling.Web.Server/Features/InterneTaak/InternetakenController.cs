@@ -14,10 +14,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
 
         [ProducesResponseType(typeof(Common.Services.OpenKlantApi.Models.Internetaken), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [HttpGet("nummer/{nummer}")]
-        public async Task<IActionResult> GetByNummer(string nummer)
+        [HttpGet()]
+        public async Task<IActionResult> Get([FromQuery] InterneTaakQueryParameters interneTaakQueryParameters)
         {
-            var intertakens = await _internetakenService.GetByNummerAsync(nummer);
+            var intertakens = await _internetakenService.Get(interneTaakQueryParameters);
             return Ok(intertakens);
         }
 
