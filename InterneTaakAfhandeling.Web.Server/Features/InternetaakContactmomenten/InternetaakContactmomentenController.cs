@@ -19,28 +19,29 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenC
 
         [ProducesResponseType(typeof(List<Internetaken>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [HttpGet("{contactverzoekId}/contactmomenten")]
-        public async Task<IActionResult> Get(string contactverzoekId)
+        [HttpGet("klantcontacten/{aanleidinggevendKlantcontactId}")]
+        public async Task<IActionResult> Get(string aanleidinggevendKlantcontactId)
         {
 
             //get the internetaak
-            var internetaak = await _openKlantApiClient.GetInternetaak(contactverzoekId);
+            //var internetaak = await _openKlantApiClient.GetInternetaak(contactverzoekId);
 
 
-            if(internetaak == null )
-            {
-                return NotFound();
-            }
+            //if(internetaak == null )
+            //{
+            //    return NotFound();
+            //}
 
-            var klantcontactId = internetaak.AanleidinggevendKlantcontact?.Uuid;
+            //var klantcontactId = internetaak.AanleidinggevendKlantcontact?.Uuid;
 
-            if (string.IsNullOrWhiteSpace(klantcontactId))
-            {
-                return NotFound();
-            }
+            //if (string.IsNullOrWhiteSpace(klantcontactId))
+            //{
+            //    return NotFound();
+            //}
 
             //get the klantcontact the initiated this internetaak
-            var contactmoment = await _openKlantApiClient.GetKlantcontact(klantcontactId);
+           //todo gebruik de andere bestaande call
+            var contactmoment = await _openKlantApiClient.GetKlantcontactAsync(aanleidinggevendKlantcontactId);
 
 
             if (contactmoment == null)
@@ -63,6 +64,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenC
 
             foreach (var ondewerpobject in ondewerpobjecten)
             {
+
+                //voor elke weer dat contactophalen en daar dan weer de onderwerpobkecten van ophalen etc.... 
+
                 //get the klantcontacten that those onderwerpobjecten refer to
 
                 // var onderwerpobject = _openKlantApiClient.GetOnderwerpObject();
@@ -74,7 +78,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenC
             // return result;
 
             return Ok(new List<ContactmomentResponse>() {
-               new ContactmomentResponse( true, "test " + contactverzoekId , "15-04-2025", "Piet van Gelre", "Telefoon" ),
+               new ContactmomentResponse( true, "test " , "15-04-2025", "Piet van Gelre", "Telefoon" ),
                  new ContactmomentResponse( true, "teeeeest", "15-04-2025", "Piet van Gelre", "Telefoon" )
             });
 

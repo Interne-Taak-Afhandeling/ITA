@@ -30,37 +30,44 @@
 </template>
 
 <script setup lang="ts" >
-import { ref } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import { klantcontactService, type Contactmoment  } from "@/services/createKlantcontactService";
-
-const props = defineProps<{ contactverzoekId : string }>();
-
+import { useUserStore } from '@/stores/user';
+import { storeToRefs } from 'pinia';
+import type { Internetaken } from '@/types/internetaken';
+ 
+const props = defineProps<{ nummer : string }>();
 const isLoading = ref(true);
 const error = ref("");
-
 const contactmomenten = ref<Contactmoment[]>([]);
+const userStore = useUserStore();
+const { assignedInternetaken } = storeToRefs(userStore);
+ 
+  const taak = computed(() => {
+    return assignedInternetaken.value.find(
+      (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == props.nummer
+    ) || null;
+  });
 
-const fetchContactmomenten = async () => {
+
+  watchEffect(async () => {  
     isLoading.value = true;
     error.value = "";
+    if(taak.value?.aanleidinggevendKlantcontact?.uuid) {
+      try {
+        contactmomenten.value = await klantcontactService.getInterneTaakContactmomenten(taak.value.aanleidinggevendKlantcontact?.uuid);
 
-    try {
+          // contactmomenten.value = [ 
+          //     { contactGelukt: true, tekst: "sdfsfdsdf", datum: "15-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" } , 
+          //     { contactGelukt: true, tekst: "rtfdgdtyerert", datum: "12-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" }
+          // ];  
+      } catch (err: unknown) {
+        error.value = err.message || 'Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek';
+      } finally {
+        isLoading.value = false;
+      }  
+  }
+});
 
-
-        contactmomenten.value = await klantcontactService.getInterneTaakContactmomenten(props.contactverzoekId);
-
-        // contactmomenten.value = [ 
-        //     { contactGelukt: true, tekst: "sdfsfdsdf", datum: "15-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" } , 
-        //     { contactGelukt: true, tekst: "rtfdgdtyerert", datum: "12-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" }
-        // ];  
-    } catch (err: unknown) {
-      error.value = err.message || 'Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek';
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-
-  fetchContactmomenten();
 
 </script>

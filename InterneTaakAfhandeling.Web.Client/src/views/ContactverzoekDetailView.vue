@@ -151,11 +151,12 @@ import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import { fakeInterneTaken } from "@/helpers/fake-data";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-import type { Klantcontact } from "@/types/internetaken";
 import { klantcontactService, type CreateKlantcontactRequest } from "@/services/createKlantcontactService";
 
-
 import ContactverzoekContactmomenten from '@/components/ContactverzoekContactmomenten.vue'
+import { useUserStore } from "@/stores/user";
+import { storeToRefs } from "pinia";
+import type { Internetaken } from "@/types/internetaken";
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -169,27 +170,44 @@ const isLoading = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
 
-const taak = fakeInterneTaken[0];
-computed(() => taak.aanleidinggevendKlantcontact?.uuid || '');
+ 
+
+ 
+  const userStore = useUserStore();
+  const { assignedInternetaken } = storeToRefs(userStore);
+ 
+
+  const taak = computed(() => {
+   return assignedInternetaken.value.find(
+     (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == cvId.value
+   ) || null;
+  });
+
+
+
+
+
+
+computed(() => taak.value?.aanleidinggevendKlantcontact?.uuid || '');
 const phoneNumbers = computed(() =>
-  taak.digitaleAdress
+taak.value?.digitaleAdress
     ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "telefoonnummer")
     .map(({ adres }) => adres)
 );
 const phoneNumber1 = computed(() => phoneNumbers.value?.[0]);
 const phoneNumber2 = computed(() => phoneNumbers.value?.[1]);
 const email = computed(() =>
-  taak.digitaleAdress
+taak.value?.digitaleAdress
     ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "email")
     .map(({ adres }) => adres)
     .find(Boolean)
 );
-const behandelaar = computed(() => taak.toegewezenAanActoren?.map((x) => x.naam).find(Boolean));
+const behandelaar = computed(() => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean));
 const aangemaaktDoor = computed(() =>
-  taak.aanleidinggevendKlantcontact?.hadBetrokkenActoren.map((x) => x.naam).find(Boolean)
+taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren.map((x) => x.naam).find(Boolean)
 );
 const zaakUuids = computed(() =>
-  taak.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
+taak.value?.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
     ?.map((x) => x.onderwerpobjectidentificator?.objectId)
     .filter(Boolean)
 );
@@ -206,8 +224,7 @@ const form = ref({
   kanaal: "",
   informatieBurger: ""
 });
-
-// In de submit functie in ContactverzoekDetailView.vue
+// In submit function in ContactverzoekDetailView.vue
 async function submit() {
   error.value = null;
   success.value = false;
@@ -225,23 +242,9 @@ async function submit() {
   isLoading.value = true;
   
   try {
-    // Extract partijUuid from the expand data if available
-    let partijUuid: string | undefined = undefined;
-    
-    // Check if we have expand data with hadBetrokkenen
-    if (taak.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.length > 0) {
-      const betrokkene = taak.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
-      
-      // Check if wasPartij is available and has a uuid
-      if (betrokkene.wasPartij && 'uuid' in betrokkene.wasPartij) {
-        partijUuid = betrokkene.wasPartij.uuid;
-        console.log('Using partijUuid from expand data:', partijUuid);
-      }
-    }
-    
-    const klantcontactRequest: CreateKlantcontactRequest = {
+    const createRequest: CreateKlantcontactRequest = {
       kanaal: form.value.kanaal,
-      onderwerp: taak.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
+      onderwerp: taak.value?.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
       inhoud: form.value.informatieBurger,
       indicatieContactGelukt: form.value.resultaat === RESULTS.contactGelukt,
       taal: "nld", // ISO 639-2/B formaat
@@ -250,9 +253,8 @@ async function submit() {
     };
     
     await klantcontactService.createRelatedKlantcontact(
-      klantcontactRequest,
-      taak.aanleidinggevendKlantcontact?.uuid,
-      partijUuid
+      createRequest,
+      taak.value?.aanleidinggevendKlantcontact?.uuid // voor nu even de eerste dit moet juist de laatste worden... maar die hebben we nog niet...
     );
         
     success.value = true;

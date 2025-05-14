@@ -26,8 +26,8 @@ export const klantcontactService = {
     return post<RelatedKlantcontactResult>('/api/createklantcontact/relatedklantcontact', request);
   },
  
-  getInterneTaakContactmomenten: (contactverzoekId: string): Promise<Contactmoment[]> => 
-    get<Contactmoment[]>(`/api/internetaak/${contactverzoekId}/contactmomenten`)
+  getInterneTaakContactmomenten: (contactmomentId: string): Promise<Contactmoment[]> => 
+    get<Contactmoment[]>(`/api/klantcontacten/${contactmomentId}`)
 };
 
 export type { 
