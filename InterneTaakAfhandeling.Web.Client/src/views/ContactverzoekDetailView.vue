@@ -6,7 +6,7 @@
   <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
   
   <div class="ita-cv-detail-sections">
-    <section>
+    <section v-if="taak">
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -25,7 +25,7 @@
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
-    <section class="contact-data">
+    <section  v-if="taak" class="contact-data">
       <utrecht-heading :level="2">Gegevens van contact</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -139,7 +139,7 @@
     </section>
 
     <section>
- <ContactverzoekContactmomenten :contactverzoekId="cvId" />
+ <ContactverzoekContactmomenten v-if="cvId" :contactmomentNummer="cvId" />
     </section>
   </div>
 </template>
@@ -148,7 +148,7 @@
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
-import { fakeInterneTaken } from "@/helpers/fake-data";
+
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { klantcontactService, type CreateKlantcontactRequest } from "@/services/createKlantcontactService";
@@ -164,7 +164,7 @@ const RESULTS = {
 } as const;
 
 const route = useRoute();
-const cvId = computed(() => route.params.number);
+const cvId = computed(() =>  (route.params.number &&  !Array.isArray(route.params.number) ) ?  route.params.number : undefined );
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);

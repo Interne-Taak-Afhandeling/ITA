@@ -1,10 +1,6 @@
 // In createKlantcontactService.ts
 import type { 
-  Klantcontact, 
-  Betrokkene, 
-  Onderwerpobject, 
   CreateKlantcontactRequest, 
-  ActorKlantcontact, 
   RelatedKlantcontactResult,
   CreateRelatedKlantcontactRequest,
   Contactmoment

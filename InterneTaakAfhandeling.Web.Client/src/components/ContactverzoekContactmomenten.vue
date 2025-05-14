@@ -6,7 +6,7 @@
 <utrecht-data-list v-for="contactmoment in  contactmomenten" :key="contactmoment.tekst" >
     <utrecht-data-list-item>
     <utrecht-data-list-key>Contact gelukt</utrecht-data-list-key>
-    <utrecht-data-list-value :value="contactmoment.contactGelukt">{{ contactmoment.contactGelukt ?  "Contact gelukt" : "Contact niet gelukt"
+    <utrecht-data-list-value :value="contactmoment.contactGelukt+''">{{ contactmoment.contactGelukt ?  "Contact gelukt" : "Contact niet gelukt"
     }}</utrecht-data-list-value>
     </utrecht-data-list-item>
     <utrecht-data-list-item>
@@ -36,7 +36,7 @@ import { useUserStore } from '@/stores/user';
 import { storeToRefs } from 'pinia';
 import type { Internetaken } from '@/types/internetaken';
  
-const props = defineProps<{ nummer : string }>();
+const props = defineProps<{ contactmomentNummer : string }>();
 const isLoading = ref(true);
 const error = ref("");
 const contactmomenten = ref<Contactmoment[]>([]);
@@ -45,7 +45,7 @@ const { assignedInternetaken } = storeToRefs(userStore);
  
   const taak = computed(() => {
     return assignedInternetaken.value.find(
-      (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == props.nummer
+      (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == props.contactmomentNummer
     ) || null;
   });
 
@@ -62,7 +62,7 @@ const { assignedInternetaken } = storeToRefs(userStore);
           //     { contactGelukt: true, tekst: "rtfdgdtyerert", datum: "12-04-2025", medewerker : "Piet van Gelre", kanaal : "Telefoon" }
           // ];  
       } catch (err: unknown) {
-        error.value = err.message || 'Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek';
+        error.value = err instanceof Error && err.message ? err.message : 'Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek';
       } finally {
         isLoading.value = false;
       }  

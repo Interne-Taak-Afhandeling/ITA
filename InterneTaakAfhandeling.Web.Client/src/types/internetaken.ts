@@ -12,7 +12,9 @@ export interface Internetaken {
   toegewezenOp: string;
   afgehandeldOp?: string;
   digitaleAdress?: DigitaleAdres[];
+  betrokkene? : Betrokkene;
 }
+ 
 
 export interface InternetakenResponse {
   count: number;
