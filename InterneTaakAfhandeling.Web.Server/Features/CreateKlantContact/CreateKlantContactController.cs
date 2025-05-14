@@ -1,12 +1,8 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 {
@@ -37,7 +33,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
         {
             try
             {
-                _logger.LogInformation($"Creating related klantcontact with previous UUID: {request.PreviousKlantcontactUuid}, partij UUID: {request.PartijUuid}");
+
+                if (Guid.TryParse(request.PreviousKlantcontactUuid, out Guid parsedPreviousKlantcontact))
+                {
+                    if (Guid.TryParse(request.PartijUuid, out Guid parsedPartijUuid))
+                    {
+                        _logger.LogInformation($"Creating related klantcontact with previous UUID: {parsedPreviousKlantcontact}, partij UUID: {parsedPartijUuid}");
+                    }
+                }                
 
                 var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                     request.KlantcontactRequest,

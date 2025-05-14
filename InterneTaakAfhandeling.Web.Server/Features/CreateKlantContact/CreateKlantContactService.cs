@@ -1,10 +1,6 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 {
@@ -43,7 +39,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                     "MISSING_EMAIL_CLAIM");
             }
 
-            // Get or create actor based on email
+            // Get or create actor based on value
             var actor = await GetOrCreateActorAsync(userEmail, userName);
 
             // Create the klantcontact
@@ -89,14 +85,24 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 // If partijUuid is directly provided, use it
                 if (!string.IsNullOrEmpty(providedPartijUuid))
                 {
-                    _logger.LogInformation($"Creating betrokkene using provided partijUuid: {providedPartijUuid}");
+                    if (Guid.TryParse(providedPartijUuid, out Guid parsedprovidedPartijUuid))
+                    {
+                        _logger.LogInformation($"Creating betrokkene using provided partijUuid: {parsedprovidedPartijUuid}");
+                    }
+                    
                     var betrokkene = await CreateBetrokkeneAsync(klantcontactUuid, providedPartijUuid);
                     result.Betrokkene = betrokkene;
                     return;
                 }
 
                 // Try to get partijUuid from previous klantcontact
-                _logger.LogInformation($"Fetching previous klantcontact {previousKlantcontactUuid} to extract partijUuid");
+
+                if (Guid.TryParse(previousKlantcontactUuid, out Guid parsedpreviousKlantcontactUuid))
+                {
+                    _logger.LogInformation($"Fetching previous klantcontact {parsedpreviousKlantcontactUuid} to extract partijUuid");
+                }
+
+                
                 var previousKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(previousKlantcontactUuid);
 
                 // Check if we have betrokkenen in the expand data
@@ -139,7 +145,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 }
                 else
                 {
-                    _logger.LogWarning($"No hadBetrokkenen found in previous klantcontact {previousKlantcontactUuid}");
+                    if (Guid.TryParse(previousKlantcontactUuid, out Guid parsedPreviousKlantcontactUuid))
+                    {
+                        _logger.LogWarning($"No hadBetrokkenen found in previous klantcontact {parsedPreviousKlantcontactUuid}");
+                    }
+
+                    
                 }
             }
             catch (Exception ex)
@@ -249,14 +260,32 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 
             try
             {
-                _logger.LogInformation($"Creating betrokkene for klantcontact {klantcontactUuid} and partij {partijUuid}");
+
+                if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
+                {
+                    if (Guid.TryParse(partijUuid, out Guid parsedPartijUuid))
+                    {
+                        _logger.LogInformation($"Creating betrokkene for klantcontact {parsedKlantcontactUuid} and partij {parsedPartijUuid}");
+                    }
+
+                }
+
+
+                
                 var betrokkene = await _openKlantApiClient.CreateBetrokkeneAsync(betrokkeneRequest);
                 _logger.LogInformation($"Successfully created betrokkene {betrokkene.Uuid}");
                 return betrokkene;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error creating betrokkene for klantcontact {klantcontactUuid} and partij {partijUuid}");
+                if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
+                {
+                    if (Guid.TryParse(partijUuid, out Guid parsedPartijUuid))
+                    {
+                        _logger.LogError(ex, $"Error creating betrokkene for klantcontact {parsedKlantcontactUuid} and partij {parsedPartijUuid}");
+                    }
+                }
+               
                 throw new ConflictException(
                     $"Error creating betrokkene: {ex.Message}",
                     "BETROKKENE_CREATION_ERROR");
@@ -271,11 +300,17 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error retrieving actor by email {email}");
+                _logger.LogError(ex, $"Error retrieving actor by email {Mask(email)}");
                 throw new ConflictException(
                     $"Error retrieving actor by email: {ex.Message}",
                     "ACTOR_RETRIEVAL_ERROR");
             }
+        }
+
+        //show only the first part of a string. up to 6 characters 
+        private static string Mask(string value)
+        {
+            return value[..(value.Length < 6 ? value.Length : 5)];
         }
 
         private async Task<Actor?> CreateActorAsync(ActorRequest request)
@@ -286,7 +321,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error creating actor for {request.Naam}");
+                _logger.LogError(ex, $"Error creating actor for {Mask(request.Naam)}");
                 throw new ConflictException(
                     $"Error creating actor: {ex.Message}",
                     "ACTOR_CREATION_ERROR");

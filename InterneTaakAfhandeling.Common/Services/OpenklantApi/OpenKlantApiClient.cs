@@ -216,7 +216,9 @@ public class OpenKlantApiClient(
 
     public async Task<Klantcontact> GetKlantcontactAsync(string uuid)
     {
-        _logger.LogInformation("Fetching klantcontact {Uuid}", uuid);
+        if (Guid.TryParse(uuid, out Guid parsedUuid)) {
+            _logger.LogInformation("Fetching klantcontact {parsedUuid}", parsedUuid);
+        }
 
         var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen");
         response.EnsureSuccessStatusCode();
@@ -333,8 +335,15 @@ public class OpenKlantApiClient(
     {
         try
         {
-            _logger.LogInformation("Creating betrokkene with partij {PartijUuid} for klantcontact {KlantcontactUuid}",
-                request.WasPartij.Uuid, request.HadKlantcontact.Uuid);
+
+            if (Guid.TryParse(request.WasPartij.Uuid, out Guid parsedWasPartijUuid))
+            {
+                if (Guid.TryParse(request.HadKlantcontact.Uuid, out Guid parsedHadKlantcontactUuid))
+                {
+                    _logger.LogInformation("Creating betrokkene with partij {parsedWasPartijUuid} for klantcontact {parsedHadKlantcontactUuid}",
+                        parsedWasPartijUuid, parsedHadKlantcontactUuid);
+                }
+            }
 
             var response = await _httpClient.PostAsJsonAsync("betrokkenen", request);
             response.EnsureSuccessStatusCode();
