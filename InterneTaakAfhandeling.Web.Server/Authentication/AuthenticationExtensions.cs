@@ -33,7 +33,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                 var roles = user?.FindAll(roleClaimType).Select(x=> x.Value).ToArray() ?? [];
                 var hasITASystemAccess = roles.Contains(authOptions.ITASystemAccessRole);
 
-                if(!string.IsNullOrWhiteSpace(objectregisterMedewerkerIdClaimType) && string.IsNullOrWhiteSpace(objectregisterMedewerkerId))
+                if(isLoggedIn && !string.IsNullOrWhiteSpace(objectregisterMedewerkerIdClaimType) && string.IsNullOrWhiteSpace(objectregisterMedewerkerId))
                 {
                     throw new Exception($"Verwachtewaarde voor de {authOptions.ObjectregisterMedewerkerIdClaimType} ontbreekt. Neem contact op met de beheerder.");
                 }
