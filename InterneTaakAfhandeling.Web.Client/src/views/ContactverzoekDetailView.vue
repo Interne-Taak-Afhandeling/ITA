@@ -1,6 +1,13 @@
 <template>
-  <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
-  <router-link to="/">Terug</router-link>
+  <div class="ita-dv-detail-header">
+    <div>
+      <router-link to="/">Terug</router-link>
+    </div>
+    <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
+    <utrecht-button-group v-if="taak?.uuid">
+      <assign-contactverzoek-to-myself :id="taak.uuid" />
+    </utrecht-button-group>
+  </div>
   <div class="ita-cv-detail-sections" v-if="taak">
     <section>
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
@@ -93,20 +100,20 @@ import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { internetakenService } from '@/services/internetaken'
-import type { Internetaken, Actor } from '@/types/internetaken';
+import type { Internetaken } from '@/types/internetaken';
+import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
 
 const first = (v: string | string[]) => Array.isArray(v) ? v[0] : v
 const route = useRoute();
 const cvId = computed(() => first(route.params.number));
 
-
-let taak = ref<Internetaken | null>(null);
+const taak = ref<Internetaken | null>(null);
 
 onMounted(async () => {
-  taak.value = await internetakenService.getInternetaak({ 
+  taak.value = await internetakenService.getInternetaak({
     Nummer: String(cvId.value)
-  }); 
-}); 
+  });
+});
 const phoneNumbers = computed(() =>
   taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
     ?.filter(({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "telefoonnummer")
@@ -139,16 +146,23 @@ const aangemaaktDoor = computed(() =>
   break-inside: avoid;
 }
 
+.ita-dv-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  > :first-child {
+    min-inline-size: 100%;
+  }
+}
+
 .contact-data {
   container-type: inline-size;
-
   .utrecht-data-list {
     gap: 1rem;
-
     @container (min-width: 25rem) {
       columns: 2;
     }
-
     @container (min-width: 40rem) {
       columns: 3;
     }
