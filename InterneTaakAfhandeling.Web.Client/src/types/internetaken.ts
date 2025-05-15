@@ -80,7 +80,7 @@ export interface Betrokkene {
   rol?: string;
   organisatienaam?: string;
   initiator: boolean;
-  expand?: BetrokkeneExpand;
+  _expand?: BetrokkeneExpand;
 }
 
 export interface Adres {
