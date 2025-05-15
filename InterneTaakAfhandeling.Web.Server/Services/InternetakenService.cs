@@ -18,7 +18,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         {
             var interneTaakQuery = new InterneTaakQuery
             {
-                Klantcontact__Nummer = interneTaakQueryParameters.Klantcontact_Nummer
+                Nummer = interneTaakQueryParameters.Nummer
             };
 
             var internetaken = await _openKlantApiClient.QueryInterneTaakAsync(interneTaakQuery);

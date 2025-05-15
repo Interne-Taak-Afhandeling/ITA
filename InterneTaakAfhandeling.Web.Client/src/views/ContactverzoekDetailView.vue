@@ -104,7 +104,7 @@ let taak = ref<Internetaken | null>(null);
 
 onMounted(async () => {
   taak.value = await internetakenService.getInternetaak({ 
-    Klantcontact_Nummer: String(cvId.value)
+    Nummer: String(cvId.value)
   });
   console.log("taak.value", taak.value);
 }); 
