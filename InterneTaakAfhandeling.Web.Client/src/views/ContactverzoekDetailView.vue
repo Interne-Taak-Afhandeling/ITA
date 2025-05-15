@@ -95,9 +95,9 @@ import { useRoute } from "vue-router";
 import { internetakenService } from '@/services/internetaken'
 import type { Internetaken, Actor } from '@/types/internetaken';
 
-
+const first = (v: string | string[]) => Array.isArray(v) ? v[0] : v
 const route = useRoute();
-const cvId = computed(() => route.params.number);
+const cvId = computed(() => first(route.params.number));
 
 
 let taak = ref<Internetaken | null>(null);
@@ -123,7 +123,7 @@ const email = computed(() =>
 );
 const behandelaar = computed(() => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean) || '');
 const aangemaaktDoor = computed(() =>
-  taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren?.map((x: Actor) => x.naam).find(Boolean) || ''
+  taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren?.map((x) => x.naam).find(Boolean) || ''
 );
 
 </script>

@@ -162,13 +162,11 @@ public class OpenKlantApiClient(
             var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
 
             await Task.WhenAll(currentContent?.Results?.Select(async x =>
-            {
-
-
+            { 
                 x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
             }) ?? []);
-            content.AddRange(currentContent?.Results ?? []);
-            page = currentContent?.Next?.Replace(_httpClient.BaseAddress.AbsoluteUri, string.Empty);
+            content.AddRange(currentContent?.Results ?? []); 
+            page = currentContent?.Next?.Replace(_httpClient.BaseAddress?.AbsoluteUri ?? string.Empty, string.Empty);
         }
 
         return content?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];

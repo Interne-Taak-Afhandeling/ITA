@@ -32,7 +32,7 @@ export interface Onderwerpobject {
   uuid: string;
   url: string;
   klantcontact?: Klantcontact;
-  wasKlantcontact?: any;
+  wasKlantcontact?: unknown;
   onderwerpobjectidentificator?: Onderwerpobjectidentificator;
 }
 
@@ -49,7 +49,7 @@ export interface Actor {
   naam?: string;
   soortActor?: string;
   actoridentificator?: Actoridentificator;
-  actorIdentificatie?: any;
+  actorIdentificatie?: unknown;
 }
 
 export interface Actoridentificator {
@@ -70,7 +70,7 @@ export interface DigitaleAdres {
 export interface Betrokkene {
   uuid: string;
   url: string;
-  wasPartij?: any;
+  wasPartij?: unknown;
   hadKlantcontact?: Klantcontact;
   digitaleAdressen: DigitaleAdres[];
   bezoekadres?: Adres;
@@ -122,32 +122,32 @@ export interface Zaak {
   publicatiedatum?: string;
   communicatiekanaal: string;
   communicatiekanaalNaam: string;
-  productenOfDiensten: any[];
+  productenOfDiensten: unknown[];
   vertrouwelijkheidaanduiding: string;
   betalingsindicatie: string;
   betalingsindicatieWeergave: string;
   laatsteBetaaldatum?: string;
-  zaakgeometrie?: any;
-  verlenging?: any;
-  opschorting: any;
+  zaakgeometrie?: unknown;
+  verlenging?: unknown;
+  opschorting: unknown;
   selectielijstklasse: string;
-  hoofdzaak?: any;
-  deelzaken: any[];
-  relevanteAndereZaken: any[];
-  eigenschappen: any[];
+  hoofdzaak?: unknown;
+  deelzaken: unknown[];
+  relevanteAndereZaken: unknown[];
+  eigenschappen: unknown[];
   rollen: string[];
   status: string;
-  zaakinformatieobjecten: any[];
-  zaakobjecten: any[];
-  kenmerken: any[];
+  zaakinformatieobjecten: unknown[];
+  zaakobjecten: unknown[];
+  kenmerken: unknown[];
   archiefnominatie: string;
   archiefstatus: string;
   archiefactiedatum?: string;
-  resultaat?: any;
+  resultaat?: unknown;
   opdrachtgevendeOrganisatie: string;
   processobjectaard: string;
   startdatumBewaartermijn?: string;
-  processobject: any;
+  processobject: unknown;
   zaaksysteemId: string;
 }
 
