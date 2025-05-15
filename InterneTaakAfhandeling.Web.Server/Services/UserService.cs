@@ -2,6 +2,7 @@
 using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 
 namespace InterneTaakAfhandeling.Web.Server.Services
@@ -10,17 +11,19 @@ namespace InterneTaakAfhandeling.Web.Server.Services
     {
         Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user);
     }
-    public class UserService(IOpenKlantApiClient openKlantApiClient) : IUserService
+    public class UserService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient) : IUserService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-
+        private readonly IZakenApiClient zakenApiClient = zakenApiClient;
 
         public async Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user)
         {
             var actorIds = await GetActorIds(user);
-            var tasks = actorIds.Select(a => _openKlantApiClient.GetOutstandingInternetakenByToegewezenAanActor(a));
-            var all = await Task.WhenAll(tasks);
-            return all.SelectMany(x => x).OrderByDescending(x => x.ToegewezenOp).ToList();
+            var internetakenTasks = actorIds.Select(a => _openKlantApiClient.GetOutstandingInternetakenByToegewezenAanActor(a));
+
+            var results = await Task.WhenAll(internetakenTasks);
+
+            return [.. results.SelectMany(x=>x).OrderByDescending(x => x.ToegewezenOp)];
         }
 
         private async Task<IReadOnlyList<string>> GetActorIds(ITAUser user)

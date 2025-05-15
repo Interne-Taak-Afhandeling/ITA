@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Web;
 using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 using Microsoft.Extensions.Logging;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -17,6 +18,7 @@ public interface IOpenKlantApiClient
     Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);
     Task<List<Internetaken>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
     Task<Actor?> QueryActorAsync(ActorQuery query);
+    Task<Internetaken?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters);
 }
 
 public class OpenKlantApiClient(
@@ -190,5 +192,30 @@ public class OpenKlantApiClient(
         var content = await response.Content.ReadFromJsonAsync<ActorResponse>();
 
         return content?.Results?.FirstOrDefault();
+    }
+
+    public async Task<Internetaken?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters)
+    {
+        var queryString = string.Join("&",
+            interneTaakQueryParameters.GetType().GetProperties()
+                .Where(prop => prop.GetValue(interneTaakQueryParameters) != null)
+                .Select(prop => $"{HttpUtility.UrlEncode(prop.Name.ToLower())}={HttpUtility.UrlEncode(prop.GetValue(interneTaakQueryParameters)?.ToString())}"));
+
+        var path = $"internetaken?{queryString}";
+        var response = await GetInternetakenAsync(path);
+        if (response?.Results?.Count > 0)
+        {
+            var internetaken = response.Results.FirstOrDefault();
+            if (internetaken != null)
+            {
+                internetaken.AanleidinggevendKlantcontact = await GetKlantcontactAsync(internetaken.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
+                return internetaken;
+            }
+            return null;
+        }
+        else
+        {
+            throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
+        }
     }
 }
