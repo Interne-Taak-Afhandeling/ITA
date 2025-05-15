@@ -105,8 +105,7 @@ let taak = ref<Internetaken | null>(null);
 onMounted(async () => {
   taak.value = await internetakenService.getInternetaak({ 
     Nummer: String(cvId.value)
-  });
-  console.log("taak.value", taak.value);
+  }); 
 }); 
 const phoneNumbers = computed(() =>
   taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
