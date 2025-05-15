@@ -106,17 +106,17 @@ onMounted(async () => {
   taak.value = await internetakenService.getInternetaak({ 
     Klantcontact_Nummer: String(cvId.value)
   });
-});
-
+  console.log("taak.value", taak.value);
+}); 
 const phoneNumbers = computed(() =>
-  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.digitaleAdressen
+  taak.value?.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0]._expand.digitaleAdressen
     ?.filter(({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "telefoonnummer")
     .map(({ adres }: { adres?: string }) => adres || '') || []
 );
 const phoneNumber1 = computed(() => phoneNumbers.value?.[0]);
 const phoneNumber2 = computed(() => phoneNumbers.value?.[1]);
 const email = computed(() =>
-  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.digitaleAdressen
+  taak.value?.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0]._expand.digitaleAdressen
     ?.filter(({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "email")
     .map(({ adres }: { adres?: string }) => adres || '')
     .find(Boolean) || ''
