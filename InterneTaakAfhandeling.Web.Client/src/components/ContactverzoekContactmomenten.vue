@@ -33,9 +33,9 @@
 
 </template>
 
-<script setup lang="ts" >
+<script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue';
-import { klantcontactService, type Contactmoment  } from "@/services/createKlantcontactService";
+import { overviewKlantcontactService, type Contactmoment } from "@/services/overviewKlantcontactService";
 import { useUserStore } from '@/stores/user';
 import { storeToRefs } from 'pinia';
 import type { Internetaken } from '@/types/internetaken';
@@ -47,26 +47,31 @@ const contactmomenten = ref<Contactmoment[]>([]);
 const userStore = useUserStore();
 const { assignedInternetaken } = storeToRefs(userStore);
  
-  const taak = computed(() => {
-    return assignedInternetaken.value.find(
-      (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == props.contactmomentNummer
-    ) || null;
-  });
-
-
-  watchEffect(async () => {  
-    isLoading.value = true;
-    error.value = "";
-    if(taak.value?.aanleidinggevendKlantcontact?.uuid) {
-      try {
-        contactmomenten.value = await klantcontactService.getInterneTaakContactmomenten(taak.value.aanleidinggevendKlantcontact?.uuid);
-      } catch (err: unknown) {
-        error.value = err instanceof Error && err.message ? err.message : 'Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek';
-      } finally {
-        isLoading.value = false;
-      }  
-  }
+const taak = computed(() => {
+  return assignedInternetaken.value.find(
+    (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == props.contactmomentNummer
+  ) || null;
 });
 
-
+watchEffect(async () => {  
+  isLoading.value = true;
+  error.value = "";
+  
+  if(taak.value?.aanleidinggevendKlantcontact?.uuid) {
+    try {
+      const response = await overviewKlantcontactService.getContactKeten(
+        taak.value.aanleidinggevendKlantcontact.uuid
+      );
+      
+      // Haal de contactmomenten uit de response
+      contactmomenten.value = response.contactmomenten;
+    } catch (err: unknown) {
+      error.value = err instanceof Error && err.message 
+        ? err.message 
+        : 'Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek';
+    } finally {
+      isLoading.value = false;
+    }  
+  }
+});
 </script>

@@ -4,69 +4,61 @@ using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InternetaakContactmomentenController
+namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
 {
-    [Route("api/klantcontacten")]
+    [Route("api/klantcontacten-overview")]
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class InternetaakContactmomentenController(IOpenKlantApiClient openKlantApiClient, IUserService userService, ITAUser user) : Controller
+    public class KlantcontactenOverviewController : Controller
     {
-        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
-        private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+        private readonly IOpenKlantApiClient _openKlantApiClient;
+        private readonly ILogger<KlantcontactenOverviewController> _logger;
 
-        [ProducesResponseType(typeof(ContactmomentenResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpGet("{contactverzoekId}/contactmomenten")]
-        public async Task<IActionResult> GetContactmomenten(string contactverzoekId)
+        public KlantcontactenOverviewController(
+            IOpenKlantApiClient openKlantApiClient,
+            ILogger<KlantcontactenOverviewController> logger)
         {
-            var internetaak = await _openKlantApiClient.GetInternetaak(contactverzoekId);
-
-            if (internetaak == null)
-            {
-                return NotFound("Internetaak niet gevonden");
-            }
-
-            var aanleidinggevendKlantcontactId = internetaak.AanleidinggevendKlantcontact?.Uuid;
-
-            if (string.IsNullOrWhiteSpace(aanleidinggevendKlantcontactId))
-            {
-                return NotFound("Geen aanleidinggevend klantcontact gevonden voor deze internetaak");
-            }
-
-            var ketenResponse = await GetKlantcontactKetenInternal(aanleidinggevendKlantcontactId);
-
-            return Ok(ketenResponse);
+            _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [ProducesResponseType(typeof(ContactmomentenResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpGet("{aanleidinggevendKlantcontactId}/contactketen")]
-        public async Task<IActionResult> GetKlantcontactKeten(string aanleidinggevendKlantcontactId)
+        [HttpGet("{klantcontactId}/contactketen")]
+        public async Task<IActionResult> GetKlantcontactKeten(string klantcontactId)
         {
-            var response = await GetKlantcontactKetenInternal(aanleidinggevendKlantcontactId);
-            return Ok(response);
+            try
+            {
+                var response = await GetKlantcontactKetenInternal(klantcontactId);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving contact chain for klantcontact {klantcontactId}");
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Contact chain not found",
+                    Detail = ex.Message,
+                    Status = StatusCodes.Status404NotFound
+                });
+            }
         }
 
-        private async Task<ContactmomentenResponse> GetKlantcontactKetenInternal(string aanleidinggevendKlantcontactUuid)
+        private async Task<ContactmomentenResponse> GetKlantcontactKetenInternal(string klantcontactUuid)
         {
-            var klantcontactenInKeten = new List<Klantcontact>();
-            var verwerkte_uuids = new HashSet<string>();
-            var aanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(aanleidinggevendKlantcontactUuid);
+            var aanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(klantcontactUuid);
 
             if (aanleidinggevendKlantcontact == null)
             {
-                throw new Exception("Klantcontact niet gevonden");
+                throw new Exception($"Klantcontact met UUID {klantcontactUuid} niet gevonden");
             }
 
             var ketenVolgorde = await BouwKlantcontactKeten(aanleidinggevendKlantcontact);
+            ketenVolgorde.Reverse();  // Nieuwste bovenaan
 
-
-            ketenVolgorde.Reverse();
-
-            var laatsteKlantcontactUuid = ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : aanleidinggevendKlantcontactUuid;
+            var laatsteKlantcontactUuid = ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid;
             var contactmomenten = ketenVolgorde.Select(k => new ContactmomentResponse(
                 ContactGelukt: k.IndicatieContactGelukt ?? false,
                 Tekst: k.Inhoud ?? string.Empty,

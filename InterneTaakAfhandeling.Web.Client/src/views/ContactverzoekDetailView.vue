@@ -255,21 +255,12 @@ async function submit() {
         partijUuid = betrokkene.wasPartij.uuid;
       }
     }
-        
-    let aanleidinggevendKlantcontactUuid = taak.value?.aanleidinggevendKlantcontact?.uuid;
-    let laatsteBekendKlantcontactUuid;
     
-    try {
-      if (aanleidinggevendKlantcontactUuid) {
-        laatsteBekendKlantcontactUuid = await klantcontactService.getLaatsteKlantcontactUuid(aanleidinggevendKlantcontactUuid);
-      }
-    } catch (err) {
-      console.error('Fout bij ophalen laatste klantcontact UUID:', err);
-    }
+    const aanleidinggevendKlantcontactUuid = taak.value?.aanleidinggevendKlantcontact?.uuid;
     
     await klantcontactService.createRelatedKlantcontact(
       createRequest,
-      laatsteBekendKlantcontactUuid,
+      aanleidinggevendKlantcontactUuid, 
       partijUuid
     );
         

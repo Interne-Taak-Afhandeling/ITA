@@ -27,7 +27,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 
         public async Task<RelatedKlantcontactResult> CreateRelatedKlantcontactAsync(
             KlantcontactRequest klantcontactRequest,
-            string? previousKlantcontactUuid,
+            string? aanleidinggevendKlantcontactUuid,
             string userEmail,
             string? userName,
             string? partijUuid = null)
@@ -39,6 +39,25 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                     "MISSING_EMAIL_CLAIM");
             }
 
+            var laatsteKlantcontactUuid = string.Empty;
+            if (!string.IsNullOrEmpty(aanleidinggevendKlantcontactUuid))
+            {
+                try 
+                {
+                    laatsteKlantcontactUuid = await GetLaatsteKlantcontactUuid(aanleidinggevendKlantcontactUuid);
+                    
+                    if (!string.IsNullOrEmpty(laatsteKlantcontactUuid) && laatsteKlantcontactUuid != aanleidinggevendKlantcontactUuid)
+                    {
+                        _logger.LogInformation($"Using most recent klantcontact in chain: {laatsteKlantcontactUuid} " +
+                            $"instead of original: {aanleidinggevendKlantcontactUuid}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Could not determine latest contact in chain. Using original: {aanleidinggevendKlantcontactUuid}");
+                }
+            }
+
             var actor = await GetOrCreateActorAsync(userEmail, userName);
             var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(klantcontactRequest);
             var actorKlantcontactRequest = new ActorKlantcontactRequest
@@ -46,7 +65,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 Actor = new ActorReference { Uuid = actor.Uuid },
                 Klantcontact = new KlantcontactReference { Uuid = klantcontact.Uuid }
             };
-
             var actorKlantcontact = await _openKlantApiClient.CreateActorKlantcontactAsync(actorKlantcontactRequest);
             var result = new RelatedKlantcontactResult
             {
@@ -54,130 +72,69 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 ActorKlantcontact = actorKlantcontact
             };
 
-            if (!string.IsNullOrEmpty(previousKlantcontactUuid))
+            if (!string.IsNullOrEmpty(laatsteKlantcontactUuid))
             {
-                var onderwerpobject = await CreateOnderwerpobjectAsync(klantcontact.Uuid, previousKlantcontactUuid);
+                var onderwerpobject = await CreateOnderwerpobjectAsync(klantcontact.Uuid, laatsteKlantcontactUuid);
                 result.Onderwerpobject = onderwerpobject;
-                await CreateBetrokkeneRelationshipAsync(result, klantcontact.Uuid, previousKlantcontactUuid, partijUuid);
+                await CreateBetrokkeneRelationshipAsync(result, klantcontact.Uuid, laatsteKlantcontactUuid, partijUuid);
             }
 
             return result;
         }
 
-        private async Task CreateBetrokkeneRelationshipAsync(
-            RelatedKlantcontactResult result,
-            string klantcontactUuid,
-            string previousKlantcontactUuid,
-            string? providedPartijUuid)
+        private async Task<string> GetLaatsteKlantcontactUuid(string klantcontactUuid)
         {
             try
             {
-                if (!string.IsNullOrEmpty(providedPartijUuid))
-                {
-                    if (Guid.TryParse(providedPartijUuid, out Guid parsedprovidedPartijUuid))
-                    {
-                        _logger.LogInformation($"Creating betrokkene using provided partijUuid: {parsedprovidedPartijUuid}");
-                    }
-                    
-                    var betrokkene = await CreateBetrokkeneAsync(klantcontactUuid, providedPartijUuid);
-                    result.Betrokkene = betrokkene;
-                    return;
-                }
-
-                if (Guid.TryParse(previousKlantcontactUuid, out Guid parsedpreviousKlantcontactUuid))
-                {
-                    _logger.LogInformation($"Fetching previous klantcontact {parsedpreviousKlantcontactUuid} to extract partijUuid");
-                }
-
+                var ketenVolgorde = await BouwKlantcontactKeten(klantcontactUuid);
+                ketenVolgorde.Reverse(); // Nieuwste bovenaan
                 
-                var previousKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(previousKlantcontactUuid);
-
-                if (previousKlantcontact?.Expand?.HadBetrokkenen != null &&
-                    previousKlantcontact.Expand.HadBetrokkenen.Count > 0)
-                {
-                    var firstBetrokkene = previousKlantcontact.Expand.HadBetrokkenen[0];
-
-                    if (firstBetrokkene.WasPartij != null)
-                    {
-                        string? extractedPartijUuid = null;
-                        try
-                        {
-                            var partijType = firstBetrokkene.WasPartij.GetType();
-                            var uuidProperty = partijType.GetProperty("Uuid");
-                            if (uuidProperty != null)
-                            {
-                                extractedPartijUuid = uuidProperty.GetValue(firstBetrokkene.WasPartij)?.ToString();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Error accessing Uuid property via reflection");
-                        }
-
-                        if (!string.IsNullOrEmpty(extractedPartijUuid))
-                        {
-                            _logger.LogInformation($"Found partijUuid {extractedPartijUuid} from betrokkene {firstBetrokkene.Uuid}");
-                            var betrokkene = await CreateBetrokkeneAsync(klantcontactUuid, extractedPartijUuid);
-                            result.Betrokkene = betrokkene;
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"Could not extract partijUuid from betrokkene {firstBetrokkene.Uuid}");
-                        }
-                    }
-                }
-                else
-                {
-                    if (Guid.TryParse(previousKlantcontactUuid, out Guid parsedPreviousKlantcontactUuid))
-                    {
-                        _logger.LogWarning($"No hadBetrokkenen found in previous klantcontact {parsedPreviousKlantcontactUuid}");
-                    }
-
-                    
-                }
+                return ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Could not create betrokkene for klantcontact {klantcontactUuid}");
+                _logger.LogWarning(ex, $"Could not determine latest klantcontact in chain, using original {klantcontactUuid}");
+                return klantcontactUuid;
             }
         }
 
-        private async Task<Onderwerpobject> CreateOnderwerpobjectAsync(string klantcontactUuid, string wasKlantcontactUuid)
+        private async Task<List<Klantcontact>> BouwKlantcontactKeten(string startKlantcontactUuid)
         {
-            var onderwerpobject = new Onderwerpobject
-            {
-                Uuid = string.Empty,
-                Url = string.Empty,
-                Klantcontact = new Klantcontact
-                {
-                    Uuid = klantcontactUuid,
-                    Url = $"/klantinteracties/api/v1/klantcontacten/{klantcontactUuid}",
-                    HadBetrokkenActoren = new List<Actor>() 
-                },
-                WasKlantcontact = new Klantcontact
-                {
-                    Uuid = wasKlantcontactUuid,
-                    Url = $"/klantinteracties/api/v1/klantcontacten/{wasKlantcontactUuid}",
-                    HadBetrokkenActoren = new List<Actor>() 
-                },
-                Onderwerpobjectidentificator = new Onderwerpobjectidentificator
-                {
-                    ObjectId = wasKlantcontactUuid,
-                    CodeObjecttype = "klantcontact",
-                    CodeRegister = "openklant",
-                    CodeSoortObjectId = "uuid"
-                }
-            };
-
-            try
-            {
-                return await _openKlantApiClient.CreateOnderwerpobjectAsync(onderwerpobject);
-            }
-            catch (Exception ex)
+            var aanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(startKlantcontactUuid);
+            if (aanleidinggevendKlantcontact == null)
             {
                 throw new ConflictException(
-                    $"Error creating onderwerpobject: {ex.Message}",
-                    "ONDERWERPOBJECT_CREATION_ERROR");
+                    $"Klantcontact with UUID {startKlantcontactUuid} not found",
+                    "KLANTCONTACT_NOT_FOUND");
+            }
+
+            var keten = new List<Klantcontact>();
+            var verwerkte_uuids = new HashSet<string>();
+
+            keten.Add(aanleidinggevendKlantcontact);
+            verwerkte_uuids.Add(aanleidinggevendKlantcontact.Uuid);
+
+            await VoegKlantcontactenToeAanKeten(aanleidinggevendKlantcontact.Uuid, keten, verwerkte_uuids);
+
+            return keten;
+        }
+
+        private async Task VoegKlantcontactenToeAanKeten(
+            string klantcontactUuid,
+            List<Klantcontact> keten,
+            HashSet<string> verwerkte_uuids)
+        {
+            var klantcontacten = await _openKlantApiClient.GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(klantcontactUuid);
+
+            foreach (var klantcontact in klantcontacten)
+            {
+                if (!verwerkte_uuids.Contains(klantcontact.Uuid))
+                {
+                    keten.Add(klantcontact);
+                    verwerkte_uuids.Add(klantcontact.Uuid);
+
+                    await VoegKlantcontactenToeAanKeten(klantcontact.Uuid, keten, verwerkte_uuids);
+                }
             }
         }
 
@@ -249,17 +206,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 
             try
             {
-
                 if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
                 {
                     if (Guid.TryParse(partijUuid, out Guid parsedPartijUuid))
                     {
                         _logger.LogInformation($"Creating betrokkene for klantcontact {parsedKlantcontactUuid} and partij {parsedPartijUuid}");
                     }
-
                 }
-
-
                 
                 var betrokkene = await _openKlantApiClient.CreateBetrokkeneAsync(betrokkeneRequest);
                 _logger.LogInformation($"Successfully created betrokkene {betrokkene.Uuid}");
@@ -313,6 +266,71 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 throw new ConflictException(
                     $"Error creating actor: {ex.Message}",
                     "ACTOR_CREATION_ERROR");
+            }
+        }
+
+        private async Task<Onderwerpobject> CreateOnderwerpobjectAsync(string klantcontactUuid, string wasKlantcontactUuid)
+        {
+            var onderwerpobject = new Onderwerpobject
+            {
+                Uuid = string.Empty,
+                Url = string.Empty,
+                Klantcontact = new Klantcontact
+                {
+                    Uuid = klantcontactUuid,
+                    Url = $"/klantinteracties/api/v1/klantcontacten/{klantcontactUuid}",
+                    HadBetrokkenActoren = new List<Actor>() 
+                },
+                WasKlantcontact = new Klantcontact
+                {
+                    Uuid = wasKlantcontactUuid,
+                    Url = $"/klantinteracties/api/v1/klantcontacten/{wasKlantcontactUuid}",
+                    HadBetrokkenActoren = new List<Actor>() 
+                },
+                Onderwerpobjectidentificator = new Onderwerpobjectidentificator
+                {
+                    ObjectId = wasKlantcontactUuid,
+                    CodeObjecttype = "klantcontact",
+                    CodeRegister = "openklant",
+                    CodeSoortObjectId = "uuid"
+                }
+            };
+
+            try
+            {
+                return await _openKlantApiClient.CreateOnderwerpobjectAsync(onderwerpobject);
+            }
+            catch (Exception ex)
+            {
+                throw new ConflictException(
+                    $"Error creating onderwerpobject: {ex.Message}",
+                    "ONDERWERPOBJECT_CREATION_ERROR");
+            }
+        }
+
+        private async Task CreateBetrokkeneRelationshipAsync(
+            RelatedKlantcontactResult result,
+            string klantcontactUuid,
+            string previousKlantcontactUuid,
+            string? providedPartijUuid)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(providedPartijUuid))
+                {
+                    if (Guid.TryParse(providedPartijUuid, out Guid parsedprovidedPartijUuid))
+                    {
+                        _logger.LogInformation($"Creating betrokkene using provided partijUuid: {parsedprovidedPartijUuid}");
+                    }
+                    
+                    var betrokkene = await CreateBetrokkeneAsync(klantcontactUuid, providedPartijUuid);
+                    result.Betrokkene = betrokkene;
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Could not create betrokkene for klantcontact {klantcontactUuid}");
             }
         }
     }

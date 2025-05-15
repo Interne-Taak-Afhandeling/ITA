@@ -159,7 +159,6 @@ export interface ActorQuery {
   indicatieActief?: boolean;
 }
 
-// API request/response interfaces
 export interface CreateKlantcontactRequest {
   kanaal?: string;
   onderwerp?: string;
@@ -217,7 +216,7 @@ export interface ActorIdentificatie {
 
 export interface CreateRelatedKlantcontactRequest {
   klantcontactRequest: CreateKlantcontactRequest;
-  previousKlantcontactUuid?: string;
+  aanleidinggevendKlantcontactUuid?: string;
   partijUuid?: string;
 }
 

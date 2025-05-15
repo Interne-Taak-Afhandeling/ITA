@@ -34,17 +34,17 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             try
             {
 
-                if (Guid.TryParse(request.PreviousKlantcontactUuid, out Guid parsedPreviousKlantcontact))
+                if (Guid.TryParse(request.AanleidinggevendKlantcontactUuid, out Guid parsedKlantcontact))
                 {
                     if (Guid.TryParse(request.PartijUuid, out Guid parsedPartijUuid))
                     {
-                        _logger.LogInformation($"Creating related klantcontact with previous UUID: {parsedPreviousKlantcontact}, partij UUID: {parsedPartijUuid}");
+                        _logger.LogInformation($"Creating related klantcontact with aanleidinggevendKlantcontact UUID: {parsedKlantcontact}, partij UUID: {parsedPartijUuid}");
                     }
                 }                
 
                 var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                     request.KlantcontactRequest,
-                    request.PreviousKlantcontactUuid,
+                    request.AanleidinggevendKlantcontactUuid,
                     _user.Email,
                     _user.Name,
                     request.PartijUuid
@@ -76,7 +76,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
     public class CreateRelatedKlantcontactRequest
     {
         public required KlantcontactRequest KlantcontactRequest { get; set; }
-        public string? PreviousKlantcontactUuid { get; set; }
+        public string? AanleidinggevendKlantcontactUuid { get; set; }
         public string? PartijUuid { get; set; }
     }
 
