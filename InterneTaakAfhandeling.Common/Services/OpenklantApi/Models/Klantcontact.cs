@@ -142,6 +142,12 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
     public class BetrokkeneExpand
     {
+        public Partij? WasPartij { get; set; }
         public List<DigitaleAdres>? DigitaleAdressen { get; set; }
+    }
+    public class Partij
+    {
+        public required string Uuid { get; set; }
+        public required string Url { get; set; }
     }
 }

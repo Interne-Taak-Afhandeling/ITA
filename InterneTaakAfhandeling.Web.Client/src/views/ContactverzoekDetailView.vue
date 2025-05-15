@@ -242,16 +242,20 @@ async function submit() {
     };
     
     let partijUuid: string | undefined = undefined;
-    
-    if (taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.length > 0) {
+
+    if (taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]) {
       const betrokkene = taak.value.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
-      
-      if (betrokkene.wasPartij && 'uuid' in betrokkene.wasPartij) {
+
+      if (betrokkene._expand?.wasPartij && 'uuid' in betrokkene._expand.wasPartij) {
+        partijUuid = betrokkene._expand.wasPartij.uuid;
+        console.log('Using partijUuid from expand.wasPartij:', partijUuid);
+      } 
+      // Als fallback, check ook direct in wasPartij
+      else if (betrokkene.wasPartij && 'uuid' in betrokkene.wasPartij) {
         partijUuid = betrokkene.wasPartij.uuid;
-        console.log('Using partijUuid from expand data:', partijUuid);
       }
     }
-    
+        
     let aanleidinggevendKlantcontactUuid = taak.value?.aanleidinggevendKlantcontact?.uuid;
     let laatsteBekendKlantcontactUuid;
     
