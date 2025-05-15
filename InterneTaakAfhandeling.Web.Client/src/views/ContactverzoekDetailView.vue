@@ -93,17 +93,19 @@ import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { internetakenService } from '@/services/internetaken'
-import type { Internetaken } from '@/types/internetaken';
+import type { Internetaken, Actor } from '@/types/internetaken';
 
 
 const route = useRoute();
 const cvId = computed(() => route.params.number);
 
 
-let taak = ref<Internetaken[]>(null);;
+let taak = ref<Internetaken | null>(null);
 
 onMounted(async () => {
-  taak.value = await internetakenService.getInternetaak({ Klantcontact_Nummer: cvId.value });
+  taak.value = await internetakenService.getInternetaak({ 
+    Klantcontact_Nummer: String(cvId.value)
+  });
 });
 
 const phoneNumbers = computed(() =>

@@ -152,7 +152,7 @@ export interface Zaak {
 }
 
 export interface InterneTaakQueryParameters {
-  value: string;
+  value?: string;
   AanleidinggevendKlantcontact_Url?: string;
   AanleidinggevendKlantcontact_Uuid?: string;
 
