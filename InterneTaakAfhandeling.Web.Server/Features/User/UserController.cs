@@ -1,7 +1,4 @@
-﻿using System.Security.Claims;
-using Duende.IdentityModel;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Authentication;
+﻿using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +18,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.User
         [HttpGet("internetaken")]
         public async Task<IActionResult> GetInternetaken()
         {
-          return Ok(await _userService.GetInterneTakenByAssignedUser(user));
+            return Ok(await _userService.GetInterneTakenByAssignedUser(user));
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        [HttpPost("internetaken/{internetakenId}/assign-to-self")]
+        public async Task<IActionResult> AssignInternetakenToSelfAsync([FromRoute] string internetakenId)
+        {  
+            return Ok(await _userService.AssignInternetakenToSelfAsync(internetakenId, user));
         }
     }
 }
+
+
+
+

@@ -10,11 +10,17 @@ namespace InterneTaakAfhandeling.Web.Server.Services
     public interface IUserService
     {
         Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user);
+        Task<bool> AssignInternetakenToSelfAsync(string internetakenId, ITAUser user);
     }
     public class UserService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient) : IUserService
     {
-        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-        private readonly IZakenApiClient zakenApiClient = zakenApiClient;
+        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient; 
+        private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
+
+        public async Task<bool> AssignInternetakenToSelfAsync(string internetakenId, ITAUser user)
+        {
+            return await Task.FromResult(true);
+        }
 
         public async Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user)
         {
