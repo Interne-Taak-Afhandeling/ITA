@@ -208,13 +208,18 @@ public class OpenKlantApiClient(
             var internetaken = response.Results.FirstOrDefault();
             if (internetaken?.ToegewezenAanActoren != null)
             {
-                if (internetaken?.ToegewezenAanActoren != null)
-                {
-                    internetaken.ToegewezenAanActoren = [.. (await Task.WhenAll(
+
+                internetaken.ToegewezenAanActoren = [.. (await Task.WhenAll(
                         internetaken.ToegewezenAanActoren
-                            .Select(async a => (await GetActorAsync(a.Uuid ?? string.Empty)) ?? a)
+                                .Select(async a =>
+                                {
+                                   if (!string.IsNullOrEmpty(a.Uuid))
+                                   {
+                                       return (await GetActorAsync(a.Uuid));
+                                   }
+                                   return null;
+                                }).Where(x=> x != null)
                     ))];
-                }
             }
 
             if (internetaken != null)
