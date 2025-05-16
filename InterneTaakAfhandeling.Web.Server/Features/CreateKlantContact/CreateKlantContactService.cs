@@ -44,6 +44,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             {
                 try 
                 {
+                    //because there is no proper way to sort klantcontacten by date (date is optional),
+                    //we don't add all new klantcontacten that take place during the handling of an internetaak to the original klantcontact
+                    //instead, we add each klantcontact to the previous klantcontact. this creates a chain of klantcontacten
+                    //here we have to find the last one in the change and we will link the new klantcontact that we are creating here to that one 
                     laatsteKlantcontactUuid = await GetLaatsteKlantcontactUuid(aanleidinggevendKlantcontactUuid);
                     
                     if (!string.IsNullOrEmpty(laatsteKlantcontactUuid) && laatsteKlantcontactUuid != aanleidinggevendKlantcontactUuid)
@@ -75,9 +79,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             if (!string.IsNullOrEmpty(laatsteKlantcontactUuid))
             {
                 var onderwerpobject = await CreateOnderwerpobjectAsync(klantcontact.Uuid, laatsteKlantcontactUuid);
-                result.Onderwerpobject = onderwerpobject;
-                await CreateBetrokkeneRelationshipAsync(result, klantcontact.Uuid, laatsteKlantcontactUuid, partijUuid);
+                result.Onderwerpobject = onderwerpobject;                
             }
+
+            await CreateBetrokkeneRelationshipAsync(result, klantcontact.Uuid, partijUuid);
 
             return result;
         }
@@ -311,7 +316,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
         private async Task CreateBetrokkeneRelationshipAsync(
             RelatedKlantcontactResult result,
             string klantcontactUuid,
-            string previousKlantcontactUuid,
             string? providedPartijUuid)
         {
             try

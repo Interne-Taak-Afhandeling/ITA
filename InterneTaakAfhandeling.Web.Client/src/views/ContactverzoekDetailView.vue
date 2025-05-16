@@ -139,7 +139,7 @@
     </section>
 
     <section>
-      <ContactverzoekContactmomenten :contactverzoekId="cvId" />
+      <ContactverzoekContactmomenten :contactmomentNummer="cvId" />
     </section>
   </div>
 </template>
@@ -148,7 +148,6 @@
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
-import { fakeInterneTaken } from "@/helpers/fake-data";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { klantcontactService, type CreateKlantcontactRequest } from "@/services/createKlantcontactService";
@@ -270,9 +269,9 @@ async function submit() {
       kanaal: "",
       informatieBurger: ""
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error bij aanmaken klantcontact:', err);
-    error.value = err.message || 'Er is een fout opgetreden bij het aanmaken van het contactmoment';
+    error.value =  err instanceof Error && err.message ? err.message : 'Er is een fout opgetreden bij het aanmaken van het contactmoment';
   } finally {
     isLoading.value = false;
   }

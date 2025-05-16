@@ -18,7 +18,7 @@ export default {
     appeareance: {
       type: String,
       default: 'info',
-      validator: (value) => ['info', 'error', 'warning', 'ok', 'success'].includes(value)
+      validator: (value : string) => ['info', 'error', 'warning', 'ok', 'success'].includes(value)
     }
   }
 }

@@ -40,7 +40,7 @@ import { useUserStore } from '@/stores/user';
 import { storeToRefs } from 'pinia';
 import type { Internetaken } from '@/types/internetaken';
  
-const props = defineProps<{ contactmomentNummer : string }>();
+const props = defineProps<{ contactmomentNummer : string | undefined }>();
 const isLoading = ref(true);
 const error = ref("");
 const contactmomenten = ref<Contactmoment[]>([]);
@@ -48,6 +48,10 @@ const userStore = useUserStore();
 const { assignedInternetaken } = storeToRefs(userStore);
  
 const taak = computed(() => {
+  if(!props.contactmomentNummer) {
+    return null;
+  }
+  
   return assignedInternetaken.value.find(
     (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == props.contactmomentNummer
   ) || null;
