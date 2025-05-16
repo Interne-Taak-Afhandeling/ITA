@@ -36,7 +36,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error retrieving contact chain for klantcontact {klantcontactId}");
+
+                if (Guid.TryParse(klantcontactId, out Guid parsedKlantcontactId))
+                {
+                    _logger.LogError(ex, $"Error retrieving contact chain for klantcontact {parsedKlantcontactId}");
+                }
+
+               
                 return NotFound(new ProblemDetails
                 {
                     Title = "Contact chain not found",

@@ -1,6 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;
+using System;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 {
@@ -98,7 +99,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, $"Could not determine latest klantcontact in chain, using original {klantcontactUuid}");
+
+                if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
+                {
+                    _logger.LogWarning(ex, $"Could not determine latest klantcontact in chain, using original {parsedKlantcontactUuid}");
+                }
+                
                 return klantcontactUuid;
             }
         }
