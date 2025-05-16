@@ -20,17 +20,15 @@
 <script setup lang="ts">
 import { toast } from "@/components/toast/toast";
 import { ref } from "vue";
+import { userService } from "@/services/user";
 const props = defineProps<{ id: string }>();
 
 const toewijzenAlertRef = ref<{ dialogRef?: HTMLDialogElement }>();
 const show = () => toewijzenAlertRef.value?.dialogRef?.showModal();
 const close = () => toewijzenAlertRef.value?.dialogRef?.close();
-const fakeHttpCall = (id: string) =>
-  new Promise((resolve, reject) =>
-    setTimeout(() => (Math.random() > 0.5 ? resolve(id) : reject()), 250)
-  );
-const toewijzen = () => {
-  fakeHttpCall(props.id)
+
+const toewijzen = async () => {
+  await userService.assignInternetakenToSelf(props.id)
     .then(() => {
       toast.add("Contactverzoek toegewezen");
     })
