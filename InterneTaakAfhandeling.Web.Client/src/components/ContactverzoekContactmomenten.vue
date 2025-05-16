@@ -35,10 +35,10 @@
 
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue';
-import { overviewKlantcontactService, type Contactmoment } from "@/services/overviewKlantcontactService";
 import { useUserStore } from '@/stores/user';
 import { storeToRefs } from 'pinia';
-import type { Internetaken } from '@/types/internetaken';
+import type { Contactmoment, Internetaken } from '@/types/internetaken';
+import { klantcontactService } from '@/services/klantcontactService';
  
 const props = defineProps<{ contactmomentNummer : string | undefined }>();
 const isLoading = ref(true);
@@ -63,7 +63,7 @@ watchEffect(async () => {
   
   if(taak.value?.aanleidinggevendKlantcontact?.uuid) {
     try {
-      const response = await overviewKlantcontactService.getContactKeten(
+      const response = await klantcontactService.getContactKeten(
         taak.value.aanleidinggevendKlantcontact.uuid
       );
       

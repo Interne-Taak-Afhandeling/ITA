@@ -11,16 +11,18 @@
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Vraag</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.onderwerp" multiline
-            >{{ taak.aanleidinggevendKlantcontact?.onderwerp }}
+          <utrecht-data-list-value :value="taak?.aanleidinggevendKlantcontact?.onderwerp" multiline>
+            {{ taak?.aanleidinggevendKlantcontact?.onderwerp }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-spotlight-section>
             <utrecht-data-list-key>Interne toelichting KCC</utrecht-data-list-key>
-            <utrecht-data-list-value :value="taak.toelichting" multiline class="preserve-newline">{{
-              taak.toelichting
-            }}</utrecht-data-list-value>
+            <utrecht-data-list-value :value="taak?.toelichting" multiline class="preserve-newline">
+              {{
+                taak?.toelichting
+              }}
+            </utrecht-data-list-value>
           </utrecht-spotlight-section>
         </utrecht-data-list-item>
       </utrecht-data-list>
@@ -30,9 +32,12 @@
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Klantnaam</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.betrokkene?.volledigeNaam">{{
-            taak.betrokkene?.volledigeNaam
-          }}</utrecht-data-list-value>
+          <utrecht-data-list-value
+            :value="taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam">
+            {{
+              taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam
+            }}
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Telefoonnummer</utrecht-data-list-key>
@@ -50,20 +55,20 @@
           <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
           <utrecht-data-list-value :value="email">{{ email }}</utrecht-data-list-value>
         </utrecht-data-list-item>
-        <utrecht-data-list-item v-for="zaakUuid in zaakUuids" :key="zaakUuid">
+        <utrecht-data-list-item>
           <utrecht-data-list-key>Gekoppelde zaak</utrecht-data-list-key>
-          <utrecht-data-list-value :value="zaakUuid">{{ zaakUuid }}</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak?.zaak?.identificatie">{{ taak?.zaak?.identificatie
+          }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Datum aangemaakt</utrecht-data-list-key>
-          <utrecht-data-list-value value="x"
-            ><date-time-or-nvt :date="taak.aanleidinggevendKlantcontact?.plaatsgevondenOp"
-          /></utrecht-data-list-value>
+          <utrecht-data-list-value value="x"><date-time-or-nvt
+              :date="taak?.aanleidinggevendKlantcontact?.plaatsgevondenOp" /></utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.kanaal">{{
-            taak.aanleidinggevendKlantcontact?.kanaal
+          <utrecht-data-list-value :value="taak?.aanleidinggevendKlantcontact?.kanaal">{{
+            taak?.aanleidinggevendKlantcontact?.kanaal
           }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
@@ -72,7 +77,7 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Status</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak.status">{{ taak.status }}</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak?.status">{{ taak?.status }}</utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Aangemaakt door</utrecht-data-list-key>
@@ -148,57 +153,61 @@
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { klantcontactService, type CreateKlantcontactRequest } from "@/services/createKlantcontactService";
+import { klantcontactService, type CreateKlantcontactRequest } from "@/services/klantcontactService";
 import ContactverzoekContactmomenten from '@/components/ContactverzoekContactmomenten.vue';
-import { useUserStore } from "@/stores/user";
-import { storeToRefs } from "pinia";
 import type { Internetaken } from "@/types/internetaken";
+import { internetakenService } from "@/services/internetakenService";
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
   geenGehoor: "Contact opnemen niet gelukt"
 } as const;
 
+const first = (v: string | string[]) => Array.isArray(v) ? v[0] : v
 const route = useRoute();
-const cvId = computed(() =>  (route.params.number &&  !Array.isArray(route.params.number) ) ?  route.params.number : undefined );
+const cvId = computed(() => first(route.params.number));
 
-const isLoading = ref(false);
+
+    const isLoading = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
 
-const userStore = useUserStore();
-const { assignedInternetaken } = storeToRefs(userStore);
 
-const taak = computed(() => {
-  return assignedInternetaken.value.find(
-    (x: Internetaken) => x.aanleidinggevendKlantcontact?.nummer == cvId.value
-  ) || null;
-});
 
+
+
+const taak = ref<Internetaken | null>(null);
+
+onMounted(async () => {
+  taak.value = await internetakenService.getInternetaak({ 
+    Nummer: String(cvId.value)
+  }); 
+}); 
 const phoneNumbers = computed(() =>
-  taak.value?.digitaleAdress
-    ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "telefoonnummer")
-    .map(({ adres }) => adres)
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
+    ?.filter(({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "telefoonnummer")
+    .map(({ adres }: { adres?: string }) => adres || '') || []
 );
 const phoneNumber1 = computed(() => phoneNumbers.value?.[0]);
 const phoneNumber2 = computed(() => phoneNumbers.value?.[1]);
 const email = computed(() =>
-  taak.value?.digitaleAdress
-    ?.filter(({ soortDigitaalAdres }) => soortDigitaalAdres === "email")
-    .map(({ adres }) => adres)
-    .find(Boolean)
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
+    ?.filter(({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "email")
+    .map(({ adres }: { adres?: string }) => adres || '')
+    .find(Boolean) || ''
 );
-const behandelaar = computed(() => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean));
+const behandelaar = computed(() => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean) || '');
 const aangemaaktDoor = computed(() =>
-  taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren.map((x) => x.naam).find(Boolean)
+  taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren?.map((x) => x.naam).find(Boolean) || ''
+
 );
-const zaakUuids = computed(() =>
-  taak.value?.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
-    ?.map((x) => x.onderwerpobjectidentificator?.objectId)
-    .filter(Boolean)
-);
+// const zaakUuids = computed(() =>
+//   taak.value?.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
+//     ?.map((x) => x.onderwerpobjectidentificator?.objectId)
+//     .filter(Boolean)
+// );
 // TODO:
 // 1. get zaak from openzaak by uuid
 // 2. show the zaaknummer in the data-list
@@ -292,11 +301,14 @@ async function submit() {
 
 .contact-data {
   container-type: inline-size;
+
   .utrecht-data-list {
     gap: 1rem;
+
     @container (min-width: 25rem) {
       columns: 2;
     }
+
     @container (min-width: 40rem) {
       columns: 3;
     }

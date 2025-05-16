@@ -13,6 +13,7 @@ export interface Internetaken {
   afgehandeldOp?: string;
   digitaleAdress?: DigitaleAdres[];
   betrokkene? : Betrokkene;
+  zaak?: Zaak;
 }
  
 
@@ -28,7 +29,7 @@ export interface Klantcontact {
   url: string;
   gingOverOnderwerpobjecten?: Onderwerpobject[];
   hadBetrokkenActoren: Actor[];
-  omvatteBijlagen?: any[];
+  omvatteBijlagen?: unknown[];
   hadBetrokkenen?: Betrokkene[];
   leiddeTotInterneTaken?: Internetaken[];
   nummer?: string;
@@ -64,7 +65,7 @@ export interface Actor {
   soortActor?: string;
   indicatieActief?: boolean;
   actoridentificator?: Actoridentificator;
-  actorIdentificatie?: any;
+  actorIdentificatie?: unknown;
 }
 
 export interface ActorResponse {
@@ -85,7 +86,7 @@ export interface DigitaleAdres {
   uuid: string;
   url: string;
   verstrektDoorBetrokkene?: Betrokkene;
-  verstrektDoorPartij?: any;
+  verstrektDoorPartij?: { uuid : string, url :string };
   adres?: string;
   soortDigitaalAdres?: string;
   isStandaardAdres?: boolean;
@@ -233,4 +234,72 @@ export interface Contactmoment {
   datum: string;
   medewerker: string;
   kanaal: string;
+}
+ 
+export interface Zaak {
+  url: string;
+  uuid: string;
+  identificatie: string;
+  bronorganisatie: string;
+  omschrijving: string;
+  toelichting: string;
+  zaaktype: string;
+  registratiedatum: string;
+  verantwoordelijkeOrganisatie: string;
+  startdatum?: string;
+  einddatum?: string;
+  einddatumGepland?: string;
+  uiterlijkeEinddatumAfdoening?: string;
+  publicatiedatum?: string;
+  communicatiekanaal: string;
+  communicatiekanaalNaam: string;
+  productenOfDiensten: unknown[];
+  vertrouwelijkheidaanduiding: string;
+  betalingsindicatie: string;
+  betalingsindicatieWeergave: string;
+  laatsteBetaaldatum?: string;
+  zaakgeometrie?: unknown;
+  verlenging?: unknown;
+  opschorting: unknown;
+  selectielijstklasse: string;
+  hoofdzaak?: unknown;
+  deelzaken: unknown[];
+  relevanteAndereZaken: unknown[];
+  eigenschappen: unknown[];
+  rollen: string[];
+  status: string;
+  zaakinformatieobjecten: unknown[];
+  zaakobjecten: unknown[];
+  kenmerken: unknown[];
+  archiefnominatie: string;
+  archiefstatus: string;
+  archiefactiedatum?: string;
+  resultaat?: unknown;
+  opdrachtgevendeOrganisatie: string;
+  processobjectaard: string;
+  startdatumBewaartermijn?: string;
+  processobject: unknown;
+  zaaksysteemId: string;
+}
+
+export interface InterneTaakQueryParameters {
+  value?: string;
+  AanleidinggevendKlantcontact_Url?: string;
+  AanleidinggevendKlantcontact_Uuid?: string;
+
+  Actoren_Naam?: string;
+  Klantcontact_Nummer?: string;
+  Klantcontact_Uuid?: string;
+
+  Nummer?: string;
+
+  Page?: number;
+  PageSize?: number;
+
+  Status?: string;
+
+  ToegewezenAanActor_Url?: string;
+  ToegewezenAanActor_Uuid?: string;
+
+  ToegewezenOp?: Date;
 }

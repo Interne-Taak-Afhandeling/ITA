@@ -21,7 +21,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
             services.AddSingleton<ResourcesConfig>();
-
+            
             services.AddAuth(options =>
           {
               options.Authority = GetRequiredConfigValue(configuration,"OIDC_AUTHORITY");
@@ -30,7 +30,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
               options.ITASystemAccessRole = GetRequiredConfigValue(configuration, "OIDC_ITA_SYSTEM_ACCESS_ROLE");
               options.NameClaimType = configuration["OIDC_NAME_CLAIM_TYPE"];
               options.RoleClaimType = configuration["OIDC_ROLE_CLAIM_TYPE"];
-              options.IdClaimType = configuration["OIDC_ID_CLAIM_TYPE"];
+              options.ObjectregisterMedewerkerIdClaimType = configuration["OIDC_OBJECTREGISTER_MEDEWERKER_ID_CLAIM_TYPE"];
               options.EmailClaimType = configuration["OIDC_EMAIL_CLAIM_TYPE"];
           });
 
@@ -40,6 +40,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
 
+            services.AddScoped<IInternetakenService, InternetakenService>();
 
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 
