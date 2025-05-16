@@ -43,23 +43,31 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             var laatsteKlantcontactUuid = string.Empty;
             if (!string.IsNullOrEmpty(aanleidinggevendKlantcontactUuid))
             {
-                try 
+                try
                 {
                     //because there is no proper way to sort klantcontacten by date (date is optional),
                     //we don't add all new klantcontacten that take place during the handling of an internetaak to the original klantcontact
                     //instead, we add each klantcontact to the previous klantcontact. this creates a chain of klantcontacten
                     //here we have to find the last one in the change and we will link the new klantcontact that we are creating here to that one 
                     laatsteKlantcontactUuid = await GetLaatsteKlantcontactUuid(aanleidinggevendKlantcontactUuid);
-                    
+
                     if (!string.IsNullOrEmpty(laatsteKlantcontactUuid) && laatsteKlantcontactUuid != aanleidinggevendKlantcontactUuid)
                     {
-                        _logger.LogInformation($"Using most recent klantcontact in chain: {laatsteKlantcontactUuid} " +
-                            $"instead of original: {aanleidinggevendKlantcontactUuid}");
+                        if (Guid.TryParse(laatsteKlantcontactUuid, out Guid parsedLaatsteKlantcontactUuid))
+                        {
+                            if (Guid.TryParse(aanleidinggevendKlantcontactUuid, out Guid parsedAanleidinggevendKlantcontactUuid))
+                            {
+                                _logger.LogInformation($"Using most recent klantcontact in chain: {parsedLaatsteKlantcontactUuid} " + $"instead of original: {parsedAanleidinggevendKlantcontactUuid}");
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, $"Could not determine latest contact in chain. Using original: {aanleidinggevendKlantcontactUuid}");
+                    if (Guid.TryParse(aanleidinggevendKlantcontactUuid, out Guid parsedAanleidinggevendKlantcontactUuid))
+                    {
+                        _logger.LogWarning(ex, $"Could not determine latest contact in chain. Using original: {parsedAanleidinggevendKlantcontactUuid}");
+                    }
                 }
             }
 
@@ -80,7 +88,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             if (!string.IsNullOrEmpty(laatsteKlantcontactUuid))
             {
                 var onderwerpobject = await CreateOnderwerpobjectAsync(klantcontact.Uuid, laatsteKlantcontactUuid);
-                result.Onderwerpobject = onderwerpobject;                
+                result.Onderwerpobject = onderwerpobject;
             }
 
             await CreateBetrokkeneRelationshipAsync(result, klantcontact.Uuid, partijUuid);
@@ -94,7 +102,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             {
                 var ketenVolgorde = await BouwKlantcontactKeten(klantcontactUuid);
                 ketenVolgorde.Reverse(); // Nieuwste bovenaan
-                
+
                 return ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid;
             }
             catch (Exception ex)
@@ -104,7 +112,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 {
                     _logger.LogWarning(ex, $"Could not determine latest klantcontact in chain, using original {parsedKlantcontactUuid}");
                 }
-                
+
                 return klantcontactUuid;
             }
         }
@@ -224,7 +232,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                         _logger.LogInformation($"Creating betrokkene for klantcontact {parsedKlantcontactUuid} and partij {parsedPartijUuid}");
                     }
                 }
-                
+
                 var betrokkene = await _openKlantApiClient.CreateBetrokkeneAsync(betrokkeneRequest);
                 _logger.LogInformation($"Successfully created betrokkene {betrokkene.Uuid}");
                 return betrokkene;
@@ -238,7 +246,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                         _logger.LogError(ex, $"Error creating betrokkene for klantcontact {parsedKlantcontactUuid} and partij {parsedPartijUuid}");
                     }
                 }
-               
+
                 throw new ConflictException(
                     $"Error creating betrokkene: {ex.Message}",
                     "BETROKKENE_CREATION_ERROR");
@@ -290,13 +298,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 {
                     Uuid = klantcontactUuid,
                     Url = $"/klantinteracties/api/v1/klantcontacten/{klantcontactUuid}",
-                    HadBetrokkenActoren = new List<Actor>() 
+                    HadBetrokkenActoren = new List<Actor>()
                 },
                 WasKlantcontact = new Klantcontact
                 {
                     Uuid = wasKlantcontactUuid,
                     Url = $"/klantinteracties/api/v1/klantcontacten/{wasKlantcontactUuid}",
-                    HadBetrokkenActoren = new List<Actor>() 
+                    HadBetrokkenActoren = new List<Actor>()
                 },
                 Onderwerpobjectidentificator = new Onderwerpobjectidentificator
                 {
@@ -332,7 +340,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                     {
                         _logger.LogInformation($"Creating betrokkene using provided partijUuid: {parsedprovidedPartijUuid}");
                     }
-                    
+
                     var betrokkene = await CreateBetrokkeneAsync(klantcontactUuid, providedPartijUuid);
                     result.Betrokkene = betrokkene;
                     return;
