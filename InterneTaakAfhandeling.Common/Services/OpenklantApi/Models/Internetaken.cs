@@ -6,6 +6,7 @@ using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
 
+    //todo: rename to Internetaak
     public class Internetaken
     {
         public required string Uuid { get; set; }

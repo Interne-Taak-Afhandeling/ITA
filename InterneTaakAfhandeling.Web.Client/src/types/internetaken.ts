@@ -1,3 +1,4 @@
+// internetaken.ts
 export interface Internetaken {
   uuid: string;
   url: string;
@@ -10,7 +11,17 @@ export interface Internetaken {
   status: string;
   toegewezenOp: string;
   afgehandeldOp?: string;
+  digitaleAdress?: DigitaleAdres[];
+  betrokkene? : Betrokkene;
   zaak?: Zaak;
+}
+ 
+
+export interface InternetakenResponse {
+  count: number;
+  next?: string;
+  previous?: string;
+  results: Internetaken[];
 }
 
 export interface Klantcontact {
@@ -18,10 +29,14 @@ export interface Klantcontact {
   url: string;
   gingOverOnderwerpobjecten?: Onderwerpobject[];
   hadBetrokkenActoren: Actor[];
+  omvatteBijlagen?: unknown[];
+  hadBetrokkenen?: Betrokkene[];
+  leiddeTotInterneTaken?: Internetaken[];
   nummer?: string;
   kanaal?: string;
   onderwerp?: string;
   inhoud?: string;
+  indicatieContactGelukt?: boolean;
   taal?: string;
   vertrouwelijk?: boolean;
   plaatsgevondenOp: string;
@@ -32,7 +47,7 @@ export interface Onderwerpobject {
   uuid: string;
   url: string;
   klantcontact?: Klantcontact;
-  wasKlantcontact?: unknown;
+  wasKlantcontact?: Klantcontact;
   onderwerpobjectidentificator?: Onderwerpobjectidentificator;
 }
 
@@ -48,8 +63,16 @@ export interface Actor {
   url: string;
   naam?: string;
   soortActor?: string;
+  indicatieActief?: boolean;
   actoridentificator?: Actoridentificator;
   actorIdentificatie?: unknown;
+}
+
+export interface ActorResponse {
+  count: number;
+  next?: string;
+  previous?: string;
+  results: Actor[];
 }
 
 export interface Actoridentificator {
@@ -62,15 +85,23 @@ export interface Actoridentificator {
 export interface DigitaleAdres {
   uuid: string;
   url: string;
+  verstrektDoorBetrokkene?: Betrokkene;
+  verstrektDoorPartij?: { uuid : string, url :string };
   adres?: string;
   soortDigitaalAdres?: string;
+  isStandaardAdres?: boolean;
   omschrijving?: string;
+}
+
+export interface PartijReference {
+  uuid: string;
+  url?: string;
 }
 
 export interface Betrokkene {
   uuid: string;
   url: string;
-  wasPartij?: unknown;
+  wasPartij?: PartijReference;
   hadKlantcontact?: Klantcontact;
   digitaleAdressen: DigitaleAdres[];
   bezoekadres?: Adres;
@@ -84,27 +115,127 @@ export interface Betrokkene {
 }
 
 export interface Adres {
-  nummeraanduidingId: string;
-  adresregel1: string;
-  adresregel2: string;
-  adresregel3: string;
-  land: string;
+  nummeraanduidingId?: string;
+  straatnaam?: string;
+  huisnummer?: number;
+  huisnummertoevoeging?: string;
+  postcode?: string;
+  stad?: string;
+  adresregel1?: string;
+  adresregel2?: string;
+  adresregel3?: string;
+  land?: string;
 }
 
 export interface Contactnaam {
-  voorletters: string;
-  voornaam: string;
-  voorvoegselAchternaam: string;
-  achternaam: string;
+  voorletters?: string;
+  voornaam?: string;
+  voorvoegselAchternaam?: string;
+  achternaam?: string;
 }
 
 export interface Expand {
   hadBetrokkenen?: Betrokkene[];
+  leiddeTotInterneTaken?: Internetaken[];
+  gingOverOnderwerpobjecten?: Onderwerpobject[];
 }
 
 export interface BetrokkeneExpand {
   digitaleAdressen?: DigitaleAdres[];
+  wasPartij?: PartijReference;
 }
+
+export enum SoortActor {
+  medewerker = "medewerker",
+  klant = "klant",
+  vertegenwoordiger = "vertegenwoordiger"
+}
+
+export interface ActorQuery {
+  actoridentificatorCodeObjecttype: string;
+  actoridentificatorCodeRegister: string;
+  actoridentificatorCodeSoortObjectId: string;
+  actoridentificatorObjectId: string;
+  soortActor: SoortActor;
+  indicatieActief?: boolean;
+}
+
+export interface CreateKlantcontactRequest {
+  kanaal?: string;
+  onderwerp?: string;
+  inhoud?: string;
+  indicatieContactGelukt?: boolean;
+  taal?: string;
+  vertrouwelijk?: boolean;
+  plaatsgevondenOp: string;
+}
+
+export interface ActorReference {
+  uuid: string;
+}
+
+export interface KlantcontactReference {
+  uuid: string;
+}
+
+export interface ActorKlantcontactRequest {
+  actor: ActorReference;
+  klantcontact: KlantcontactReference;
+}
+
+export interface ActorKlantcontact {
+  uuid: string;
+  url: string;
+  actor: ActorReference;
+  klantcontact: KlantcontactReference;
+}
+
+export interface BetrokkeneRequest {
+  wasPartij: PartijReference;
+  hadKlantcontact: KlantcontactReference;
+  rol: string;
+  initiator: boolean;
+}
+
+export interface ActorRequest {
+  naam: string;
+  soortActor: string;
+  indicatieActief: boolean;
+  actoridentificator: Actoridentificator;
+  actorIdentificatie?: {
+    functie?: string;
+    emailadres?: string;
+    telefoonnummer?: string;
+  };
+}
+
+export interface ActorIdentificatie {
+  functie?: string;
+  emailadres?: string;
+  telefoonnummer?: string;
+}
+
+export interface CreateRelatedKlantcontactRequest {
+  klantcontactRequest: CreateKlantcontactRequest;
+  aanleidinggevendKlantcontactUuid?: string;
+  partijUuid?: string;
+}
+
+export interface RelatedKlantcontactResult {
+  klantcontact: Klantcontact;
+  actorKlantcontact: ActorKlantcontact;
+  onderwerpobject?: Onderwerpobject;
+  betrokkene?: Betrokkene;
+}
+
+export interface Contactmoment {
+  contactGelukt: boolean;
+  tekst: string;
+  datum: string;
+  medewerker: string;
+  kanaal: string;
+}
+ 
 export interface Zaak {
   url: string;
   uuid: string;

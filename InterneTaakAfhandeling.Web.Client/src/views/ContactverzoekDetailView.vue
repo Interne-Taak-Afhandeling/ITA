@@ -1,8 +1,12 @@
 <template>
   <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
   <router-link to="/">Terug</router-link>
-  <div class="ita-cv-detail-sections" v-if="taak">
-    <section>
+  
+  <utrecht-alert v-if="error" appeareance="error">{{ error }}</utrecht-alert>
+  <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
+  
+  <div class="ita-cv-detail-sections">
+    <section v-if="taak">
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -23,7 +27,7 @@
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
-    <section class="contact-data">
+    <section  v-if="taak" class="contact-data">
       <utrecht-heading :level="2">Gegevens van contact</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -83,24 +87,98 @@
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
+
+    <section>
+      <utrecht-heading :level="2">Contactmoment bijwerken</utrecht-heading>
+      <form @submit.prevent="submit">
+        <utrecht-fieldset>
+          <utrecht-legend>Resultaat</utrecht-legend>
+          <utrecht-form-field type="radio">
+            <utrecht-radiobutton
+              name="contact-gelukt"
+              id="contact-gelukt"
+              :value="RESULTS.contactGelukt"
+              v-model="form.resultaat"
+              required
+            />
+            <utrecht-form-label for="contact-gelukt" type="radio">{{
+              RESULTS.contactGelukt
+            }}</utrecht-form-label>
+          </utrecht-form-field>
+          <utrecht-form-field type="radio">
+            <utrecht-radiobutton
+              name="contact-gelukt"
+              id="geen-gehoor"
+              :value="RESULTS.geenGehoor"
+              v-model="form.resultaat"
+              required
+            />
+            <utrecht-form-label for="geen-gehoor" type="radio">{{
+              RESULTS.geenGehoor
+            }}</utrecht-form-label>
+          </utrecht-form-field>
+        </utrecht-fieldset>
+        <utrecht-form-field>
+          <utrecht-form-label for="kanalen">Kanaal</utrecht-form-label>
+          <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
+        </utrecht-form-field>
+        <utrecht-form-field>
+          <utrecht-form-label for="informatie-burger"
+            >Informatie voor burger / bedrijf</utrecht-form-label
+          >
+          <utrecht-textarea
+            :required="form.resultaat === RESULTS.contactGelukt"
+            id="informatie-burger"
+            v-model="form.informatieBurger"
+          />
+        </utrecht-form-field>
+        <utrecht-button 
+          type="submit" 
+          appearance="primary-action-button"
+          :disabled="isLoading"
+        >
+          <span v-if="isLoading">Bezig met opslaan...</span>
+          <span v-else>Opslaan</span>
+        </utrecht-button>
+      </form>
+    </section>
+
+    <section>
+      <ContactverzoekContactmomenten :contactmomentNummer="cvId" />
+    </section>
   </div>
 </template>
 
 <script lang="ts" setup>
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
-
+import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { internetakenService } from '@/services/internetaken'
-import type { Internetaken, Actor } from '@/types/internetaken';
+import { klantcontactService, type CreateKlantcontactRequest } from "@/services/klantcontactService";
+import ContactverzoekContactmomenten from '@/components/ContactverzoekContactmomenten.vue';
+import type { Internetaken } from "@/types/internetaken";
+import { internetakenService } from "@/services/internetakenService";
+
+const RESULTS = {
+  contactGelukt: "Contact opnemen gelukt",
+  geenGehoor: "Contact opnemen niet gelukt"
+} as const;
 
 const first = (v: string | string[]) => Array.isArray(v) ? v[0] : v
 const route = useRoute();
 const cvId = computed(() => first(route.params.number));
 
 
-let taak = ref<Internetaken | null>(null);
+    const isLoading = ref(false);
+const error = ref<string | null>(null);
+const success = ref(false);
+
+
+
+
+
+const taak = ref<Internetaken | null>(null);
 
 onMounted(async () => {
   taak.value = await internetakenService.getInternetaak({ 
@@ -123,8 +201,90 @@ const email = computed(() =>
 const behandelaar = computed(() => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean) || '');
 const aangemaaktDoor = computed(() =>
   taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren?.map((x) => x.naam).find(Boolean) || ''
-);
 
+);
+// const zaakUuids = computed(() =>
+//   taak.value?.aanleidinggevendKlantcontact?.gingOverOnderwerpobjecten
+//     ?.map((x) => x.onderwerpobjectidentificator?.objectId)
+//     .filter(Boolean)
+// );
+// TODO:
+// 1. get zaak from openzaak by uuid
+// 2. show the zaaknummer in the data-list
+const kanalen = [
+  { label: "Selecteer een kanaal", value: "" },
+  ...["Balie", "Telefoon"].map((value) => ({ label: value, value }))
+];
+
+const form = ref({
+  resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
+  kanaal: "",
+  informatieBurger: ""
+});
+
+async function submit() {
+  error.value = null;
+  success.value = false;
+  
+  if (!form.value.kanaal) {
+    error.value = "Kies een kanaal voor het contactmoment";
+    return;
+  }
+  
+  if (form.value.resultaat !== RESULTS.geenGehoor && !form.value.informatieBurger) {
+    error.value = "Vul informatie voor de burger in";
+    return;
+  }
+  
+  isLoading.value = true;
+  
+  try {
+    const createRequest: CreateKlantcontactRequest = {
+      kanaal: form.value.kanaal,
+      onderwerp: taak.value?.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
+      inhoud: form.value.informatieBurger,
+      indicatieContactGelukt: form.value.resultaat === RESULTS.contactGelukt,
+      taal: "nld", // ISO 639-2/B formaat
+      vertrouwelijk: false,
+      plaatsgevondenOp: new Date().toISOString()
+    };
+    
+    let partijUuid: string | undefined = undefined;
+
+    if (taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]) {
+      const betrokkene = taak.value.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
+
+      if (betrokkene._expand?.wasPartij && 'uuid' in betrokkene._expand.wasPartij) {
+        partijUuid = betrokkene._expand.wasPartij.uuid;
+        console.log('Using partijUuid from expand.wasPartij:', partijUuid);
+      } 
+      // Als fallback, check ook direct in wasPartij
+      else if (betrokkene.wasPartij && 'uuid' in betrokkene.wasPartij) {
+        partijUuid = betrokkene.wasPartij.uuid;
+      }
+    }
+    
+    const aanleidinggevendKlantcontactUuid = taak.value?.aanleidinggevendKlantcontact?.uuid;
+    
+    await klantcontactService.createRelatedKlantcontact(
+      createRequest,
+      aanleidinggevendKlantcontactUuid, 
+      partijUuid
+    );
+        
+    success.value = true;
+    form.value = {
+      resultaat: RESULTS.contactGelukt,
+      kanaal: "",
+      informatieBurger: ""
+    };
+  } catch (err: unknown) {
+    console.error('Error bij aanmaken klantcontact:', err);
+    error.value =  err instanceof Error && err.message ? err.message : 'Er is een fout opgetreden bij het aanmaken van het contactmoment';
+  } finally {
+    isLoading.value = false;
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -153,5 +313,13 @@ const aangemaaktDoor = computed(() =>
       columns: 3;
     }
   }
+}
+
+.utrecht-form-label {
+  display: block;
+}
+
+.utrecht-alert {
+  margin-bottom: 1rem;
 }
 </style>
