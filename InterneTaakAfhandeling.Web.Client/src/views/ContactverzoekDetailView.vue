@@ -310,10 +310,6 @@ async function submit() {
 
   .utrecht-data-list {
     gap: 2rem;
-    // display: grid;
-    // grid-auto-flow: column;
-    // grid-template-rows: repeat(8, 1fr);
-    // grid-auto-columns: 10rem;
     max-width: fit-content;
 
     @container (min-width: 35rem) {
@@ -325,7 +321,6 @@ async function submit() {
     }
 
     > div {
-      // break-inside: avoid;
       &:not(:first-of-type) {
         margin-block-start: var(--utrecht-data-list-rows-item-margin-block-start);
       }
@@ -333,11 +328,6 @@ async function submit() {
   }
 
   .utrecht-data-list__item {
-    // --utrecht-data-list-rows-item-margin-block-start: 0;
-    // display: grid;
-    // grid-template-columns: subgrid;
-    // grid-template-rows: subgrid;
-    // grid-row: span 2;
     break-inside: avoid;
     display: block;
   }
