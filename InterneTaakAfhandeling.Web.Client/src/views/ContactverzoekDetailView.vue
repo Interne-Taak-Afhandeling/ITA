@@ -376,7 +376,7 @@ async function submit() {
     white-space: nowrap;
     overflow: hidden;
 
-    &[title] {
+    &[title]:not([title=""]) {
       user-select: all;
     }
   }
