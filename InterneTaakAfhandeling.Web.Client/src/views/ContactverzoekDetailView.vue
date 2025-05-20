@@ -340,6 +340,10 @@ async function submit() {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+
+    &[title] {
+      user-select: all;
+    }
   }
 }
 
