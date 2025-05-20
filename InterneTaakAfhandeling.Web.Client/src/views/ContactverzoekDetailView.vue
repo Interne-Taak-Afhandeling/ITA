@@ -52,13 +52,13 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>{{
-            phoneNumber1.omschrijving || "Telefoonnummer 1"
+            phoneNumber1?.omschrijving || "Telefoonnummer"
           }}</utrecht-data-list-key>
-          <utrecht-data-list-value :value="phoneNumber1.adres">{{
-            phoneNumber1.adres
+          <utrecht-data-list-value :value="phoneNumber1?.adres">{{
+            phoneNumber1?.adres
           }}</utrecht-data-list-value>
         </utrecht-data-list-item>
-        <utrecht-data-list-item class="ita-break-before-avoid" v-if="phoneNumber2.adres">
+        <utrecht-data-list-item class="ita-break-before-avoid" v-if="phoneNumber2?.adres">
           <utrecht-data-list-key>{{ phoneNumber2.omschrijving }}</utrecht-data-list-key>
           <utrecht-data-list-value :value="phoneNumber2.adres">{{
             phoneNumber2.adres
@@ -221,8 +221,12 @@ const phoneNumbers = computed(
       })) || []
 );
 
-const phoneNumber1 = computed(() => phoneNumbers.value?.[0]);
-const phoneNumber2 = computed(() => phoneNumbers.value?.[1]);
+const phoneNumber1 = computed(() =>
+  phoneNumbers.value.length > 0 ? phoneNumbers.value[0] : undefined
+);
+const phoneNumber2 = computed(() =>
+  phoneNumbers.value.length > 1 ? phoneNumbers.value[1] : undefined
+);
 const email = computed(
   () =>
     taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
