@@ -1,6 +1,7 @@
 
 
 
+using System.Text.Json.Serialization;
 using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
@@ -43,4 +44,28 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
             ToegewezenOp = DateTimeOffset.UtcNow;
         }
     }
+
+
+    public class InternetakenUpdateRequest
+    {
+        public required string Nummer { get; set; }
+
+        public required string GevraagdeHandeling { get; set; }
+
+        public required UuidObject AanleidinggevendKlantcontact { get; set; }
+
+        public required UuidObject ToegewezenAanActor { get; set; }
+         
+        public required string Toelichting { get; set; }
+
+        public required string Status { get; set; }
+         
+    }
+
+    public class UuidObject
+    {
+        public Guid Uuid { get; set; }
+    }
+
+
 }

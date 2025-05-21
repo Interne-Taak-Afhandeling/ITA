@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import { toast } from "@/components/toast/toast";
 import { ref } from "vue";
-import { userService } from "@/services/user";
+  import { userService } from "@/services/userService";
 const props = defineProps<{ id: string }>();
 
 const toewijzenAlertRef = ref<{ dialogRef?: HTMLDialogElement }>();
