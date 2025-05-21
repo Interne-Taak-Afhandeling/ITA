@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { authService } from '@/services/auth';
+import { authService } from '@/services/authService';
 import type { User } from '@/types/user';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -19,8 +19,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const currentUser = await authService.getCurrentUser();
       user.value = currentUser;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to initialize authentication';
+    } catch (err: unknown) {
+      error.value =  err instanceof Error && err.message ? err.message : 'Failed to initialize authentication';
       console.error('Auth initialization failed:', err);
     } finally {
       isLoading.value = false;
@@ -33,9 +33,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       await authService.login();
-    } catch (err: any) {
-      error.value = err.message || 'Login failed';
-      console.error('Login failed:', err);
+    } catch (err: unknown) {
+      error.value =  err instanceof Error && err.message ? err.message :  'Login failed';
     } finally {
       isLoading.value = false;
     }
@@ -48,8 +47,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await authService.logout();
       user.value = null;
-    } catch (err: any) {
-      error.value = err.message || 'Logout failed';
+    } catch (err: unknown) {
+      error.value =  err instanceof Error && err.message ? err.message :  'Logout failed';
       console.error('Logout failed:', err);
     } finally {
       isLoading.value = false;

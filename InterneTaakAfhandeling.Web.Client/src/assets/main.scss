@@ -68,7 +68,23 @@
     block-size: 2.5rem; // date and text inputs are not the same height otherwise...
   }
 
+  .preserve-newline {
+    white-space: pre-line;
+  }
+
   .ita-no-wrap {
     white-space: nowrap;
+  }
+
+  .ita-break-before-avoid {
+    break-before: avoid;
+  }
+
+  // label for required text/date/textarea inputs
+  .utrecht-form-field:has(:required:not([type="radio"], [type="checkbox"]))
+  .utrecht-form-label::after,
+  // legend for required radio / checkbox inputs
+  .utrecht-form-fieldset:has(:is([type=radio], [type=checkbox]):required) .utrecht-form-fieldset__legend::after {
+    content: " *";
   }
 }
