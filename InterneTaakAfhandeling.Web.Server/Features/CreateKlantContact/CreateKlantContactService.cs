@@ -93,13 +93,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 
             if (!string.IsNullOrEmpty(laatsteKlantcontactUuid))
             {
-                var onderwerpobject = await _klantcontactService.CreateOnderwerpobjectAsync(
+                var onderwerpobject = await _klantcontactService.CreateOnderwerpobjectKlantcontactAsync(
                     klantcontact.Uuid,
-                    laatsteKlantcontactUuid,
-                    laatsteKlantcontactUuid,
-                    "klantcontact",
-                    "openklant",
-                    "uuid");
+                    laatsteKlantcontactUuid);
 
                 result.Onderwerpobject = onderwerpobject;
             }

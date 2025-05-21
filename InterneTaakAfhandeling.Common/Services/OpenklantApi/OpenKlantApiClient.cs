@@ -163,7 +163,7 @@ public class OpenKlantApiClient(
 
     public async Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, Onderwerpobject onderwerpobject)
     {
-        var response = await _httpClient.PutAsJsonAsync($"onderwerpobjecten/{uuid}", onderwerpobject);
+        var response = await _httpClient.PatchAsJsonAsync($"onderwerpobjecten/{uuid}", onderwerpobject);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Onderwerpobject>()
             ?? throw new Exception("Kon onderwerpobject niet bijwerken (null response)");
@@ -184,7 +184,8 @@ public class OpenKlantApiClient(
 
     public async Task<List<Onderwerpobject>> GetOnderwerpobjectenByKlantcontactAsync(string klantcontactUuid)
     {
-        var response = await _httpClient.GetAsync($"onderwerpobjecten?klantcontact={klantcontactUuid}");
+        // Dit is de juiste query volgens de API specificatie
+        var response = await _httpClient.GetAsync($"onderwerpobjecten?klantcontact__uuid={klantcontactUuid}");
         response.EnsureSuccessStatusCode();
 
         var results = await response.Content.ReadFromJsonAsync<OnderwerpobjectResults>();

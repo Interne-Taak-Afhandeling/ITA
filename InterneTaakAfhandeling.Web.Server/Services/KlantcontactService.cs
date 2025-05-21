@@ -7,14 +7,11 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 {
     public interface IKlantcontactService
     {
-        // Bestaande methoden
         Task<Klantcontact?> GetEersteKlantcontactInKetenAsync(string klantcontactUuid);
         Task<List<Klantcontact>> BouwKlantcontactKetenAsync(string startKlantcontactUuid);
         Task<string> GetLaatsteKlantcontactUuidAsync(string klantcontactUuid);
-
-        // Methoden die nodig zijn voor het maken van een gerelateerd klantcontact
         Task<Actor> GetOrCreateActorAsync(string email, string? naam = null);
-        Task<Onderwerpobject> CreateOnderwerpobjectAsync(string klantcontactUuid, string wasKlantcontactUuid, string objectId, string codeObjecttype, string codeRegister, string codeSoortObjectId);
+        Task<Onderwerpobject> CreateOnderwerpobjectKlantcontactAsync(string klantcontactUuid, string wasKlantcontactUuid);
         Task<Betrokkene> CreateBetrokkeneAsync(string klantcontactUuid, string partijUuid);
     }
 
@@ -182,16 +179,10 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             return value[..(value.Length < 6 ? value.Length : 5)];
         }
 
-        public async Task<Onderwerpobject> CreateOnderwerpobjectAsync(
+        public async Task<Onderwerpobject> CreateOnderwerpobjectKlantcontactAsync(
             string klantcontactUuid,
-            string wasKlantcontactUuid,
-            string objectId = null,
-            string codeObjecttype = "klantcontact",
-            string codeRegister = "openklant",
-            string codeSoortObjectId = "uuid")
+            string wasKlantcontactUuid)
         {
-            // Als geen objectId is opgegeven, gebruik wasKlantcontactUuid als default
-            objectId = objectId ?? wasKlantcontactUuid;
 
             var onderwerpobject = new Onderwerpobject
             {
@@ -211,10 +202,10 @@ namespace InterneTaakAfhandeling.Web.Server.Services
                 },
                 Onderwerpobjectidentificator = new Onderwerpobjectidentificator
                 {
-                    ObjectId = objectId,
-                    CodeObjecttype = codeObjecttype,
-                    CodeRegister = codeRegister,
-                    CodeSoortObjectId = codeSoortObjectId
+                    ObjectId = wasKlantcontactUuid,
+                    CodeObjecttype = "klantcontact",
+                    CodeRegister = "openklant",
+                    CodeSoortObjectId = "uuid"
                 }
             };
 
