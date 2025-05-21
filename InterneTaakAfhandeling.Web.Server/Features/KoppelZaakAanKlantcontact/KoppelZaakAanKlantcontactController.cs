@@ -61,7 +61,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                     });
                 }
 
-                // Zoek de zaak in OpenZaak
                 _logger.LogInformation($"Zoeken naar zaak met identificatie: {request.ZaakIdentificatie}");
                 var zaak = await _zakenApiClient.GetZaakByIdentificatieAsync(request.ZaakIdentificatie);
 
@@ -75,7 +74,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                     });
                 }
 
-                // Direct het aanleidinggevend klantcontact ophalen
                 _logger.LogInformation($"Ophalen aanleidinggevend klantcontact met UUID: {request.AanleidinggevendKlantcontactUuid}");
                 var aanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(request.AanleidinggevendKlantcontactUuid);
 
@@ -89,7 +87,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                     });
                 }
 
-                // Maak of update het onderwerpobject
                 var onderwerpobject = await KoppelZaakAanOnderwerpobject(aanleidinggevendKlantcontact.Uuid, zaak.Uuid);
 
                 return Ok(new KoppelZaakAanKlantcontactResult
@@ -110,7 +107,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
         }
         private async Task<Onderwerpobject> KoppelZaakAanOnderwerpobject(string aanleidinggevendKlantcontactUuid, string zaakUuid)
         {
-            // Haal het klantcontact op met alle gerelateerde onderwerpobjecten
             _logger.LogInformation($"Ophalen klantcontact met UUID: {aanleidinggevendKlantcontactUuid}");
             var klantcontact = await _openKlantApiClient.GetKlantcontactAsync(aanleidinggevendKlantcontactUuid);
 
@@ -123,12 +119,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
             }
 
             Onderwerpobject? bestaandZaakOnderwerpobject = null;
+            int zaakOnderwerpobjectCount = 0;
 
             if (klantcontact.GingOverOnderwerpobjecten != null && klantcontact.GingOverOnderwerpobjecten.Any())
             {
                 _logger.LogInformation($"Klantcontact heeft {klantcontact.GingOverOnderwerpobjecten.Count} onderwerpobjecten");
 
-                // Loop door alle onderwerpobjecten om een bestaande zaak te vinden
                 foreach (var onderwerpobjectRef in klantcontact.GingOverOnderwerpobjecten)
                 {
                     var onderwerpobject = await _openKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid);
@@ -138,14 +134,24 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                         onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&
                         onderwerpobject.Onderwerpobjectidentificator.CodeRegister == "openzaak")
                     {
-                        // We hebben een onderwerpobject gevonden van type zaak (ongeacht welke zaak)
-                        _logger.LogInformation($"Bestaand zaak-onderwerpobject gevonden: {onderwerpobject.Uuid}");
-                        bestaandZaakOnderwerpobject = onderwerpobject;
+                        _logger.LogInformation($"Zaak-onderwerpobject gevonden: {onderwerpobject.Uuid}");
+                        zaakOnderwerpobjectCount++;
 
-                        // We nemen de eerste die we vinden
-                        break;
+                        if (bestaandZaakOnderwerpobject == null)
+                        {
+                            bestaandZaakOnderwerpobject = onderwerpobject;
+                        }
                     }
                 }
+            }
+
+            // Check of er meerdere zaak-gerelateerde onderwerpobjecten zijn
+            if (zaakOnderwerpobjectCount > 1)
+            {
+                _logger.LogWarning($"Klantcontact {aanleidinggevendKlantcontactUuid} heeft {zaakOnderwerpobjectCount} zaak-gerelateerde onderwerpobjecten. Het koppelen van een nieuwe zaak wordt niet ondersteund in deze situatie.");
+                throw new ConflictException(
+                    "Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit contact.",
+                    "MEERDERE_ZAKEN_GEKOPPELD");
             }
 
             var onderwerpobjectRequest = new Onderwerpobject

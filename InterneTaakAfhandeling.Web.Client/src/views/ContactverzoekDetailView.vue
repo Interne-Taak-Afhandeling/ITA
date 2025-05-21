@@ -1,6 +1,19 @@
 <template>
-  <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
-  <router-link to="/">Terug</router-link>
+  <div class="contactverzoek-header">
+    <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
+    <div class="contactverzoek-actions">
+      <KoppelZaakModal 
+        v-if="taak?.aanleidinggevendKlantcontact?.uuid" 
+        :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
+        :zaakIdentificatie="taak?.zaak?.identificatie"
+        @zaak-gekoppeld="handleZaakGekoppeld"
+      />
+    </div>
+  </div>
+  
+  <div class="back-link">
+    <router-link to="/" class="utrecht-link">Terug</router-link>
+  </div>
 
   <utrecht-alert v-if="error" appeareance="error">{{ error }}</utrecht-alert>
   <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
@@ -179,9 +192,10 @@ import {
   type CreateKlantcontactRequest
 } from "@/services/klantcontactService";
 import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
-import type { Internetaken } from "@/types/internetaken";
+import type { Internetaken, Zaak } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
+import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -197,6 +211,12 @@ const error = ref<string | null>(null);
 const success = ref(false);
 
 const taak = ref<Internetaken | null>(null);
+
+const handleZaakGekoppeld = (zaak: Zaak) => {
+  if (taak.value) {
+    taak.value.zaak = zaak;
+  }
+};
 
 onMounted(async () => {
   taak.value = await internetakenService.getInternetaak({
@@ -339,6 +359,17 @@ async function submit() {
 </script>
 
 <style lang="scss" scoped>
+.contactverzoek-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.back-link {
+  margin-bottom: 1.5rem;
+}
+
 .ita-cv-detail-sections {
   --_column-size: 42rem;
   display: grid;
