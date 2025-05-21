@@ -1,6 +1,5 @@
-using InterneTaakAfhandeling.Web.Server.Config; 
+using InterneTaakAfhandeling.Web.Server.Config;
 using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Web.Server.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,8 +22,6 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 // Add authentication middleware
 app.UseAuthentication();
 app.UseAuthorization();
@@ -32,6 +29,6 @@ app.UseAuthorization();
 app.UseItaSecurityHeaders();
 app.MapControllers();
 app.MapITAAuthEndpoints();
-app.MapFallbackToFile("/index.html"); 
+app.MapFallbackToFile("/index.html");
 
 app.Run();
