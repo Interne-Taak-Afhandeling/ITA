@@ -62,19 +62,17 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
                         return null;
                     }
 
-                    response.EnsureSuccessStatusCode(); // Gooit exception voor andere fouten
+                    response.EnsureSuccessStatusCode();
                 }
 
                 var results = await response.Content.ReadFromJsonAsync<ZaakResults>();
 
-                // Als er geen resultaten zijn, return null
                 if (results?.Results == null || results.Results.Count == 0)
                 {
                     _logger.LogInformation($"Geen zaken gevonden met identificatie: {identificatie}");
                     return null;
                 }
 
-                // Als er meerdere resultaten zijn, neem de eerste
                 if (results.Results.Count > 1)
                 {
                     _logger.LogWarning($"Meerdere zaken gevonden met identificatie: {identificatie}, de eerste wordt gebruikt");
@@ -90,7 +88,6 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
         }
     }
 
-    // Hulpklasse voor deserialisatie van de API-respons
     public class ZaakResults
     {
         public int Count { get; set; }

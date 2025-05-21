@@ -184,7 +184,6 @@ public class OpenKlantApiClient(
 
     public async Task<List<Onderwerpobject>> GetOnderwerpobjectenByKlantcontactAsync(string klantcontactUuid)
     {
-        // Dit is de juiste query volgens de API specificatie
         var response = await _httpClient.GetAsync($"onderwerpobjecten?klantcontact__uuid={klantcontactUuid}");
         response.EnsureSuccessStatusCode();
 
