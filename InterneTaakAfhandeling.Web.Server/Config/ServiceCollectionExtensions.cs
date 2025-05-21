@@ -41,6 +41,8 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
 
             services.AddScoped<IInternetakenService, InternetakenService>();
+            services.AddScoped<IKlantcontactService, KlantcontactService>();
+            services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
 
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 

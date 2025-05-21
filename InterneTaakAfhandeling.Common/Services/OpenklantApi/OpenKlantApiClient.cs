@@ -25,10 +25,14 @@ public interface IOpenKlantApiClient
     Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
-    Task<Onderwerpobject> CreateOnderwerpobjectAsync(Onderwerpobject request);
     Task<Internetaken?> GetInternetaak(string uuid);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
     Task<Internetaken?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters);
+
+    Task<Onderwerpobject> CreateOnderwerpobjectAsync(Onderwerpobject request);
+    Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, Onderwerpobject onderwerpobject);
+    Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid);
+    Task<List<Onderwerpobject>> GetOnderwerpobjectenByKlantcontactAsync(string klantcontactUuid);
 }
 
 public class OpenKlantApiClient(
@@ -154,6 +158,45 @@ public class OpenKlantApiClient(
             throw new ConflictException($"Error creating onderwerpobject: {ex.Message}",
                                        code: "ONDERWERPOBJECT_CREATION_ERROR");
         }
+    }
+
+
+    public async Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, Onderwerpobject onderwerpobject)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"onderwerpobjecten/{uuid}", onderwerpobject);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Onderwerpobject>()
+            ?? throw new Exception("Kon onderwerpobject niet bijwerken (null response)");
+    }
+
+    public async Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid)
+    {
+        var response = await _httpClient.GetAsync($"onderwerpobjecten/{uuid}");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
+    }
+
+    public async Task<List<Onderwerpobject>> GetOnderwerpobjectenByKlantcontactAsync(string klantcontactUuid)
+    {
+        var response = await _httpClient.GetAsync($"onderwerpobjecten?klantcontact={klantcontactUuid}");
+        response.EnsureSuccessStatusCode();
+
+        var results = await response.Content.ReadFromJsonAsync<OnderwerpobjectResults>();
+        return results?.Results ?? new List<Onderwerpobject>();
+    }
+
+    private class OnderwerpobjectResults
+    {
+        public int Count { get; set; }
+        public string? Next { get; set; }
+        public string? Previous { get; set; }
+        public List<Onderwerpobject> Results { get; set; } = new List<Onderwerpobject>();
     }
 
     public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
