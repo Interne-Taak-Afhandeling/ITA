@@ -16,6 +16,16 @@
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
+          <utrecht-data-list-key>Informatie voor burger / bedrijf</utrecht-data-list-key>
+          <utrecht-data-list-value
+            :value="taak?.aanleidinggevendKlantcontact?.inhoud"
+            multiline
+            class="preserve-newline"
+          >
+            {{ taak?.aanleidinggevendKlantcontact?.inhoud }}
+          </utrecht-data-list-value>
+        </utrecht-data-list-item>
+        <utrecht-data-list-item>
           <utrecht-spotlight-section>
             <utrecht-data-list-key>Interne toelichting KCC</utrecht-data-list-key>
             <utrecht-data-list-value :value="taak?.toelichting" multiline class="preserve-newline">
@@ -30,26 +40,31 @@
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Klantnaam</utrecht-data-list-key>
-          <utrecht-data-list-value
-            v-title-on-overflow
-            :value="taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam"
-          >
-            {{ taak?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?.volledigeNaam }}
+          <utrecht-data-list-value v-title-on-overflow :value="klantNaam">
+            {{ klantNaam }}
+          </utrecht-data-list-value>
+        </utrecht-data-list-item>
+        <utrecht-data-list-item v-if="organisatienaam" class="ita-break-before-avoid">
+          <utrecht-data-list-key>Organisatie</utrecht-data-list-key>
+          <utrecht-data-list-value v-title-on-overflow :value="organisatienaam">
+            {{ organisatienaam }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
-          <utrecht-data-list-key>Telefoonnummer</utrecht-data-list-key>
-          <utrecht-data-list-value :value="phoneNumber1">{{
-            phoneNumber1
+          <utrecht-data-list-key>{{
+            phoneNumber1?.omschrijving || "Telefoonnummer"
+          }}</utrecht-data-list-key>
+          <utrecht-data-list-value :value="phoneNumber1?.adres">{{
+            phoneNumber1?.adres
           }}</utrecht-data-list-value>
         </utrecht-data-list-item>
-        <utrecht-data-list-item>
-          <utrecht-data-list-key>Telefoonnummer 2</utrecht-data-list-key>
-          <utrecht-data-list-value :value="phoneNumber2">{{
-            phoneNumber2
+        <utrecht-data-list-item class="ita-break-before-avoid" v-if="phoneNumber2?.adres">
+          <utrecht-data-list-key>{{ phoneNumber2.omschrijving }}</utrecht-data-list-key>
+          <utrecht-data-list-value :value="phoneNumber2.adres">{{
+            phoneNumber2.adres
           }}</utrecht-data-list-value>
         </utrecht-data-list-item>
-        <utrecht-data-list-item>
+        <utrecht-data-list-item class="ita-break-before-avoid">
           <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
           <utrecht-data-list-value :value="email" v-title-on-overflow>{{
             email
@@ -188,6 +203,10 @@ onMounted(async () => {
     Nummer: String(cvId.value)
   });
 });
+
+const pascalCase = (s: string | undefined) =>
+  !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
+
 const phoneNumbers = computed(
   () =>
     taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
@@ -195,10 +214,19 @@ const phoneNumbers = computed(
         ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) =>
           soortDigitaalAdres === "telefoonnummer"
       )
-      .map(({ adres }: { adres?: string }) => adres || "") || []
+      .filter((x) => x.adres)
+      .map(({ adres, omschrijving }, i) => ({
+        adres,
+        omschrijving: pascalCase(omschrijving) || `Telefoonnummer ${i + 1}`
+      })) || []
 );
-const phoneNumber1 = computed(() => phoneNumbers.value?.[0]);
-const phoneNumber2 = computed(() => phoneNumbers.value?.[1]);
+
+const phoneNumber1 = computed(() =>
+  phoneNumbers.value.length > 0 ? phoneNumbers.value[0] : undefined
+);
+const phoneNumber2 = computed(() =>
+  phoneNumbers.value.length > 1 ? phoneNumbers.value[1] : undefined
+);
 const email = computed(
   () =>
     taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
@@ -216,6 +244,19 @@ const aangemaaktDoor = computed(
     taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren
       ?.map((x) => x.naam)
       .find(Boolean) || ""
+);
+
+const klantNaam = computed(() =>
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
+    ?.map((x) => x.volledigeNaam || x.organisatienaam)
+    .find(Boolean)
+);
+
+const organisatienaam = computed(() =>
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
+    ?.map((x) => x.organisatienaam)
+    .filter((x) => x !== klantNaam.value)
+    .find(Boolean)
 );
 
 const kanalen = [
@@ -319,12 +360,6 @@ async function submit() {
     @container (min-width: 42rem) {
       columns: 3;
     }
-
-    > div {
-      &:not(:first-of-type) {
-        margin-block-start: var(--utrecht-data-list-rows-item-margin-block-start);
-      }
-    }
   }
 
   .utrecht-data-list__item {
@@ -341,7 +376,7 @@ async function submit() {
     white-space: nowrap;
     overflow: hidden;
 
-    &[title] {
+    &[title]:not([title=""]) {
       user-select: all;
     }
   }
