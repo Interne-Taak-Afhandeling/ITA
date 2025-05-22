@@ -456,15 +456,8 @@ public class OpenKlantApiClient(
         var response = await _httpClient.GetAsync($"internetaken/{uuid}");
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<Internetaken>();
-
-        if (content == null)
-        {
-            _logger.LogWarning("Internetaken with UUID {Uuid} not found.", uuid);
-            return null;
-        }
-
-        return content;
+        return await response.Content.ReadFromJsonAsync<Internetaken>();
+        
     }
 
     public async Task<Internetaken> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid)
