@@ -181,7 +181,8 @@
     </section>
 
     <section>
-      <ContactverzoekContactmomenten :contactmomentNummer="cvId" />
+      <utrecht-heading :level="2"> Contactmomenten</utrecht-heading>
+      <contactverzoek-contactmomenten v-if="taak" :taak="taak" />
     </section>
   </div>
 </template>
