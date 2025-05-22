@@ -38,7 +38,6 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddITAApiClients(configuration); 
 
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
 
             services.AddScoped<IInternetakenService, InternetakenService>();
             services.AddScoped<IKlantcontactService, KlantcontactService>();

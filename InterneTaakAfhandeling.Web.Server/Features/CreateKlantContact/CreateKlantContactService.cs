@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.Helpers;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Services;
@@ -77,7 +78,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 }
             }
 
-            var actor = await _klantcontactService.GetOrCreateActorAsync(userEmail, userName);
+            var actor = await GetOrCreateActorAsync(userEmail, userName);
             var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(klantcontactRequest);
             var actorKlantcontactRequest = new ActorKlantcontactRequest
             {
@@ -93,7 +94,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 
             if (!string.IsNullOrEmpty(laatsteKlantcontactUuid))
             {
-                var onderwerpobject = await _klantcontactService.CreateOnderwerpobjectKlantcontactAsync(
+                var onderwerpobject = await CreateOnderwerpobjectKlantcontactAsync(
                     klantcontact.Uuid,
                     laatsteKlantcontactUuid);
 
@@ -119,7 +120,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                         _logger.LogInformation($"Creating betrokkene using provided partijUuid: {parsedprovidedPartijUuid}");
                     }
 
-                    var betrokkene = await _klantcontactService.CreateBetrokkeneAsync(klantcontactUuid, providedPartijUuid);
+                    var betrokkene = await CreateBetrokkeneAsync(klantcontactUuid, providedPartijUuid);
                     result.Betrokkene = betrokkene;
                     return;
                 }
@@ -127,6 +128,162 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Could not create betrokkene for klantcontact {klantcontactUuid}");
+            }
+        }
+
+        private async Task<Actor> GetOrCreateActorAsync(string email, string? naam = null)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new ConflictException(
+                    "Email must not be empty",
+                    "EMPTY_EMAIL_ADDRESS");
+            }
+
+            Actor? actor = null;
+            try
+            {
+                actor = await _openKlantApiClient.GetActorByEmail(email);
+            }
+            catch (Exception ex)
+            {
+                var safeEmailId = SecureLogging.CreateSafeIdentifier(email);
+                _logger.LogError(ex, $"Error retrieving actor by email identifier {safeEmailId}");
+                throw new ConflictException(
+                    $"Error retrieving actor by email: {ex.Message}",
+                    "ACTOR_RETRIEVAL_ERROR");
+            }
+
+            if (actor == null)
+            {
+                var actorRequest = new ActorRequest
+                {
+                    Naam = naam ?? email,
+                    SoortActor = "medewerker",
+                    IndicatieActief = true,
+                    Actoridentificator = new Actoridentificator
+                    {
+                        ObjectId = email,
+                        CodeObjecttype = "mdw",
+                        CodeRegister = "msei",
+                        CodeSoortObjectId = "email"
+                    },
+                    ActorIdentificatie = new ActorIdentificatie
+                    {
+                        Emailadres = email
+                    }
+                };
+
+                try
+                {
+                    actor = await _openKlantApiClient.CreateActorAsync(actorRequest);
+                }
+                catch (Exception ex)
+                {
+                    var safeActorId = SecureLogging.CreateSafeIdentifier(actorRequest.Naam);
+                    _logger.LogError(ex, $"Error creating actor with identifier {safeActorId}");
+                    throw new ConflictException(
+                        $"Error creating actor: {ex.Message}",
+                        "ACTOR_CREATION_ERROR");
+                }
+            }
+
+            if (actor == null)
+            {
+                throw new ConflictException(
+                    "Failed to get or create actor",
+                    "ACTOR_CREATION_FAILED");
+            }
+
+            return actor;
+        }
+
+        private async Task<Onderwerpobject> CreateOnderwerpobjectKlantcontactAsync(
+            string klantcontactUuid,
+            string wasKlantcontactUuid)
+        {
+            var onderwerpobject = new Onderwerpobject
+            {
+                Uuid = string.Empty,
+                Url = string.Empty,
+                Klantcontact = new Klantcontact
+                {
+                    Uuid = klantcontactUuid,
+                    Url = $"/klantinteracties/api/v1/klantcontacten/{klantcontactUuid}",
+                    HadBetrokkenActoren = new List<Actor>()
+                },
+                WasKlantcontact = new Klantcontact
+                {
+                    Uuid = wasKlantcontactUuid,
+                    Url = $"/klantinteracties/api/v1/klantcontacten/{wasKlantcontactUuid}",
+                    HadBetrokkenActoren = new List<Actor>()
+                },
+                Onderwerpobjectidentificator = new Onderwerpobjectidentificator
+                {
+                    ObjectId = wasKlantcontactUuid,
+                    CodeObjecttype = "klantcontact",
+                    CodeRegister = "openklant",
+                    CodeSoortObjectId = "uuid"
+                }
+            };
+
+            try
+            {
+                return await _openKlantApiClient.CreateOnderwerpobjectAsync(onderwerpobject);
+            }
+            catch (Exception ex)
+            {
+                throw new ConflictException(
+                    $"Error creating onderwerpobject: {ex.Message}",
+                    "ONDERWERPOBJECT_CREATION_ERROR");
+            }
+        }
+
+        private async Task<Betrokkene> CreateBetrokkeneAsync(string klantcontactUuid, string partijUuid)
+        {
+            if (string.IsNullOrEmpty(klantcontactUuid) || string.IsNullOrEmpty(partijUuid))
+            {
+                throw new ConflictException(
+                    "Both klantcontact UUID and partij UUID are required to create a betrokkene",
+                    "MISSING_REQUIRED_UUIDS");
+            }
+
+            var betrokkeneRequest = new BetrokkeneRequest
+            {
+                WasPartij = new PartijReference
+                {
+                    Uuid = partijUuid
+                },
+                HadKlantcontact = new KlantcontactReference
+                {
+                    Uuid = klantcontactUuid
+                },
+                Rol = "klant",
+                Initiator = true
+            };
+
+            try
+            {
+                var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontactUuid);
+                var safePartijUuid = SecureLogging.SanitizeUuid(partijUuid);
+                _logger.LogInformation($"Creating betrokkene for klantcontact {safeKlantcontactUuid} and partij {safePartijUuid}");
+
+                var betrokkene = await _openKlantApiClient.CreateBetrokkeneAsync(betrokkeneRequest);
+
+                var safeBetrokkeneUuid = SecureLogging.SanitizeUuid(betrokkene.Uuid);
+                _logger.LogInformation($"Successfully created betrokkene {safeBetrokkeneUuid}");
+
+                return betrokkene;
+            }
+            catch (Exception ex)
+            {
+                var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontactUuid);
+                var safePartijUuid = SecureLogging.SanitizeUuid(partijUuid);
+                _logger.LogError(ex, $"Error creating betrokkene for klantcontact {safeKlantcontactUuid} and partij {safePartijUuid}");
+
+                throw new ConflictException(
+                    $"Error creating betrokkene: {ex.Message}",
+                    "BETROKKENE_CREATION_ERROR");
             }
         }
     }

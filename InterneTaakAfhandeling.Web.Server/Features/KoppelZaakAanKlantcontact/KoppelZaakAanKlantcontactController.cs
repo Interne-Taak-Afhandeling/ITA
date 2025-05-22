@@ -17,18 +17,15 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
     {
         private readonly IZakenApiClient _zakenApiClient;
         private readonly IOpenKlantApiClient _openKlantApiClient;
-        private readonly IKlantcontactService _klantcontactService;
         private readonly ILogger<KoppelZaakAanKlantcontactController> _logger;
 
         public KoppelZaakAanKlantcontactController(
             IZakenApiClient zakenApiClient,
             IOpenKlantApiClient openKlantApiClient,
-            IKlantcontactService klantcontactService,
             ILogger<KoppelZaakAanKlantcontactController> logger)
         {
             _zakenApiClient = zakenApiClient ?? throw new ArgumentNullException(nameof(zakenApiClient));
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
-            _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
