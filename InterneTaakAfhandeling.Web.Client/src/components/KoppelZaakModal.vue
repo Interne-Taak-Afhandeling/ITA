@@ -118,9 +118,14 @@ const koppelZaak = async () => {
     }
 
     const result = await response.json();
-    toast.add({ text: "Zaak succesvol gekoppeld", type: "ok" });
-    emit('zaakGekoppeld', result.zaak);
-    closeModal();
+    
+    if (result.zaak) {
+      toast.add({ text: "Zaak succesvol gekoppeld", type: "ok" });
+      emit('zaakGekoppeld', result.zaak);
+      closeModal();
+    } else {
+      throw new Error('Geen zaakgegevens ontvangen van de server');
+    }
   } catch (err: unknown) {
     console.error('Error bij koppelen zaak:', err);
     error.value = err instanceof Error && err.message 

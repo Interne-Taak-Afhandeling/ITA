@@ -48,7 +48,7 @@
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
-    <section v-if="taak" class="contact-data">
+    <section v-if="taak" class="contact-data" :key="`contact-data-${sectionKey}`">
       <utrecht-heading :level="2">Gegevens van contact</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -205,23 +205,28 @@ const RESULTS = {
 const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
 const route = useRoute();
 const cvId = computed(() => first(route.params.number));
-
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
-
 const taak = ref<Internetaken | null>(null);
 
+// Reactive key voor section re-render
+const sectionKey = ref(0);
 const handleZaakGekoppeld = (zaak: Zaak) => {
   if (taak.value) {
     taak.value.zaak = zaak;
+    sectionKey.value++;
   }
 };
 
-onMounted(async () => {
+const loadTaak = async () => {
   taak.value = await internetakenService.getInternetaak({
     Nummer: String(cvId.value)
   });
+};
+
+onMounted(async () => {
+  await loadTaak();
 });
 
 const pascalCase = (s: string | undefined) =>
