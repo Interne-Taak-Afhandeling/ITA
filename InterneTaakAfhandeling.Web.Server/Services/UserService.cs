@@ -21,8 +21,11 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             var actor = await GetActor(user) ?? throw new Exception("Actor not found.");
 
             var internetaken = await _openKlantApiClient.GetInternetakenByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
+            var actors = internetaken.ToegewezenAanActoren?.Where(x => x.SoortActor != SoortActor.medewerker.ToString()).ToList() ?? [];
 
-            internetaken.ToegewezenAanActoren = [actor];
+            actors.Add(actor);
+
+            internetaken.ToegewezenAanActoren = actors;
 
             return await _openKlantApiClient.UpdateInternetakenAsync(internetaken.MapToUpdateRequest(), internetaken.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
 
@@ -96,8 +99,6 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         }
         private async Task<Actor?> GetActor(ITAUser user)
         {
-            Actor? actor = null;
-
 
             if (!string.IsNullOrWhiteSpace(user.ObjectregisterMedewerkerId))
             {
@@ -113,44 +114,11 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 
                 if (fromObjecten != null)
                 {
-                    actor = fromObjecten;
+                    return fromObjecten;
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(user.Email) && actor == null)
-            {
-                var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
-                {
-                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
-                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
-                    IndicatieActief = true,
-                    SoortActor = SoortActor.medewerker,
-                    ActoridentificatorObjectId = user.Email
-                });
-
-                if (fromEntra != null)
-                {
-                    actor = fromEntra;
-                }
-
-                var fromHandmatig = await _openKlantApiClient.QueryActorAsync(new ActorQuery
-                {
-                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
-                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
-                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId,
-                    IndicatieActief = true,
-                    SoortActor = SoortActor.medewerker,
-                    ActoridentificatorObjectId = user.Email
-                });
-
-                if (fromHandmatig != null)
-                {
-                    actor = fromHandmatig;
-                }
-            }
-
-            return actor;
+            return null;
         }
 
     }
