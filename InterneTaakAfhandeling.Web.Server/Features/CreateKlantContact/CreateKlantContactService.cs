@@ -56,7 +56,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                     //we don't add all new klantcontacten that take place during the handling of an internetaak to the original klantcontact
                     //instead, we add each klantcontact to the previous klantcontact. this creates a chain of klantcontacten
                     //here we have to find the last one in the change and we will link the new klantcontact that we are creating here to that one 
-                    laatsteKlantcontactUuid = await _klantcontactService.GetLaatsteKlantcontactUuidAsync(aanleidinggevendKlantcontactUuid);
+                    laatsteKlantcontactUuid = await GetLaatsteKlantcontactUuidAsync(aanleidinggevendKlantcontactUuid);
 
                     if (!string.IsNullOrEmpty(laatsteKlantcontactUuid) && laatsteKlantcontactUuid != aanleidinggevendKlantcontactUuid)
                     {
@@ -104,6 +104,26 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             await CreateBetrokkeneRelationshipAsync(result, klantcontact.Uuid, partijUuid);
 
             return result;
+        }
+
+        private async Task<string> GetLaatsteKlantcontactUuidAsync(string klantcontactUuid)
+        {
+            try
+            {
+                var ketenVolgorde = await _klantcontactService.BouwKlantcontactKetenAsync(klantcontactUuid);
+                ketenVolgorde.Reverse(); // Nieuwste bovenaan
+
+                return ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid;
+            }
+            catch (Exception ex)
+            {
+                if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
+                {
+                    _logger.LogWarning(ex, $"Could not determine latest klantcontact in chain, using original {parsedKlantcontactUuid}");
+                }
+
+                return klantcontactUuid;
+            }
         }
 
         private async Task CreateBetrokkeneRelationshipAsync(

@@ -9,7 +9,6 @@ namespace InterneTaakAfhandeling.Web.Server.Services
     {
         Task<Klantcontact?> GetEersteKlantcontactInKetenAsync(string klantcontactUuid);
         Task<List<Klantcontact>> BouwKlantcontactKetenAsync(string startKlantcontactUuid);
-        Task<string> GetLaatsteKlantcontactUuidAsync(string klantcontactUuid);
     }
 
     public class KlantcontactService : IKlantcontactService
@@ -43,26 +42,6 @@ namespace InterneTaakAfhandeling.Web.Server.Services
                 throw new ConflictException(
                     $"Fout bij bepalen eerste klantcontact in keten: {ex.Message}",
                     "KLANTCONTACT_KETEN_BEPALEN_FOUT");
-            }
-        }
-
-        public async Task<string> GetLaatsteKlantcontactUuidAsync(string klantcontactUuid)
-        {
-            try
-            {
-                var ketenVolgorde = await BouwKlantcontactKetenAsync(klantcontactUuid);
-                ketenVolgorde.Reverse(); // Nieuwste bovenaan
-
-                return ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid;
-            }
-            catch (Exception ex)
-            {
-                if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
-                {
-                    _logger.LogWarning(ex, $"Could not determine latest klantcontact in chain, using original {parsedKlantcontactUuid}");
-                }
-
-                return klantcontactUuid;
             }
         }
 
