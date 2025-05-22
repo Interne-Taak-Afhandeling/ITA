@@ -180,10 +180,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                         CodeObjecttype = "mdw",
                         CodeRegister = "msei",
                         CodeSoortObjectId = "email"
-                    },
-                    ActorIdentificatie = new ActorIdentificatie
-                    {
-                        Emailadres = email
                     }
                 };
 
