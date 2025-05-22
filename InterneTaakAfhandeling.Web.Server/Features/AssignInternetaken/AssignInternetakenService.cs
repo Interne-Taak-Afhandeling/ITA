@@ -19,13 +19,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaken
             var actor = await GetActor(user) ?? throw new Exception("Actor not found.");
 
             var internetaken = await _openKlantApiClient.GetInternetakenByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
-            List<Actor> actors = [];
 
-            foreach (var toegewezenAanActor in internetaken.ToegewezenAanActoren ?? [])
-            {
-                actors.Add(await _openKlantApiClient.GetActorAsync(toegewezenAanActor.Uuid));
-            }
-            actors = internetaken.ToegewezenAanActoren?.Where(x => x.SoortActor != SoortActor.medewerker.ToString()).ToList() ?? [];
+            var actorTasks = internetaken.ToegewezenAanActoren?.Select(x => _openKlantApiClient.GetActorAsync(x.Uuid)) ?? [];
+            var actors = (await Task.WhenAll(actorTasks)).Where(x => x.SoortActor != SoortActor.medewerker.ToString()).ToList() ?? [];
 
             actors.Add(actor);
 
@@ -49,8 +45,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaken
                     SoortActor = SoortActor.medewerker,
                     ActoridentificatorObjectId = user.Email
                 });
-
-
 
                 return fromEntra;
 
