@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.Helpers;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using Microsoft.Extensions.Logging;
@@ -125,7 +126,8 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error retrieving actor by email {Mask(email)}");
+                var safeEmailId = SecureLogging.CreateSafeIdentifier(email);
+                _logger.LogError(ex, $"Error retrieving actor by email identifier {safeEmailId}");
                 throw new ConflictException(
                     $"Error retrieving actor by email: {ex.Message}",
                     "ACTOR_RETRIEVAL_ERROR");
@@ -157,7 +159,8 @@ namespace InterneTaakAfhandeling.Web.Server.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error creating actor for {Mask(actorRequest.Naam)}");
+                    var safeActorId = SecureLogging.CreateSafeIdentifier(actorRequest.Naam);
+                    _logger.LogError(ex, $"Error creating actor with identifier {safeActorId}");
                     throw new ConflictException(
                         $"Error creating actor: {ex.Message}",
                         "ACTOR_CREATION_ERROR");
@@ -172,11 +175,6 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             }
 
             return actor;
-        }
-
-        private static string Mask(string value)
-        {
-            return value[..(value.Length < 6 ? value.Length : 5)];
         }
 
         public async Task<Onderwerpobject> CreateOnderwerpobjectKlantcontactAsync(
@@ -246,27 +244,22 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 
             try
             {
-                if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
-                {
-                    if (Guid.TryParse(partijUuid, out Guid parsedPartijUuid))
-                    {
-                        _logger.LogInformation($"Creating betrokkene for klantcontact {parsedKlantcontactUuid} and partij {parsedPartijUuid}");
-                    }
-                }
+                var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontactUuid);
+                var safePartijUuid = SecureLogging.SanitizeUuid(partijUuid);
+                _logger.LogInformation($"Creating betrokkene for klantcontact {safeKlantcontactUuid} and partij {safePartijUuid}");
 
                 var betrokkene = await _openKlantApiClient.CreateBetrokkeneAsync(betrokkeneRequest);
-                _logger.LogInformation($"Successfully created betrokkene {betrokkene.Uuid}");
+
+                var safeBetrokkeneUuid = SecureLogging.SanitizeUuid(betrokkene.Uuid);
+                _logger.LogInformation($"Successfully created betrokkene {safeBetrokkeneUuid}");
+
                 return betrokkene;
             }
             catch (Exception ex)
             {
-                if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
-                {
-                    if (Guid.TryParse(partijUuid, out Guid parsedPartijUuid))
-                    {
-                        _logger.LogError(ex, $"Error creating betrokkene for klantcontact {parsedKlantcontactUuid} and partij {parsedPartijUuid}");
-                    }
-                }
+                var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontactUuid);
+                var safePartijUuid = SecureLogging.SanitizeUuid(partijUuid);
+                _logger.LogError(ex, $"Error creating betrokkene for klantcontact {safeKlantcontactUuid} and partij {safePartijUuid}");
 
                 throw new ConflictException(
                     $"Error creating betrokkene: {ex.Message}",
