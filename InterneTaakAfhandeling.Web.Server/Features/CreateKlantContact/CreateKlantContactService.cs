@@ -222,22 +222,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             string klantcontactUuid,
             string wasKlantcontactUuid)
         {
-            var onderwerpobject = new Onderwerpobject
+            var request = new KlantcontactOnderwerpobjectRequest
             {
-                Uuid = string.Empty,
-                Url = string.Empty,
-                Klantcontact = new Klantcontact
-                {
-                    Uuid = klantcontactUuid,
-                    Url = $"/klantinteracties/api/v1/klantcontacten/{klantcontactUuid}",
-                    HadBetrokkenActoren = new List<Actor>()
-                },
-                WasKlantcontact = new Klantcontact
-                {
-                    Uuid = wasKlantcontactUuid,
-                    Url = $"/klantinteracties/api/v1/klantcontacten/{wasKlantcontactUuid}",
-                    HadBetrokkenActoren = new List<Actor>()
-                },
+                Klantcontact = new KlantcontactReference { Uuid = klantcontactUuid },
+                WasKlantcontact = new KlantcontactReference { Uuid = wasKlantcontactUuid },
                 Onderwerpobjectidentificator = new Onderwerpobjectidentificator
                 {
                     ObjectId = wasKlantcontactUuid,
@@ -249,7 +237,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 
             try
             {
-                return await _openKlantApiClient.CreateOnderwerpobjectAsync(onderwerpobject);
+                return await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
             }
             catch (Exception ex)
             {

@@ -150,15 +150,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                     "MEERDERE_ZAKEN_GEKOPPELD");
             }
 
-            var onderwerpobjectRequest = new Onderwerpobject
+            var request = new KlantcontactOnderwerpobjectRequest
             {
-                Klantcontact = new Klantcontact
-                {
-                    Uuid = klantcontact.Uuid,
-                    Url = klantcontact.Url
-                },
-                // WasKlantcontact opzettelijk null laten
-                WasKlantcontact = null,
+                Klantcontact = new KlantcontactReference { Uuid = klantcontact.Uuid },
+                WasKlantcontact = null, // opzettelijk null voor zaak-koppeling
                 Onderwerpobjectidentificator = new Onderwerpobjectidentificator
                 {
                     ObjectId = zaakUuid,
@@ -174,16 +169,15 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                 var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
                 _logger.LogInformation($"Bijwerken bestaand zaak-onderwerpobject {safeOnderwerpUuid} met nieuwe zaak {safeZaakUuid}");
 
-                return await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, onderwerpobjectRequest);
+                return await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, request);
             }
             else
             {
                 var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
                 var safeKlantUuid = SecureLogging.SanitizeUuid(klantcontact.Uuid);
                 _logger.LogInformation($"Aanmaken nieuw onderwerpobject voor zaak {safeZaakUuid} en klantcontact {safeKlantUuid}");
-                var result = await _openKlantApiClient.CreateOnderwerpobjectAsync(onderwerpobjectRequest);
 
-                return result;
+                return await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
             }
         }
     }
