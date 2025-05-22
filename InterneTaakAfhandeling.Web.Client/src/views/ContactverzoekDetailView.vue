@@ -12,8 +12,14 @@
   <utrecht-alert v-if="error" appeareance="error">{{ error }}</utrecht-alert>
   <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
 
-  <div class="ita-cv-detail-sections">
-    <section v-if="taak">
+  <simple-spinner v-if="isLoadingTaak" />
+
+  <utrecht-alert v-else-if="!taak && !isLoadingTaak" appeareance="error">
+    Dit contactverzoek bestaat niet of is niet meer beschikbaar.
+  </utrecht-alert>
+
+  <div v-else-if="taak" class="ita-cv-detail-sections">
+    <section>
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -42,7 +48,7 @@
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
-    <section v-if="taak" class="contact-data">
+    <section class="contact-data">
       <utrecht-heading :level="2">Gegevens van contact</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -179,6 +185,7 @@
 import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
 import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import {
@@ -201,15 +208,23 @@ const route = useRoute();
 const cvId = computed(() => first(route.params.number));
 
 const isLoading = ref(false);
+const isLoadingTaak = ref(false);
 const error = ref<string | null>(null);
 const success = ref(false);
 
 const taak = ref<Internetaken | null>(null);
 
 onMounted(async () => {
-  taak.value = await internetakenService.getInternetaak({
-    Nummer: String(cvId.value)
-  });
+  isLoadingTaak.value = true;
+  try {
+    taak.value = await internetakenService.getInternetaak({
+      Nummer: String(cvId.value)
+    });
+  } catch (err: unknown) {
+    console.error("Error loading contactverzoek:", err);
+  } finally {
+    isLoadingTaak.value = false;
+  }
 });
 
 const pascalCase = (s: string | undefined) =>
@@ -279,6 +294,11 @@ const form = ref({
 });
 
 async function submit() {
+  if (!taak.value) {
+    error.value = "Kan geen contactmoment aanmaken voor een niet-bestaand contactverzoek";
+    return;
+  }
+
   error.value = null;
   success.value = false;
 
