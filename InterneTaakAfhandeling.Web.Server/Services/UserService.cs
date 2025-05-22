@@ -1,7 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenklantApi;
 using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Mapper;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 
@@ -10,26 +9,12 @@ namespace InterneTaakAfhandeling.Web.Server.Services
     public interface IUserService
     {
         Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user);
-        Task<Internetaken> AssignInternetakenToSelfAsync(string internetakenId, ITAUser user);
     }
     public class UserService(IOpenKlantApiClient openKlantApiClient) : IUserService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
 
-        public async Task<Internetaken> AssignInternetakenToSelfAsync(string internetakenId, ITAUser user)
-        {
-            var actor = await GetActor(user) ?? throw new Exception("Actor not found.");
 
-            var internetaken = await _openKlantApiClient.GetInternetakenByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
-            var actors = internetaken.ToegewezenAanActoren?.Where(x => x.SoortActor != SoortActor.medewerker.ToString()).ToList() ?? [];
-
-            actors.Add(actor);
-
-            internetaken.ToegewezenAanActoren = actors;
-
-            return await _openKlantApiClient.UpdateInternetakenAsync(internetaken.MapToUpdateRequest(), internetaken.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
-
-        }
         public async Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user)
         {
             var actorIds = await GetActorIds(user);
@@ -96,29 +81,6 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             }
 
             return actorIds;
-        }
-        private async Task<Actor?> GetActor(ITAUser user)
-        {
-
-            if (!string.IsNullOrWhiteSpace(user.ObjectregisterMedewerkerId))
-            {
-                var fromObjecten = await _openKlantApiClient.QueryActorAsync(new ActorQuery
-                {
-                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectregisterId.CodeObjecttype,
-                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister,
-                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId,
-                    IndicatieActief = true,
-                    SoortActor = SoortActor.medewerker,
-                    ActoridentificatorObjectId = user.ObjectregisterMedewerkerId
-                });
-
-                if (fromObjecten != null)
-                {
-                    return fromObjecten;
-                }
-            }
-
-            return null;
         }
 
     }

@@ -7,6 +7,6 @@ export const userService = {
     return get<Internetaken[]>('/api/myinternetaken/internetaken');
   },
     assignInternetakenToSelf: (id: string): Promise<boolean> => {
-      return post<boolean>(`/api/internetaken/${id}/assign-to-self`, {});
+      return post<boolean>(`/api/assigninternetaken/${id}/to-self`, {});
   }
 };
