@@ -6,14 +6,6 @@
         public required string SoortActor { get; set; } = "medewerker";
         public bool IndicatieActief { get; set; } = true;
         public required Actoridentificator Actoridentificator { get; set; }
-        public ActorIdentificatie? ActorIdentificatie { get; set; }
-    }
-
-    public class ActorIdentificatie
-    {
-        public string? Functie { get; set; }
-        public string? Emailadres { get; set; }
-        public string? Telefoonnummer { get; set; }
     }
 
     public class ActorReference
