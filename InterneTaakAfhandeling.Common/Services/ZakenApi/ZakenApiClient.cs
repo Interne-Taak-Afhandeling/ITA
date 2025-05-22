@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
 using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -49,13 +50,14 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
             try
             {
                 var queryString = $"?identificatie={Uri.EscapeDataString(identificatie)}";
-                _logger.LogInformation($"Zoeken naar zaak met identificatie: {identificatie}, URL: zaken/api/v1/zaken{queryString}");
+                var safeIdentificatie = SecureLogging.SanitizeAndTruncate(identificatie, 50);
+                _logger.LogInformation($"Zoeken naar zaak met identificatie: {safeIdentificatie}, URL: zaken/api/v1/zaken{queryString}");
 
                 var response = await _httpClient.GetAsync($"zaken/api/v1/zaken{queryString}");
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning($"Zoekopdracht naar zaak met identificatie {identificatie} retourneerde status {response.StatusCode}");
+                    _logger.LogWarning($"Zoekopdracht naar zaak met identificatie {safeIdentificatie} retourneerde status {response.StatusCode}");
 
                     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     {
@@ -69,20 +71,21 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
 
                 if (results?.Results == null || results.Results.Count == 0)
                 {
-                    _logger.LogInformation($"Geen zaken gevonden met identificatie: {identificatie}");
+                    _logger.LogInformation($"Geen zaken gevonden met identificatie: {safeIdentificatie}");
                     return null;
                 }
 
                 if (results.Results.Count > 1)
                 {
-                    _logger.LogWarning($"Meerdere zaken gevonden met identificatie: {identificatie}, de eerste wordt gebruikt");
+                    _logger.LogWarning($"Meerdere zaken gevonden met identificatie: {safeIdentificatie}, de eerste wordt gebruikt");
                 }
 
                 return results.Results[0];
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Fout bij ophalen van zaak met identificatie: {identificatie}");
+                var safeIdentificatie = SecureLogging.SanitizeAndTruncate(identificatie, 50);
+                _logger.LogError(ex, $"Fout bij ophalen van zaak met identificatie: {safeIdentificatie}");
                 throw;
             }
         }
