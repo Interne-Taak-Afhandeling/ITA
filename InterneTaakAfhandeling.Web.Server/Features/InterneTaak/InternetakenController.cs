@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Web.Server.Services;
+﻿using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,8 +8,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class InternetakenController(IInternetakenService internetakenService) : Controller
+    public class InternetakenController(IInternetakenService internetakenService, IUserService userService, ITAUser user) : Controller
     {
+        private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
         private readonly IInternetakenService _internetakenService = internetakenService;
 
@@ -19,6 +21,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
         {
             var intertakens = await _internetakenService.Get(interneTaakQueryParameters);
             return Ok(intertakens);
+        }
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPost("{internetakenId}/assign-to-self")]
+        public async Task<IActionResult> AssignInternetakenToSelfAsync([FromRoute] string internetakenId)
+        {
+            return Ok(await _userService.AssignInternetakenToSelfAsync(internetakenId, user));
         }
 
     }

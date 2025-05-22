@@ -10,16 +10,19 @@
     </div>
   </div>
 </template>
+ 
+<script lang="ts">
+  import { computed } from "vue";
 
-<script lang="ts" >
-export default {
-  name: 'UtrechtAlert',
-  props: {
-    appeareance: {
-      type: String,
-      default: 'info',
-      validator: (value : string) => ['info', 'error', 'warning', 'ok', 'success'].includes(value)
+  export type AlertType = "info" | "ok" | "warning" | "error"; 
+  export default {
+    name: 'UtrechtAlert',
+    props: {
+      appeareance: {
+        type: String,
+        default: 'info',
+        validator: (value: string) => ['info', 'error', 'warning', 'ok', 'success'].includes(value)
+      }
     }
   }
-}
 </script>

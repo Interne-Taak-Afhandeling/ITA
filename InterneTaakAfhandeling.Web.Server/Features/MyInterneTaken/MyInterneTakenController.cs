@@ -17,8 +17,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public class MyInterneTakenController(IOpenKlantApiClient openKlantApiClient, IUserService userService, ITAUser user) : Controller
     {
-        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
-        private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+           private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
 
         [ProducesResponseType(typeof(List<InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models.Internetaken>), StatusCodes.Status200OK)]
@@ -42,5 +41,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
 
             return Ok(result);
         }
+ 
+      
     }
 }

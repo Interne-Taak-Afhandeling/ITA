@@ -31,7 +31,9 @@ import {
   DataListKey as UtrechtDataListKey,
   DataListValue as UtrechtDataListValue,
   Textarea as UtrechtTextarea,
-  RadioButton as UtrechtRadiobutton
+  RadioButton as UtrechtRadiobutton,
+  AlertDialog as UtrechtAlertDialog,
+  ButtonGroup as UtrechtButtonGroup,
 } from "@utrecht/component-library-vue";
 
 const components = {
@@ -65,7 +67,9 @@ const components = {
   UtrechtDataListKey,
   UtrechtDataListValue,
   UtrechtTextarea,
-  UtrechtRadiobutton
+  UtrechtRadiobutton,
+  UtrechtAlertDialog,
+  UtrechtButtonGroup
 } as const;
 
 export type OurComponents = typeof components;
