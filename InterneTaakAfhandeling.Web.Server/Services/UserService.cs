@@ -22,7 +22,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 
             var internetaken = await _openKlantApiClient.GetInternetakenByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
 
-            internetaken.ToegewezenAanActor = actor;
+            internetaken.ToegewezenAanActoren = [actor];
 
             return await _openKlantApiClient.UpdateInternetakenAsync(internetaken.MapToUpdateRequest(), internetaken.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
 
