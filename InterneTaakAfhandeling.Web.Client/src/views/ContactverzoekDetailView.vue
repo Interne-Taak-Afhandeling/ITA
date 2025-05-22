@@ -7,13 +7,13 @@
     <utrecht-button-group v-if="taak?.uuid">
       <assign-contactverzoek-to-myself :id="taak.uuid" />
     </utrecht-button-group>
-  </div> 
+  </div>
 
   <utrecht-alert v-if="error" appeareance="error">{{ error }}</utrecht-alert>
   <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
 
   <div class="ita-cv-detail-sections">
-    <section v-if="taak"> 
+    <section v-if="taak">
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -24,9 +24,11 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Informatie voor burger / bedrijf</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak?.aanleidinggevendKlantcontact?.inhoud"
-                                   multiline
-                                   class="preserve-newline">
+          <utrecht-data-list-value
+            :value="taak?.aanleidinggevendKlantcontact?.inhoud"
+            multiline
+            class="preserve-newline"
+          >
             {{ taak?.aanleidinggevendKlantcontact?.inhoud }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
@@ -57,38 +59,28 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>
-            {{
-            phoneNumber1?.omschrijving || "Telefoonnummer"
-            }}
+            {{ phoneNumber1?.omschrijving || "Telefoonnummer" }}
           </utrecht-data-list-key>
           <utrecht-data-list-value :value="phoneNumber1?.adres">
-            {{
-            phoneNumber1?.adres
-            }}
+            {{ phoneNumber1?.adres }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item class="ita-break-before-avoid" v-if="phoneNumber2?.adres">
           <utrecht-data-list-key>{{ phoneNumber2.omschrijving }}</utrecht-data-list-key>
           <utrecht-data-list-value :value="phoneNumber2.adres">
-            {{
-            phoneNumber2.adres
-            }}
+            {{ phoneNumber2.adres }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item class="ita-break-before-avoid">
           <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
           <utrecht-data-list-value :value="email" v-title-on-overflow>
-            {{
-            email
-            }}
+            {{ email }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Gekoppelde zaak</utrecht-data-list-key>
           <utrecht-data-list-value v-title-on-overflow :value="taak?.zaak?.identificatie">
-            {{
-            taak?.zaak?.identificatie
-            }}
+            {{ taak?.zaak?.identificatie }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
@@ -99,31 +91,28 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak?.aanleidinggevendKlantcontact?.kanaal"
-                                   v-title-on-overflow>{{ taak?.aanleidinggevendKlantcontact?.kanaal }}</utrecht-data-list-value>
+          <utrecht-data-list-value
+            :value="taak?.aanleidinggevendKlantcontact?.kanaal"
+            v-title-on-overflow
+            >{{ taak?.aanleidinggevendKlantcontact?.kanaal }}</utrecht-data-list-value
+          >
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Behandelaar</utrecht-data-list-key>
           <utrecht-data-list-value v-title-on-overflow :value="behandelaar">
-            {{
-            behandelaar
-            }}
+            {{ behandelaar }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Status</utrecht-data-list-key>
           <utrecht-data-list-value :value="taak?.status">
-            {{
-            taak?.status
-            }}
+            {{ taak?.status }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Aangemaakt door</utrecht-data-list-key>
           <utrecht-data-list-value v-title-on-overflow :value="aangemaaktDoor">
-            {{
-            aangemaaktDoor
-            }}
+            {{ aangemaaktDoor }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
       </utrecht-data-list>
@@ -135,27 +124,27 @@
         <utrecht-fieldset>
           <utrecht-legend>Resultaat</utrecht-legend>
           <utrecht-form-field type="radio">
-            <utrecht-radiobutton name="contact-gelukt"
-                                 id="contact-gelukt"
-                                 :value="RESULTS.contactGelukt"
-                                 v-model="form.resultaat"
-                                 required />
+            <utrecht-radiobutton
+              name="contact-gelukt"
+              id="contact-gelukt"
+              :value="RESULTS.contactGelukt"
+              v-model="form.resultaat"
+              required
+            />
             <utrecht-form-label for="contact-gelukt" type="radio">
-              {{
-              RESULTS.contactGelukt
-              }}
+              {{ RESULTS.contactGelukt }}
             </utrecht-form-label>
           </utrecht-form-field>
           <utrecht-form-field type="radio">
-            <utrecht-radiobutton name="contact-gelukt"
-                                 id="geen-gehoor"
-                                 :value="RESULTS.geenGehoor"
-                                 v-model="form.resultaat"
-                                 required />
+            <utrecht-radiobutton
+              name="contact-gelukt"
+              id="geen-gehoor"
+              :value="RESULTS.geenGehoor"
+              v-model="form.resultaat"
+              required
+            />
             <utrecht-form-label for="geen-gehoor" type="radio">
-              {{
-              RESULTS.geenGehoor
-              }}
+              {{ RESULTS.geenGehoor }}
             </utrecht-form-label>
           </utrecht-form-field>
         </utrecht-fieldset>
@@ -164,10 +153,14 @@
           <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
         </utrecht-form-field>
         <utrecht-form-field>
-          <utrecht-form-label for="informatie-burger">Informatie voor burger / bedrijf</utrecht-form-label>
-          <utrecht-textarea :required="form.resultaat === RESULTS.contactGelukt"
-                            id="informatie-burger"
-                            v-model="form.informatieBurger" />
+          <utrecht-form-label for="informatie-burger"
+            >Informatie voor burger / bedrijf</utrecht-form-label
+          >
+          <utrecht-textarea
+            :required="form.resultaat === RESULTS.contactGelukt"
+            id="informatie-burger"
+            v-model="form.informatieBurger"
+          />
         </utrecht-form-field>
         <utrecht-button type="submit" appearance="primary-action-button" :disabled="isLoading">
           <span v-if="isLoading">Bezig met opslaan...</span>
@@ -183,174 +176,174 @@
 </template>
 
 <script lang="ts" setup>
-  import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
-  import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
-  import UtrechtAlert from "@/components/UtrechtAlert.vue";
-  import { computed, onMounted, ref } from "vue";
-  import { useRoute } from "vue-router";
-  import {
-    klantcontactService,
-    type CreateKlantcontactRequest
-  } from "@/services/klantcontactService";
-  import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
-  import type { Internetaken } from "@/types/internetaken";
-  import { internetakenService } from "@/services/internetakenService";
-  import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
-  import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
+import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
+import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
+import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import {
+  klantcontactService,
+  type CreateKlantcontactRequest
+} from "@/services/klantcontactService";
+import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
+import type { Internetaken } from "@/types/internetaken";
+import { internetakenService } from "@/services/internetakenService";
+import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
+import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
 
-  const RESULTS = {
-    contactGelukt: "Contact opnemen gelukt",
-    geenGehoor: "Contact opnemen niet gelukt"
-  } as const;
+const RESULTS = {
+  contactGelukt: "Contact opnemen gelukt",
+  geenGehoor: "Contact opnemen niet gelukt"
+} as const;
 
-  const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
-  const route = useRoute();
-  const cvId = computed(() => first(route.params.number));
+const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
+const route = useRoute();
+const cvId = computed(() => first(route.params.number));
 
-  const isLoading = ref(false);
-  const error = ref<string | null>(null);
-  const success = ref(false);
+const isLoading = ref(false);
+const error = ref<string | null>(null);
+const success = ref(false);
 
-  const taak = ref<Internetaken | null>(null);
+const taak = ref<Internetaken | null>(null);
 
-  onMounted(async () => {
-    taak.value = await internetakenService.getInternetaak({
-      Nummer: String(cvId.value)
-    });
+onMounted(async () => {
+  taak.value = await internetakenService.getInternetaak({
+    Nummer: String(cvId.value)
   });
+});
 
-  const pascalCase = (s: string | undefined) =>
-    !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
+const pascalCase = (s: string | undefined) =>
+  !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
 
-  const phoneNumbers = computed(
-    () =>
-      taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
-        ?.filter(
-          ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) =>
-            soortDigitaalAdres === "telefoonnummer"
-        )
-        .filter((x) => x.adres)
-        .map(({ adres, omschrijving }, i) => ({
-          adres,
-          omschrijving: pascalCase(omschrijving) || `Telefoonnummer ${i + 1}`
-        })) || []
-  );
+const phoneNumbers = computed(
+  () =>
+    taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
+      ?.filter(
+        ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) =>
+          soortDigitaalAdres === "telefoonnummer"
+      )
+      .filter((x) => x.adres)
+      .map(({ adres, omschrijving }, i) => ({
+        adres,
+        omschrijving: pascalCase(omschrijving) || `Telefoonnummer ${i + 1}`
+      })) || []
+);
 
-  const phoneNumber1 = computed(() =>
-    phoneNumbers.value.length > 0 ? phoneNumbers.value[0] : undefined
-  );
-  const phoneNumber2 = computed(() =>
-    phoneNumbers.value.length > 1 ? phoneNumbers.value[1] : undefined
-  );
-  const email = computed(
-    () =>
-      taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
-        ?.filter(
-          ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "email"
-        )
-        .map(({ adres }: { adres?: string }) => adres || "")
-        .find(Boolean) || ""
-  );
-  const behandelaar = computed(
-    () => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean) || ""
-  );
-  const aangemaaktDoor = computed(
-    () =>
-      taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren
-        ?.map((x) => x.naam)
-        .find(Boolean) || ""
-  );
+const phoneNumber1 = computed(() =>
+  phoneNumbers.value.length > 0 ? phoneNumbers.value[0] : undefined
+);
+const phoneNumber2 = computed(() =>
+  phoneNumbers.value.length > 1 ? phoneNumbers.value[1] : undefined
+);
+const email = computed(
+  () =>
+    taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
+      ?.filter(
+        ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "email"
+      )
+      .map(({ adres }: { adres?: string }) => adres || "")
+      .find(Boolean) || ""
+);
+const behandelaar = computed(
+  () => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean) || ""
+);
+const aangemaaktDoor = computed(
+  () =>
+    taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren
+      ?.map((x) => x.naam)
+      .find(Boolean) || ""
+);
 
-  const klantNaam = computed(() =>
-    taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
-      ?.map((x) => x.volledigeNaam || x.organisatienaam)
-      .find(Boolean)
-  );
+const klantNaam = computed(() =>
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
+    ?.map((x) => x.volledigeNaam || x.organisatienaam)
+    .find(Boolean)
+);
 
-  const organisatienaam = computed(() =>
-    taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
-      ?.map((x) => x.organisatienaam)
-      .filter((x) => x !== klantNaam.value)
-      .find(Boolean)
-  );
+const organisatienaam = computed(() =>
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
+    ?.map((x) => x.organisatienaam)
+    .filter((x) => x !== klantNaam.value)
+    .find(Boolean)
+);
 
-  const kanalen = [
-    { label: "Selecteer een kanaal", value: "" },
-    ...["Balie", "Telefoon"].map((value) => ({ label: value, value }))
-  ];
+const kanalen = [
+  { label: "Selecteer een kanaal", value: "" },
+  ...["Balie", "Telefoon"].map((value) => ({ label: value, value }))
+];
 
-  const form = ref({
-    resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
-    kanaal: "",
-    informatieBurger: ""
-  });
+const form = ref({
+  resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
+  kanaal: "",
+  informatieBurger: ""
+});
 
-  async function submit() {
-    error.value = null;
-    success.value = false;
+async function submit() {
+  error.value = null;
+  success.value = false;
 
-    if (!form.value.kanaal) {
-      error.value = "Kies een kanaal voor het contactmoment";
-      return;
-    }
-
-    if (form.value.resultaat !== RESULTS.geenGehoor && !form.value.informatieBurger) {
-      error.value = "Vul informatie voor de burger in";
-      return;
-    }
-
-    isLoading.value = true;
-
-    try {
-      const createRequest: CreateKlantcontactRequest = {
-        kanaal: form.value.kanaal,
-        onderwerp: taak.value?.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
-        inhoud: form.value.informatieBurger,
-        indicatieContactGelukt: form.value.resultaat === RESULTS.contactGelukt,
-        taal: "nld", // ISO 639-2/B formaat
-        vertrouwelijk: false,
-        plaatsgevondenOp: new Date().toISOString()
-      };
-
-      let partijUuid: string | undefined = undefined;
-
-      if (taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]) {
-        const betrokkene = taak.value.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
-
-        if (betrokkene._expand?.wasPartij && "uuid" in betrokkene._expand.wasPartij) {
-          partijUuid = betrokkene._expand.wasPartij.uuid;
-          console.log("Using partijUuid from expand.wasPartij:", partijUuid);
-        }
-        // Als fallback, check ook direct in wasPartij
-        else if (betrokkene.wasPartij && "uuid" in betrokkene.wasPartij) {
-          partijUuid = betrokkene.wasPartij.uuid;
-        }
-      }
-
-      const aanleidinggevendKlantcontactUuid = taak.value?.aanleidinggevendKlantcontact?.uuid;
-
-      await klantcontactService.createRelatedKlantcontact(
-        createRequest,
-        aanleidinggevendKlantcontactUuid,
-        partijUuid
-      );
-
-      success.value = true;
-      form.value = {
-        resultaat: RESULTS.contactGelukt,
-        kanaal: "",
-        informatieBurger: ""
-      };
-    } catch (err: unknown) {
-      console.error("Error bij aanmaken klantcontact:", err);
-      error.value =
-        err instanceof Error && err.message
-          ? err.message
-          : "Er is een fout opgetreden bij het aanmaken van het contactmoment";
-    } finally {
-      isLoading.value = false;
-    }
+  if (!form.value.kanaal) {
+    error.value = "Kies een kanaal voor het contactmoment";
+    return;
   }
+
+  if (form.value.resultaat !== RESULTS.geenGehoor && !form.value.informatieBurger) {
+    error.value = "Vul informatie voor de burger in";
+    return;
+  }
+
+  isLoading.value = true;
+
+  try {
+    const createRequest: CreateKlantcontactRequest = {
+      kanaal: form.value.kanaal,
+      onderwerp: taak.value?.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
+      inhoud: form.value.informatieBurger,
+      indicatieContactGelukt: form.value.resultaat === RESULTS.contactGelukt,
+      taal: "nld", // ISO 639-2/B formaat
+      vertrouwelijk: false,
+      plaatsgevondenOp: new Date().toISOString()
+    };
+
+    let partijUuid: string | undefined = undefined;
+
+    if (taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]) {
+      const betrokkene = taak.value.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
+
+      if (betrokkene._expand?.wasPartij && "uuid" in betrokkene._expand.wasPartij) {
+        partijUuid = betrokkene._expand.wasPartij.uuid;
+        console.log("Using partijUuid from expand.wasPartij:", partijUuid);
+      }
+      // Als fallback, check ook direct in wasPartij
+      else if (betrokkene.wasPartij && "uuid" in betrokkene.wasPartij) {
+        partijUuid = betrokkene.wasPartij.uuid;
+      }
+    }
+
+    const aanleidinggevendKlantcontactUuid = taak.value?.aanleidinggevendKlantcontact?.uuid;
+
+    await klantcontactService.createRelatedKlantcontact(
+      createRequest,
+      aanleidinggevendKlantcontactUuid,
+      partijUuid
+    );
+
+    success.value = true;
+    form.value = {
+      resultaat: RESULTS.contactGelukt,
+      kanaal: "",
+      informatieBurger: ""
+    };
+  } catch (err: unknown) {
+    console.error("Error bij aanmaken klantcontact:", err);
+    error.value =
+      err instanceof Error && err.message
+        ? err.message
+        : "Er is een fout opgetreden bij het aanmaken van het contactmoment";
+  } finally {
+    isLoading.value = false;
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -360,58 +353,58 @@
   column-gap: var(--ita-cv-details-sections-column-gap);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_column-size)), 1fr));
 }
-  .ita-dv-detail-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
+.ita-dv-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
 
-    > :first-child {
-      min-inline-size: 100%;
-    }
-    }
+  > :first-child {
+    min-inline-size: 100%;
+  }
+}
 
-    .contact-data {
-      container-type: inline-size;
+.contact-data {
+  container-type: inline-size;
 
-      .utrecht-data-list {
-        gap: 2rem;
-        max-width: fit-content;
+  .utrecht-data-list {
+    gap: 2rem;
+    max-width: fit-content;
 
-        @container (min-width: 35rem) {
-          columns: 2;
-        }
-
-        @container (min-width: 42rem) {
-          columns: 3;
-        }
-      }
-
-      .utrecht-data-list__item {
-        break-inside: avoid;
-        display: block;
-      }
-
-      .utrecht-data-list__item-key {
-        inline-size: max-content;
-      }
-
-      .utrecht-data-list__item-value {
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-
-        &[title]:not([title=""]) {
-          user-select: all;
-        }
-      }
+    @container (min-width: 35rem) {
+      columns: 2;
     }
 
-    .utrecht-form-label {
-      display: block;
+    @container (min-width: 42rem) {
+      columns: 3;
     }
+  }
 
-    .utrecht-alert {
-      margin-bottom: 1rem;
+  .utrecht-data-list__item {
+    break-inside: avoid;
+    display: block;
+  }
+
+  .utrecht-data-list__item-key {
+    inline-size: max-content;
+  }
+
+  .utrecht-data-list__item-value {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
+    &[title]:not([title=""]) {
+      user-select: all;
     }
+  }
+}
+
+.utrecht-form-label {
+  display: block;
+}
+
+.utrecht-alert {
+  margin-bottom: 1rem;
+}
 </style>
