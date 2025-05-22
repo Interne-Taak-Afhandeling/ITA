@@ -14,9 +14,7 @@
           <utrecht-heading :level="2">{{ isZaakGekoppeld ? 'Zaakkoppeling wijzigen' : 'Koppel aan zaak' }}</utrecht-heading>
           
           <utrecht-paragraph>
-            {{ isZaakGekoppeld 
-                ? 'Welke zaak wil je koppelen aan dit contact? Let op: ' + props.zaakIdentificatie + ' wordt vervangen.' 
-               : 'Aan welke zaak wil je dit contact koppelen?' }}
+            {{ 'Aan welke zaak wil je dit contact koppelen?' }}
           </utrecht-paragraph>
           
           <utrecht-form-field>
