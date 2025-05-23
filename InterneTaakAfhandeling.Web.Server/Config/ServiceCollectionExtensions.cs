@@ -4,6 +4,7 @@ using InterneTaakAfhandeling.Common.Extensions;
 using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
@@ -39,8 +40,8 @@ namespace InterneTaakAfhandeling.Web.Server.Config
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
-
             services.AddScoped<IInternetakenService, InternetakenService>();
+            services.AddScoped<IContactmomentenService, ContactmomentenService>();
 
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 
