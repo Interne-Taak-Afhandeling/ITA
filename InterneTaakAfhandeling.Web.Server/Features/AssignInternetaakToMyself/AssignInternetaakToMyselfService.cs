@@ -20,21 +20,21 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
 
             var internetaken = await _openKlantApiClient.GetInternetakenByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
 
-            var assignedActors = await GetAssignedActors(internetaken);
+            var actors = await GetAssignedOrganisationalUnitActors(internetaken);
 
-            assignedActors.Add(currentUserActor);
+            actors.Add(currentUserActor);
 
-            internetaken.ToegewezenAanActoren = assignedActors;
+            internetaken.ToegewezenAanActoren = actors;
 
             return await _openKlantApiClient.UpdateInternetakenAsync(internetaken.MapToUpdateRequest(), internetaken.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
 
         }
 
-        private async Task<List<Actor>> GetAssignedActors(Common.Services.OpenKlantApi.Models.Internetaken internetaken)
+        private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Common.Services.OpenKlantApi.Models.Internetaken internetaken)
         {
             var internetaakActorTasks = internetaken.ToegewezenAanActoren?.Select(x => _openKlantApiClient.GetActorAsync(x.Uuid)) ?? [];
-            var actors = (await Task.WhenAll(internetaakActorTasks)).Where(x => x.SoortActor != SoortActor.medewerker.ToString()).ToList() ?? [];
-            return actors;
+            var notMedewerkerActors = (await Task.WhenAll(internetaakActorTasks)).Where(x => x.SoortActor != SoortActor.medewerker.ToString()).ToList() ?? [];
+            return notMedewerkerActors;
         }
 
         private async Task<Actor?> GetActor(ITAUser user)
