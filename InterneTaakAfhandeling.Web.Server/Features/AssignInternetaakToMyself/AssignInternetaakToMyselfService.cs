@@ -1,7 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenklantApi;
 using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Mapper;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 
@@ -24,9 +23,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
 
             actors.Add(currentUserActor);
 
-            internetaken.ToegewezenAanActoren = actors;
+            var internetakenUpdateRequest = new InternetakenUpdateRequest
+            {
+                Nummer = internetaken.Nummer,
+                GevraagdeHandeling = internetaken.GevraagdeHandeling,
+                AanleidinggevendKlantcontact = new UuidObject { Uuid = Guid.Parse(internetaken.AanleidinggevendKlantcontact.Uuid) },
+                ToegewezenAanActoren = actors
+            .Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })
+            .ToList(),
+                Toelichting = internetaken.Toelichting ?? string.Empty,
+                Status = internetaken.Status
+            };
 
-            return await _openKlantApiClient.UpdateInternetakenAsync(internetaken.MapToUpdateRequest(), internetaken.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
+            return await _openKlantApiClient.UpdateInternetakenAsync(internetakenUpdateRequest, internetaken.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
 
         }
 

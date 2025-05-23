@@ -54,7 +54,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
         public required UuidObject AanleidinggevendKlantcontact { get; set; }
 
-        public required UuidObject ToegewezenAanActor { get; set; }
+        public required List<UuidObject> ToegewezenAanActoren { get; set; }
          
         public required string Toelichting { get; set; }
 
