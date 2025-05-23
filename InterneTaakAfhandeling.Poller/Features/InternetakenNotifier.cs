@@ -1,4 +1,5 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
@@ -26,7 +27,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly IEmailContentService _emailContentService;
     private readonly IZakenApiClient _zakenApiClient;
     private readonly INotifierStateService _notifierStateService;
-
+    private readonly IContactmomentenService _contactmomentenService;
     private const string EmailCodeSoortObjectId = "email";
     private const string HandmatigCodeRegister = "handmatig";
 
@@ -38,7 +39,8 @@ public class InternetakenNotifier : IInternetakenProcessor
         IObjectApiClient objectApiClient,
         IEmailContentService emailContentService,
         IZakenApiClient zakenApiClient,
-        INotifierStateService notifierStateService)
+        INotifierStateService notifierStateService,
+        IContactmomentenService contactmomentenService)
     {
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
@@ -49,6 +51,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
         _zakenApiClient = zakenApiClient ?? throw new ArgumentNullException(nameof(zakenApiClient));
         _notifierStateService = notifierStateService ?? throw new ArgumentNullException(nameof(notifierStateService));
+        _contactmomentenService = contactmomentenService ?? throw new ArgumentNullException(nameof(contactmomentenService));
     }
 
     public async Task NotifyAboutNewInternetakenAsync()
@@ -116,7 +119,8 @@ public class InternetakenNotifier : IInternetakenProcessor
 
                 Zaak? zaak = null;
 
-                var onderwerpObjectId = klantContact.Expand?.GingOverOnderwerpobjecten?.FirstOrDefault()?.Onderwerpobjectidentificator?.ObjectId;
+                var onderwerpObjectId = _contactmomentenService.GetZaakOnderwerpObject(klantContact);
+
                 if (!string.IsNullOrEmpty(onderwerpObjectId))
                 {
                     zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
@@ -144,6 +148,8 @@ public class InternetakenNotifier : IInternetakenProcessor
         return new ProcessingResult(success, Guid.Parse(internetaken.Uuid), internetaken.ToegewezenOp, errorMessage);
 
     }
+
+
 
     private async Task<List<string>> ResolveActorsEmailAsync(Internetaken internetaken)
     {
