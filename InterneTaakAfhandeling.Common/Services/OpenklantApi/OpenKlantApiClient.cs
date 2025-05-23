@@ -1,6 +1,3 @@
-using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Web;
@@ -29,6 +26,8 @@ public interface IOpenKlantApiClient
     Task<Internetaken?> GetInternetaak(string uuid);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
     Task<Internetaken?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters);
+    Task<Internetaken> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
+    Task<Internetaken?> GetInternetakenByIdAsync(string uuid);
 }
 
 public class OpenKlantApiClient(
@@ -221,7 +220,8 @@ public class OpenKlantApiClient(
 
     public async Task<Klantcontact> GetKlantcontactAsync(string uuid)
     {
-        if (Guid.TryParse(uuid, out Guid parsedUuid)) {
+        if (Guid.TryParse(uuid, out Guid parsedUuid))
+        {
             _logger.LogInformation("Fetching klantcontact {parsedUuid}", parsedUuid);
         }
 
@@ -451,6 +451,31 @@ public class OpenKlantApiClient(
             return [];
         }
     }
+    public async Task<Internetaken?> GetInternetakenByIdAsync(string uuid)
+    {
+        var response = await _httpClient.GetAsync($"internetaken/{uuid}");
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<Internetaken>();
+        
+    }
+
+    public async Task<Internetaken> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsync($"internetaken/{uuid}", JsonContent.Create(internetakenUpdateRequest));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadFromJsonAsync<Internetaken>();
+
+            return content ?? throw new InvalidOperationException("Failed to update Internetaken. The response content is null.");
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"Failed to update Internetaken: {e}");
+        }
+    }
 
     private class KlantcontactResponse
     {
@@ -459,13 +484,6 @@ public class OpenKlantApiClient(
         public string? Previous { get; set; }
         public List<Klantcontact> Results { get; set; } = [];
     }
-
-    //public async Task<Klantcontact?> GetKlantcontact(string uuid)
-    //{
-    //    var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=gingOverOnderwerpobjecten");
-    //    response.EnsureSuccessStatusCode();
-    //    return await response.Content.ReadFromJsonAsync<Klantcontact>();
-    //}
 
 
     public class ConflictException : Exception

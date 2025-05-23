@@ -1,0 +1,72 @@
+﻿using InterneTaakAfhandeling.Common.Services.OpenklantApi;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Authentication;
+
+namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
+{
+    public interface IAssignInternetaakToMyselfService
+    {
+        Task<Common.Services.OpenKlantApi.Models.Internetaken> ToSelfAsync(string internetakenId, ITAUser user);
+    }
+    public class AssignInternetaakToMyselfService(IOpenKlantApiClient openKlantApiClient) : IAssignInternetaakToMyselfService
+    {
+        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
+        public async Task<Common.Services.OpenKlantApi.Models.Internetaken> ToSelfAsync(string internetakenId, ITAUser user)
+        {
+            var currentUserActor = await GetActor(user) ?? throw new Exception("Actor not found.");
+
+            var internetaken = await _openKlantApiClient.GetInternetakenByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
+
+            var actors = await GetAssignedOrganisationalUnitActors(internetaken);
+
+            actors.Add(currentUserActor);
+
+            var internetakenUpdateRequest = new InternetakenUpdateRequest
+            {
+                Nummer = internetaken.Nummer,
+                GevraagdeHandeling = internetaken.GevraagdeHandeling,
+                AanleidinggevendKlantcontact = new UuidObject { Uuid = Guid.Parse(internetaken.AanleidinggevendKlantcontact.Uuid) },
+                ToegewezenAanActoren = actors
+            .Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })
+            .ToList(),
+                Toelichting = internetaken.Toelichting ?? string.Empty,
+                Status = internetaken.Status
+            };
+
+            return await _openKlantApiClient.UpdateInternetakenAsync(internetakenUpdateRequest, internetaken.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
+
+        }
+
+        private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Common.Services.OpenKlantApi.Models.Internetaken internetaken)
+        {
+            var internetaakActorTasks = internetaken.ToegewezenAanActoren?.Select(x => _openKlantApiClient.GetActorAsync(x.Uuid)) ?? [];
+            var notMedewerkerActors = (await Task.WhenAll(internetaakActorTasks)).Where(x => x.SoortActor != SoortActor.medewerker.ToString()).ToList() ?? [];
+            return notMedewerkerActors;
+        }
+
+        private async Task<Actor?> GetActor(ITAUser user)
+        {
+
+            if (!string.IsNullOrWhiteSpace(user.Email))
+            {
+                var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.medewerker,
+                    ActoridentificatorObjectId = user.Email
+                });
+
+                return fromEntra;
+
+            }
+
+            return null;
+        }
+
+    }
+}
