@@ -6,6 +6,7 @@ using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
 using InterneTaakAfhandeling.Common.Services.OpenklantApi;
+using InterneTaakAfhandeling.Web.Server.Services;
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
