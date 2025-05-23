@@ -1,9 +1,10 @@
+using InterneTaakAfhandeling.Common.Extensions;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features;
-using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Web.Server.Services;
-using InterneTaakAfhandeling.Web.Server.Middleware;
+using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself;
 using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
+using InterneTaakAfhandeling.Web.Server.Middleware;
+using InterneTaakAfhandeling.Web.Server.Services;
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
@@ -11,20 +12,20 @@ namespace InterneTaakAfhandeling.Web.Server.Config
     {
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
-            
-            services.AddControllers(); 
+
+            services.AddControllers();
             services.AddRouting(options =>
             {
-             options.LowercaseUrls = true;
-             options.LowercaseQueryStrings = true;
+                options.LowercaseUrls = true;
+                options.LowercaseQueryStrings = true;
             });
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
             services.AddSingleton<ResourcesConfig>();
-            
+
             services.AddAuth(options =>
           {
-              options.Authority = GetRequiredConfigValue(configuration,"OIDC_AUTHORITY");
+              options.Authority = GetRequiredConfigValue(configuration, "OIDC_AUTHORITY");
               options.ClientId = GetRequiredConfigValue(configuration, "OIDC_CLIENT_ID");
               options.ClientSecret = GetRequiredConfigValue(configuration, "OIDC_CLIENT_SECRET");
               options.ITASystemAccessRole = GetRequiredConfigValue(configuration, "OIDC_ITA_SYSTEM_ACCESS_ROLE");
@@ -34,13 +35,15 @@ namespace InterneTaakAfhandeling.Web.Server.Config
               options.EmailClaimType = configuration["OIDC_EMAIL_CLAIM_TYPE"];
           });
 
-             
-            services.AddITAApiClients(configuration); 
+
+            services.AddITAApiClients(configuration);
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
 
             services.AddScoped<IInternetakenService, InternetakenService>();
+
+            services.AddScoped<IAssignInternetaakToMyselfService, AssignInternetaakToMyselfService>();
 
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 

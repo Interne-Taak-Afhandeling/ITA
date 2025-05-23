@@ -1,6 +1,13 @@
 <template>
-  <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
-  <router-link to="/">Terug</router-link>
+  <div class="ita-dv-detail-header">
+    <div>
+      <router-link to="/">Terug</router-link>
+    </div>
+    <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
+    <utrecht-button-group v-if="taak?.uuid">
+      <assign-contactverzoek-to-myself :id="taak.uuid" />
+    </utrecht-button-group>
+  </div>
 
   <utrecht-alert v-if="error" appeareance="error">{{ error }}</utrecht-alert>
   <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
@@ -57,36 +64,36 @@
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
-          <utrecht-data-list-key>{{
-            phoneNumber1?.omschrijving || "Telefoonnummer"
-          }}</utrecht-data-list-key>
-          <utrecht-data-list-value :value="phoneNumber1?.adres">{{
-            phoneNumber1?.adres
-          }}</utrecht-data-list-value>
+          <utrecht-data-list-key>
+            {{ phoneNumber1?.omschrijving || "Telefoonnummer" }}
+          </utrecht-data-list-key>
+          <utrecht-data-list-value :value="phoneNumber1?.adres">
+            {{ phoneNumber1?.adres }}
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item class="ita-break-before-avoid" v-if="phoneNumber2?.adres">
           <utrecht-data-list-key>{{ phoneNumber2.omschrijving }}</utrecht-data-list-key>
-          <utrecht-data-list-value :value="phoneNumber2.adres">{{
-            phoneNumber2.adres
-          }}</utrecht-data-list-value>
+          <utrecht-data-list-value :value="phoneNumber2.adres">
+            {{ phoneNumber2.adres }}
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item class="ita-break-before-avoid">
           <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
-          <utrecht-data-list-value :value="email" v-title-on-overflow>{{
-            email
-          }}</utrecht-data-list-value>
+          <utrecht-data-list-value :value="email" v-title-on-overflow>
+            {{ email }}
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Gekoppelde zaak</utrecht-data-list-key>
-          <utrecht-data-list-value v-title-on-overflow :value="taak?.zaak?.identificatie">{{
-            taak?.zaak?.identificatie
-          }}</utrecht-data-list-value>
+          <utrecht-data-list-value v-title-on-overflow :value="taak?.zaak?.identificatie">
+            {{ taak?.zaak?.identificatie }}
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Datum aangemaakt</utrecht-data-list-key>
-          <utrecht-data-list-value value="x"
-            ><date-time-or-nvt :date="taak?.aanleidinggevendKlantcontact?.plaatsgevondenOp"
-          /></utrecht-data-list-value>
+          <utrecht-data-list-value value="x">
+            <date-time-or-nvt :date="taak?.aanleidinggevendKlantcontact?.plaatsgevondenOp" />
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
@@ -98,21 +105,21 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Behandelaar</utrecht-data-list-key>
-          <utrecht-data-list-value v-title-on-overflow :value="behandelaar">{{
-            behandelaar
-          }}</utrecht-data-list-value>
+          <utrecht-data-list-value v-title-on-overflow :value="behandelaar">
+            {{ behandelaar }}
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Status</utrecht-data-list-key>
-          <utrecht-data-list-value :value="taak?.status">{{
-            taak?.status
-          }}</utrecht-data-list-value>
+          <utrecht-data-list-value :value="taak?.status">
+            {{ taak?.status }}
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Aangemaakt door</utrecht-data-list-key>
-          <utrecht-data-list-value v-title-on-overflow :value="aangemaaktDoor">{{
-            aangemaaktDoor
-          }}</utrecht-data-list-value>
+          <utrecht-data-list-value v-title-on-overflow :value="aangemaaktDoor">
+            {{ aangemaaktDoor }}
+          </utrecht-data-list-value>
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
@@ -130,9 +137,9 @@
               v-model="form.resultaat"
               required
             />
-            <utrecht-form-label for="contact-gelukt" type="radio">{{
-              RESULTS.contactGelukt
-            }}</utrecht-form-label>
+            <utrecht-form-label for="contact-gelukt" type="radio">
+              {{ RESULTS.contactGelukt }}
+            </utrecht-form-label>
           </utrecht-form-field>
           <utrecht-form-field type="radio">
             <utrecht-radiobutton
@@ -142,9 +149,9 @@
               v-model="form.resultaat"
               required
             />
-            <utrecht-form-label for="geen-gehoor" type="radio">{{
-              RESULTS.geenGehoor
-            }}</utrecht-form-label>
+            <utrecht-form-label for="geen-gehoor" type="radio">
+              {{ RESULTS.geenGehoor }}
+            </utrecht-form-label>
           </utrecht-form-field>
         </utrecht-fieldset>
         <utrecht-form-field>
@@ -189,6 +196,7 @@ import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmom
 import type { Internetaken } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
+import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -364,6 +372,16 @@ async function submit() {
   display: grid;
   column-gap: var(--ita-cv-details-sections-column-gap);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_column-size)), 1fr));
+}
+.ita-dv-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+
+  > :first-child {
+    min-inline-size: 100%;
+  }
 }
 
 .contact-data {
