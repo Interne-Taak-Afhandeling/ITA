@@ -2,6 +2,7 @@
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Services
 {
@@ -9,10 +10,11 @@ namespace InterneTaakAfhandeling.Web.Server.Services
     {
         Task<Internetaken> Get(InterneTaakQueryParameters interneTaakQueryParameters);
     }
-    public class InternetakenService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient) : IInternetakenService
+    public class InternetakenService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient, IContactmomentenService contactmomentenService) : IInternetakenService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
+        private readonly IContactmomentenService _contactmomentenService = contactmomentenService;
 
         public async Task<Internetaken> Get(InterneTaakQueryParameters interneTaakQueryParameters)
         {
@@ -22,11 +24,17 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             };
 
             var internetaken = await _openKlantApiClient.QueryInterneTaakAsync(interneTaakQuery);
-            var onderwerpObjectId = internetaken?.AanleidinggevendKlantcontact?.Expand?.GingOverOnderwerpobjecten?.FirstOrDefault()?.Onderwerpobjectidentificator?.ObjectId;
-            if (!string.IsNullOrEmpty(onderwerpObjectId))
+            if (internetaken?.AanleidinggevendKlantcontact != null)
             {
-                internetaken.Zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
+                var onderwerpObjectId = _contactmomentenService.GetZaakOnderwerpObject(internetaken.AanleidinggevendKlantcontact);
+
+                if (!string.IsNullOrEmpty(onderwerpObjectId))
+                {
+                    internetaken.Zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);                                     
+                }
             }
+
+
             return internetaken;
         }
     }
