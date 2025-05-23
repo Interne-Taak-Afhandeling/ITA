@@ -1,7 +1,7 @@
 using InterneTaakAfhandeling.Common.Extensions;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features;
-using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaken;
+using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself;
 using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Services;
@@ -43,7 +43,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
 
             services.AddScoped<IInternetakenService, InternetakenService>();
 
-            services.AddScoped<IAssignInternetakenService, AssignInternetakenService>();
+            services.AddScoped<IAssignInternetaakToMyselfService, AssignInternetaakToMyselfService>();
 
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 
