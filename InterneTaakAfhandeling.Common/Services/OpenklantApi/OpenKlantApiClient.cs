@@ -485,13 +485,6 @@ public class OpenKlantApiClient(
         public List<Klantcontact> Results { get; set; } = [];
     }
 
-    //public async Task<Klantcontact?> GetKlantcontact(string uuid)
-    //{
-    //    var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=gingOverOnderwerpobjecten");
-    //    response.EnsureSuccessStatusCode();
-    //    return await response.Content.ReadFromJsonAsync<Klantcontact>();
-    //}
-
 
     public class ConflictException : Exception
     {
