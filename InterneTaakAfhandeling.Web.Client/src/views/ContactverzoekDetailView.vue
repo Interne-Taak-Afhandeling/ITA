@@ -6,12 +6,12 @@
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
       <assign-contactverzoek-to-myself :id="taak.uuid" />
-        <KoppelZaakModal 
-  v-if="taak?.aanleidinggevendKlantcontact?.uuid" 
-  :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
-  :zaakIdentificatie="taak?.zaak?.identificatie"
-  @zaak-gekoppeld="handleZaakGekoppeld"
-/>
+      <KoppelZaakModal
+        v-if="taak?.aanleidinggevendKlantcontact?.uuid"
+        :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
+        :zaakIdentificatie="taak?.zaak?.identificatie"
+        @zaak-gekoppeld="handleZaakGekoppeld"
+      />
     </utrecht-button-group>
   </div>
 
@@ -54,7 +54,7 @@
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
-    <section v-if="taak" class="contact-data" :key="`contact-data-${sectionKey}`">
+    <section v-if="taak" class="contact-data">
       <utrecht-heading :level="2">Gegevens van contact</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -220,11 +220,11 @@ const success = ref(false);
 const taak = ref<Internetaken | null>(null);
 
 // Reactive key voor section re-render
-const sectionKey = ref(0);
+//const sectionKey = ref(0);
 const handleZaakGekoppeld = (zaak: Zaak) => {
   if (taak.value) {
     taak.value.zaak = zaak;
-    sectionKey.value++;
+    //sectionKey.value++;
   }
 };
 

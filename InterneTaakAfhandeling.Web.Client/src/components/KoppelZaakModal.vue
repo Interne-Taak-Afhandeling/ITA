@@ -1,22 +1,20 @@
 <template>
   <div>
-    <utrecht-button 
-      type="button" 
-      appearance="primary-action-button" 
-      @click="openModal"
-    >
-      {{ isZaakGekoppeld ? 'Zaakkoppeling wijzigen' : 'Koppelen aan zaak' }}
+    <utrecht-button type="button" appearance="primary-action-button" @click="openModal">
+      {{ isZaakGekoppeld ? "Zaakkoppeling wijzigen" : "Koppelen aan zaak" }}
     </utrecht-button>
 
     <dialog ref="modalDialog" class="modal-dialog">
       <div class="modal-content">
         <form method="dialog" @submit.prevent="koppelZaak">
-          <utrecht-heading :level="2">{{ isZaakGekoppeld ? 'Zaakkoppeling wijzigen' : 'Koppel aan zaak' }}</utrecht-heading>
-          
+          <utrecht-heading :level="2">{{
+            isZaakGekoppeld ? "Zaakkoppeling wijzigen" : "Koppel aan zaak"
+          }}</utrecht-heading>
+
           <utrecht-paragraph>
-            {{ 'Aan welke zaak wil je dit contact koppelen?' }}
+            {{ "Aan welke zaak wil je dit contact koppelen?" }}
           </utrecht-paragraph>
-          
+
           <utrecht-form-field>
             <utrecht-form-label for="zaak-nummer">Zaaknummer</utrecht-form-label>
             <utrecht-textbox
@@ -25,24 +23,33 @@
               placeholder="Voer hier een zaaknummer in"
             />
           </utrecht-form-field>
-          
+
           <utrecht-alert v-if="error" appeareance="error" class="margin-top">
             {{ error }}
           </utrecht-alert>
-          
+
           <div v-if="isLoading" class="spinner-container">
             <simple-spinner />
             <span>Bezig met koppelen...</span>
           </div>
-          
-          <div v-else class="button-container margin-top">
+
+          <utrecht-button-group>
             <utrecht-button appearance="primary-action-button" type="submit">
               Koppelen
             </utrecht-button>
             <utrecht-button appearance="secondary-action-button" type="button" @click="closeModal">
               Annuleren
             </utrecht-button>
-          </div>
+          </utrecht-button-group>
+
+          <!-- <div v-else class="button-container margin-top">
+            <utrecht-button appearance="primary-action-button" type="submit">
+              Koppelen
+            </utrecht-button>
+            <utrecht-button appearance="secondary-action-button" type="button" @click="closeModal">
+              Annuleren
+            </utrecht-button>
+          </div> -->
         </form>
       </div>
     </dialog>
@@ -50,28 +57,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { toast } from '@/components/toast/toast';
-import UtrechtAlert from '@/components/UtrechtAlert.vue';
-import SimpleSpinner from '@/components/SimpleSpinner.vue';
+import { ref, computed } from "vue";
+import { toast } from "@/components/toast/toast";
+import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
 
-const props = defineProps<{ 
+const props = defineProps<{
   aanleidinggevendKlantcontactUuid: string;
   zaakIdentificatie?: string;
 }>();
 
-const emit = defineEmits(['zaakGekoppeld']);
+const emit = defineEmits(["zaakGekoppeld"]);
 
 const isZaakGekoppeld = computed(() => !!props.zaakIdentificatie);
 
 const modalDialog = ref<HTMLDialogElement | null>(null);
-const zaakNummer = ref('');
+const zaakNummer = ref("");
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 const openModal = () => {
   error.value = null;
-  zaakNummer.value = '';
+  zaakNummer.value = "";
   if (modalDialog.value) {
     modalDialog.value.showModal();
   }
@@ -85,7 +92,7 @@ const closeModal = () => {
 
 const koppelZaak = async () => {
   if (!zaakNummer.value) {
-    error.value = 'Voer een geldig zaaknummer in';
+    error.value = "Voer een geldig zaaknummer in";
     return;
   }
 
@@ -93,42 +100,45 @@ const koppelZaak = async () => {
   isLoading.value = true;
 
   try {
-    const response = await fetch('/api/koppelzaak/koppel-zaak-aan-klantcontact', {
-      method: 'POST',
+    const response = await fetch("/api/koppelzaak/koppel-zaak-aan-klantcontact", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         zaakIdentificatie: zaakNummer.value,
         aanleidinggevendKlantcontactUuid: props.aanleidinggevendKlantcontactUuid
-      }),
+      })
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      
+
       // Specifieke foutafhandeling voor meerdere gekoppelde zaken
-      if (errorData.conflictCode === 'MEERDERE_ZAKEN_GEKOPPELD') {
-        throw new Error('Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit contact.');
+      if (errorData.conflictCode === "MEERDERE_ZAKEN_GEKOPPELD") {
+        throw new Error(
+          "Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit contact."
+        );
       }
-      
-      throw new Error(errorData.detail || 'Er is een fout opgetreden bij het koppelen van de zaak');
+
+      throw new Error(errorData.detail || "Er is een fout opgetreden bij het koppelen van de zaak");
     }
 
     const result = await response.json();
-    
+
     if (result.zaak) {
       toast.add({ text: "Zaak succesvol gekoppeld", type: "ok" });
-      emit('zaakGekoppeld', result.zaak);
+      emit("zaakGekoppeld", result.zaak);
       closeModal();
     } else {
-      throw new Error('Geen zaakgegevens ontvangen van de server');
+      throw new Error("Geen zaakgegevens ontvangen van de server");
     }
   } catch (err: unknown) {
-    console.error('Error bij koppelen zaak:', err);
-    error.value = err instanceof Error && err.message 
-      ? err.message 
-      : 'Er is een fout opgetreden bij het koppelen van de zaak';
+    console.error("Error bij koppelen zaak:", err);
+    error.value =
+      err instanceof Error && err.message
+        ? err.message
+        : "Er is een fout opgetreden bij het koppelen van de zaak";
   } finally {
     isLoading.value = false;
   }
