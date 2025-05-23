@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
 {
-    [Route("api/[controller]")]
+    [Route("api/internetaken")]
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
