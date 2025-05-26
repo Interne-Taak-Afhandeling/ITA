@@ -1,6 +1,8 @@
 @use "@utrecht/design-tokens/dist/mixin-theme" as utrecht;
 @use "./mixin-theme" as ita;
 
+//utrecht token reference: https://github.com/nl-design-system/utrecht/tree/1c1816b91de1dfcd9083b08b839c53f4eed79dfd/proprietary/design-tokens/src/common/utrecht
+
 .ita-theme {
   // use utrecht-theme as default for ita-theme
   @include utrecht.utrecht-theme;
@@ -33,6 +35,8 @@
 
   --utrecht-page-footer-background-color: var(--utrecht-color-green-30);
   --utrecht-page-footer-background-image: none;
+
+  --utrecht-alert-margin-block-end: var(--utrecht-space-block-xs);
 
   // custom ita-theme tokens
   @include ita.ita-theme;

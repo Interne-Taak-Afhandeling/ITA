@@ -29,8 +29,8 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
     public class Onderwerpobject
     {
-        public required string Uuid { get; set; }
-        public required string Url { get; set; }
+        public string? Uuid { get; set; }
+        public string? Url { get; set; }
         public Klantcontact? Klantcontact { get; set; }
         public Klantcontact? WasKlantcontact { get; set; }
         public Onderwerpobjectidentificator? Onderwerpobjectidentificator { get; set; }

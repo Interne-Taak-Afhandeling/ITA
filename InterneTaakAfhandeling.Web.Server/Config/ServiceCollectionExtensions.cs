@@ -45,6 +45,9 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IInternetakenService, InternetakenService>();
             services.AddScoped<IContactmomentenService, ContactmomentenService>();
 
+            services.AddScoped<IInternetakenService, InternetakenService>();
+            services.AddScoped<IKlantcontactService, KlantcontactService>();
+            services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
             services.AddScoped<IAssignInternetaakToMyselfService, AssignInternetaakToMyselfService>();
 
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
