@@ -4,14 +4,14 @@
       <router-link to="/">Terug</router-link>
     </div>
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
-    <utrecht-button-group v-if="taak?.uuid"> 
+    <utrecht-button-group v-if="taak?.uuid">
+      <assign-contactverzoek-to-myself :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
       <KoppelZaakModal
         v-if="taak?.aanleidinggevendKlantcontact?.uuid"
         :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
         :zaakIdentificatie="taak?.zaak?.identificatie"
         @zaak-gekoppeld="handleZaakGekoppeld"
       />
-      <assign-contactverzoek-to-myself :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
     </utrecht-button-group>
   </div>
 
