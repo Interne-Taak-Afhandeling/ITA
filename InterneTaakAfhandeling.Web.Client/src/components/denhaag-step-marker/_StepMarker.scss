@@ -31,11 +31,22 @@
 
 .denhaag-step-marker--nested {
   block-size: var(--denhaag-step-marker-nested-size);
-  min-block-size: var(--denhaag-step-marker-nested-min-size, var(--denhaag-step-marker-nested-size));
-  min-inline-size: var(--denhaag-step-marker-nested-min-size, var(--denhaag-step-marker-nested-size));
+  min-block-size: var(
+    --denhaag-step-marker-nested-min-size,
+    var(--denhaag-step-marker-nested-size)
+  );
+  min-inline-size: var(
+    --denhaag-step-marker-nested-min-size,
+    var(--denhaag-step-marker-nested-size)
+  );
   inline-size: var(--denhaag-step-marker-nested-size);
-  border-width: var(--denhaag-step-marker-nested-border-width, var(--denhaag-step-marker-border-width));
-  margin-inline-start: calc((var(--denhaag-step-marker-size) - var(--denhaag-step-marker-nested-size)) / 2);
+  border-width: var(
+    --denhaag-step-marker-nested-border-width,
+    var(--denhaag-step-marker-border-width)
+  );
+  margin-inline-start: calc(
+    (var(--denhaag-step-marker-size) - var(--denhaag-step-marker-nested-size)) / 2
+  );
 
   .denhaag-icon {
     block-size: var(--denhaag-step-marker-nested-icon-size);
@@ -57,7 +68,10 @@
       --denhaag-step-marker-not-checked-nested-border-color,
       var(--denhaag-step-marker-not-checked-border-color)
     );
-    color: var(--denhaag-step-marker-not-checked-nested-color, var(--denhaag-step-marker-not-checked-color));
+    color: var(
+      --denhaag-step-marker-not-checked-nested-color,
+      var(--denhaag-step-marker-not-checked-color)
+    );
   }
 }
 
@@ -75,7 +89,10 @@
       --denhaag-step-marker-checked-nested-border-color,
       var(--denhaag-step-marker-checked-border-color)
     );
-    color: var(--denhaag-step-marker-checked-nested-color, var(--denhaag-step-marker-checked-color));
+    color: var(
+      --denhaag-step-marker-checked-nested-color,
+      var(--denhaag-step-marker-checked-color)
+    );
   }
 }
 
@@ -93,7 +110,10 @@
       --denhaag-step-marker-current-nested-border-color,
       var(--denhaag-step-marker-current-border-color)
     );
-    color: var(--denhaag-step-marker-current-nested-color, var(--denhaag-step-marker-current-color));
+    color: var(
+      --denhaag-step-marker-current-nested-color,
+      var(--denhaag-step-marker-current-color)
+    );
   }
 }
 
@@ -111,7 +131,10 @@
       --denhaag-step-marker-disabled-nested-border-color,
       var(--denhaag-step-marker-disabled-border-color)
     );
-    color: var(--denhaag-step-marker-disabled-nested-color, var(--denhaag-step-marker-disabled-color));
+    color: var(
+      --denhaag-step-marker-disabled-nested-color,
+      var(--denhaag-step-marker-disabled-color)
+    );
   }
 }
 
@@ -129,7 +152,10 @@
       --denhaag-step-marker-warning-nested-border-color,
       var(--denhaag-step-marker-warning-border-color)
     );
-    color: var(--denhaag-step-marker-warning-nested-color, var(--denhaag-step-marker-warning-color));
+    color: var(
+      --denhaag-step-marker-warning-nested-color,
+      var(--denhaag-step-marker-warning-color)
+    );
   }
 }
 
@@ -143,7 +169,10 @@
       --denhaag-step-marker-error-nested-background-color,
       var(--denhaag-step-marker-error-background-color)
     );
-    border-color: var(--denhaag-step-marker-error-nested-border-color, var(--denhaag-step-marker-error-border-color));
+    border-color: var(
+      --denhaag-step-marker-error-nested-border-color,
+      var(--denhaag-step-marker-error-border-color)
+    );
     color: var(--denhaag-step-marker-error-nested-color, var(--denhaag-step-marker-error-color));
   }
 }
@@ -162,6 +191,9 @@
       --denhaag-step-marker-default-nested-border-color,
       var(--denhaag-step-marker-default-border-color)
     );
-    color: var(--denhaag-step-marker-default-nested-color, var(--denhaag-step-marker-default-color));
+    color: var(
+      --denhaag-step-marker-default-nested-color,
+      var(--denhaag-step-marker-default-color)
+    );
   }
 }

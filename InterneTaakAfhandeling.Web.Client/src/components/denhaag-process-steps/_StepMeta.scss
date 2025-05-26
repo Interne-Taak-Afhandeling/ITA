@@ -6,6 +6,12 @@
 }
 
 .denhaag-process-steps__step-meta--date {
-  font-size: var(--denhaag-process-steps-step-meta-date-font-size, var(--denhaag-process-steps-step-meta-font-size));
-  color: var(--denhaag-process-steps-step-meta-date-color, var(--denhaag-process-steps-step-meta-color));
+  font-size: var(
+    --denhaag-process-steps-step-meta-date-font-size,
+    var(--denhaag-process-steps-step-meta-font-size)
+  );
+  color: var(
+    --denhaag-process-steps-step-meta-date-color,
+    var(--denhaag-process-steps-step-meta-color)
+  );
 }

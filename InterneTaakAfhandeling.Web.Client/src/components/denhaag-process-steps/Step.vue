@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <li :class="classes" :aria-current="ariaCurrent">
     <slot></slot>

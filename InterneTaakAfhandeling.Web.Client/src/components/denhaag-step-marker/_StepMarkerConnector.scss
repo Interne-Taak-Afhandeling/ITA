@@ -3,18 +3,22 @@
   left: calc(var(--denhaag-step-marker-size) / 2);
   top: 0;
   height: 100%;
-  outline: var(--denhaag-step-marker-connector-width, 1px) var(--denhaag-step-marker-connector-style, dashed)
-    var(--denhaag-step-marker-connector-color);
+  outline: var(--denhaag-step-marker-connector-width, 1px)
+    var(--denhaag-step-marker-connector-style, dashed) var(--denhaag-step-marker-connector-color);
 }
 
 .denhaag-step-marker__connector--main-to-main {
   top: calc(-1 * calc(var(--denhaag-step-marker-size) / 2));
-  padding-block-end: calc(var(--denhaag-process-steps-step-distance) + var(--denhaag-step-marker-size));
+  padding-block-end: calc(
+    var(--denhaag-process-steps-step-distance) + var(--denhaag-step-marker-size)
+  );
 }
 
 .denhaag-step-marker__connector--main-to-nested {
   top: calc(-1 * calc(var(--denhaag-step-marker-size) / 2));
-  padding-block-end: calc(var(--denhaag-process-steps-step-distance) + var(--denhaag-step-marker-nested-size));
+  padding-block-end: calc(
+    var(--denhaag-process-steps-step-distance) + var(--denhaag-step-marker-nested-size)
+  );
 }
 
 .denhaag-step-marker__connector--nested-to-nested {
