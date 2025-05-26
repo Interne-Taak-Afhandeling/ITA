@@ -1,5 +1,4 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
-using InterneTaakAfhandeling.Common.Services.OpenklantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;

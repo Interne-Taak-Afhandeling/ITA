@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InterneTaakAfhandeling.Common.Services.OpenklantApi
+namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi
 {
     public static class KnownZgwIdentificators
     {

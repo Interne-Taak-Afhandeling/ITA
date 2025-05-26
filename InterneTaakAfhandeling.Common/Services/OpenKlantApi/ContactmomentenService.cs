@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InterneTaakAfhandeling.Common.Services.OpenklantApi
+namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi
 {
     //todo:
     //rename the folder that contains tjhe api clients from 'Services' to 'ApiClients'

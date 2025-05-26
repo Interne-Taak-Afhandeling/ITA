@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace InterneTaakAfhandeling.Common.Services.OpenklantApi.Models
+namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
     [JsonConverter(typeof(JsonStringEnumConverter<SoortActor>))]
     public enum SoortActor

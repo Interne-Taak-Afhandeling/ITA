@@ -1,8 +1,7 @@
 ﻿using System.Security.Claims;
 using Duende.IdentityModel;
-using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
