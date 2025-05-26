@@ -4,8 +4,7 @@
       <router-link to="/">Terug</router-link>
     </div>
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
-    <utrecht-button-group v-if="taak?.uuid">
-      <assign-contactverzoek-to-myself :id="taak.uuid" />
+    <utrecht-button-group v-if="taak?.uuid"> 
       <KoppelZaakModal
         v-if="taak?.aanleidinggevendKlantcontact?.uuid"
         :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
