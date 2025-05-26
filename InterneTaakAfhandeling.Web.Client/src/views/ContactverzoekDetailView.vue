@@ -207,8 +207,6 @@ const cvId = computed(() => first(route.params.number));
 
 const isLoading = ref(false);
 const isLoadingTaak = ref(false);
-const error = ref<string | null>(null);
-const success = ref(false);
 
 const taak = ref<Internetaken | null>(null);
 
@@ -292,24 +290,6 @@ const form = ref({
 });
 
 async function submit() {
-  if (!taak.value) {
-    error.value = "Kan geen contactmoment aanmaken voor een niet-bestaand contactverzoek";
-    return;
-  }
-
-  error.value = null;
-  success.value = false;
-
-  if (!form.value.kanaal) {
-    error.value = "Kies een kanaal voor het contactmoment";
-    return;
-  }
-
-  if (form.value.resultaat !== RESULTS.geenGehoor && !form.value.informatieBurger) {
-    error.value = "Vul informatie voor de burger in";
-    return;
-  }
-
   isLoading.value = true;
 
   try {
