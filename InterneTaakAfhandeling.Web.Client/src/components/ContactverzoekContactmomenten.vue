@@ -1,5 +1,5 @@
 <template>
-  <contact-timeline v-bind="timeLineProps" :expanded-items="expandedItems" />
+  <contact-timeline v-bind="timeLineProps" />
 </template>
 
 <script setup lang="ts">
@@ -15,17 +15,16 @@ const contactmomenten = ref<Contactmoment[]>([]);
 const timeLineProps = computed<ContactTimelineProps>(() => ({
   labels: { today: "Vandaag", yesterday: "Gisteren" },
   collapsible: true,
-  items: contactmomenten.value.map((item, index) => ({
-    title: item.contactGelukt ? "Contact gelukt" : "Geen gehoor",
-    id: index.toString(),
-    channel: item.kanaal,
-    isoDate: item.datum,
-    description: item.tekst,
-    sender: item.medewerker
-  }))
+  items: contactmomenten.value.map(({ uuid, contactGelukt, kanaal, datum, tekst, medewerker }) => ({
+    title: contactGelukt ? "Contact gelukt" : "Geen gehoor",
+    id: uuid,
+    channel: kanaal,
+    isoDate: datum,
+    description: tekst,
+    sender: medewerker
+  })),
+  expandedItems: contactmomenten.value.map(({ uuid }) => uuid)
 }));
-
-const expandedItems = computed(() => timeLineProps.value.items.map((x) => x.id));
 
 watchEffect(async () => {
   const controller = new AbortController();

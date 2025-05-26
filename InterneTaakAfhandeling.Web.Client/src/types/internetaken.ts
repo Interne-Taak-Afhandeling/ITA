@@ -228,6 +228,7 @@ export interface RelatedKlantcontactResult {
 }
 
 export interface Contactmoment {
+  uuid: string;
   contactGelukt: boolean;
   tekst: string;
   datum: string;

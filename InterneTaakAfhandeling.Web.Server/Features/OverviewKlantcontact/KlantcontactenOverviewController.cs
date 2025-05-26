@@ -58,6 +58,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
 
             var laatsteKlantcontactUuid = ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid;
             var contactmomenten = ketenVolgorde.Select(k => new ContactmomentResponse(
+                Uuid: k.Uuid,
                 ContactGelukt: k.IndicatieContactGelukt ?? false,
                 Tekst: k.Inhoud ?? string.Empty,
                 Datum: k.PlaatsgevondenOp,
@@ -72,6 +73,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
         }
 
         public record ContactmomentResponse(
+            string Uuid,
             bool ContactGelukt,
             string Tekst,
             DateTimeOffset Datum,
