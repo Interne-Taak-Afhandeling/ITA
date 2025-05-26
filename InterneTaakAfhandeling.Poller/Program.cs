@@ -9,7 +9,7 @@ using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Poller.Data;
 using InterneTaakAfhandeling.Poller.Services.NotifierState; 
 using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Common.Services.OpenklantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
 class Program
 {

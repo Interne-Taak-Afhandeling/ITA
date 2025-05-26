@@ -1,4 +1,3 @@
-using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;

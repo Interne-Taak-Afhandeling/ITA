@@ -1,6 +1,4 @@
 ﻿using InterneTaakAfhandeling.Common.Helpers;
-using InterneTaakAfhandeling.Common.Services.OpenklantApi;
-using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;

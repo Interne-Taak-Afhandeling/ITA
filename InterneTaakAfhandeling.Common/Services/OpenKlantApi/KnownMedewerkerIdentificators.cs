@@ -1,4 +1,4 @@
-﻿namespace InterneTaakAfhandeling.Common.Services.OpenklantApi
+﻿namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi
 {
     public class KnownMedewerkerIdentificators
     {

@@ -1,6 +1,4 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
-
-namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
+﻿namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
     public class ActorRequest
     {
