@@ -5,7 +5,7 @@
     </div>
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
-      <assign-contactverzoek-to-myself :id="taak.uuid" />
+      <assign-contactverzoek-to-myself :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
       <KoppelZaakModal
         v-if="taak?.aanleidinggevendKlantcontact?.uuid"
         :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
@@ -222,6 +222,10 @@ const handleZaakGekoppeld = (zaak: Zaak) => {
 };
 
 onMounted(async () => {
+  await fetchInternetaken();
+});
+
+const fetchInternetaken = async () => {
   isLoadingTaak.value = true;
   try {
     taak.value = await internetakenService.getInternetaak({
@@ -232,7 +236,7 @@ onMounted(async () => {
   } finally {
     isLoadingTaak.value = false;
   }
-});
+};
 
 const pascalCase = (s: string | undefined) =>
   !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
@@ -266,9 +270,13 @@ const email = computed(
       .map(({ adres }: { adres?: string }) => adres || "")
       .find(Boolean) || ""
 );
-const behandelaar = computed(
-  () => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean) || ""
-);
+const behandelaar = computed(() => {
+  const mdwActor = taak.value?.toegewezenAanActoren?.find(
+    (x) => x.actoridentificator?.codeObjecttype === "mdw"
+  );
+  if (mdwActor?.naam) return mdwActor.naam;
+  return taak.value?.toegewezenAanActoren?.[0]?.naam || "";
+});
 const aangemaaktDoor = computed(
   () =>
     taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren
@@ -374,6 +382,7 @@ async function submit() {
   column-gap: var(--ita-cv-details-sections-column-gap);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_column-size)), 1fr));
 }
+
 .ita-dv-detail-header {
   display: flex;
   flex-wrap: wrap;

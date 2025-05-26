@@ -19,9 +19,10 @@
 
 <script setup lang="ts">
 import { toast } from "@/components/toast/toast";
-import { ref } from "vue";
+import { ref, defineEmits } from "vue";
 import { userService } from "@/services/userService";
 const props = defineProps<{ id: string }>();
+const emit = defineEmits(["assignmentSuccess"]);
 
 const toewijzenAlertRef = ref<{ dialogRef?: HTMLDialogElement }>();
 const show = () => toewijzenAlertRef.value?.dialogRef?.showModal();
@@ -31,7 +32,8 @@ const toewijzen = async () => {
   await userService
     .assignInternetakenToSelf(props.id)
     .then(() => {
-      toast.add({ text: "Contactverzoek toegewezen", type: "ok" });
+      toast.add("Contactverzoek toegewezen");
+      emit("assignmentSuccess");
     })
     .catch(() => toast.add({ text: "Er ging iets mis. Probeer het later opnieuw.", type: "error" }))
     .finally(close);
