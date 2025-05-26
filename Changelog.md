@@ -7,6 +7,7 @@
 - Keep track of which items have been processed #28
 - Overview contact request assigned to the logged-in employee #11
 - Open a contact request from the overview as an employee #12
+- Record contact moment resulting from contact request #13
 
 
 ### Warnings and deployment notes
