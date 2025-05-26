@@ -6,6 +6,12 @@
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
       <assign-contactverzoek-to-myself :id="taak.uuid" />
+      <KoppelZaakModal
+        v-if="taak?.aanleidinggevendKlantcontact?.uuid"
+        :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
+        :zaakIdentificatie="taak?.zaak?.identificatie"
+        @zaak-gekoppeld="handleZaakGekoppeld"
+      />
     </utrecht-button-group>
   </div>
 
@@ -45,7 +51,7 @@
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
-    <section class="contact-data">
+    <section v-if="taak" class="contact-data">
       <utrecht-heading :level="2">Gegevens van contact</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -190,11 +196,12 @@ import {
   type CreateKlantcontactRequest
 } from "@/services/klantcontactService";
 import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
-import type { Internetaken } from "@/types/internetaken";
+import type { Internetaken, Zaak } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
 import { toast } from "@/components/toast/toast";
+import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -204,11 +211,15 @@ const RESULTS = {
 const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
 const route = useRoute();
 const cvId = computed(() => first(route.params.number));
-
 const isLoading = ref(false);
 const isLoadingTaak = ref(false);
-
 const taak = ref<Internetaken | null>(null);
+
+const handleZaakGekoppeld = (zaak: Zaak) => {
+  if (taak.value) {
+    taak.value.zaak = zaak;
+  }
+};
 
 onMounted(async () => {
   isLoadingTaak.value = true;
@@ -346,6 +357,17 @@ async function submit() {
 </script>
 
 <style lang="scss" scoped>
+.contactverzoek-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.back-link {
+  margin-bottom: 1.5rem;
+}
+
 .ita-cv-detail-sections {
   --_column-size: 42rem;
   display: grid;

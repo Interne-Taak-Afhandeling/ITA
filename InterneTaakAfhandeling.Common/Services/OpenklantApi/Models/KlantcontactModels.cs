@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
+    public class KlantcontactOnderwerpobjectRequest
+    {
+        public KlantcontactReference? Klantcontact { get; set; }
+        public KlantcontactReference? WasKlantcontact { get; set; }
+        public required Onderwerpobjectidentificator Onderwerpobjectidentificator { get; set; }
+    }
+
     public class KlantcontactRequest
     {
         public string? Kanaal { get; set; }
