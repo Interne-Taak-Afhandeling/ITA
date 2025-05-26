@@ -5,7 +5,7 @@
     </div>
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
-      <assign-contactverzoek-to-myself :id="taak.uuid" />
+      <assign-contactverzoek-to-myself :id="taak.uuid" @assignmentSuccess="fetchInternetaken"  />
     </utrecht-button-group>
   </div>
 
@@ -215,17 +215,21 @@ const success = ref(false);
 const taak = ref<Internetaken | null>(null);
 
 onMounted(async () => {
-  isLoadingTaak.value = true;
-  try {
-    taak.value = await internetakenService.getInternetaak({
-      Nummer: String(cvId.value)
-    });
-  } catch (err: unknown) {
-    console.error("Error loading contactverzoek:", err);
-  } finally {
-    isLoadingTaak.value = false;
-  }
+   await  fetchInternetaken();
 });
+
+    const fetchInternetaken = async () => {
+    isLoadingTaak.value = true;
+    try {
+      taak.value = await internetakenService.getInternetaak({
+        Nummer: String(cvId.value)
+      });
+    } catch (err: unknown) {
+      console.error("Error loading contactverzoek:", err);
+    } finally {
+      isLoadingTaak.value = false;
+    }
+  }
 
 const pascalCase = (s: string | undefined) =>
   !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
@@ -259,9 +263,12 @@ const email = computed(
       .map(({ adres }: { adres?: string }) => adres || "")
       .find(Boolean) || ""
 );
-const behandelaar = computed(
-  () => taak.value?.toegewezenAanActoren?.map((x) => x.naam).find(Boolean) || ""
-);
+const behandelaar = computed(() => {  
+ const actor = taak.value?.toegewezenAanActoren?.find(  
+   (x) => x.actoridentificator?.codeObjecttype === "mdw"  
+ );  
+ return actor?.naam || "";  
+});
 const aangemaaktDoor = computed(
   () =>
     taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren
