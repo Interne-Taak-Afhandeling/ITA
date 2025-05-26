@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace InterneTaakAfhandeling.Common.Helpers
 {
@@ -25,52 +23,6 @@ namespace InterneTaakAfhandeling.Common.Helpers
                 .Replace("\r", "")
                 .Replace("\t", " ") // Replace tabs with spaces
                 .Trim();
-        }
-
-        /// <summary>
-        /// Creates a privacy-safe identifier for logging purposes
-        /// Generates a consistent hash that can be used for correlation without exposing the original value
-        /// </summary>
-        /// <param name="sensitiveValue">The sensitive value to create an identifier for</param>
-        /// <returns>A safe identifier for logging</returns>
-        public static string CreateSafeIdentifier(string? sensitiveValue)
-        {
-            if (string.IsNullOrEmpty(sensitiveValue))
-                return "[EMPTY]";
-
-            using var sha256 = SHA256.Create();
-            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(sensitiveValue));
-
-            // Take first 8 characters of hash for a short, safe identifier
-            var hashString = Convert.ToHexString(hashBytes);
-            return $"[{hashString[..8]}]";
-        }
-
-        /// <summary>
-        /// Masks an email address for logging, showing only first character and domain
-        /// </summary>
-        /// <param name="email">The email to mask</param>
-        /// <returns>A masked email safe for logging</returns>
-        public static string MaskEmail(string? email)
-        {
-            if (string.IsNullOrEmpty(email))
-                return "[NO_EMAIL]";
-
-            var sanitized = SanitizeForLogging(email);
-
-            if (!sanitized.Contains('@'))
-                return "[INVALID_EMAIL]";
-
-            var parts = sanitized.Split('@');
-            if (parts.Length != 2)
-                return "[INVALID_EMAIL]";
-
-            var localPart = parts[0];
-            var domain = parts[1];
-
-            // Show first character of local part + *** + @domain
-            var maskedLocal = localPart.Length > 0 ? $"{localPart[0]}***" : "***";
-            return $"{maskedLocal}@{domain}";
         }
 
         /// <summary>

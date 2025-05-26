@@ -171,8 +171,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
             catch (Exception ex)
             {
-                var safeEmailId = SecureLogging.CreateSafeIdentifier(email);
-                _logger.LogError(ex, "Error retrieving actor by email.");
+                var safeEmailId = SecureLogging.SanitizeAndTruncate(email, 5);
+                _logger.LogError(ex, "Error retrieving actor by email {SafeEmailId}", safeEmailId);
 
                 throw new ConflictException(
                     $"Error retrieving actor by email: {ex.Message}",
@@ -201,7 +201,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 }
                 catch (Exception ex)
                 {
-                    var safeActorId = SecureLogging.CreateSafeIdentifier(actorRequest.Naam);
+                    var safeActorId = SecureLogging.SanitizeAndTruncate(actorRequest.Naam, 5);
                     _logger.LogError(ex, "Error creating actor with identifier {SafeActorId}", safeActorId);
                     throw new ConflictException(
                         $"Error creating actor: {ex.Message}",
