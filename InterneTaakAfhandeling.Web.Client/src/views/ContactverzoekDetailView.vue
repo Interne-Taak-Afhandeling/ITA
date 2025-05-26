@@ -5,7 +5,7 @@
     </div>
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
-      <assign-contactverzoek-to-myself :id="taak.uuid" @assignmentSuccess="fetchInternetaken"  />
+      <assign-contactverzoek-to-myself :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
     </utrecht-button-group>
   </div>
 
@@ -182,195 +182,195 @@
 </template>
 
 <script lang="ts" setup>
-  import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
-  import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
-  import UtrechtAlert from "@/components/UtrechtAlert.vue";
-  import SimpleSpinner from "@/components/SimpleSpinner.vue";
-  import { computed, onMounted, ref } from "vue";
-  import { useRoute } from "vue-router";
-  import {
-    klantcontactService,
-    type CreateKlantcontactRequest
-  } from "@/services/klantcontactService";
-  import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
-  import type { Internetaken } from "@/types/internetaken";
-  import { internetakenService } from "@/services/internetakenService";
-  import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
-  import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
+import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
+import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
+import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import {
+  klantcontactService,
+  type CreateKlantcontactRequest
+} from "@/services/klantcontactService";
+import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
+import type { Internetaken } from "@/types/internetaken";
+import { internetakenService } from "@/services/internetakenService";
+import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
+import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
 
-  const RESULTS = {
-    contactGelukt: "Contact opnemen gelukt",
-    geenGehoor: "Contact opnemen niet gelukt"
-  } as const;
+const RESULTS = {
+  contactGelukt: "Contact opnemen gelukt",
+  geenGehoor: "Contact opnemen niet gelukt"
+} as const;
 
-  const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
-  const route = useRoute();
-  const cvId = computed(() => first(route.params.number));
+const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
+const route = useRoute();
+const cvId = computed(() => first(route.params.number));
 
-  const isLoading = ref(false);
-  const isLoadingTaak = ref(false);
-  const error = ref<string | null>(null);
-  const success = ref(false);
+const isLoading = ref(false);
+const isLoadingTaak = ref(false);
+const error = ref<string | null>(null);
+const success = ref(false);
 
-  const taak = ref<Internetaken | null>(null);
+const taak = ref<Internetaken | null>(null);
 
-  onMounted(async () => {
-    await fetchInternetaken();
-  });
+onMounted(async () => {
+  await fetchInternetaken();
+});
 
-  const fetchInternetaken = async () => {
-    isLoadingTaak.value = true;
-    try {
-      taak.value = await internetakenService.getInternetaak({
-        Nummer: String(cvId.value)
-      });
-    } catch (err: unknown) {
-      console.error("Error loading contactverzoek:", err);
-    } finally {
-      isLoadingTaak.value = false;
-    }
+const fetchInternetaken = async () => {
+  isLoadingTaak.value = true;
+  try {
+    taak.value = await internetakenService.getInternetaak({
+      Nummer: String(cvId.value)
+    });
+  } catch (err: unknown) {
+    console.error("Error loading contactverzoek:", err);
+  } finally {
+    isLoadingTaak.value = false;
+  }
+};
+
+const pascalCase = (s: string | undefined) =>
+  !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
+
+const phoneNumbers = computed(
+  () =>
+    taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
+      ?.filter(
+        ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) =>
+          soortDigitaalAdres === "telefoonnummer"
+      )
+      .filter((x) => x.adres)
+      .map(({ adres, omschrijving }, i) => ({
+        adres,
+        omschrijving: pascalCase(omschrijving) || `Telefoonnummer ${i + 1}`
+      })) || []
+);
+
+const phoneNumber1 = computed(() =>
+  phoneNumbers.value.length > 0 ? phoneNumbers.value[0] : undefined
+);
+const phoneNumber2 = computed(() =>
+  phoneNumbers.value.length > 1 ? phoneNumbers.value[1] : undefined
+);
+const email = computed(
+  () =>
+    taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
+      ?.filter(
+        ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "email"
+      )
+      .map(({ adres }: { adres?: string }) => adres || "")
+      .find(Boolean) || ""
+);
+const behandelaar = computed(() => {
+  const actor = taak.value?.toegewezenAanActoren?.find(
+    (x) => x.actoridentificator?.codeObjecttype === "mdw"
+  );
+  return actor?.naam || "";
+});
+const aangemaaktDoor = computed(
+  () =>
+    taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren
+      ?.map((x) => x.naam)
+      .find(Boolean) || ""
+);
+
+const klantNaam = computed(() =>
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
+    ?.map((x) => x.volledigeNaam || x.organisatienaam)
+    .find(Boolean)
+);
+
+const organisatienaam = computed(() =>
+  taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
+    ?.map((x) => x.organisatienaam)
+    .filter((x) => x !== klantNaam.value)
+    .find(Boolean)
+);
+
+const kanalen = [
+  { label: "Selecteer een kanaal", value: "" },
+  ...["Balie", "Telefoon"].map((value) => ({ label: value, value }))
+];
+
+const form = ref({
+  resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
+  kanaal: "",
+  informatieBurger: ""
+});
+
+async function submit() {
+  if (!taak.value) {
+    error.value = "Kan geen contactmoment aanmaken voor een niet-bestaand contactverzoek";
+    return;
   }
 
-  const pascalCase = (s: string | undefined) =>
-    !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
+  error.value = null;
+  success.value = false;
 
-  const phoneNumbers = computed(
-    () =>
-      taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
-        ?.filter(
-          ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) =>
-            soortDigitaalAdres === "telefoonnummer"
-        )
-        .filter((x) => x.adres)
-        .map(({ adres, omschrijving }, i) => ({
-          adres,
-          omschrijving: pascalCase(omschrijving) || `Telefoonnummer ${i + 1}`
-        })) || []
-  );
+  if (!form.value.kanaal) {
+    error.value = "Kies een kanaal voor het contactmoment";
+    return;
+  }
 
-  const phoneNumber1 = computed(() =>
-    phoneNumbers.value.length > 0 ? phoneNumbers.value[0] : undefined
-  );
-  const phoneNumber2 = computed(() =>
-    phoneNumbers.value.length > 1 ? phoneNumbers.value[1] : undefined
-  );
-  const email = computed(
-    () =>
-      taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
-        ?.filter(
-          ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "email"
-        )
-        .map(({ adres }: { adres?: string }) => adres || "")
-        .find(Boolean) || ""
-  );
-  const behandelaar = computed(() => {
-    const actor = taak.value?.toegewezenAanActoren?.find(
-      (x) => x.actoridentificator?.codeObjecttype === "mdw"
-    );
-    return actor?.naam || "";
-  });
-  const aangemaaktDoor = computed(
-    () =>
-      taak.value?.aanleidinggevendKlantcontact?.hadBetrokkenActoren
-        ?.map((x) => x.naam)
-        .find(Boolean) || ""
-  );
+  if (form.value.resultaat !== RESULTS.geenGehoor && !form.value.informatieBurger) {
+    error.value = "Vul informatie voor de burger in";
+    return;
+  }
 
-  const klantNaam = computed(() =>
-    taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
-      ?.map((x) => x.volledigeNaam || x.organisatienaam)
-      .find(Boolean)
-  );
+  isLoading.value = true;
 
-  const organisatienaam = computed(() =>
-    taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen
-      ?.map((x) => x.organisatienaam)
-      .filter((x) => x !== klantNaam.value)
-      .find(Boolean)
-  );
+  try {
+    const createRequest: CreateKlantcontactRequest = {
+      kanaal: form.value.kanaal,
+      onderwerp: taak.value?.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
+      inhoud: form.value.informatieBurger,
+      indicatieContactGelukt: form.value.resultaat === RESULTS.contactGelukt,
+      taal: "nld", // ISO 639-2/B formaat
+      vertrouwelijk: false,
+      plaatsgevondenOp: new Date().toISOString()
+    };
 
-  const kanalen = [
-    { label: "Selecteer een kanaal", value: "" },
-    ...["Balie", "Telefoon"].map((value) => ({ label: value, value }))
-  ];
+    let partijUuid: string | undefined = undefined;
 
-  const form = ref({
-    resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
-    kanaal: "",
-    informatieBurger: ""
-  });
+    if (taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]) {
+      const betrokkene = taak.value.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
 
-  async function submit() {
-    if (!taak.value) {
-      error.value = "Kan geen contactmoment aanmaken voor een niet-bestaand contactverzoek";
-      return;
-    }
-
-    error.value = null;
-    success.value = false;
-
-    if (!form.value.kanaal) {
-      error.value = "Kies een kanaal voor het contactmoment";
-      return;
-    }
-
-    if (form.value.resultaat !== RESULTS.geenGehoor && !form.value.informatieBurger) {
-      error.value = "Vul informatie voor de burger in";
-      return;
-    }
-
-    isLoading.value = true;
-
-    try {
-      const createRequest: CreateKlantcontactRequest = {
-        kanaal: form.value.kanaal,
-        onderwerp: taak.value?.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
-        inhoud: form.value.informatieBurger,
-        indicatieContactGelukt: form.value.resultaat === RESULTS.contactGelukt,
-        taal: "nld", // ISO 639-2/B formaat
-        vertrouwelijk: false,
-        plaatsgevondenOp: new Date().toISOString()
-      };
-
-      let partijUuid: string | undefined = undefined;
-
-      if (taak.value?.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]) {
-        const betrokkene = taak.value.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
-
-        if (betrokkene._expand?.wasPartij && "uuid" in betrokkene._expand.wasPartij) {
-          partijUuid = betrokkene._expand.wasPartij.uuid;
-          console.log("Using partijUuid from expand.wasPartij:", partijUuid);
-        }
-        // Als fallback, check ook direct in wasPartij
-        else if (betrokkene.wasPartij && "uuid" in betrokkene.wasPartij) {
-          partijUuid = betrokkene.wasPartij.uuid;
-        }
+      if (betrokkene._expand?.wasPartij && "uuid" in betrokkene._expand.wasPartij) {
+        partijUuid = betrokkene._expand.wasPartij.uuid;
+        console.log("Using partijUuid from expand.wasPartij:", partijUuid);
       }
-
-      const aanleidinggevendKlantcontactUuid = taak.value?.aanleidinggevendKlantcontact?.uuid;
-
-      await klantcontactService.createRelatedKlantcontact(
-        createRequest,
-        aanleidinggevendKlantcontactUuid,
-        partijUuid
-      );
-
-      success.value = true;
-      form.value = {
-        resultaat: RESULTS.contactGelukt,
-        kanaal: "",
-        informatieBurger: ""
-      };
-    } catch (err: unknown) {
-      console.error("Error bij aanmaken klantcontact:", err);
-      error.value =
-        err instanceof Error && err.message
-          ? err.message
-          : "Er is een fout opgetreden bij het aanmaken van het contactmoment";
-    } finally {
-      isLoading.value = false;
+      // Als fallback, check ook direct in wasPartij
+      else if (betrokkene.wasPartij && "uuid" in betrokkene.wasPartij) {
+        partijUuid = betrokkene.wasPartij.uuid;
+      }
     }
+
+    const aanleidinggevendKlantcontactUuid = taak.value?.aanleidinggevendKlantcontact?.uuid;
+
+    await klantcontactService.createRelatedKlantcontact(
+      createRequest,
+      aanleidinggevendKlantcontactUuid,
+      partijUuid
+    );
+
+    success.value = true;
+    form.value = {
+      resultaat: RESULTS.contactGelukt,
+      kanaal: "",
+      informatieBurger: ""
+    };
+  } catch (err: unknown) {
+    console.error("Error bij aanmaken klantcontact:", err);
+    error.value =
+      err instanceof Error && err.message
+        ? err.message
+        : "Er is een fout opgetreden bij het aanmaken van het contactmoment";
+  } finally {
+    isLoading.value = false;
   }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -380,6 +380,7 @@
   column-gap: var(--ita-cv-details-sections-column-gap);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_column-size)), 1fr));
 }
+
 .ita-dv-detail-header {
   display: flex;
   flex-wrap: wrap;
