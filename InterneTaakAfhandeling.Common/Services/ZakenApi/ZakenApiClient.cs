@@ -50,12 +50,12 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
             try
             {
                 var queryString = $"?identificatie={Uri.EscapeDataString(identificatie)}";
-                var safeIdentificatie = SecureLogging.SanitizeAndTruncate(identificatie, 50);
-                // codeql[cs/log-injection] - Input is sanitized by SecureLogging.SanitizeAndTruncate
-                _logger.LogInformation($"Zoeken naar zaak met identificatie: {safeIdentificatie}, URL: zaken/api/v1/zaken{queryString}");
+                _logger.LogInformation("Zoeken naar zaak met identificatie: {identificatie}, URL: zaken/api/v1/zaken{queryString}",
+                          SecureLogging.SanitizeAndTruncate(identificatie, 50), queryString);
 
                 var response = await _httpClient.GetAsync($"zaken/api/v1/zaken{queryString}");
 
+                var safeIdentificatie = SecureLogging.SanitizeAndTruncate(identificatie, 50);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning($"Zoekopdracht naar zaak met identificatie {safeIdentificatie} retourneerde status {response.StatusCode}");
@@ -85,9 +85,8 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
             }
             catch (Exception ex)
             {
-                var safeIdentificatie = SecureLogging.SanitizeAndTruncate(identificatie, 50);
-                // lgtm[cs/log-injection] - Input is sanitized by SecureLogging.SanitizeAndTruncate
-                _logger.LogError(ex, $"Fout bij ophalen van zaak met identificatie: {safeIdentificatie}");
+                _logger.LogError(ex, "Fout bij ophalen van zaak met identificatie: {identificatie}",
+                    SecureLogging.SanitizeAndTruncate(identificatie, 50));
                 throw;
             }
         }
