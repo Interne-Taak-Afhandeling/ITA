@@ -12,10 +12,9 @@ export interface Internetaken {
   toegewezenOp: string;
   afgehandeldOp?: string;
   digitaleAdress?: DigitaleAdres[];
-  betrokkene? : Betrokkene;
+  betrokkene?: Betrokkene;
   zaak?: Zaak;
 }
- 
 
 export interface InternetakenResponse {
   count: number;
@@ -86,7 +85,7 @@ export interface DigitaleAdres {
   uuid: string;
   url: string;
   verstrektDoorBetrokkene?: Betrokkene;
-  verstrektDoorPartij?: { uuid : string, url :string };
+  verstrektDoorPartij?: { uuid: string; url: string };
   adres?: string;
   soortDigitaalAdres?: string;
   isStandaardAdres?: boolean;
@@ -235,7 +234,7 @@ export interface Contactmoment {
   medewerker: string;
   kanaal: string;
 }
- 
+
 export interface Zaak {
   url: string;
   uuid: string;
@@ -282,7 +281,7 @@ export interface Zaak {
   zaaksysteemId: string;
 }
 
-export interface InterneTaakQueryParameters {
+export type InterneTaakQueryParameters = {
   value?: string;
   AanleidinggevendKlantcontact_Url?: string;
   AanleidinggevendKlantcontact_Uuid?: string;
@@ -302,4 +301,4 @@ export interface InterneTaakQueryParameters {
   ToegewezenAanActor_Uuid?: string;
 
   ToegewezenOp?: Date;
-}
+};

@@ -10,7 +10,9 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "lint:ci": "eslint .",
+    "format": "prettier --write src/",
+    "format:ci": "prettier --check src/"
   },
   "dependencies": {
     "@utrecht/spotlight-section-css": "^1.6.0",

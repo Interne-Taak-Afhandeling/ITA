@@ -1,10 +1,9 @@
 <template>
   <div class="user-info-component">
-   
     <div v-if="isAuthenticated" class="user-info">
       <span class="user-name">{{ user?.name }}</span>
-      <button 
-      class="utrecht-button utrecht-button--primary utrecht-button--action-button" 
+      <button
+        class="utrecht-button utrecht-button--primary utrecht-button--action-button"
         @click="logout"
         :disabled="isLoading"
       >
@@ -16,8 +15,8 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/auth';
-import { storeToRefs } from 'pinia';
+import { useAuthStore } from "@/stores/auth";
+import { storeToRefs } from "pinia";
 
 const authStore = useAuthStore();
 const { user, isAuthenticated, isLoading } = storeToRefs(authStore);

@@ -34,7 +34,7 @@ const proxyConfig: Record<string, { endpoints: string[]; options: HttpProxy.Serv
 };
 
 // Create proxy entries from the configuration
-const proxyEntries = Object.entries(proxyConfig).flatMap(([_, config]) =>
+const proxyEntries = Object.entries(proxyConfig).flatMap(([, config]) =>
   config.endpoints.map((endpoint) => [endpoint, config.options])
 );
 

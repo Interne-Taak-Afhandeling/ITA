@@ -1,6 +1,6 @@
 import { inject, type App } from "vue";
 import { sanitizeSvg } from "./helpers";
-import { get } from '@/utils/fetchWrapper';
+import { get } from "@/utils/fetchWrapper";
 
 export type Resources = Partial<{
   theme: string;
@@ -13,7 +13,7 @@ export const injectResources = () => inject<Resources | null>("resources", null)
 
 const getResources = async (): Promise<Resources> => {
   try {
-    return await get<Resources>("/api/environment/resources",{skipAuthCheck: true});
+    return await get<Resources>("/api/environment/resources", { skipAuthCheck: true });
   } catch {
     return {};
   }
