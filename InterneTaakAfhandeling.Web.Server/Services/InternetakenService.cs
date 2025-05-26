@@ -2,7 +2,6 @@
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
-using InterneTaakAfhandeling.Common.Services.OpenklantApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Services
 {

@@ -1,13 +1,9 @@
 ﻿using System.Security.Claims;
 using Duende.IdentityModel;
-using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
 {

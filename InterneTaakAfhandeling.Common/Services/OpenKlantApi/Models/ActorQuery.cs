@@ -1,4 +1,4 @@
-﻿namespace InterneTaakAfhandeling.Common.Services.OpenklantApi.Models
+﻿namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
     public class ActorQuery
     {
