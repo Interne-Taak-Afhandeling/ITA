@@ -168,8 +168,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             catch (Exception ex)
             {
                 var safeEmailId = SecureLogging.CreateSafeIdentifier(email);
-                // codeql[cs/cleartext-logging] - safeEmailId is a non-reversible hash, not sensitive data
-                _logger.LogError(ex, $"Error retrieving actor by email identifier {safeEmailId}");
+                _logger.LogError(ex, "Error retrieving actor by email.");
+
                 throw new ConflictException(
                     $"Error retrieving actor by email: {ex.Message}",
                     "ACTOR_RETRIEVAL_ERROR");

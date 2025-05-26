@@ -50,8 +50,9 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
             try
             {
                 var queryString = $"?identificatie={Uri.EscapeDataString(identificatie)}";
-                _logger.LogInformation("Zoeken naar zaak met identificatie: {identificatie}, URL: zaken/api/v1/zaken{queryString}",
-                          SecureLogging.SanitizeAndTruncate(identificatie, 50), queryString);
+                var sanitizedQueryString = SecureLogging.SanitizeAndTruncate(queryString, 100);
+                _logger.LogInformation("Zoeken naar zaak met identificatie: {identificatie}, URL: zaken/api/v1/zaken{queryString}", SecureLogging.SanitizeAndTruncate(identificatie, 50),
+                    sanitizedQueryString);
 
                 var response = await _httpClient.GetAsync($"zaken/api/v1/zaken{queryString}");
 
