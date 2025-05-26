@@ -281,7 +281,7 @@ export interface Zaak {
   zaaksysteemId: string;
 }
 
-export interface InterneTaakQueryParameters {
+export type InterneTaakQueryParameters = {
   value?: string;
   AanleidinggevendKlantcontact_Url?: string;
   AanleidinggevendKlantcontact_Uuid?: string;
@@ -301,4 +301,4 @@ export interface InterneTaakQueryParameters {
   ToegewezenAanActor_Uuid?: string;
 
   ToegewezenOp?: Date;
-}
+};
