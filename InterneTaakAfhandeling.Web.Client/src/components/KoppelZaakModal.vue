@@ -60,7 +60,6 @@ const zaakKoppelenAlertRef = ref<{ dialogRef?: HTMLDialogElement }>();
 
 const isZaakGekoppeld = computed(() => !!props.zaakIdentificatie);
 
-const modalDialog = ref<HTMLDialogElement | null>(null);
 const zaakNummer = ref("");
 const isLoading = ref(false);
 const error = ref<string | null>(null);

@@ -15,12 +15,9 @@
     </utrecht-button-group>
   </div>
 
-  <utrecht-alert v-if="error" appeareance="error">{{ error }}</utrecht-alert>
-  <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
-
   <simple-spinner v-if="isLoadingTaak" />
 
-  <utrecht-alert v-else-if="!taak && !isLoadingTaak" appeareance="error">
+  <utrecht-alert v-else-if="!taak && !isLoadingTaak" type="error">
     Dit contactverzoek bestaat niet of is niet meer beschikbaar.
   </utrecht-alert>
 
@@ -203,6 +200,7 @@ import type { Internetaken, Zaak } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
+import { toast } from "@/components/toast/toast";
 import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
 
 const RESULTS = {
@@ -215,16 +213,11 @@ const route = useRoute();
 const cvId = computed(() => first(route.params.number));
 const isLoading = ref(false);
 const isLoadingTaak = ref(false);
-const error = ref<string | null>(null);
-const success = ref(false);
 const taak = ref<Internetaken | null>(null);
 
-// Reactive key voor section re-render
-//const sectionKey = ref(0);
 const handleZaakGekoppeld = (zaak: Zaak) => {
   if (taak.value) {
     taak.value.zaak = zaak;
-    //sectionKey.value++;
   }
 };
 
@@ -308,24 +301,6 @@ const form = ref({
 });
 
 async function submit() {
-  if (!taak.value) {
-    error.value = "Kan geen contactmoment aanmaken voor een niet-bestaand contactverzoek";
-    return;
-  }
-
-  error.value = null;
-  success.value = false;
-
-  if (!form.value.kanaal) {
-    error.value = "Kies een kanaal voor het contactmoment";
-    return;
-  }
-
-  if (form.value.resultaat !== RESULTS.geenGehoor && !form.value.informatieBurger) {
-    error.value = "Vul informatie voor de burger in";
-    return;
-  }
-
   isLoading.value = true;
 
   try {
@@ -362,18 +337,19 @@ async function submit() {
       partijUuid
     );
 
-    success.value = true;
     form.value = {
       resultaat: RESULTS.contactGelukt,
       kanaal: "",
       informatieBurger: ""
     };
+
+    toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
   } catch (err: unknown) {
-    console.error("Error bij aanmaken klantcontact:", err);
-    error.value =
+    const message =
       err instanceof Error && err.message
         ? err.message
         : "Er is een fout opgetreden bij het aanmaken van het contactmoment";
+    toast.add({ text: message, type: "error" });
   } finally {
     isLoading.value = false;
   }
