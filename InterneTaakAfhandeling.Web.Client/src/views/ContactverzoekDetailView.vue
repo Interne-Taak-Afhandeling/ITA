@@ -264,10 +264,11 @@ const email = computed(
       .find(Boolean) || ""
 );
 const behandelaar = computed(() => {
-  const actor = taak.value?.toegewezenAanActoren?.find(
+  const mdwActor = taak.value?.toegewezenAanActoren?.find(
     (x) => x.actoridentificator?.codeObjecttype === "mdw"
   );
-  return actor?.naam || "";
+  if (mdwActor?.naam) return mdwActor.naam;
+  return taak.value?.toegewezenAanActoren?.[0]?.naam || "";
 });
 const aangemaaktDoor = computed(
   () =>
