@@ -24,7 +24,7 @@
       </ContactTimelineHeaderChannel>
       <ContactTimelineHeaderContent>
         <StepHeaderToggle
-          v-if="description"
+          v-if="description && hasOnToggleExpandedListener"
           class="denhaag-contact-timeline__step-header-toggle"
           :aria-controls="`${id}--details`"
           :expanded="expanded"
@@ -101,6 +101,7 @@ import ContactTimelineHeaderDate from "./ContactTimelineHeaderDate.vue";
 import ContactTimelineHeaderChannel from "./ContactTimelineHeaderChannel.vue";
 import ContactTimelineItemSender from "./ContactTimelineItemSender.vue";
 import ContactTimelineItemFile from "./ContactTimelineItemFile.vue";
+import { computed, getCurrentInstance } from "vue";
 
 export interface ContactTimelineItemProps {
   id: string;
@@ -135,4 +136,8 @@ interface ContactTimelineItemInternalProps extends ContactTimelineItemProps {
 defineProps<ContactTimelineItemInternalProps>();
 defineSlots<ContactTimelineItemSlots>();
 defineEmits<{ toggleExpanded: [] }>();
+
+const hasOnToggleExpandedListener = computed(
+  () => !!getCurrentInstance()?.vnode?.props?.onToggleExpanded
+);
 </script>

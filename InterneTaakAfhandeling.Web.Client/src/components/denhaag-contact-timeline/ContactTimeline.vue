@@ -1,15 +1,6 @@
 <template>
   <ContactTimelineList class="denhaag-process-steps">
-    <ContactTimelineListItem
-      v-for="{ item, nextItem } in mappedItems"
-      v-bind="item"
-      :key="item.id"
-      :expanded="collapsible ? actualExpandedItems.includes(item.id) : false"
-      :nextItem="nextItem"
-      :labels="labels"
-      :locale="locale"
-      @toggleExpanded="toggleState(item.id)"
-    >
+    <ContactTimelineListItem v-for="item in mappedItems" v-bind="item" :key="item.id">
       <template v-for="(_, name) in slots" v-slot:[name]="slotProps">
         <slot v-if="slotProps" :name="name" v-bind="slotProps" />
       </template>
@@ -25,13 +16,6 @@ import ContactTimelineListItem, {
   type Labels
 } from "./ContactTimelineListItem.vue";
 
-const { items, expandedItems } = defineProps<ContactTimelineProps>();
-const slots = defineSlots<ContactTimelineItemSlots>();
-
-const mappedItems = computed(() =>
-  items.map((item, index) => ({ item, nextItem: index < items.length - 1 }))
-);
-
 export interface ContactTimelineProps {
   items: ContactTimelineItemProps[];
   collapsible?: boolean;
@@ -40,9 +24,10 @@ export interface ContactTimelineProps {
   expandedItems?: string[];
 }
 
-const actualExpandedItems = ref<string[]>([]);
+const { items, expandedItems, collapsible, labels, locale } = defineProps<ContactTimelineProps>();
+const slots = defineSlots<ContactTimelineItemSlots>();
 
-watchEffect(() => expandedItems && (actualExpandedItems.value = expandedItems));
+const actualExpandedItems = ref<string[]>([]);
 
 const toggleState = (key: string) => {
   if (actualExpandedItems.value.includes(key)) {
@@ -51,4 +36,17 @@ const toggleState = (key: string) => {
     actualExpandedItems.value = [...actualExpandedItems.value, key];
   }
 };
+
+const mappedItems = computed(() =>
+  items.map((item, index) => ({
+    ...item,
+    labels,
+    locale,
+    nextItem: index < items.length - 1,
+    expanded: collapsible && actualExpandedItems.value.includes(item.id),
+    onToggleExpanded: collapsible ? () => toggleState(item.id) : undefined
+  }))
+);
+
+watchEffect(() => expandedItems && (actualExpandedItems.value = expandedItems));
 </script>
