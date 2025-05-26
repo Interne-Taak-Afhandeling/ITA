@@ -1,11 +1,10 @@
-import type { 
-  CreateKlantcontactRequest, 
+import type {
+  CreateKlantcontactRequest,
   RelatedKlantcontactResult,
   CreateRelatedKlantcontactRequest,
   Contactmoment
 } from "@/types/internetaken";
-import { get, post } from '@/utils/fetchWrapper';
-
+import { get, post } from "@/utils/fetchWrapper";
 
 interface ContactmomentenResponse {
   contactmomenten: Contactmoment[];
@@ -14,7 +13,7 @@ interface ContactmomentenResponse {
 
 export const klantcontactService = {
   createRelatedKlantcontact: (
-    klantcontactRequest: CreateKlantcontactRequest, 
+    klantcontactRequest: CreateKlantcontactRequest,
     aanleidinggevendKlantcontactUuid?: string,
     partijUuid?: string
   ): Promise<RelatedKlantcontactResult> => {
@@ -23,28 +22,26 @@ export const klantcontactService = {
       aanleidinggevendKlantcontactUuid,
       partijUuid
     };
-    
-    return post<RelatedKlantcontactResult>('/api/createklantcontact/relatedklantcontact', request);
+
+    return post<RelatedKlantcontactResult>("/api/createklantcontact/relatedklantcontact", request);
   },
 
-
   getContactKeten: (klantcontactId: string): Promise<ContactmomentenResponse> =>
-      get<ContactmomentenResponse>(`/api/klantcontacten-overview/${klantcontactId}/contactketen`),
-    
-    // /**
-    //  * Helper-functie die alleen het UUID van het laatste klantcontact in de keten ophaalt
-    //  * @param klantcontactId - De UUID van het klantcontact
-    //  * @returns Een promise met alleen het UUID van het laatste klantcontact
-    //  */
-    // getLaatsteKlantcontactUuid: (klantcontactId: string): Promise<string> =>
-    //   get<ContactmomentenResponse>(`/api/klantcontacten-overview/${klantcontactId}/contactketen`)
-    //     .then(response => response.laatsteBekendKlantcontactUuid)
+    get<ContactmomentenResponse>(`/api/klantcontacten-overview/${klantcontactId}/contactketen`)
+
+  // /**
+  //  * Helper-functie die alleen het UUID van het laatste klantcontact in de keten ophaalt
+  //  * @param klantcontactId - De UUID van het klantcontact
+  //  * @returns Een promise met alleen het UUID van het laatste klantcontact
+  //  */
+  // getLaatsteKlantcontactUuid: (klantcontactId: string): Promise<string> =>
+  //   get<ContactmomentenResponse>(`/api/klantcontacten-overview/${klantcontactId}/contactketen`)
+  //     .then(response => response.laatsteBekendKlantcontactUuid)
 };
 
-
-export type { 
+export type {
   CreateKlantcontactRequest,
-  RelatedKlantcontactResult, 
+  RelatedKlantcontactResult,
   Contactmoment,
-  ContactmomentenResponse  
+  ContactmomentenResponse
 };

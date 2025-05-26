@@ -19,7 +19,7 @@
     <utrecht-nav-bar />
 
     <span class="utrecht-heading-2">{{ title }}</span>
-    
+
     <div class="user-info-container">
       <user-info />
     </div>

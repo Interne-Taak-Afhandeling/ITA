@@ -1,9 +1,9 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { authService } from '@/services/authService';
-import type { User } from '@/types/user';
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import { authService } from "@/services/authService";
+import type { User } from "@/types/user";
 
-export const useAuthStore = defineStore('auth', () => {
+export const useAuthStore = defineStore("auth", () => {
   const user = ref<User | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -20,8 +20,9 @@ export const useAuthStore = defineStore('auth', () => {
       const currentUser = await authService.getCurrentUser();
       user.value = currentUser;
     } catch (err: unknown) {
-      error.value =  err instanceof Error && err.message ? err.message : 'Failed to initialize authentication';
-      console.error('Auth initialization failed:', err);
+      error.value =
+        err instanceof Error && err.message ? err.message : "Failed to initialize authentication";
+      console.error("Auth initialization failed:", err);
     } finally {
       isLoading.value = false;
     }
@@ -34,7 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await authService.login();
     } catch (err: unknown) {
-      error.value =  err instanceof Error && err.message ? err.message :  'Login failed';
+      error.value = err instanceof Error && err.message ? err.message : "Login failed";
     } finally {
       isLoading.value = false;
     }
@@ -48,14 +49,12 @@ export const useAuthStore = defineStore('auth', () => {
       await authService.logout();
       user.value = null;
     } catch (err: unknown) {
-      error.value =  err instanceof Error && err.message ? err.message :  'Logout failed';
-      console.error('Logout failed:', err);
+      error.value = err instanceof Error && err.message ? err.message : "Logout failed";
+      console.error("Logout failed:", err);
     } finally {
       isLoading.value = false;
     }
   }
-  
-   
 
   return {
     user,

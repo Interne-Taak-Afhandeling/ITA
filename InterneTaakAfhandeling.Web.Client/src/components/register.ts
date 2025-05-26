@@ -33,7 +33,7 @@ import {
   Textarea as UtrechtTextarea,
   RadioButton as UtrechtRadiobutton,
   AlertDialog as UtrechtAlertDialog,
-  ButtonGroup as UtrechtButtonGroup,
+  ButtonGroup as UtrechtButtonGroup
 } from "@utrecht/component-library-vue";
 
 const components = {

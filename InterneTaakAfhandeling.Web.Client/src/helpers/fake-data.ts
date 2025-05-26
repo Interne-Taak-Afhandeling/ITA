@@ -2,7 +2,7 @@ import type { Internetaken } from "@/types/internetaken";
 import type { _DeepPartial } from "pinia";
 
 const _staticRecords: _DeepPartial<Internetaken>[] = [
-   {
+  {
     uuid: "bf314e9a-dea8-4cfe-853b-b0aaff045e37",
     url: "https://openklant.dev.kiss-demo.nl/klantinteracties/api/v1/internetaken/bf314e9a-dea8-4cfe-853b-b0aaff045e37",
     nummer: "0000000033",
@@ -11,7 +11,8 @@ const _staticRecords: _DeepPartial<Internetaken>[] = [
       uuid: "66b2a724-6bfc-4674-a87f-80639b93ed48",
       url: "https://openklant.dev.kiss-demo.nl/klantinteracties/api/v1/klantcontacten/66b2a724-6bfc-4674-a87f-80639b93ed48",
       plaatsgevondenOp: "2025-05-01T11:37:19.264+00:00",
-      onderwerp: "Loterij organiseren - Mevrouw Swart wil graag weten hoe ze een loterij organiseert.",
+      onderwerp:
+        "Loterij organiseren - Mevrouw Swart wil graag weten hoe ze een loterij organiseert.",
       nummer: "0000000111",
       kanaal: "balie",
       inhoud: "",
@@ -21,10 +22,12 @@ const _staticRecords: _DeepPartial<Internetaken>[] = [
       gingOverOnderwerpobjecten: [
         { onderwerpobjectidentificator: { objectId: "02e2b0e9-d7cc-428e-83f0-edaa1847bea8" } }
       ],
-      hadBetrokkenActoren: [{ 
-        naam: "Amber Gerritsen",
-        uuid: "3b033802-7482-4718-92da-170e5e2e4d63" 
-      }],
+      hadBetrokkenActoren: [
+        {
+          naam: "Amber Gerritsen",
+          uuid: "3b033802-7482-4718-92da-170e5e2e4d63"
+        }
+      ],
       _expand: {
         hadBetrokkenen: [
           {
@@ -55,10 +58,10 @@ const _staticRecords: _DeepPartial<Internetaken>[] = [
             toegewezenOp: "2025-05-01T11:37:19.728006+00:00",
             toegewezenAanActoren: [
               {
-                uuid: "3b033802-7482-4718-92da-170e5e2e4d63",
+                uuid: "3b033802-7482-4718-92da-170e5e2e4d63"
               },
               {
-                uuid: "220dcf88-01c7-4a4a-a5b8-dc1d6672faa9",
+                uuid: "220dcf88-01c7-4a4a-a5b8-dc1d6672faa9"
               }
             ]
           }
@@ -66,22 +69,24 @@ const _staticRecords: _DeepPartial<Internetaken>[] = [
       }
     },
     status: "te_verwerken",
-    digitaleAdress: [{ 
-      soortDigitaalAdres: "telefoonnummer", 
-      adres: "0612345678" 
-    }],
+    digitaleAdress: [
+      {
+        soortDigitaalAdres: "telefoonnummer",
+        adres: "0612345678"
+      }
+    ],
     betrokkene: {
       uuid: "bbc09291-4c5e-4414-b2f7-b051c5ecbf77",
       volledigeNaam: "Saskia Swart",
       rol: "klant"
     },
     toegewezenAanActoren: [
-      { 
+      {
         uuid: "3b033802-7482-4718-92da-170e5e2e4d63",
-        naam: "Jimme van der Jimme van der Meer" 
+        naam: "Jimme van der Jimme van der Meer"
       },
       {
-        uuid: "220dcf88-01c7-4a4a-a5b8-dc1d6672faa9",
+        uuid: "220dcf88-01c7-4a4a-a5b8-dc1d6672faa9"
       }
     ],
     toelichting: "test",
