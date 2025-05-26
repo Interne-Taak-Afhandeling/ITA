@@ -9,12 +9,9 @@
     </utrecht-button-group>
   </div>
 
-  <utrecht-alert v-if="error" appeareance="error">{{ error }}</utrecht-alert>
-  <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
-
   <simple-spinner v-if="isLoadingTaak" />
 
-  <utrecht-alert v-else-if="!taak && !isLoadingTaak" appeareance="error">
+  <utrecht-alert v-else-if="!taak && !isLoadingTaak" type="error">
     Dit contactverzoek bestaat niet of is niet meer beschikbaar.
   </utrecht-alert>
 
@@ -197,6 +194,7 @@ import type { Internetaken } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
+import { toast } from "@/components/toast/toast";
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -348,18 +346,19 @@ async function submit() {
       partijUuid
     );
 
-    success.value = true;
     form.value = {
       resultaat: RESULTS.contactGelukt,
       kanaal: "",
       informatieBurger: ""
     };
+
+    toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
   } catch (err: unknown) {
-    console.error("Error bij aanmaken klantcontact:", err);
-    error.value =
+    const message =
       err instanceof Error && err.message
         ? err.message
         : "Er is een fout opgetreden bij het aanmaken van het contactmoment";
+    toast.add({ text: message, type: "error" });
   } finally {
     isLoading.value = false;
   }
