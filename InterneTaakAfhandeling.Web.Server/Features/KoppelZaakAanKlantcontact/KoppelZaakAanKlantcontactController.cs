@@ -124,6 +124,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
 
                 foreach (var onderwerpobjectRef in klantcontact.GingOverOnderwerpobjecten)
                 {
+                    if (string.IsNullOrEmpty(onderwerpobjectRef?.Uuid)) continue;
+
                     var onderwerpobject = await _openKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid);
 
                     if (onderwerpobject?.Onderwerpobjectidentificator != null &&
@@ -134,10 +136,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                         _logger.LogInformation("Zaak-onderwerpobject gevonden: {SafeOnderwerpUuid}", safeOnderwerpUuid);
                         zaakOnderwerpobjectCount++;
 
-                        if (bestaandZaakOnderwerpobject == null)
-                        {
-                            bestaandZaakOnderwerpobject = onderwerpobject;
-                        }
+                        bestaandZaakOnderwerpobject ??= onderwerpobject;
                     }
                 }
             }
@@ -165,7 +164,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                 }
             };
 
-            if (bestaandZaakOnderwerpobject != null)
+            if (bestaandZaakOnderwerpobject != null && !string.IsNullOrEmpty(bestaandZaakOnderwerpobject.Uuid))
             {
                 var safeOnderwerpUuid = SecureLogging.SanitizeUuid(bestaandZaakOnderwerpobject.Uuid);
                 var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
