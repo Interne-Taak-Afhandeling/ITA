@@ -18,7 +18,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: "npm"
+          cache: 'npm'
+          cache-dependency-path: InterneTaakAfhandeling.Web.Client/package-lock.json
       - run: npm ci
+        working-directory: InterneTaakAfhandeling.Web.Client
       - run: npm run lint:ci --if-present
+        working-directory: InterneTaakAfhandeling.Web.Client
       - run: npm run format:ci --if-present
+        working-directory: InterneTaakAfhandeling.Web.Client
