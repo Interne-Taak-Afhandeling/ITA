@@ -38,10 +38,10 @@ namespace InterneTaakAfhandeling.Common.Helpers
 
             var sanitized = SanitizeForLogging(input);
 
-            if (sanitized.Length <= maxLength)
+            if (sanitized.Length <= maxLength )
                 return sanitized;
 
-            return sanitized[..(maxLength - 3)] + "...";
+            return sanitized[..(maxLength-1)] + "...";
         }
 
         /// <summary>

@@ -117,11 +117,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
             Onderwerpobject? bestaandZaakOnderwerpobject = null;
             int zaakOnderwerpobjectCount = 0;
 
-            if (klantcontact.GingOverOnderwerpobjecten?.Any() == true)
+            if (klantcontact.GingOverOnderwerpobjecten?.Count > 0)
             {
-                _logger.LogInformation("Klantcontact heeft {OnderwerpobjectCount} onderwerpobjecten",
-                    klantcontact.GingOverOnderwerpobjecten.Count);
-
                 foreach (var onderwerpobjectRef in klantcontact.GingOverOnderwerpobjecten)
                 {
                     if (string.IsNullOrEmpty(onderwerpobjectRef?.Uuid)) continue;
@@ -193,7 +190,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
 
     public class KoppelZaakAanKlantcontactResult
     {
-        public required InterneTaakAfhandeling.Common.Services.ZakenApi.Models.Zaak Zaak { get; set; }
+        public required Common.Services.ZakenApi.Models.Zaak Zaak { get; set; }
         public required Klantcontact Klantcontact { get; set; }
         public required Onderwerpobject Onderwerpobject { get; set; }
     }

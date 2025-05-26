@@ -50,16 +50,16 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
             try
             {
                 var queryString = $"?identificatie={Uri.EscapeDataString(identificatie)}";
-                var sanitizedQueryString = SecureLogging.SanitizeAndTruncate(queryString, 100);
-                _logger.LogInformation("Zoeken naar zaak met identificatie: {identificatie}, URL: zaken/api/v1/zaken{queryString}", SecureLogging.SanitizeAndTruncate(identificatie, 50),
-                    sanitizedQueryString);
+
+                var safeIdentificatie = SecureLogging.SanitizeAndTruncate(identificatie, 10);
+                _logger.LogInformation("Zoeken naar zaak met identificatie: {safeIdentificatie}", safeIdentificatie);
 
                 var response = await _httpClient.GetAsync($"zaken/api/v1/zaken{queryString}");
 
-                var safeIdentificatie = SecureLogging.SanitizeAndTruncate(identificatie, 50);
+                
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning($"Zoekopdracht naar zaak met identificatie {safeIdentificatie} retourneerde status {response.StatusCode}");
+                    _logger.LogWarning("Zoekopdracht naar zaak met identificatie {safeIdentificatie} retourneerde status {response.StatusCode}", safeIdentificatie, response.StatusCode);
 
                     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     {
@@ -73,13 +73,13 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
 
                 if (results?.Results == null || results.Results.Count == 0)
                 {
-                    _logger.LogInformation($"Geen zaken gevonden met identificatie: {safeIdentificatie}");
+                    _logger.LogInformation("Geen zaken gevonden met identificatie: {safeIdentificatie}", safeIdentificatie);
                     return null;
                 }
 
                 if (results.Results.Count > 1)
                 {
-                    _logger.LogWarning($"Meerdere zaken gevonden met identificatie: {safeIdentificatie}, de eerste wordt gebruikt");
+                    _logger.LogWarning("Meerdere zaken gevonden met identificatie: {safeIdentificatie}, de eerste wordt gebruikt", safeIdentificatie);
                 }
 
                 return results.Results[0];
