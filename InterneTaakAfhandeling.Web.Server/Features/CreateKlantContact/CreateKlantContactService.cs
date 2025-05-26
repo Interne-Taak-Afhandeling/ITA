@@ -1,7 +1,8 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.Services.OpenklantApi;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;
-using System;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 {
@@ -172,14 +173,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 var actorRequest = new ActorRequest
                 {
                     Naam = naam ?? email,
-                    SoortActor = "medewerker",
+                    SoortActor = SoortActor.medewerker,
                     IndicatieActief = true,
                     Actoridentificator = new Actoridentificator
                     {
                         ObjectId = email,
-                        CodeObjecttype = "mdw",
-                        CodeRegister = "msei",
-                        CodeSoortObjectId = "email"
+                        CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                        CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                        CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId
                     }
                 };
 
@@ -253,7 +254,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
         {
             try
             {
-                return await _openKlantApiClient.GetActorByEmail(email);
+                return await _openKlantApiClient.QueryActorAsync(new()
+                {
+                    ActoridentificatorObjectId = email,
+                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
+                    SoortActor = SoortActor.medewerker
+                });
             }
             catch (Exception ex)
             {

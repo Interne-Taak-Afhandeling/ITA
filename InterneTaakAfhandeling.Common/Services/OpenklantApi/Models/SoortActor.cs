@@ -1,5 +1,8 @@
-﻿namespace InterneTaakAfhandeling.Common.Services.OpenklantApi.Models
+﻿using System.Text.Json.Serialization;
+
+namespace InterneTaakAfhandeling.Common.Services.OpenklantApi.Models
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<SoortActor>))]
     public enum SoortActor
     {
         geautomatiseerde_actor,
