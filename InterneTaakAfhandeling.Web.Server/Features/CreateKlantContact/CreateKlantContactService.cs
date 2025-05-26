@@ -64,7 +64,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                         {
                             if (Guid.TryParse(aanleidinggevendKlantcontactUuid, out Guid parsedAanleidinggevendKlantcontactUuid))
                             {
-                                _logger.LogInformation($"Using most recent klantcontact in chain: {parsedLaatsteKlantcontactUuid} " + $"instead of original: {parsedAanleidinggevendKlantcontactUuid}");
+                                _logger.LogInformation("Using most recent klantcontact in chain: {ParsedLaatsteKlantcontactUuid} instead of original: {ParsedAanleidinggevendKlantcontactUuid}",
+                                    parsedLaatsteKlantcontactUuid, parsedAanleidinggevendKlantcontactUuid);
                             }
                         }
                     }
@@ -73,7 +74,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 {
                     if (Guid.TryParse(aanleidinggevendKlantcontactUuid, out Guid parsedAanleidinggevendKlantcontactUuid))
                     {
-                        _logger.LogWarning(ex, $"Could not determine latest contact in chain. Using original: {parsedAanleidinggevendKlantcontactUuid}");
+                        _logger.LogWarning(ex, "Could not determine latest contact in chain. Using original: {ParsedAanleidinggevendKlantcontactUuid}",
+                            parsedAanleidinggevendKlantcontactUuid);
                     }
                 }
             }
@@ -119,7 +121,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             {
                 if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
                 {
-                    _logger.LogWarning(ex, $"Could not determine latest klantcontact in chain, using original {parsedKlantcontactUuid}");
+                    _logger.LogWarning(ex, "Could not determine latest klantcontact in chain, using original {ParsedKlantcontactUuid}",
+                        parsedKlantcontactUuid);
                 }
 
                 return klantcontactUuid;
@@ -137,7 +140,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 {
                     if (Guid.TryParse(providedPartijUuid, out Guid parsedprovidedPartijUuid))
                     {
-                        _logger.LogInformation($"Creating betrokkene using provided partijUuid: {parsedprovidedPartijUuid}");
+                        _logger.LogInformation("Creating betrokkene using provided partijUuid: {ParsedProvidedPartijUuid}",
+                            parsedprovidedPartijUuid);
                     }
 
                     var betrokkene = await CreateBetrokkeneAsync(klantcontactUuid, providedPartijUuid);
@@ -147,7 +151,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Could not create betrokkene for klantcontact {klantcontactUuid}");
+                _logger.LogError(ex, "Could not create betrokkene for klantcontact {KlantcontactUuid}", klantcontactUuid);
             }
         }
 
@@ -198,7 +202,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 catch (Exception ex)
                 {
                     var safeActorId = SecureLogging.CreateSafeIdentifier(actorRequest.Naam);
-                    _logger.LogError(ex, $"Error creating actor with identifier {safeActorId}");
+                    _logger.LogError(ex, "Error creating actor with identifier {SafeActorId}", safeActorId);
                     throw new ConflictException(
                         $"Error creating actor: {ex.Message}",
                         "ACTOR_CREATION_ERROR");
@@ -271,12 +275,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             {
                 var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontactUuid);
                 var safePartijUuid = SecureLogging.SanitizeUuid(partijUuid);
-                _logger.LogInformation($"Creating betrokkene for klantcontact {safeKlantcontactUuid} and partij {safePartijUuid}");
+                _logger.LogInformation("Creating betrokkene for klantcontact {SafeKlantcontactUuid} and partij {SafePartijUuid}",
+                    safeKlantcontactUuid, safePartijUuid);
 
                 var betrokkene = await _openKlantApiClient.CreateBetrokkeneAsync(betrokkeneRequest);
 
                 var safeBetrokkeneUuid = SecureLogging.SanitizeUuid(betrokkene.Uuid);
-                _logger.LogInformation($"Successfully created betrokkene {safeBetrokkeneUuid}");
+                _logger.LogInformation("Successfully created betrokkene {SafeBetrokkeneUuid}", safeBetrokkeneUuid);
 
                 return betrokkene;
             }
@@ -284,7 +289,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             {
                 var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontactUuid);
                 var safePartijUuid = SecureLogging.SanitizeUuid(partijUuid);
-                _logger.LogError(ex, $"Error creating betrokkene for klantcontact {safeKlantcontactUuid} and partij {safePartijUuid}");
+                _logger.LogError(ex, "Error creating betrokkene for klantcontact {SafeKlantcontactUuid} and partij {SafePartijUuid}",
+                    safeKlantcontactUuid, safePartijUuid);
 
                 throw new ConflictException(
                     $"Error creating betrokkene: {ex.Message}",
@@ -295,8 +301,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 
     public class RelatedKlantcontactResult
     {
-        public Klantcontact Klantcontact { get; set; }
-        public ActorKlantcontact ActorKlantcontact { get; set; }
+        public required Klantcontact Klantcontact { get; set; }
+        public required ActorKlantcontact ActorKlantcontact { get; set; }
         public Onderwerpobject? Onderwerpobject { get; set; }
         public Betrokkene? Betrokkene { get; set; }
     }

@@ -37,7 +37,8 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             {
                 if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
                 {
-                    _logger.LogError(ex, $"Fout bij bepalen eerste klantcontact in keten met startpunt {parsedKlantcontactUuid}");
+                    _logger.LogError(ex, "Fout bij bepalen eerste klantcontact in keten met startpunt {ParsedKlantcontactUuid}", 
+                        parsedKlantcontactUuid);
                 }
                 throw new ConflictException(
                     $"Fout bij bepalen eerste klantcontact in keten: {ex.Message}",

@@ -38,7 +38,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
             {
                 if (Guid.TryParse(klantcontactId, out Guid parsedKlantcontactId))
                 {
-                    _logger.LogError(ex, $"Error retrieving contact chain for klantcontact {parsedKlantcontactId}");
+                    _logger.LogError(ex, "Error retrieving contact chain for klantcontact {ParsedKlantcontactId}",
+                        parsedKlantcontactId);
                 }
 
                 return NotFound(new ProblemDetails
@@ -60,7 +61,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
                 ContactGelukt: k.IndicatieContactGelukt ?? false,
                 Tekst: k.Inhoud ?? string.Empty,
                 Datum: FormateerDatum(k.PlaatsgevondenOp),
-                Medewerker: k.HadBetrokkenActoren.FirstOrDefault()?.Naam ?? "Onbekend",
+                Medewerker: k.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend",
                 Kanaal: k.Kanaal ?? "Onbekend"
             )).ToList();
 
@@ -70,7 +71,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
             );
         }
 
-        private string FormateerDatum(DateTimeOffset datum)
+        private static string FormateerDatum(DateTimeOffset datum)
         {
             if (datum.Year == 1 && datum.Month == 1 && datum.Day == 1)
             {

@@ -60,7 +60,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                 var safeZaakId = SecureLogging.SanitizeAndTruncate(request.ZaakIdentificatie, 50);
                 var safeKlantcontactUuid = SecureLogging.SanitizeUuid(request.AanleidinggevendKlantcontactUuid);
 
-                _logger.LogInformation($"Zoeken naar zaak met identificatie: {safeZaakId}");
+                _logger.LogInformation("Zoeken naar zaak met identificatie: {SafeZaakId}", safeZaakId);
                 var zaak = await _zakenApiClient.GetZaakByIdentificatieAsync(request.ZaakIdentificatie);
 
                 if (zaak == null)
@@ -73,7 +73,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                     });
                 }
 
-                _logger.LogInformation($"Ophalen aanleidinggevend klantcontact met UUID: {safeKlantcontactUuid}");
+                _logger.LogInformation("Ophalen aanleidinggevend klantcontact met UUID: {SafeKlantcontactUuid}", safeKlantcontactUuid);
                 var aanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(request.AanleidinggevendKlantcontactUuid);
 
                 if (aanleidinggevendKlantcontact == null)
@@ -100,7 +100,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                 var safeZaakId = SecureLogging.SanitizeAndTruncate(request.ZaakIdentificatie, 50);
                 var safeKlantcontactUuid = SecureLogging.SanitizeUuid(request.AanleidinggevendKlantcontactUuid);
 
-                _logger.LogError(ex, $"Fout bij koppelen van zaak {safeZaakId} aan aanleidinggevend klantcontact {safeKlantcontactUuid}");
+                _logger.LogError(ex, "Fout bij koppelen van zaak {SafeZaakId} aan aanleidinggevend klantcontact {SafeKlantcontactUuid}",
+                    safeZaakId, safeKlantcontactUuid);
 
                 throw new ConflictException(
                     $"Er is een fout opgetreden bij het koppelen van de zaak: {ex.Message}",
@@ -111,26 +112,26 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
         private async Task<Onderwerpobject> KoppelZaakAanOnderwerpobject(Klantcontact klantcontact, string zaakUuid)
         {
             var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontact.Uuid);
-            _logger.LogInformation($"Koppelen zaak aan klantcontact met UUID: {safeKlantcontactUuid}");
+            _logger.LogInformation("Koppelen zaak aan klantcontact met UUID: {SafeKlantcontactUuid}", safeKlantcontactUuid);
 
             Onderwerpobject? bestaandZaakOnderwerpobject = null;
             int zaakOnderwerpobjectCount = 0;
 
-            if (klantcontact.GingOverOnderwerpobjecten != null && klantcontact.GingOverOnderwerpobjecten.Any())
+            if (klantcontact.GingOverOnderwerpobjecten?.Any() == true)
             {
-                _logger.LogInformation($"Klantcontact heeft {klantcontact.GingOverOnderwerpobjecten.Count} onderwerpobjecten");
+                _logger.LogInformation("Klantcontact heeft {OnderwerpobjectCount} onderwerpobjecten",
+                    klantcontact.GingOverOnderwerpobjecten.Count);
 
                 foreach (var onderwerpobjectRef in klantcontact.GingOverOnderwerpobjecten)
                 {
                     var onderwerpobject = await _openKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid);
 
-                    if (onderwerpobject != null &&
-                        onderwerpobject.Onderwerpobjectidentificator != null &&
+                    if (onderwerpobject?.Onderwerpobjectidentificator != null &&
                         onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&
                         onderwerpobject.Onderwerpobjectidentificator.CodeRegister == "openzaak")
                     {
                         var safeOnderwerpUuid = SecureLogging.SanitizeUuid(onderwerpobject.Uuid);
-                        _logger.LogInformation($"Zaak-onderwerpobject gevonden: {safeOnderwerpUuid}");
+                        _logger.LogInformation("Zaak-onderwerpobject gevonden: {SafeOnderwerpUuid}", safeOnderwerpUuid);
                         zaakOnderwerpobjectCount++;
 
                         if (bestaandZaakOnderwerpobject == null)
@@ -144,7 +145,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
             // Check of er meerdere zaak-gerelateerde onderwerpobjecten zijn
             if (zaakOnderwerpobjectCount > 1)
             {
-                _logger.LogWarning($"Klantcontact {safeKlantcontactUuid} heeft {zaakOnderwerpobjectCount} zaak-gerelateerde onderwerpobjecten. Het koppelen van een nieuwe zaak wordt niet ondersteund in deze situatie.");
+                _logger.LogWarning("Klantcontact {SafeKlantcontactUuid} heeft {ZaakOnderwerpobjectCount} zaak-gerelateerde onderwerpobjecten. Het koppelen van een nieuwe zaak wordt niet ondersteund in deze situatie.",
+                    safeKlantcontactUuid, zaakOnderwerpobjectCount);
                 throw new ConflictException(
                     "Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit contact.",
                     "MEERDERE_ZAKEN_GEKOPPELD");
@@ -167,7 +169,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
             {
                 var safeOnderwerpUuid = SecureLogging.SanitizeUuid(bestaandZaakOnderwerpobject.Uuid);
                 var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
-                _logger.LogInformation($"Bijwerken bestaand zaak-onderwerpobject {safeOnderwerpUuid} met nieuwe zaak {safeZaakUuid}");
+                _logger.LogInformation("Bijwerken bestaand zaak-onderwerpobject {SafeOnderwerpUuid} met nieuwe zaak {SafeZaakUuid}",
+                    safeOnderwerpUuid, safeZaakUuid);
 
                 return await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, request);
             }
@@ -175,7 +178,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
             {
                 var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
                 var safeKlantUuid = SecureLogging.SanitizeUuid(klantcontact.Uuid);
-                _logger.LogInformation($"Aanmaken nieuw onderwerpobject voor zaak {safeZaakUuid} en klantcontact {safeKlantUuid}");
+                _logger.LogInformation("Aanmaken nieuw onderwerpobject voor zaak {SafeZaakUuid} en klantcontact {SafeKlantUuid}",
+                    safeZaakUuid, safeKlantUuid);
 
                 return await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
             }
@@ -190,8 +194,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
 
     public class KoppelZaakAanKlantcontactResult
     {
-        public InterneTaakAfhandeling.Common.Services.ZakenApi.Models.Zaak Zaak { get; set; } = null!;
-        public Klantcontact Klantcontact { get; set; } = null!;
-        public Onderwerpobject Onderwerpobject { get; set; } = null!;
+        public required InterneTaakAfhandeling.Common.Services.ZakenApi.Models.Zaak Zaak { get; set; }
+        public required Klantcontact Klantcontact { get; set; }
+        public required Onderwerpobject Onderwerpobject { get; set; }
     }
 }
