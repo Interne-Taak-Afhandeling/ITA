@@ -50,9 +50,8 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
             try
             {
                 var queryString = $"?identificatie={Uri.EscapeDataString(identificatie)}";
-
-                // codeql[cs/log-injection] - Input is sanitized by SecureLogging.SanitizeAndTruncate
                 var safeIdentificatie = SecureLogging.SanitizeAndTruncate(identificatie, 50);
+                // codeql[cs/log-injection] - Input is sanitized by SecureLogging.SanitizeAndTruncate
                 _logger.LogInformation($"Zoeken naar zaak met identificatie: {safeIdentificatie}, URL: zaken/api/v1/zaken{queryString}");
 
                 var response = await _httpClient.GetAsync($"zaken/api/v1/zaken{queryString}");
@@ -86,8 +85,8 @@ namespace InterneTaakAfhandeling.Common.Services.ZakenApi
             }
             catch (Exception ex)
             {
-                // codeql[cs/log-injection] - Input is sanitized by SecureLogging.SanitizeAndTruncate
                 var safeIdentificatie = SecureLogging.SanitizeAndTruncate(identificatie, 50);
+                // lgtm[cs/log-injection] - Input is sanitized by SecureLogging.SanitizeAndTruncate
                 _logger.LogError(ex, $"Fout bij ophalen van zaak met identificatie: {safeIdentificatie}");
                 throw;
             }
