@@ -6,6 +6,7 @@
 - Als afhandelaar wil ik de contactverzoeken ontvangen die voor mij bedoeld zijn #7
 - Keep track of which items have been processed #28
 - Overview contact request assigned to the logged-in employee #11
+- Open a contact request from the overview as an employee #12
 
 
 ### Warnings and deployment notes

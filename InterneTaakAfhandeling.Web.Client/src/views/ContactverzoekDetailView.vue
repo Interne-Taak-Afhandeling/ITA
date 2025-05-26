@@ -5,16 +5,20 @@
     </div>
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
+      <assign-contactverzoek-to-myself :id="taak.uuid" />
+      <KoppelZaakModal
+        v-if="taak?.aanleidinggevendKlantcontact?.uuid"
+        :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
+        :zaakIdentificatie="taak?.zaak?.identificatie"
+        @zaak-gekoppeld="handleZaakGekoppeld"
+      />
       <assign-contactverzoek-to-myself :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
     </utrecht-button-group>
   </div>
 
-  <utrecht-alert v-if="error" appeareance="error">{{ error }}</utrecht-alert>
-  <utrecht-alert v-if="success" appeareance="ok">Contactmoment succesvol bijgewerkt</utrecht-alert>
-
   <simple-spinner v-if="isLoadingTaak" />
 
-  <utrecht-alert v-else-if="!taak && !isLoadingTaak" appeareance="error">
+  <utrecht-alert v-else-if="!taak && !isLoadingTaak" type="error">
     Dit contactverzoek bestaat niet of is niet meer beschikbaar.
   </utrecht-alert>
 
@@ -48,7 +52,7 @@
         </utrecht-data-list-item>
       </utrecht-data-list>
     </section>
-    <section class="contact-data">
+    <section v-if="taak" class="contact-data">
       <utrecht-heading :level="2">Gegevens van contact</utrecht-heading>
       <utrecht-data-list>
         <utrecht-data-list-item>
@@ -193,10 +197,12 @@ import {
   type CreateKlantcontactRequest
 } from "@/services/klantcontactService";
 import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
-import type { Internetaken } from "@/types/internetaken";
+import type { Internetaken, Zaak } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
+import { toast } from "@/components/toast/toast";
+import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -206,13 +212,15 @@ const RESULTS = {
 const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
 const route = useRoute();
 const cvId = computed(() => first(route.params.number));
-
 const isLoading = ref(false);
 const isLoadingTaak = ref(false);
-const error = ref<string | null>(null);
-const success = ref(false);
-
 const taak = ref<Internetaken | null>(null);
+
+const handleZaakGekoppeld = (zaak: Zaak) => {
+  if (taak.value) {
+    taak.value.zaak = zaak;
+  }
+};
 
 onMounted(async () => {
   await fetchInternetaken();
@@ -302,24 +310,6 @@ const form = ref({
 });
 
 async function submit() {
-  if (!taak.value) {
-    error.value = "Kan geen contactmoment aanmaken voor een niet-bestaand contactverzoek";
-    return;
-  }
-
-  error.value = null;
-  success.value = false;
-
-  if (!form.value.kanaal) {
-    error.value = "Kies een kanaal voor het contactmoment";
-    return;
-  }
-
-  if (form.value.resultaat !== RESULTS.geenGehoor && !form.value.informatieBurger) {
-    error.value = "Vul informatie voor de burger in";
-    return;
-  }
-
   isLoading.value = true;
 
   try {
@@ -356,18 +346,19 @@ async function submit() {
       partijUuid
     );
 
-    success.value = true;
     form.value = {
       resultaat: RESULTS.contactGelukt,
       kanaal: "",
       informatieBurger: ""
     };
+
+    toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
   } catch (err: unknown) {
-    console.error("Error bij aanmaken klantcontact:", err);
-    error.value =
+    const message =
       err instanceof Error && err.message
         ? err.message
         : "Er is een fout opgetreden bij het aanmaken van het contactmoment";
+    toast.add({ text: message, type: "error" });
   } finally {
     isLoading.value = false;
   }
@@ -375,6 +366,17 @@ async function submit() {
 </script>
 
 <style lang="scss" scoped>
+.contactverzoek-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.back-link {
+  margin-bottom: 1.5rem;
+}
+
 .ita-cv-detail-sections {
   --_column-size: 42rem;
   display: grid;

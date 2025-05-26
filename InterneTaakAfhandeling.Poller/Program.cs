@@ -9,6 +9,7 @@ using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Poller.Data;
 using InterneTaakAfhandeling.Poller.Services.NotifierState; 
 using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi;
 
 class Program
 {
@@ -42,12 +43,13 @@ class Program
                     builder.AddSerilog(dispose: true);
                 })
                 .AddHttpClient() // Add HttpClient factory
-                .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString)) 
-                .AddITAApiClients(configuration) 
+                .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString))
+                .AddITAApiClients(configuration)
                 .AddScoped<IEmailService, EmailService>()
                 .AddScoped<IEmailContentService, EmailContentService>()
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
-                .AddScoped<INotifierStateService, NotifierStateService>();
+                .AddScoped<INotifierStateService, NotifierStateService>()
+                .AddScoped<IContactmomentenService, ContactmomentenService>(); 
 
             var serviceProvider = services.BuildServiceProvider();
 

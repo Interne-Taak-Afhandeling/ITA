@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -28,8 +29,8 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
     public class Onderwerpobject
     {
-        public required string Uuid { get; set; }
-        public required string Url { get; set; }
+        public string? Uuid { get; set; }
+        public string? Url { get; set; }
         public Klantcontact? Klantcontact { get; set; }
         public Klantcontact? WasKlantcontact { get; set; }
         public Onderwerpobjectidentificator? Onderwerpobjectidentificator { get; set; }
@@ -57,7 +58,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public required string Uuid { get; set; }
         public  string? Url { get; set; }
         public string? Naam { get; set; }
-        public string? SoortActor { get; set; }
+        public SoortActor SoortActor { get; set; }
         public bool? IndicatieActief { get; set; }
         public Actoridentificator? Actoridentificator { get; set; }
         public object? ActorIdentificatie { get; set; }

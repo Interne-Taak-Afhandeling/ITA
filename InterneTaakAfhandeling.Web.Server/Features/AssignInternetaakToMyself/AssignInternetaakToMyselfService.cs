@@ -45,7 +45,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
         private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Common.Services.OpenKlantApi.Models.Internetaken internetaken)
         {
             var internetaakActorTasks = internetaken.ToegewezenAanActoren?.Select(x => _openKlantApiClient.GetActorAsync(x.Uuid)) ?? [];
-            var notMedewerkerActors = (await Task.WhenAll(internetaakActorTasks)).Where(x => x.SoortActor != SoortActor.medewerker.ToString()).ToList() ?? [];
+            var notMedewerkerActors = (await Task.WhenAll(internetaakActorTasks)).Where(x => x.SoortActor != SoortActor.medewerker).ToList() ?? [];
             return notMedewerkerActors;
         }
 
@@ -74,7 +74,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
         {
             var actorRequest = new ActorRequest
             {
-                SoortActor = SoortActor.medewerker.ToString(),
+                SoortActor = SoortActor.medewerker,
                 Naam = user.Name,
                 Actoridentificator = new Actoridentificator
                 {
