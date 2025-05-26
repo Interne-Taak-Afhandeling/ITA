@@ -1,9 +1,11 @@
-﻿namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
+﻿using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
+
+namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
     public class ActorRequest
     {
         public required string Naam { get; set; }
-        public required string SoortActor { get; set; } = "medewerker";
+        public required SoortActor SoortActor { get; set; } = SoortActor.medewerker;
         public bool IndicatieActief { get; set; } = true;
         public required Actoridentificator Actoridentificator { get; set; }
     }

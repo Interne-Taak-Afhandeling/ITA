@@ -1,9 +1,11 @@
 ﻿using InterneTaakAfhandeling.Common.Helpers;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi;
+using InterneTaakAfhandeling.Common.Services.OpenklantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Services;
-using System;
+
 
 namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 {
@@ -184,14 +186,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                 var actorRequest = new ActorRequest
                 {
                     Naam = naam ?? email,
-                    SoortActor = "medewerker",
+                    SoortActor = SoortActor.medewerker,
                     IndicatieActief = true,
                     Actoridentificator = new Actoridentificator
                     {
                         ObjectId = email,
-                        CodeObjecttype = "mdw",
-                        CodeRegister = "msei",
-                        CodeSoortObjectId = "email"
+                        CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                        CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                        CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId
                     }
                 };
 
