@@ -4,7 +4,6 @@
     class="utrecht-data-list__item-value utrecht-data-list__item-value--html-dd"
     :class="{ 'utrecht-data-list__item-value--multiline': multiline }"
     :translate="typeof notranslate === 'boolean' ? (notranslate ? 'no' : 'yes') : undefined"
-    ref="ddRef"
   >
     <span v-if="empty" :aria-label="emptyDescription">-</span>
     <slot v-else />
@@ -12,14 +11,13 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from "vue";
+import { computed } from "vue";
 const { value = "" } = defineProps<{
   value?: number | string;
   emptyDescription?: string;
   multiline?: boolean;
   notranslate?: boolean;
 }>();
-const ddRef = ref<HTMLElement>();
 const empty = computed(() => value === "" || value === undefined);
 </script>
 
