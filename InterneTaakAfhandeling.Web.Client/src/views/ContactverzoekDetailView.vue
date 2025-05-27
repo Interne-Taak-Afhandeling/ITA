@@ -95,7 +95,9 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Datum aangemaakt</utrecht-data-list-key>
-          <utrecht-data-list-value>
+          <utrecht-data-list-value
+            value="empty values are handled by date-time-or-nvt so we hard code a value here"
+          >
             <date-time-or-nvt :date="taak?.aanleidinggevendKlantcontact?.plaatsgevondenOp" />
           </utrecht-data-list-value>
         </utrecht-data-list-item>
