@@ -12,9 +12,9 @@
 
         <li class="utrecht-nav-list__item">
           <router-link
-            :to="{ name: 'afdelingscontacten' }"
+            :to="{ name: 'alleContactverzoeken' }"
             class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-            >Afdelingscontacten</router-link
+            >Alle contactverzoeken</router-link
           >
         </li>
 
