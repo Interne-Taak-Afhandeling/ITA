@@ -1,5 +1,11 @@
 <template>
-  <contact-timeline v-bind="timeLineProps" />
+  <div v-if="loading" class="spinner-container">
+    <simple-spinner />
+  </div>
+  <utrecht-alert v-else-if="error" appeareance="error" class="margin-top">
+    Er ging iets mis. Probeer het later opnieuw.
+  </utrecht-alert>
+  <contact-timeline v-else v-bind="timeLineProps" />
 </template>
 
 <script setup lang="ts">
@@ -8,9 +14,15 @@ import type { Internetaken } from "@/types/internetaken";
 import { klantcontactService } from "@/services/klantcontactService";
 import { ContactTimeline, type ContactTimelineProps } from "./denhaag-contact-timeline";
 import { useLoader } from "@/composables/use-loader";
-const props = defineProps<{ taak: Internetaken }>();
+import SimpleSpinner from "./SimpleSpinner.vue";
+import UtrechtAlert from "./UtrechtAlert.vue";
 
-const { data: contactmomenten } = useLoader((signal) => {
+const props = defineProps<{ taak: Internetaken }>();
+const {
+  data: contactmomenten,
+  loading,
+  error
+} = useLoader((signal) => {
   if (props.taak.aanleidinggevendKlantcontact?.uuid) {
     return klantcontactService.getContactKeten(
       props.taak.aanleidinggevendKlantcontact.uuid,
