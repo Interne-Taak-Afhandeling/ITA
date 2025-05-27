@@ -2,7 +2,6 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Web;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 using Microsoft.Extensions.Logging;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -31,6 +30,8 @@ public interface IOpenKlantApiClient
     Task<List<Onderwerpobject>> GetOnderwerpobjectenByKlantcontactAsync(string klantcontactUuid);
     Task<Internetaken> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
     Task<Internetaken?> GetInternetakenByIdAsync(string uuid);
+    Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
+
 }
 
 public class OpenKlantApiClient(
@@ -525,6 +526,71 @@ public class OpenKlantApiClient(
         {
             throw new InvalidOperationException($"Failed to update Internetaken: {e}");
         }
+    }
+
+    public async Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query)
+    {
+        var queryString = BuildQueryString(query);
+        var response = await _httpClient.GetAsync($"/klantinteracties/api/v1/internetaken?{queryString}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            return JsonSerializer.Deserialize<InternetakenResponse>(content, options)
+                ?? new InternetakenResponse { Results = new List<Internetaken>(), Count = 0 };
+        }
+
+        throw new HttpRequestException($"Failed to fetch internetaken: {response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    private string BuildQueryString(InterneTaakQuery query)
+    {
+        var parameters = new List<string>();
+
+        if (!string.IsNullOrEmpty(query.Status))
+            parameters.Add($"status={Uri.EscapeDataString(query.Status)}");
+
+        if (query.Page.HasValue)
+            parameters.Add($"page={query.Page.Value}");
+
+        if (query.PageSize.HasValue)
+            parameters.Add($"pageSize={query.PageSize.Value}");
+
+        if (!string.IsNullOrEmpty(query.Nummer))
+            parameters.Add($"nummer={Uri.EscapeDataString(query.Nummer)}");
+
+        if (!string.IsNullOrEmpty(query.AanleidinggevendKlantcontact_Url))
+            parameters.Add($"aanleidinggevendKlantcontact__url={Uri.EscapeDataString(query.AanleidinggevendKlantcontact_Url)}");
+
+        if (query.AanleidinggevendKlantcontact_Uuid.HasValue)
+            parameters.Add($"aanleidinggevendKlantcontact__uuid={query.AanleidinggevendKlantcontact_Uuid.Value}");
+
+        if (!string.IsNullOrEmpty(query.Actoren__Naam))
+            parameters.Add($"actoren__naam={Uri.EscapeDataString(query.Actoren__Naam)}");
+
+        if (!string.IsNullOrEmpty(query.Klantcontact__Nummer))
+            parameters.Add($"klantcontact__nummer={Uri.EscapeDataString(query.Klantcontact__Nummer)}");
+
+        if (query.Klantcontact__Uuid.HasValue)
+            parameters.Add($"klantcontact__uuid={query.Klantcontact__Uuid.Value}");
+
+        if (!string.IsNullOrEmpty(query.ToegewezenAanActor__Url))
+            parameters.Add($"toegewezenAanActor__url={Uri.EscapeDataString(query.ToegewezenAanActor__Url)}");
+
+        if (query.ToegewezenAanActor__Uuid.HasValue)
+            parameters.Add($"toegewezenAanActor__uuid={query.ToegewezenAanActor__Uuid.Value}");
+
+        if (query.ToegewezenOp.HasValue)
+            parameters.Add($"toegewezenOp={query.ToegewezenOp.Value:yyyy-MM-ddTHH:mm:ss.fffZ}");
+
+        return string.Join("&", parameters);
     }
 
     private class KlantcontactResponse
