@@ -29,12 +29,13 @@ import {
   DataList as UtrechtDataList,
   DataListItem as UtrechtDataListItem,
   DataListKey as UtrechtDataListKey,
-  DataListValue as UtrechtDataListValue,
   Textarea as UtrechtTextarea,
   RadioButton as UtrechtRadiobutton,
   AlertDialog as UtrechtAlertDialog,
   ButtonGroup as UtrechtButtonGroup
 } from "@utrecht/component-library-vue";
+// WORKAROUND, there's a bug in the original component
+import UtrechtDataListValue from "./UtrechtDataListValue.vue";
 
 const components = {
   UtrechtPageHeader,
