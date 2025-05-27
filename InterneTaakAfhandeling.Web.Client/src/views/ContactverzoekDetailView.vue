@@ -157,12 +157,4 @@ const fetchInternetaken = async () => {
     }
   }
 }
-
-.utrecht-form-label {
-  display: block;
-}
-
-.utrecht-alert {
-  margin-bottom: 1rem;
-}
 </style>

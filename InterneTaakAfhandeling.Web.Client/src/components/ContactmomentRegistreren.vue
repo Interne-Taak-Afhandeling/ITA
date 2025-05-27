@@ -129,3 +129,9 @@ async function submit() {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.utrecht-form-label {
+  display: block;
+}
+</style>
