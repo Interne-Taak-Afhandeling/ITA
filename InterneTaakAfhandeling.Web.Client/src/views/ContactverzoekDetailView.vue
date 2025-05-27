@@ -89,7 +89,7 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Gekoppelde zaak</utrecht-data-list-key>
-          <utrecht-data-list-value v-title-on-overflow :key="taak?.zaak?.identificatie">
+          <utrecht-data-list-value v-title-on-overflow :value="taak?.zaak?.identificatie">
             {{ taak?.zaak?.identificatie }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
