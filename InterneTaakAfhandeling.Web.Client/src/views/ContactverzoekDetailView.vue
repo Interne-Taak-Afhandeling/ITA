@@ -24,6 +24,7 @@
   <div v-else-if="taak" class="ita-cv-detail-sections">
     <section>
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
+      <!-- please be aware, all utrecht-data-list-value that contain data that can change must either have a :key or contain a computed property -->
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Vraag</utrecht-data-list-key>
@@ -88,13 +89,13 @@
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Gekoppelde zaak</utrecht-data-list-key>
-          <utrecht-data-list-value v-title-on-overflow :value="taak?.zaak?.identificatie">
+          <utrecht-data-list-value v-title-on-overflow :key="taak?.zaak?.identificatie">
             {{ taak?.zaak?.identificatie }}
           </utrecht-data-list-value>
         </utrecht-data-list-item>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Datum aangemaakt</utrecht-data-list-key>
-          <utrecht-data-list-value value="x">
+          <utrecht-data-list-value>
             <date-time-or-nvt :date="taak?.aanleidinggevendKlantcontact?.plaatsgevondenOp" />
           </utrecht-data-list-value>
         </utrecht-data-list-item>
