@@ -164,10 +164,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                     "EMPTY_EMAIL_ADDRESS");
             }
 
-            Actor? actor = null;
+            Actor? actor;
             try
             {
-                actor = await _openKlantApiClient.GetActorByEmail(email);
+                actor = await GetEntraActorByEmailAsync(email);
             }
             catch (Exception ex)
             {
@@ -296,6 +296,27 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
                     $"Error creating betrokkene: {ex.Message}",
                     "BETROKKENE_CREATION_ERROR");
             }
+        }
+        private async Task<Actor?> GetEntraActorByEmailAsync(string userEmail)
+        {
+
+            if (!string.IsNullOrWhiteSpace(userEmail))
+            {
+                var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.medewerker,
+                    ActoridentificatorObjectId = userEmail
+                });
+
+                return fromEntra;
+
+            }
+
+            return null;
         }
     }
 
