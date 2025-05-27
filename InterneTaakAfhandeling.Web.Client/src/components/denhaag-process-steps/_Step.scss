@@ -1,0 +1,9 @@
+.denhaag-process-steps__step {
+  position: relative;
+  padding-block-end: var(--denhaag-process-steps-step-padding-block-end);
+  padding-block-start: var(--denhaag-process-steps-step-padding-block-start);
+}
+
+.denhaag-process-steps__step + .denhaag-process-steps__step {
+  margin-block-start: var(--denhaag-process-steps-step-distance);
+}
