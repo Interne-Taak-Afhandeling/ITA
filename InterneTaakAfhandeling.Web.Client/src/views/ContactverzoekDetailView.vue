@@ -124,37 +124,5 @@ const fetchInternetaken = async () => {
 
 .contact-data {
   container-type: inline-size;
-
-  .utrecht-data-list {
-    gap: 2rem;
-    max-width: fit-content;
-
-    @container (min-width: 35rem) {
-      columns: 2;
-    }
-
-    @container (min-width: 42rem) {
-      columns: 3;
-    }
-  }
-
-  .utrecht-data-list__item {
-    break-inside: avoid;
-    display: block;
-  }
-
-  .utrecht-data-list__item-key {
-    inline-size: max-content;
-  }
-
-  .utrecht-data-list__item-value {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-
-    &[title]:not([title=""]) {
-      user-select: all;
-    }
-  }
 }
 </style>
