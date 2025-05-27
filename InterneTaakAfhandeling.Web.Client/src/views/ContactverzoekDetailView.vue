@@ -24,7 +24,6 @@
   <div v-else-if="taak" class="ita-cv-detail-sections">
     <section>
       <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
-      <!-- please be aware, all utrecht-data-list-value that contain data that can change must either have a :key or contain a computed property -->
       <utrecht-data-list>
         <utrecht-data-list-item>
           <utrecht-data-list-key>Vraag</utrecht-data-list-key>
