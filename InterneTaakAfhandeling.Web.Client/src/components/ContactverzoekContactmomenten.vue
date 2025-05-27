@@ -3,52 +3,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onWatcherCleanup, ref, watchEffect } from "vue";
-import type { Contactmoment, Internetaken } from "@/types/internetaken";
+import { computed } from "vue";
+import type { Internetaken } from "@/types/internetaken";
 import { klantcontactService } from "@/services/klantcontactService";
 import { ContactTimeline, type ContactTimelineProps } from "./denhaag-contact-timeline";
+import { useLoader } from "@/composables/use-loader";
 const props = defineProps<{ taak: Internetaken }>();
-const isLoading = ref(true);
-const error = ref("");
-const contactmomenten = ref<Contactmoment[]>([]);
+
+const { data: contactmomenten } = useLoader((signal) => {
+  if (props.taak.aanleidinggevendKlantcontact?.uuid) {
+    return klantcontactService.getContactKeten(
+      props.taak.aanleidinggevendKlantcontact.uuid,
+      signal
+    );
+  }
+});
 
 const timeLineProps = computed<ContactTimelineProps>(() => ({
   labels: { today: "Vandaag", yesterday: "Gisteren" },
   collapsible: true,
-  items: contactmomenten.value.map(({ uuid, contactGelukt, kanaal, datum, tekst, medewerker }) => ({
-    title: contactGelukt ? "Contact gelukt" : "Geen gehoor",
-    id: uuid,
-    channel: kanaal,
-    isoDate: datum,
-    description: tekst,
-    sender: medewerker
-  })),
-  expandedItems: contactmomenten.value.map(({ uuid }) => uuid)
+  items:
+    contactmomenten.value?.contactmomenten.map(
+      ({ uuid, contactGelukt, kanaal, datum, tekst, medewerker }) => ({
+        title: contactGelukt ? "Contact gelukt" : "Geen gehoor",
+        id: uuid,
+        channel: kanaal,
+        isoDate: datum,
+        description: tekst,
+        sender: medewerker
+      })
+    ) ?? [],
+  expandedItems: contactmomenten.value?.contactmomenten.map(({ uuid }) => uuid) ?? []
 }));
-
-watchEffect(async () => {
-  const controller = new AbortController();
-  onWatcherCleanup(() => controller.abort());
-  isLoading.value = true;
-  error.value = "";
-
-  if (props.taak.aanleidinggevendKlantcontact?.uuid) {
-    try {
-      const response = await klantcontactService.getContactKeten(
-        props.taak.aanleidinggevendKlantcontact.uuid,
-        controller.signal
-      );
-
-      // Haal de contactmomenten uit de response
-      contactmomenten.value = response.contactmomenten;
-    } catch (err: unknown) {
-      error.value =
-        err instanceof Error && err.message
-          ? err.message
-          : "Er is een fout opgetreden bij het ophalen van de contactmomenten bij dit contactverzoek";
-    } finally {
-      isLoading.value = false;
-    }
-  }
-});
 </script>
