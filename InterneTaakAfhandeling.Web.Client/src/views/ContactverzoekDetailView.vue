@@ -39,7 +39,7 @@
 
     <section>
       <utrecht-heading :level="2">Contactmoment bijwerken</utrecht-heading>
-      <contactmoment-registreren :taak="taak" />
+      <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
     </section>
 
     <section>
