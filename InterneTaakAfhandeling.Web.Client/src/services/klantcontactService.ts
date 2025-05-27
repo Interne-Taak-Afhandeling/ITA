@@ -26,8 +26,15 @@ export const klantcontactService = {
     return post<RelatedKlantcontactResult>("/api/createklantcontact/relatedklantcontact", request);
   },
 
-  getContactKeten: (klantcontactId: string): Promise<ContactmomentenResponse> =>
-    get<ContactmomentenResponse>(`/api/klantcontacten-overview/${klantcontactId}/contactketen`)
+  getContactKeten: (
+    klantcontactId: string,
+    signal?: AbortSignal
+  ): Promise<ContactmomentenResponse> =>
+    get<ContactmomentenResponse>(
+      `/api/klantcontacten-overview/${klantcontactId}/contactketen`,
+      undefined,
+      { signal }
+    )
 
   // /**
   //  * Helper-functie die alleen het UUID van het laatste klantcontact in de keten ophaalt

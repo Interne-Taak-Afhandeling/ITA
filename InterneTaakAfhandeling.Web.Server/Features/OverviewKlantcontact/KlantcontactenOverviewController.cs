@@ -58,9 +58,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
 
             var laatsteKlantcontactUuid = ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid;
             var contactmomenten = ketenVolgorde.Select(k => new ContactmomentResponse(
+                Uuid: k.Uuid,
                 ContactGelukt: k.IndicatieContactGelukt ?? false,
                 Tekst: k.Inhoud ?? string.Empty,
-                Datum: FormateerDatum(k.PlaatsgevondenOp),
+                Datum: k.PlaatsgevondenOp,
                 Medewerker: k.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend",
                 Kanaal: k.Kanaal ?? "Onbekend"
             )).ToList();
@@ -71,20 +72,11 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
             );
         }
 
-        private static string FormateerDatum(DateTimeOffset datum)
-        {
-            if (datum.Year == 1 && datum.Month == 1 && datum.Day == 1)
-            {
-                return "Onbekend";
-            }
-
-            return datum.ToString("dd-MM-yyyy");
-        }
-
         public record ContactmomentResponse(
+            string Uuid,
             bool ContactGelukt,
             string Tekst,
-            string Datum,
+            DateTimeOffset Datum,
             string Medewerker,
             string Kanaal
         );
