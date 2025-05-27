@@ -14,7 +14,7 @@
 
       <template v-else>
         <utrecht-paragraph>
-          {{ "Aan welke zaak wil je dit contact koppelen?" }}
+          {{ "Aan welke zaak wil je dit contactverzoek koppelen?" }}
         </utrecht-paragraph>
 
         <utrecht-form-field>
@@ -99,7 +99,7 @@ const koppelZaak = async () => {
       // Specifieke foutafhandeling voor meerdere gekoppelde zaken
       if (errorData.conflictCode === "MEERDERE_ZAKEN_GEKOPPELD") {
         throw new Error(
-          "Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit contact."
+          "Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit contactverzoek."
         );
       }
 
