@@ -286,20 +286,21 @@ export type InterneTaakQueryParameters = {
   value?: string;
   AanleidinggevendKlantcontact_Url?: string;
   AanleidinggevendKlantcontact_Uuid?: string;
-
   Actoren_Naam?: string;
   Klantcontact_Nummer?: string;
   Klantcontact_Uuid?: string;
-
   Nummer?: string;
-
   Page?: number;
   PageSize?: number;
-
   Status?: string;
-
   ToegewezenAanActor_Url?: string;
   ToegewezenAanActor_Uuid?: string;
-
   ToegewezenOp?: Date;
 };
+
+export interface CloseInterneTaakWithKlantContactRequest {
+  klantcontactRequest: CreateKlantcontactRequest;
+  aanleidinggevendKlantcontactUuid?: string;
+  partijUuid?: string;
+  interneTaakId: string;
+}

@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="submit">
+  <form ref="formRef" @submit.prevent="saveOnly">
     <utrecht-fieldset>
       <utrecht-legend>Resultaat</utrecht-legend>
       <utrecht-form-field type="radio">
@@ -41,21 +41,51 @@
         v-model="form.informatieBurger"
       />
     </utrecht-form-field>
-    <utrecht-button type="submit" appearance="primary-action-button" :disabled="isLoading">
-      <span v-if="isLoading">Bezig met opslaan...</span>
-      <span v-else>Opslaan</span>
-    </utrecht-button>
+    
+    <utrecht-button-group>
+      <utrecht-button 
+        type="button" 
+        appearance="primary-action-button" 
+        :disabled="isLoading"
+        @click="showConfirmation"
+      >
+        <span v-if="isLoading">Bezig met opslaan...</span>
+        <span v-else>Opslaan & afronden</span>
+      </utrecht-button>
+      <utrecht-button 
+        type="submit" 
+        appearance="secondary-action-button" 
+        :disabled="isLoading"
+      >
+        <span v-if="isLoading">Bezig met opslaan...</span>
+        <span v-else>Alleen opslaan</span>
+      </utrecht-button>
+    </utrecht-button-group>
   </form>
+
+  <bevestigings-modal 
+    ref="bevestigingsModalRef"
+    title="Contactverzoek afronden"
+    message="Weet je zeker dat je het contactverzoek wilt opslaan en afronden?"
+    confirm-text="Opslaan & afronden"
+    cancel-text="Annuleren"
+    @confirm="saveAndFinish"
+    @cancel="cancelSaveAndFinish"
+  />
 </template>
 
 <script setup lang="ts">
 import { klantcontactService } from "@/services/klantcontactService";
-import type { CreateKlantcontactRequest, Internetaken } from "@/types/internetaken";
+import type { CreateKlantcontactRequest, Internetaken, CloseInterneTaakWithKlantContactRequest } from "@/types/internetaken";
 import { ref } from "vue";
 import { toast } from "./toast/toast";
+import BevestigingsModal from "./BevestigingsModal.vue";
+import { useRouter } from "vue-router";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
+
+const router = useRouter();
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -68,6 +98,8 @@ const kanalen = [
 ];
 
 const isLoading = ref(false);
+const bevestigingsModalRef = ref<InstanceType<typeof BevestigingsModal>>();
+const formRef = ref<HTMLFormElement>();
 
 const form = ref({
   resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
@@ -75,7 +107,28 @@ const form = ref({
   informatieBurger: ""
 });
 
-async function submit() {
+async function saveOnly() {
+  await submitForm(false);
+}
+
+function showConfirmation() {
+  //HTML5 form validatie
+  if (!formRef.value?.checkValidity()) {
+    formRef.value?.reportValidity();
+    return;
+  }
+
+  bevestigingsModalRef.value?.show();
+}
+
+async function saveAndFinish() {
+  await submitForm(true);
+}
+
+function cancelSaveAndFinish() {
+}
+
+async function submitForm(isFinishing: boolean) {
   isLoading.value = true;
 
   try {
@@ -106,11 +159,26 @@ async function submit() {
 
     const aanleidinggevendKlantcontactUuid = taak.aanleidinggevendKlantcontact?.uuid;
 
-    await klantcontactService.createRelatedKlantcontact(
-      createRequest,
-      aanleidinggevendKlantcontactUuid,
-      partijUuid
-    );
+    if (isFinishing) {
+      const closeRequest: CloseInterneTaakWithKlantContactRequest = {
+        klantcontactRequest: createRequest,
+        aanleidinggevendKlantcontactUuid,
+        partijUuid,
+        interneTaakId: taak.uuid
+      };
+      await klantcontactService.closeInterneTaakWithKlantContact(closeRequest);
+      toast.add({ text: "Contactmoment succesvol opgeslagen en afgerond", type: "ok" });
+      router.push({ name: "dashboard" });
+      return;
+    } else {
+      await klantcontactService.createRelatedKlantcontact(
+        createRequest,
+        aanleidinggevendKlantcontactUuid,
+        partijUuid
+      );
+      
+      toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
+    }
 
     form.value = {
       resultaat: RESULTS.contactGelukt,
@@ -118,7 +186,6 @@ async function submit() {
       informatieBurger: ""
     };
 
-    toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
     emit("success");
   } catch (err: unknown) {
     const message =

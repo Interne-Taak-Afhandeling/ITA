@@ -44,7 +44,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
 
                 var internetakenUpdateRequest = new InternetakenPatchRequest
                 {
-                    Status = "verwerkt"
+                    Status = "verwerkt",
                 };
 
                 await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId);

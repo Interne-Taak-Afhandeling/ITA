@@ -72,18 +72,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
     public class InternetakenPatchRequest
     {
-        public  string? Nummer { get; set; }
-
-        public  string? GevraagdeHandeling { get; set; }
-
-        public  UuidObject? AanleidinggevendKlantcontact { get; set; }
-
-        public  List<UuidObject>? ToegewezenAanActoren { get; set; }
-
-        public  string? Toelichting { get; set; }
-
         public  string? Status { get; set; }
-
     }
 
     public class UuidObject
