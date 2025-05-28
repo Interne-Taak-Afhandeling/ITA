@@ -55,6 +55,7 @@ import { ref } from "vue";
 import { toast } from "./toast/toast";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
+const emit = defineEmits<{ success: [] }>();
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -118,6 +119,7 @@ async function submit() {
     };
 
     toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
+    emit("success");
   } catch (err: unknown) {
     const message =
       err instanceof Error && err.message
