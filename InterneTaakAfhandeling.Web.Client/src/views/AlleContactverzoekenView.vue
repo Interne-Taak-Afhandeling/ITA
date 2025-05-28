@@ -10,7 +10,9 @@
   </utrecht-alert>
 
   <section v-else>
-    <utrecht-heading :level="2" id="h2-alle-contactverzoeken">Alle contactverzoeken</utrecht-heading>
+    <utrecht-heading :level="2" id="h2-alle-contactverzoeken"
+      >Alle contactverzoeken</utrecht-heading
+    >
 
     <utrecht-table aria-labelledby="h2-alle-contactverzoeken">
       <utrecht-table-header>
@@ -34,53 +36,52 @@
             <date-time-or-nvt :date="taak.contactDatum || taak.toegewezenOp" />
           </utrecht-table-cell>
           <utrecht-table-cell class="text-truncate" :title="taak.klantNaam || ''">
-            {{ taak.klantNaam || '-' }}
+            {{ taak.klantNaam || "-" }}
           </utrecht-table-cell>
-          <utrecht-table-cell class="text-truncate" :title="taak.onderwerp || taak.gevraagdeHandeling || ''">
-            {{ taak.onderwerp || taak.gevraagdeHandeling || '-' }}
+          <utrecht-table-cell
+            class="text-truncate"
+            :title="taak.onderwerp || taak.gevraagdeHandeling || ''"
+          >
+            {{ taak.onderwerp || taak.gevraagdeHandeling || "-" }}
           </utrecht-table-cell>
           <utrecht-table-cell class="text-truncate" :title="taak.afdelingNaam || ''">
-            {{ taak.afdelingNaam || '-' }}
+            {{ taak.afdelingNaam || "-" }}
           </utrecht-table-cell>
           <utrecht-table-cell class="text-truncate" :title="taak.behandelaarNaam || ''">
-            {{ taak.behandelaarNaam || '-' }}
+            {{ taak.behandelaarNaam || "-" }}
           </utrecht-table-cell>
           <utrecht-table-cell>
-            <router-link :to="`/contactverzoek/${taak.nummer}`">
-              Klik hier
-            </router-link>
+            <router-link :to="`/contactverzoek/${taak.nummer}`"> Klik hier </router-link>
           </utrecht-table-cell>
         </utrecht-table-row>
       </utrecht-table-body>
     </utrecht-table>
 
     <div class="pagination-controls bottom" v-if="totalCount > pageSize">
-      <utrecht-button 
-        appearance="secondary-action-button" 
+      <utrecht-button
+        appearance="secondary-action-button"
         @click="previousPage"
         :disabled="currentPage <= 1 || isLoading"
       >
         Vorige
       </utrecht-button>
-      
+
       <div class="page-numbers">
-        <button 
-          v-for="pageNum in visiblePages" 
+        <button
+          v-for="pageNum in visiblePages"
           :key="pageNum"
           @click="goToPage(pageNum)"
-          :class="['page-number', { 'active': pageNum === currentPage }]"
+          :class="['page-number', { active: pageNum === currentPage }]"
           :disabled="isLoading"
         >
           {{ pageNum }}
         </button>
       </div>
-      
-      <span class="page-info">
-        ({{ getItemRange() }} van {{ totalCount }} items)
-      </span>
-      
-      <utrecht-button 
-        appearance="secondary-action-button" 
+
+      <span class="page-info"> ({{ getItemRange() }} van {{ totalCount }} items) </span>
+
+      <utrecht-button
+        appearance="secondary-action-button"
         @click="nextPage"
         :disabled="!hasNextPage || isLoading"
       >
@@ -91,11 +92,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import SimpleSpinner from '@/components/SimpleSpinner.vue';
-import UtrechtAlert from '@/components/UtrechtAlert.vue';
-import DateTimeOrNvt from '@/components/DateTimeOrNvt.vue';
-import { get } from '@/utils/fetchWrapper';
+import { ref, computed, onMounted } from "vue";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
+import { get } from "@/utils/fetchWrapper";
 
 interface InterneTaakOverviewItem {
   uuid: string;
@@ -124,7 +125,7 @@ const error = ref<string | null>(null);
 const results = ref<InterneTaakOverviewItem[]>([]);
 const totalCount = ref(0);
 const currentPage = ref(1);
-const pageSize = ref(20); 
+const pageSize = ref(20);
 const hasNextPage = ref(false);
 const hasPreviousPage = ref(false);
 const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value));
@@ -132,7 +133,7 @@ const visiblePages = computed(() => {
   const total = totalPages.value;
   const current = currentPage.value;
   const pages: number[] = [];
-  
+
   if (total <= 5) {
     for (let i = 1; i <= total; i++) {
       pages.push(i);
@@ -140,7 +141,7 @@ const visiblePages = computed(() => {
   } else {
     let start = Math.max(1, current - 2);
     let end = Math.min(total, current + 2);
-    
+
     if (end - start < 4) {
       if (start === 1) {
         end = Math.min(total, start + 4);
@@ -148,37 +149,36 @@ const visiblePages = computed(() => {
         start = Math.max(1, end - 4);
       }
     }
-    
+
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
   }
-  
+
   return pages;
 });
 
 const fetchInterneTaken = async (page: number = 1) => {
   isLoading.value = true;
   error.value = null;
-  
+
   try {
-    const response = await get<InterneTakenOverviewResponse>(
-      '/api/internetaken-overview',
-      {
-        page: page,
-        pageSize: pageSize.value
-      }
-    );
-    
+    const response = await get<InterneTakenOverviewResponse>("/api/internetaken-overview", {
+      page: page,
+      pageSize: pageSize.value
+    });
+
     // Update state
     results.value = response.results;
     totalCount.value = response.count;
     currentPage.value = page;
     hasNextPage.value = !!response.next;
     hasPreviousPage.value = !!response.previous;
-    
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Er is een fout opgetreden bij het ophalen van contactverzoeken';
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Er is een fout opgetreden bij het ophalen van contactverzoeken";
     error.value = message;
   } finally {
     isLoading.value = false;
@@ -235,7 +235,7 @@ onMounted(() => {
   justify-content: center;
   gap: 1rem;
   margin: 1rem 0;
-  
+
   &.bottom {
     margin-top: 2rem;
   }
@@ -258,19 +258,19 @@ onMounted(() => {
   min-width: 40px;
   text-align: center;
   transition: all 0.2s ease;
-  
+
   &:hover:not(:disabled) {
     background: #f5f5f5;
     border-color: #999;
   }
-  
+
   &.active {
     background: #0070f3;
     color: white;
     border-color: #0070f3;
     cursor: default;
   }
-  
+
   &:disabled {
     cursor: not-allowed;
     opacity: 0.5;
