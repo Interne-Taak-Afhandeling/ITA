@@ -13,7 +13,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public List<Actor> HadBetrokkenActoren { get; set; }
         public List<object>? OmvatteBijlagen { get; set; }
         public List<Betrokkene> HadBetrokkenen { get; set; }
-        public List<Internetaak>? LeiddeTotInterneTaken { get; set; }
+        public List<InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models.Internetaak>? LeiddeTotInterneTaken { get; set; }
         public string? Nummer { get; set; }
         public string? Kanaal { get; set; }
         public string? Onderwerp { get; set; }
@@ -62,6 +62,9 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public Actoridentificator? Actoridentificator { get; set; }
         public object? ActorIdentificatie { get; set; }
     }
+
+
+
 
     public class Actoridentificator
     {

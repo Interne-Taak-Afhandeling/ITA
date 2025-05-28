@@ -1,7 +1,10 @@
+using System;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Web;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 using Microsoft.Extensions.Logging;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -19,12 +22,13 @@ public interface IOpenKlantApiClient
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
     Task<Internetaak?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters);
-
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid);
-    Task<Internetaak> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
-    Task<Internetaak?> GetInternetakenByIdAsync(string uuid);
+    Task<Internetaak> PutInternetaakAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
+    Task<Internetaak> PatchInternetaakAsync(InternetakenPatchRequest internetakenUpdateRequest, string uuid);
+
+    Task<Internetaak?> GetInternetaakByIdAsync(string uuid);
     Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
 
 }
@@ -160,7 +164,53 @@ public class OpenKlantApiClient(
         return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
     }
 
+
     public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
+    {
+        try
+        {
+            _logger.LogInformation("Fetching internetaken from OpenKlant API");
+
+            var response = await _httpClient.GetAsync(path);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
+
+            _logger.LogInformation(
+                "Successfully retrieved {Count} internetaken",
+                content?.Results?.Count ?? 0);
+
+            return content;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(
+                ex,
+                "HTTP error occurred while fetching internetaken: {Message}",
+                ex.Message);
+            throw;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(
+                ex,
+                "JSON deserialization error occurred while fetching internetaken: {Message}",
+                ex.Message);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Unexpected error occurred while fetching internetaken: {Message}",
+                ex.Message);
+            throw;
+        }
+    }
+
+
+
+    public async Task<InternetakenResponse?> GetInternetaakAsync(string path)
     {
         try
         {
@@ -236,6 +286,8 @@ public class OpenKlantApiClient(
         var jsonString = await response.Content.ReadAsStringAsync();
         _logger.LogInformation("API Response: {JsonString}", jsonString);
 
+
+       
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
 
         _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
@@ -406,7 +458,7 @@ public class OpenKlantApiClient(
             return [];
         }
     }
-    public async Task<Internetaak?> GetInternetakenByIdAsync(string uuid)
+    public async Task<Internetaak?> GetInternetaakByIdAsync(string uuid)
     {
         var response = await _httpClient.GetAsync($"internetaken/{uuid}");
         response.EnsureSuccessStatusCode();
@@ -453,6 +505,48 @@ public class OpenKlantApiClient(
 
         throw new HttpRequestException($"Failed to fetch internetaken: {response.StatusCode} - {response.ReasonPhrase}");
     }
+
+
+
+
+
+    public async Task<Internetaak> PutInternetaakAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsync($"internetaken/{uuid}", JsonContent.Create(internetakenUpdateRequest));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadFromJsonAsync<Internetaak>();
+
+            return content ?? throw new InvalidOperationException("Failed to update Internetaken. The response content is null.");
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"Failed to update Internetaken: {e}");
+        }
+    }
+
+
+    public async Task<Internetaak> PatchInternetaakAsync(InternetakenPatchRequest request, string uuid)
+    {
+        try
+        {
+            var response = await _httpClient.PatchAsync($"internetaken/{uuid}", JsonContent.Create(request));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadFromJsonAsync<Internetaak>();
+
+            return content ?? throw new InvalidOperationException("Failed to update Internetaken. The response content is null.");
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"Failed to update Internetaken: {e}");
+        }
+    }
+
+
+
 
     private string BuildQueryString(InterneTaakQuery query)
     {
@@ -518,10 +612,5 @@ public class OpenKlantApiClient(
         }
     }
 
-    public class ITAException
-    {
-        public string? Code { get; set; }
 
-        public string? Message { get; set; }
-    }
 }
