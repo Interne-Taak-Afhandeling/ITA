@@ -13,12 +13,10 @@ public interface IOpenKlantApiClient
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
-    Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);
     Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
     Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
-    Task<Internetaak?> GetInternetaak(string uuid);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
     Task<Internetaak?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters);
 
@@ -251,26 +249,6 @@ public class OpenKlantApiClient(
         return klantcontact;
     }
 
-    public async Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid)
-    {
-        _logger.LogInformation("Fetching digitale adres {Uuid}", uuid);
-
-        var response = await _httpClient.GetAsync($"digitaleadressen/{uuid}");
-        response.EnsureSuccessStatusCode();
-
-        var digitaleAdres = await response.Content.ReadFromJsonAsync<DigitaleAdres>();
-
-        if (digitaleAdres == null)
-        {
-            _logger.LogInformation("Digitale adres not found {Uuid}", uuid);
-            throw new Exception("Digitale adres not found");
-        }
-
-        _logger.LogInformation("Successfully retrieved digitale adres {Uuid}", uuid);
-
-        return digitaleAdres;
-    }
-
     public async Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid)
     {
         List<Internetaak> content = [];
@@ -353,15 +331,6 @@ public class OpenKlantApiClient(
         {
             throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
         }
-    }
-
-
-
-    public async Task<Internetaak?> GetInternetaak(string uuid)
-    {
-        var response = await _httpClient.GetAsync($"internetaken/{uuid}");
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<Internetaak>();
     }
 
     public async Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request)
