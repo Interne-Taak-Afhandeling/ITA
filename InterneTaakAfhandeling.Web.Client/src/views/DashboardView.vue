@@ -7,12 +7,6 @@
       <simple-spinner v-if="isLoading" />
       <interne-taak-table v-else :interne-taken="assignedInternetaken" aria-labelledby="h2-a" />
     </section>
-
-    <section>
-      <utrecht-heading :level="2" id="h2-b">Oudste contacten voor afdeling</utrecht-heading>
-      <simple-spinner v-if="isLoadingAfdelingContacten" />
-      <interne-taak-table v-else :interne-taken="fakeInterneTaken" aria-labelledby="h2-b" />
-    </section>
   </div>
 </template>
 
@@ -23,7 +17,7 @@
   column-gap: var(--ita-dashboard-tables-column-gap);
 
   section {
-    flex: 1;
+    min-inline-size: 40rem;
   }
 }
 </style>
@@ -34,7 +28,6 @@ import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
 import InterneTaakTable from "@/components/InterneTaakTable.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
-import { fakeInterneTaken } from "@/helpers/fake-data";
 
 const userStore = useUserStore();
 const { assignedInternetaken, isLoading } = storeToRefs(userStore);

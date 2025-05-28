@@ -18,8 +18,6 @@
 
     <utrecht-nav-bar />
 
-    <span class="utrecht-heading-2">{{ title }}</span>
-
     <div class="user-info-container">
       <user-info />
     </div>
@@ -44,8 +42,6 @@ const svg = computed(() => {
 
   return (document.getElementById(svgTemplateId) as HTMLTemplateElement)?.innerHTML;
 });
-
-const title = document.title.split("|").pop();
 </script>
 
 <style lang="scss" scoped>

@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import DashboardView from "@/views/DashboardView.vue";
 import AfdelingscontactenView from "@/views/AfdelingscontactenView.vue";
-import HistorieView from "@/views/HistorieView.vue";
 import LoginView from "@/views/LoginView.vue";
 import ForbiddenView from "@/views/ForbiddenView.vue";
 import ContactverzoekDetailView from "@/views/ContactverzoekDetailView.vue";
@@ -24,15 +23,6 @@ const router = createRouter({
       component: AfdelingscontactenView,
       meta: {
         title: "Afdelingscontacten",
-        requiresITAAccess: true
-      }
-    },
-    {
-      path: "/historie",
-      name: "historie",
-      component: HistorieView,
-      meta: {
-        title: "Historie",
         requiresITAAccess: true
       }
     },
