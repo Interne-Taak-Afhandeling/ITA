@@ -28,9 +28,6 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             var page = queryParameters.GetValidatedPage();
             var pageSize = queryParameters.GetValidatedPageSize();
 
-            _logger.LogDebug("Fetching interne taken with status 'te_verwerken', page {Page}, pageSize {PageSize}", page, pageSize);
-
-            // Use the clean API method - only does the HTTP call
             var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(new InterneTaakQuery
             {
                 Status = "te_verwerken",
@@ -38,17 +35,13 @@ namespace InterneTaakAfhandeling.Web.Server.Services
                 PageSize = pageSize
             });
 
-            var overviewItems = new List<InterneTaakOverviewItem>();
+            var overviewItemTasks = internetakenResponse.Results
+                .Select(internetaak => MapInternetaakToOverviewItemAsync(internetaak))
+                .ToList();
 
-            foreach (var internetaak in internetakenResponse.Results)
-            {
-                // Do the business logic here in the service layer
-                var overviewItem = await MapToOverviewItemAsync(internetaak);
-                overviewItems.Add(overviewItem);
-            }
-
-            // Sort by oldest first (ToegewezenOp ascending)
-            overviewItems = overviewItems.OrderBy(x => x.ToegewezenOp).ToList();
+            var overviewItems = (await Task.WhenAll(overviewItemTasks))
+               .OrderByDescending(x => x.ToegewezenOp)
+               .ToList();
 
             return new InterneTakenOverviewResponse
             {
@@ -59,89 +52,103 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             };
         }
 
-
-        private async Task<InterneTaakOverviewItem> MapToOverviewItemAsync(Internetaak internetaak)
+        private async Task<InterneTaakOverviewItem> MapInternetaakToOverviewItemAsync(Internetaak internetaak)
         {
             var item = new InterneTaakOverviewItem
             {
                 Uuid = internetaak.Uuid,
-                Nummer = internetaak.Nummer,
-                GevraagdeHandeling = internetaak.GevraagdeHandeling,
-                Status = internetaak.Status,
+                Nummer = internetaak.Nummer ?? string.Empty,
+                GevraagdeHandeling = internetaak.GevraagdeHandeling ?? string.Empty,
+                Status = internetaak.Status ?? string.Empty,
                 ToegewezenOp = internetaak.ToegewezenOp ?? DateTimeOffset.MinValue,
                 AfgehandeldOp = internetaak.AfgehandeldOp
             };
 
-            // Load contact information (business logic in service)
-            if (internetaak.AanleidinggevendKlantcontact != null)
-            {
-                try
-                {
-                    var klantcontact = await _openKlantApiClient.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
-                    if (klantcontact != null)
-                    {
-                        item.Onderwerp = klantcontact.Onderwerp;
-                        item.ContactDatum = klantcontact.PlaatsgevondenOp;
-                        item.KlantNaam = GetKlantNaam(klantcontact);
-                    }
-                }
-                catch (System.Text.Json.JsonException ex)
-                {
-                    _logger.LogWarning(ex, "Failed to deserialize klantcontact {KlantcontactUuid} for internetaak {InternetaakUuid}. Skipping contact information.",
-                        internetaak.AanleidinggevendKlantcontact.Uuid, internetaak.Uuid);
-
-                    // Set fallback values
-                    item.Onderwerp = "Kon contactgegevens niet ophalen";
-                    item.KlantNaam = "Onbekend";
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Unexpected error loading klantcontact {KlantcontactUuid} for internetaak {InternetaakUuid}",
-                        internetaak.AanleidinggevendKlantcontact.Uuid, internetaak.Uuid);
-
-                    // Set fallback values
-                    item.Onderwerp = "Error bij ophalen contactgegevens";
-                    item.KlantNaam = "Error";
-                }
-            }
-
-            // Load assignment information (business logic in service)
-            await MapAssignmentInfoAsync(internetaak, item);
+            await LoadKlantcontactInfoAsync(internetaak, item);
+            await LoadActorInfoAsync(internetaak, item);
 
             return item;
         }
 
-        private async Task MapAssignmentInfoAsync(Internetaak internetaak, InterneTaakOverviewItem item)
+        private async Task LoadKlantcontactInfoAsync(Internetaak internetaak, InterneTaakOverviewItem item)
         {
-            if (internetaak.ToegewezenAanActoren?.Any() == true)
+            if (internetaak.AanleidinggevendKlantcontact == null)
+                return;
+
+            try
             {
-                var actorTasks = internetaak.ToegewezenAanActoren
-                    .Where(actorRef => !string.IsNullOrEmpty(actorRef.Uuid))
-                    .Select(actorRef => _openKlantApiClient.GetActorAsync(actorRef.Uuid));
-
-                var actors = await Task.WhenAll(actorTasks);
-
-                // Find the first medewerker (employee) for behandelaar
-                var medewerkerActor = actors.FirstOrDefault(a => a?.SoortActor == SoortActor.medewerker);
-                if (medewerkerActor != null)
+                var klantcontact = await GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+                if (klantcontact != null)
                 {
-                    item.BehandelaarNaam = medewerkerActor.Naam;
+                    item.Onderwerp = klantcontact.Onderwerp;
+                    item.ContactDatum = klantcontact.PlaatsgevondenOp;
+                    item.KlantNaam = ExtractKlantNaamFromKlantcontact(klantcontact);
                 }
-
-                // Find department/organizational unit actors for afdeling
-                var afdelingActors = actors
-                    .Where(a => a?.SoortActor != SoortActor.medewerker && !string.IsNullOrEmpty(a?.Naam))
-                    .Select(a => a!.Naam)
-                    .ToList();
-
-                if (afdelingActors.Any())
-                {
-                    item.AfdelingNaam = string.Join(", ", afdelingActors);
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error loading klantcontact {KlantcontactUuid} for internetaak {InternetaakUuid}",
+                    internetaak.AanleidinggevendKlantcontact.Uuid, internetaak.Uuid);
             }
         }
 
-        private static string? GetKlantNaam(Klantcontact klantcontact)
+        private async Task LoadActorInfoAsync(Internetaak internetaak, InterneTaakOverviewItem item)
+        {
+            if (internetaak.ToegewezenAanActoren?.Any() != true)
+                return;
+
+            var actorTasks = internetaak.ToegewezenAanActoren
+                .Where(actorRef => !string.IsNullOrEmpty(actorRef.Uuid))
+                .Select(actorRef => GetActorAsync(actorRef.Uuid));
+
+            var actors = await Task.WhenAll(actorTasks);
+
+            var medewerkerActor = actors.FirstOrDefault(a => a?.SoortActor == SoortActor.medewerker);
+            if (medewerkerActor != null)
+            {
+                item.BehandelaarNaam = medewerkerActor.Naam;
+            }
+
+            var afdelingActors = actors
+                .Where(a => a?.SoortActor != SoortActor.medewerker && !string.IsNullOrEmpty(a?.Naam))
+                .Select(a => a!.Naam)
+                .ToList();
+
+            if (afdelingActors.Any())
+            {
+                item.AfdelingNaam = string.Join(", ", afdelingActors);
+            }
+        }
+
+        private async Task<Klantcontact?> GetKlantcontactAsync(string uuid)
+        {
+            try
+            {
+                _logger.LogInformation("Klantcontact {Uuid} fetched directly from API", uuid);
+                return await _openKlantApiClient.GetKlantcontactAsync(uuid);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to fetch klantcontact {Uuid}", uuid);
+                return null;
+            }
+        }
+
+        private async Task<Actor?> GetActorAsync(string uuid)
+        {
+            try
+            {
+                _logger.LogInformation("Actor {Uuid} fetched directly from API", uuid);
+                return await _openKlantApiClient.GetActorAsync(uuid);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to fetch actor {Uuid}", uuid);
+                return null;
+            }
+        }
+
+        private static string? ExtractKlantNaamFromKlantcontact(Klantcontact klantcontact)
         {
             return klantcontact.Expand?.HadBetrokkenen?
                 .Select(b => b.VolledigeNaam ?? b.Organisatienaam)

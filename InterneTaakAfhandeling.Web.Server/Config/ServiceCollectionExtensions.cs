@@ -23,7 +23,6 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
             services.AddSingleton<ResourcesConfig>();
-
             services.AddAuth(options =>
           {
               options.Authority = GetRequiredConfigValue(configuration, "OIDC_AUTHORITY");
@@ -49,6 +48,8 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IKlantcontactService, KlantcontactService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
             services.AddScoped<IAssignInternetaakToMyselfService, AssignInternetaakToMyselfService>();
+            services.AddScoped<IInterneTakenOverviewService, InterneTakenOverviewService>();
+
 
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 

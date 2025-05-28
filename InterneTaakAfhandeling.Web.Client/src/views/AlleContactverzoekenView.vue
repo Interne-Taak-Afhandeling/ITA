@@ -33,16 +33,16 @@
           <utrecht-table-cell class="ita-no-wrap">
             <date-time-or-nvt :date="taak.contactDatum || taak.toegewezenOp" />
           </utrecht-table-cell>
-          <utrecht-table-cell>
+          <utrecht-table-cell class="text-truncate" :title="taak.klantNaam || ''">
             {{ taak.klantNaam || '-' }}
           </utrecht-table-cell>
-          <utrecht-table-cell>
+          <utrecht-table-cell class="text-truncate" :title="taak.onderwerp || taak.gevraagdeHandeling || ''">
             {{ taak.onderwerp || taak.gevraagdeHandeling || '-' }}
           </utrecht-table-cell>
-          <utrecht-table-cell>
+          <utrecht-table-cell class="text-truncate" :title="taak.afdelingNaam || ''">
             {{ taak.afdelingNaam || '-' }}
           </utrecht-table-cell>
-          <utrecht-table-cell>
+          <utrecht-table-cell class="text-truncate" :title="taak.behandelaarNaam || ''">
             {{ taak.behandelaarNaam || '-' }}
           </utrecht-table-cell>
           <utrecht-table-cell>
@@ -63,8 +63,20 @@
         Vorige
       </utrecht-button>
       
+      <div class="page-numbers">
+        <button 
+          v-for="pageNum in visiblePages" 
+          :key="pageNum"
+          @click="goToPage(pageNum)"
+          :class="['page-number', { 'active': pageNum === currentPage }]"
+          :disabled="isLoading"
+        >
+          {{ pageNum }}
+        </button>
+      </div>
+      
       <span class="page-info">
-        Pagina {{ currentPage }} ({{ getItemRange() }} van {{ totalCount }} items)
+        ({{ getItemRange() }} van {{ totalCount }} items)
       </span>
       
       <utrecht-button 
@@ -85,7 +97,6 @@ import UtrechtAlert from '@/components/UtrechtAlert.vue';
 import DateTimeOrNvt from '@/components/DateTimeOrNvt.vue';
 import { get } from '@/utils/fetchWrapper';
 
-// Types based on your endpoint response
 interface InterneTaakOverviewItem {
   uuid: string;
   nummer: string;
@@ -108,24 +119,49 @@ interface InterneTakenOverviewResponse {
   results: InterneTaakOverviewItem[];
 }
 
-// Reactive state
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const results = ref<InterneTaakOverviewItem[]>([]);
 const totalCount = ref(0);
 const currentPage = ref(1);
-const pageSize = ref(25); // Same as typical table pagination
+const pageSize = ref(20); 
 const hasNextPage = ref(false);
 const hasPreviousPage = ref(false);
+const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value));
+const visiblePages = computed(() => {
+  const total = totalPages.value;
+  const current = currentPage.value;
+  const pages: number[] = [];
+  
+  if (total <= 5) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+  } else {
+    let start = Math.max(1, current - 2);
+    let end = Math.min(total, current + 2);
+    
+    if (end - start < 4) {
+      if (start === 1) {
+        end = Math.min(total, start + 4);
+      } else {
+        start = Math.max(1, end - 4);
+      }
+    }
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+  }
+  
+  return pages;
+});
 
-// Methods
 const fetchInterneTaken = async (page: number = 1) => {
   isLoading.value = true;
   error.value = null;
   
   try {
-    console.log(`Fetching alle contactverzoeken - Page: ${page}, PageSize: ${pageSize.value}`);
-    
     const response = await get<InterneTakenOverviewResponse>(
       '/api/internetaken-overview',
       {
@@ -134,10 +170,6 @@ const fetchInterneTaken = async (page: number = 1) => {
       }
     );
     
-    console.log('Response received:', response);
-    console.log(`Total count: ${response.count}`);
-    console.log(`Results on this page: ${response.results.length}`);
-    
     // Update state
     results.value = response.results;
     totalCount.value = response.count;
@@ -145,26 +177,17 @@ const fetchInterneTaken = async (page: number = 1) => {
     hasNextPage.value = !!response.next;
     hasPreviousPage.value = !!response.previous;
     
-    // Log each item for debugging
-    response.results.forEach((item, index) => {
-      console.log(`Contactverzoek ${index + 1}:`, {
-        nummer: item.nummer,
-        status: item.status,
-        klantNaam: item.klantNaam,
-        behandelaar: item.behandelaarNaam,
-        afdeling: item.afdelingNaam,
-        onderwerp: item.onderwerp,
-        contactDatum: item.contactDatum,
-        toegewezenOp: item.toegewezenOp
-      });
-    });
-    
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Er is een fout opgetreden bij het ophalen van contactverzoeken';
     error.value = message;
-    console.error('Error fetching alle contactverzoeken:', err);
   } finally {
     isLoading.value = false;
+  }
+};
+
+const goToPage = (page: number) => {
+  if (page !== currentPage.value && !isLoading.value && page >= 1 && page <= totalPages.value) {
+    fetchInterneTaken(page);
   }
 };
 
@@ -186,13 +209,19 @@ const getItemRange = () => {
   return `${start}-${end}`;
 };
 
-// Auto-fetch on component mount
 onMounted(() => {
   fetchInterneTaken();
 });
 </script>
 
 <style lang="scss" scoped>
+.text-truncate {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .spinner-container {
   display: flex;
   justify-content: center;
@@ -209,6 +238,42 @@ onMounted(() => {
   
   &.bottom {
     margin-top: 2rem;
+  }
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 1rem;
+}
+
+.page-number {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  background: white;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    background: #f5f5f5;
+    border-color: #999;
+  }
+  
+  &.active {
+    background: #0070f3;
+    color: white;
+    border-color: #0070f3;
+    cursor: default;
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 }
 

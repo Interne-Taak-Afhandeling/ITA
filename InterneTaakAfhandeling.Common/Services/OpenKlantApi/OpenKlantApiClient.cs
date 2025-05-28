@@ -10,10 +10,8 @@ public interface IOpenKlantApiClient
 {
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
     Task<Actor> GetActorAsync(string uuid);
-    Task<Actor?> GetActorByEmail(string userEmail);
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
-    Task<Betrokkene> GetBetrokkeneAsync(string uuid);
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
     Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);
     Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
@@ -27,7 +25,6 @@ public interface IOpenKlantApiClient
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid);
-    Task<List<Onderwerpobject>> GetOnderwerpobjectenByKlantcontactAsync(string klantcontactUuid);
     Task<Internetaak> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
     Task<Internetaak?> GetInternetakenByIdAsync(string uuid);
     Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
@@ -104,30 +101,6 @@ public class OpenKlantApiClient(
         }
     }
 
-    public async Task<Actor?> GetActorByEmail(string userEmail)
-    {
-        if (string.IsNullOrEmpty(userEmail))
-        {
-            throw new ConflictException("Email must not be empty",
-                                        code: "EMPTY_EMAIL_ADDRESS");
-        }
-
-        try
-        {
-            var response = await _httpClient.GetAsync($"actoren?actoridentificatorObjectId={userEmail}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadFromJsonAsync<ActorResponse>();
-            return content?.Results?.FirstOrDefault();
-        }
-        catch (Exception ex)
-        {
-            // Specifieke exception handling en logging kan hier worden toegevoegd
-            throw new ConflictException($"Error retrieving actor by email: {ex.Message}",
-                                        code: "ACTOR_RETRIEVAL_ERROR");
-        }
-    }
-
     public async Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request)
     {
         try
@@ -187,23 +160,6 @@ public class OpenKlantApiClient(
 
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
-    }
-
-    public async Task<List<Onderwerpobject>> GetOnderwerpobjectenByKlantcontactAsync(string klantcontactUuid)
-    {
-        var response = await _httpClient.GetAsync($"onderwerpobjecten?klantcontact__uuid={klantcontactUuid}");
-        response.EnsureSuccessStatusCode();
-
-        var results = await response.Content.ReadFromJsonAsync<OnderwerpobjectResults>();
-        return results?.Results ?? new List<Onderwerpobject>();
-    }
-
-    private class OnderwerpobjectResults
-    {
-        public int Count { get; set; }
-        public string? Next { get; set; }
-        public string? Previous { get; set; }
-        public List<Onderwerpobject> Results { get; set; } = new List<Onderwerpobject>();
     }
 
     public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
@@ -284,7 +240,6 @@ public class OpenKlantApiClient(
 
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
 
-        // Log specifiek de gingOverOnderwerpobjecten
         _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
         foreach (var obj in klantcontact?.GingOverOnderwerpobjecten ?? [])
         {
@@ -294,26 +249,6 @@ public class OpenKlantApiClient(
         }
 
         return klantcontact;
-    }
-
-    public async Task<Betrokkene> GetBetrokkeneAsync(string uuid)
-    {
-        _logger.LogInformation("Fetching betrokkene {Uuid}", uuid);
-
-        var response = await _httpClient.GetAsync($"betrokkenen/{uuid}");
-        response.EnsureSuccessStatusCode();
-
-        var betrokkene = await response.Content.ReadFromJsonAsync<Betrokkene>();
-
-        if (betrokkene == null)
-        {
-            _logger.LogInformation("Betrokkene not found {Uuid}", uuid);
-            throw new Exception("Betrokkene not found");
-        }
-
-        _logger.LogInformation("Successfully retrieved betrokkene {Uuid}", uuid);
-
-        return betrokkene;
     }
 
     public async Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid)

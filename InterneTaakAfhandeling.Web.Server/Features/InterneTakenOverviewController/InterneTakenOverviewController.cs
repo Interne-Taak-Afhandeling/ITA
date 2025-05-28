@@ -52,11 +52,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview
     public class InterneTakenOverviewQueryParameters
     {
         public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 100;
-
-        // Validation to ensure reasonable pagination limits
+        public int PageSize { get; set; } = 20;
         public int GetValidatedPage() => Math.Max(1, Page);
-        public int GetValidatedPageSize() => Math.Min(Math.Max(1, PageSize), 100);
+        public int GetValidatedPageSize() => Math.Min(Math.Max(1, PageSize), 50);
     }
 
     public class InterneTakenOverviewResponse
@@ -69,21 +67,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview
 
     public class InterneTaakOverviewItem
     {
-        public string Uuid { get; set; } = string.Empty;
-        public string Nummer { get; set; } = string.Empty;
-        public string GevraagdeHandeling { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public DateTimeOffset ToegewezenOp { get; set; }
-        public DateTimeOffset? AfgehandeldOp { get; set; }
+        public string Uuid { get; set; } = string.Empty;                    // Internetaak.Uuid
+        public string Nummer { get; set; } = string.Empty;                  // Internetaak.Nummer
+        public string GevraagdeHandeling { get; set; } = string.Empty;      // Internetaak.GevraagdeHandeling
+        public string Status { get; set; } = string.Empty;                  // Internetaak.Status
+        public DateTimeOffset ToegewezenOp { get; set; }                    // Internetaak.ToegewezenOp
+        public DateTimeOffset? AfgehandeldOp { get; set; }                  // Internetaak.AfgehandeldOp
 
-        // Contact information
-        public string? Onderwerp { get; set; }
-        public string? KlantNaam { get; set; }
-        public DateTimeOffset? ContactDatum { get; set; }
+        public string? Onderwerp { get; set; }                             // Klantcontact.Onderwerp
+        public DateTimeOffset? ContactDatum { get; set; }                  // Klantcontact.PlaatsgevondenOp
 
-        // Assignment information
-        public string? AfdelingNaam { get; set; }
-        public string? BehandelaarNaam { get; set; }
-        public bool HeeftBehandelaar => !string.IsNullOrEmpty(BehandelaarNaam);
+        public string? KlantNaam { get; set; }                             // Klantcontact.Expand.HadBetrokkenen[].VolledigeNaam ?? Organisatienaam
+
+        public string? AfdelingNaam { get; set; }                          // Actor.Naam (waar SoortActor != medewerker)
+        public string? BehandelaarNaam { get; set; }                       // Actor.Naam (waar SoortActor == medewerker)
     }
 }
