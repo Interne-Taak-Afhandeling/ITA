@@ -144,7 +144,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                 _logger.LogWarning("Klantcontact {SafeKlantcontactUuid} heeft {ZaakOnderwerpobjectCount} zaak-gerelateerde onderwerpobjecten. Het koppelen van een nieuwe zaak wordt niet ondersteund in deze situatie.",
                     safeKlantcontactUuid, zaakOnderwerpobjectCount);
                 throw new ConflictException(
-                    "Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit contact.",
+                    "Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit contactverzoek.",
                     "MEERDERE_ZAKEN_GEKOPPELD");
             }
 
