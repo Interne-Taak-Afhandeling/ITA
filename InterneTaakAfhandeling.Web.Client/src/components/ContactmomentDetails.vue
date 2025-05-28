@@ -144,11 +144,11 @@ const organisatienaam = computed(() =>
   gap: 2rem;
   max-width: fit-content;
 
-  @container (min-width: 35rem) {
+  @container (min-width: 32rem) {
     columns: 2;
   }
 
-  @container (min-width: 42rem) {
+  @container (min-width: 38rem) {
     columns: 3;
   }
 }
