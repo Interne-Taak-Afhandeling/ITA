@@ -1,13 +1,12 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
-using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 
 namespace InterneTaakAfhandeling.Web.Server.Services
 {
     public interface IInternetakenService
     {
-        Task<Internetaken> Get(InterneTaakQueryParameters interneTaakQueryParameters);
+        Task<Internetaak> Get(InterneTaakQuery interneTaakQueryParameters);
     }
     public class InternetakenService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient, IContactmomentenService contactmomentenService) : IInternetakenService
     {
@@ -15,7 +14,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
         private readonly IContactmomentenService _contactmomentenService = contactmomentenService;
 
-        public async Task<Internetaken> Get(InterneTaakQueryParameters interneTaakQueryParameters)
+        public async Task<Internetaak> Get(InterneTaakQuery interneTaakQueryParameters)
         {
             var interneTaakQuery = new InterneTaakQuery
             {

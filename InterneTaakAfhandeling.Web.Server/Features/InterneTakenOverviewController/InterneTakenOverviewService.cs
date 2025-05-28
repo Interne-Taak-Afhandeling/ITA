@@ -59,7 +59,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             };
         }
 
-        private async Task<InterneTaakOverviewItem> MapToOverviewItemAsync(Internetaken internetaak)
+        private async Task<InterneTaakOverviewItem> MapToOverviewItemAsync(Internetaak internetaak)
         {
             var item = new InterneTaakOverviewItem
             {
@@ -89,7 +89,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             return item;
         }
 
-        private async Task MapAssignmentInfoAsync(Internetaken internetaak, InterneTaakOverviewItem item)
+        private async Task MapAssignmentInfoAsync(Internetaak internetaak, InterneTaakOverviewItem item)
         {
             if (internetaak.ToegewezenAanActoren?.Any() == true)
             {

@@ -1,4 +1,4 @@
-﻿using InterneTaakAfhandeling.Web.Server.Authentication;
+﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +13,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
 
         private readonly IInternetakenService _internetakenService = internetakenService;
 
-        [ProducesResponseType(typeof(Common.Services.OpenKlantApi.Models.Internetaken), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Common.Services.OpenKlantApi.Models.Internetaak), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet()]
-        public async Task<IActionResult> Get([FromQuery] InterneTaakQueryParameters interneTaakQueryParameters)
+        public async Task<IActionResult> Get([FromQuery] InterneTaakQuery interneTaakQueryParameters)
         {
             var intertakens = await _internetakenService.Get(interneTaakQueryParameters);
             return Ok(intertakens);

@@ -16,7 +16,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
            private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
 
-        [ProducesResponseType(typeof(List<InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models.Internetaken>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models.Internetaak>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("internetaken")]
         public async Task<IActionResult> GetInternetaken()
