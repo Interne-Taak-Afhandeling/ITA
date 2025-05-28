@@ -1,5 +1,5 @@
 <template>
-  <div class="ita-dv-detail-header">
+  <div class="ita-cv-detail-header">
     <div>
       <router-link to="/">Terug</router-link>
     </div>
@@ -22,30 +22,36 @@
   </utrecht-alert>
 
   <div v-else-if="taak" class="ita-cv-detail-sections">
-    <section>
-      <utrecht-heading :level="2">Onderwerp / vraag</utrecht-heading>
+    <detail-section title="Onderwerp / vraag">
       <contactverzoek-details :taak="taak" />
-    </section>
+    </detail-section>
 
-    <section v-if="taak.aanleidinggevendKlantcontact" class="contact-data">
-      <utrecht-heading :level="2">Gegevens van contact</utrecht-heading>
+    <detail-section
+      v-if="taak.aanleidinggevendKlantcontact"
+      class="contact-data"
+      title="Gegevens van contact"
+    >
       <contactmoment-details
         :contactmoment="taak.aanleidinggevendKlantcontact"
         :zaak="taak.zaak"
         :status="taak.status"
         :actoren="taak.toegewezenAanActoren || []"
       />
-    </section>
+    </detail-section>
 
-    <section>
-      <utrecht-heading :level="2">Contactmoment bijwerken</utrecht-heading>
-      <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
-    </section>
+    <detail-section title="Contactmoment bijwerken">
+      <contactmoment-registreren
+        class="same-margin-as-datalist"
+        :taak="taak"
+        @success="fetchInternetaken"
+      />
+    </detail-section>
 
-    <section>
-      <utrecht-heading :level="2"> Contactmomenten</utrecht-heading>
-      <contactverzoek-contactmomenten v-if="taak" :taak="taak" />
-    </section>
+    <detail-section title="Contactmomenten">
+      <div class="same-margin-as-datalist">
+        <contactverzoek-contactmomenten v-if="taak" :taak="taak" />
+      </div>
+    </detail-section>
   </div>
 </template>
 
@@ -62,6 +68,7 @@ import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
 import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
 import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
 import ContactmomentRegistreren from "@/components/ContactmomentRegistreren.vue";
+import DetailSection from "@/components/DetailSection.vue";
 
 const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
 const route = useRoute();
@@ -108,10 +115,16 @@ const fetchInternetaken = async () => {
   --_column-size: 42rem;
   display: grid;
   column-gap: var(--ita-cv-details-sections-column-gap);
+  row-gap: var(--ita-cv-details-sections-row-gap);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_column-size)), 1fr));
+  align-items: start;
+
+  > * {
+    min-height: 22rem;
+  }
 }
 
-.ita-dv-detail-header {
+.ita-cv-detail-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -124,5 +137,18 @@ const fetchInternetaken = async () => {
 
 .contact-data {
   container-type: inline-size;
+}
+
+.same-margin-as-datalist {
+  margin-block-end: calc(
+    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-end, 0)
+  );
+  margin-block-start: calc(
+    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-start, 0)
+  );
+}
+
+.ita-cv-detail-sections :deep(.denhaag-contact-timeline__step:last-child) {
+  padding-block-end: 0;
 }
 </style>
