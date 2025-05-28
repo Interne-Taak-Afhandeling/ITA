@@ -32,7 +32,5 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 const userStore = useUserStore();
 const { assignedInternetaken, isLoading } = storeToRefs(userStore);
 
-onMounted(async () => {
-  userStore.fetchAssignedInternetaken();
-});
+onMounted(async () => userStore.fetchAssignedInternetaken());
 </script>
