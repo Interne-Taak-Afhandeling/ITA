@@ -144,7 +144,7 @@ public class InternetakenNotifier : IInternetakenProcessor
             errorMessage = ex.Message;
         }
 
-        return new ProcessingResult(success, Guid.Parse(internetaken.Uuid), internetaken.ToegewezenOp, errorMessage);
+        return new ProcessingResult(success, Guid.Parse(internetaken.Uuid), internetaken.ToegewezenOp ?? DateTimeOffset.MinValue, errorMessage);
 
     }
 

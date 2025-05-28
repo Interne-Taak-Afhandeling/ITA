@@ -59,6 +59,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             };
         }
 
+
         private async Task<InterneTaakOverviewItem> MapToOverviewItemAsync(Internetaak internetaak)
         {
             var item = new InterneTaakOverviewItem
@@ -67,19 +68,40 @@ namespace InterneTaakAfhandeling.Web.Server.Services
                 Nummer = internetaak.Nummer,
                 GevraagdeHandeling = internetaak.GevraagdeHandeling,
                 Status = internetaak.Status,
-                ToegewezenOp = internetaak.ToegewezenOp,
+                ToegewezenOp = internetaak.ToegewezenOp ?? DateTimeOffset.MinValue,
                 AfgehandeldOp = internetaak.AfgehandeldOp
             };
 
             // Load contact information (business logic in service)
             if (internetaak.AanleidinggevendKlantcontact != null)
             {
-                var klantcontact = await _openKlantApiClient.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
-                if (klantcontact != null)
+                try
                 {
-                    item.Onderwerp = klantcontact.Onderwerp;
-                    item.ContactDatum = klantcontact.PlaatsgevondenOp;
-                    item.KlantNaam = GetKlantNaam(klantcontact);
+                    var klantcontact = await _openKlantApiClient.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+                    if (klantcontact != null)
+                    {
+                        item.Onderwerp = klantcontact.Onderwerp;
+                        item.ContactDatum = klantcontact.PlaatsgevondenOp;
+                        item.KlantNaam = GetKlantNaam(klantcontact);
+                    }
+                }
+                catch (System.Text.Json.JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Failed to deserialize klantcontact {KlantcontactUuid} for internetaak {InternetaakUuid}. Skipping contact information.",
+                        internetaak.AanleidinggevendKlantcontact.Uuid, internetaak.Uuid);
+
+                    // Set fallback values
+                    item.Onderwerp = "Kon contactgegevens niet ophalen";
+                    item.KlantNaam = "Onbekend";
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unexpected error loading klantcontact {KlantcontactUuid} for internetaak {InternetaakUuid}",
+                        internetaak.AanleidinggevendKlantcontact.Uuid, internetaak.Uuid);
+
+                    // Set fallback values
+                    item.Onderwerp = "Error bij ophalen contactgegevens";
+                    item.KlantNaam = "Error";
                 }
             }
 

@@ -56,11 +56,11 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
         public required string Url { get; set; }
 
-        public required string Nummer { get; set; }
+        public string? Nummer { get; set; }
 
-        public required string GevraagdeHandeling { get; set; }
+        public string? GevraagdeHandeling { get; set; }
 
-        public Klantcontact AanleidinggevendKlantcontact { get; set; }
+        public Klantcontact? AanleidinggevendKlantcontact { get; set; }
 
         public Actor? ToegewezenAanActor { get; set; }
 
@@ -68,9 +68,9 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
         public string? Toelichting { get; set; }
 
-        public required string Status { get; set; }
+        public string? Status { get; set; }
 
-        public required DateTimeOffset ToegewezenOp { get; set; }
+        public DateTimeOffset? ToegewezenOp { get; set; }
 
         public DateTimeOffset? AfgehandeldOp { get; set; }
 
