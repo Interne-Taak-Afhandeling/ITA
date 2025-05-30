@@ -65,7 +65,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
                         {
                             if (Guid.TryParse(aanleidinggevendKlantcontactUuid, out Guid parsedAanleidinggevendKlantcontactUuid))
                             {
-                                _logger.LogInformation("Using most recent klantcontact in chain: {ParsedLaatsteKlantcontactUuid} instead of original: {ParsedAanleidinggevendKlantcontactUuid}",
+                                _logger.LogInformation("Linking new klantcontact to: {ParsedLaatsteKlantcontactUuid} in a chain starting with klantcontact: {ParsedAanleidinggevendKlantcontactUuid}",
                                     parsedLaatsteKlantcontactUuid, parsedAanleidinggevendKlantcontactUuid);
                             }
                         }

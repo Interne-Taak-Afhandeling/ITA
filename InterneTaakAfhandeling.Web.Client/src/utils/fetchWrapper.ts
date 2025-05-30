@@ -38,7 +38,7 @@ export async function fetchWrapper<T = unknown>(
     let errorMessage = `Request failed with status ${response.status}`;
     try {
       const errorData = await response.json();
-      errorMessage = errorData.message || errorData.error || errorMessage;
+      errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
     } catch {
       errorMessage = response.statusText || errorMessage;
     }

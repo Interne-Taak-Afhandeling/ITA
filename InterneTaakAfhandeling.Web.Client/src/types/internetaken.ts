@@ -220,6 +220,11 @@ export interface CreateRelatedKlantcontactRequest {
   partijUuid?: string;
 }
 
+export interface CreateRelatedKlantcontactAndCloseInterneTaakRequest
+  extends CreateRelatedKlantcontactRequest {
+  interneTaakId: string;
+}
+
 export interface RelatedKlantcontactResult {
   klantcontact: Klantcontact;
   actorKlantcontact: ActorKlantcontact;
@@ -297,10 +302,3 @@ export type InterneTaakQueryParameters = {
   ToegewezenAanActor_Uuid?: string;
   ToegewezenOp?: Date;
 };
-
-export interface CloseInterneTaakWithKlantContactRequest {
-  klantcontactRequest: CreateKlantcontactRequest;
-  aanleidinggevendKlantcontactUuid?: string;
-  partijUuid?: string;
-  interneTaakId: string;
-}

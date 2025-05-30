@@ -11,16 +11,16 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class CreateKlantContactAndCloseInterneTaakController : Controller
+    public class CreateKlantContactController : Controller
     {
         private readonly ITAUser _user;
         private readonly ICreateKlantContactService _createKlantContactService;
-        private readonly ILogger<CreateKlantContactAndCloseInterneTaakController> _logger;
+        private readonly ILogger<CreateKlantContactController> _logger;
 
-        public CreateKlantContactAndCloseInterneTaakController(
+        public CreateKlantContactController(
             ITAUser user,
             ICreateKlantContactService createKlantContactService,
-            ILogger<CreateKlantContactAndCloseInterneTaakController> logger)
+            ILogger<CreateKlantContactController> logger)
         {
             _user = user ?? throw new ArgumentNullException(nameof(user));
             _createKlantContactService = createKlantContactService ?? throw new ArgumentNullException(nameof(createKlantContactService));
@@ -29,7 +29,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
 
         [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost("closeIrelatedklantcontactnterneTaakWithKlantContact")]
+        [HttpPost("post")]
         public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequestModel request)
         {
             try
