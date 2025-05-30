@@ -10,7 +10,7 @@
 - Record contact moment resulting from contact request #13
 - Assign Contact request to myself #104
 - Connect the contact request to a related 'zaak' #55
-
+- Overview of the ContactMoments following from the ContactRequest #110
 
 ### Warnings and deployment notes
 
