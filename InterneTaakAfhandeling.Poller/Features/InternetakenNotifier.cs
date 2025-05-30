@@ -60,7 +60,7 @@ public class InternetakenNotifier : IInternetakenProcessor
 
         ProcessingResult processResult = new(true, notifierState.LastInternetakenId, notifierState.LastInternetakenToegewezenOp, "");
 
-        List<Internetaken> internetakens = [];
+        List<Internetaak> internetakens = [];
 
         while (!string.IsNullOrEmpty(page))
         {
@@ -100,7 +100,7 @@ public class InternetakenNotifier : IInternetakenProcessor
 
     }
 
-    public async Task<ProcessingResult> ProcessInternetakenAsync(Internetaken internetaken)
+    public async Task<ProcessingResult> ProcessInternetakenAsync(Internetaak internetaken)
     {
         bool success = true;
         string? errorMessage = null;
@@ -144,13 +144,13 @@ public class InternetakenNotifier : IInternetakenProcessor
             errorMessage = ex.Message;
         }
 
-        return new ProcessingResult(success, Guid.Parse(internetaken.Uuid), internetaken.ToegewezenOp, errorMessage);
+        return new ProcessingResult(success, Guid.Parse(internetaken.Uuid), internetaken.ToegewezenOp ?? DateTimeOffset.MinValue, errorMessage);
 
     }
 
 
 
-    private async Task<List<string>> ResolveActorsEmailAsync(Internetaken internetaken)
+    private async Task<List<string>> ResolveActorsEmailAsync(Internetaak internetaken)
     {
         if (internetaken.ToegewezenAanActoren == null)
         {

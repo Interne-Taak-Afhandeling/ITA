@@ -6,14 +6,14 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 {
     public interface IUserService
     {
-        Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user);
+        Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user);
     }
     public class UserService(IOpenKlantApiClient openKlantApiClient) : IUserService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
 
 
-        public async Task<IReadOnlyList<Internetaken>> GetInterneTakenByAssignedUser(ITAUser user)
+        public async Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user)
         {
             var actorIds = await GetActorIds(user);
             var internetakenTasks = actorIds.Select(a => _openKlantApiClient.GetOutstandingInternetakenByToegewezenAanActor(a));

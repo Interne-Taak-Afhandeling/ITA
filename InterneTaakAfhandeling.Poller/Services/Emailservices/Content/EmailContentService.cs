@@ -7,7 +7,7 @@ namespace InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
 
 public interface IEmailContentService
 {
-    string BuildInternetakenEmailContent(Internetaken internetaken, Klantcontact klantcontact, List<DigitaleAdres>? digitaleAdressen,Zaak? zaak);
+    string BuildInternetakenEmailContent(Internetaak internetaken, Klantcontact klantcontact, List<DigitaleAdres>? digitaleAdressen,Zaak? zaak);
 }
 
 public class EmailContentService : IEmailContentService
@@ -38,7 +38,7 @@ public class EmailContentService : IEmailContentService
     </body>
     </html>";
 
-    public string BuildInternetakenEmailContent(Internetaken internetaken, Klantcontact klantcontact, List<DigitaleAdres>? digitaleAdressen, Zaak? zaak)
+    public string BuildInternetakenEmailContent(Internetaak internetaken, Klantcontact klantcontact, List<DigitaleAdres>? digitaleAdressen, Zaak? zaak)
     {
         var betrokkene = klantcontact.HadBetrokkenActoren.FirstOrDefault();
         
