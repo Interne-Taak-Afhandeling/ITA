@@ -2,23 +2,19 @@
   <utrecht-alert-dialog ref="bevestigingsDialogRef">
     <form method="dialog" @submit.prevent="handleConfirm">
       <utrecht-heading :level="2">{{ title }}</utrecht-heading>
-      
+
       <utrecht-paragraph>
         {{ message }}
       </utrecht-paragraph>
-      
+
       <utrecht-button-group>
-        <utrecht-button 
-          appearance="primary-action-button" 
-          type="submit"
-          :disabled="isProcessing"
-        >
+        <utrecht-button appearance="primary-action-button" type="submit" :disabled="isProcessing">
           <span v-if="isProcessing">Bezig...</span>
           <span v-else>{{ confirmText }}</span>
         </utrecht-button>
-        <utrecht-button 
-          appearance="secondary-action-button" 
-          type="button" 
+        <utrecht-button
+          appearance="secondary-action-button"
+          type="button"
           @click="handleCancel"
           :disabled="isProcessing"
         >
@@ -39,7 +35,7 @@ interface Props {
   cancelText?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   title: "Bevestiging",
   confirmText: "Bevestigen",
   cancelText: "Annuleren"
@@ -80,5 +76,4 @@ defineExpose({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>
