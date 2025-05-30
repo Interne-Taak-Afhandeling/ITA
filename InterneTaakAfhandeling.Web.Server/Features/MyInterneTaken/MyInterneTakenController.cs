@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using Duende.IdentityModel;
-using InterneTaakAfhandeling.Web.Server.Authentication;
+﻿using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
