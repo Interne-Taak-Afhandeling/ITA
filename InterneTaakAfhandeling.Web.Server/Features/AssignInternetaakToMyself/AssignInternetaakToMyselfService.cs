@@ -6,12 +6,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
 {
     public interface IAssignInternetaakToMyselfService
     {
-        Task<Common.Services.OpenKlantApi.Models.Internetaken> ToSelfAsync(string internetakenId, ITAUser user);
+        Task<Common.Services.OpenKlantApi.Models.Internetaak> ToSelfAsync(string internetakenId, ITAUser user);
     }
     public class AssignInternetaakToMyselfService(IOpenKlantApiClient openKlantApiClient) : IAssignInternetaakToMyselfService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-        public async Task<Common.Services.OpenKlantApi.Models.Internetaken> ToSelfAsync(string internetakenId, ITAUser user)
+        public async Task<Common.Services.OpenKlantApi.Models.Internetaak> ToSelfAsync(string internetakenId, ITAUser user)
         {
             var currentUserActor = await GetActor(user) ?? await CreateEntraActor(user);
             var internetaken = await _openKlantApiClient.GetInternetakenByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
@@ -40,7 +40,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
             return await _openKlantApiClient.UpdateInternetakenAsync(internetakenUpdateRequest, internetaken.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
         }
 
-        private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Common.Services.OpenKlantApi.Models.Internetaken internetaken)
+        private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Common.Services.OpenKlantApi.Models.Internetaak internetaken)
         {
             var internetaakActorTasks = internetaken.ToegewezenAanActoren?.Select(x => _openKlantApiClient.GetActorAsync(x.Uuid)) ?? [];
             var notMedewerkerActors = (await Task.WhenAll(internetaakActorTasks)).Where(x => x.SoortActor != SoortActor.medewerker).ToList() ?? [];

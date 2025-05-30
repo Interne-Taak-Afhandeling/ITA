@@ -11,26 +11,23 @@ public interface IOpenKlantApiClient
 {
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
     Task<Actor> GetActorAsync(string uuid);
-    Task<Actor?> GetActorByEmail(string userEmail);
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
-    Task<Betrokkene> GetBetrokkeneAsync(string uuid);
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
-    Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid);
-    Task<List<Internetaken>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
+    Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
     Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
-    Task<Internetaken?> GetInternetaak(string uuid);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
-    Task<Internetaken?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters);
+    Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters);
 
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid);
-    Task<List<Onderwerpobject>> GetOnderwerpobjectenByKlantcontactAsync(string klantcontactUuid);
-    Task<Internetaken> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
-    Task<Internetaken?> GetInternetakenByIdAsync(string uuid);
+    Task<Internetaak> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
+    Task<Internetaak?> GetInternetakenByIdAsync(string uuid);
+    Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
+
 }
 
 public class OpenKlantApiClient(
@@ -103,30 +100,6 @@ public class OpenKlantApiClient(
         }
     }
 
-    public async Task<Actor?> GetActorByEmail(string userEmail)
-    {
-        if (string.IsNullOrEmpty(userEmail))
-        {
-            throw new ConflictException("Email must not be empty",
-                                        code: "EMPTY_EMAIL_ADDRESS");
-        }
-
-        try
-        {
-            var response = await _httpClient.GetAsync($"actoren?actoridentificatorObjectId={userEmail}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadFromJsonAsync<ActorResponse>();
-            return content?.Results?.FirstOrDefault();
-        }
-        catch (Exception ex)
-        {
-            // Specifieke exception handling en logging kan hier worden toegevoegd
-            throw new ConflictException($"Error retrieving actor by email: {ex.Message}",
-                                        code: "ACTOR_RETRIEVAL_ERROR");
-        }
-    }
-
     public async Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request)
     {
         try
@@ -186,23 +159,6 @@ public class OpenKlantApiClient(
 
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
-    }
-
-    public async Task<List<Onderwerpobject>> GetOnderwerpobjectenByKlantcontactAsync(string klantcontactUuid)
-    {
-        var response = await _httpClient.GetAsync($"onderwerpobjecten?klantcontact__uuid={klantcontactUuid}");
-        response.EnsureSuccessStatusCode();
-
-        var results = await response.Content.ReadFromJsonAsync<OnderwerpobjectResults>();
-        return results?.Results ?? new List<Onderwerpobject>();
-    }
-
-    private class OnderwerpobjectResults
-    {
-        public int Count { get; set; }
-        public string? Next { get; set; }
-        public string? Previous { get; set; }
-        public List<Onderwerpobject> Results { get; set; } = new List<Onderwerpobject>();
     }
 
     public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
@@ -283,7 +239,6 @@ public class OpenKlantApiClient(
 
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
 
-        // Log specifiek de gingOverOnderwerpobjecten
         _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
         foreach (var obj in klantcontact?.GingOverOnderwerpobjecten ?? [])
         {
@@ -295,49 +250,9 @@ public class OpenKlantApiClient(
         return klantcontact;
     }
 
-    public async Task<Betrokkene> GetBetrokkeneAsync(string uuid)
+    public async Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid)
     {
-        _logger.LogInformation("Fetching betrokkene {Uuid}", uuid);
-
-        var response = await _httpClient.GetAsync($"betrokkenen/{uuid}");
-        response.EnsureSuccessStatusCode();
-
-        var betrokkene = await response.Content.ReadFromJsonAsync<Betrokkene>();
-
-        if (betrokkene == null)
-        {
-            _logger.LogInformation("Betrokkene not found {Uuid}", uuid);
-            throw new Exception("Betrokkene not found");
-        }
-
-        _logger.LogInformation("Successfully retrieved betrokkene {Uuid}", uuid);
-
-        return betrokkene;
-    }
-
-    public async Task<DigitaleAdres> GetDigitaleAdresAsync(string uuid)
-    {
-        _logger.LogInformation("Fetching digitale adres {Uuid}", uuid);
-
-        var response = await _httpClient.GetAsync($"digitaleadressen/{uuid}");
-        response.EnsureSuccessStatusCode();
-
-        var digitaleAdres = await response.Content.ReadFromJsonAsync<DigitaleAdres>();
-
-        if (digitaleAdres == null)
-        {
-            _logger.LogInformation("Digitale adres not found {Uuid}", uuid);
-            throw new Exception("Digitale adres not found");
-        }
-
-        _logger.LogInformation("Successfully retrieved digitale adres {Uuid}", uuid);
-
-        return digitaleAdres;
-    }
-
-    public async Task<List<Internetaken>> GetOutstandingInternetakenByToegewezenAanActor(string uuid)
-    {
-        List<Internetaken> content = [];
+        List<Internetaak> content = [];
         var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status=te_verwerken";
         while (!string.IsNullOrEmpty(page))
         {
@@ -378,7 +293,7 @@ public class OpenKlantApiClient(
         return content?.Results?.FirstOrDefault();
     }
 
-    public async Task<Internetaken?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters)
+    public async Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters)
     {
         var queryString = string.Join("&",
             interneTaakQueryParameters.GetType().GetProperties()
@@ -387,14 +302,19 @@ public class OpenKlantApiClient(
 
         var path = $"internetaken?{queryString}";
         var response = await GetInternetakenAsync(path);
-        if (response?.Results?.Count > 0)
+
+        if (response?.Results == null || response.Results.Count == 0)
         {
-            var internetaken = response.Results.FirstOrDefault();
-            if (internetaken?.ToegewezenAanActoren != null)
+            throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
+        }
+
+        foreach (var item in response.Results)
+        {
+            if (item.ToegewezenAanActoren != null)
             {
 
-                internetaken.ToegewezenAanActoren = [.. (await Task.WhenAll(
-                        internetaken.ToegewezenAanActoren
+                item.ToegewezenAanActoren = [.. (await Task.WhenAll(
+                        item.ToegewezenAanActoren
                                 .Select(async a =>
                                 {
                                    if (!string.IsNullOrEmpty(a.Uuid))
@@ -406,26 +326,11 @@ public class OpenKlantApiClient(
                     ))];
             }
 
-            if (internetaken != null)
-            {
-                internetaken.AanleidinggevendKlantcontact = await GetKlantcontactAsync(internetaken.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
-                return internetaken;
-            }
-            return null;
+            item.AanleidinggevendKlantcontact = await GetKlantcontactAsync(item.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
         }
-        else
-        {
-            throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
-        }
-    }
 
+        return response.Results;
 
-
-    public async Task<Internetaken?> GetInternetaak(string uuid)
-    {
-        var response = await _httpClient.GetAsync($"internetaken/{uuid}");
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<Internetaken>();
     }
 
     public async Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request)
@@ -501,23 +406,23 @@ public class OpenKlantApiClient(
             return [];
         }
     }
-    public async Task<Internetaken?> GetInternetakenByIdAsync(string uuid)
+    public async Task<Internetaak?> GetInternetakenByIdAsync(string uuid)
     {
         var response = await _httpClient.GetAsync($"internetaken/{uuid}");
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<Internetaken>();
-        
+        return await response.Content.ReadFromJsonAsync<Internetaak>();
+
     }
 
-    public async Task<Internetaken> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid)
+    public async Task<Internetaak> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid)
     {
         try
         {
             var response = await _httpClient.PutAsync($"internetaken/{uuid}", JsonContent.Create(internetakenUpdateRequest));
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadFromJsonAsync<Internetaken>();
+            var content = await response.Content.ReadFromJsonAsync<Internetaak>();
 
             return content ?? throw new InvalidOperationException("Failed to update Internetaken. The response content is null.");
         }
@@ -525,6 +430,71 @@ public class OpenKlantApiClient(
         {
             throw new InvalidOperationException($"Failed to update Internetaken: {e}");
         }
+    }
+
+    public async Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query)
+    {
+        var queryString = BuildQueryString(query);
+        var response = await _httpClient.GetAsync($"/klantinteracties/api/v1/internetaken?{queryString}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            return JsonSerializer.Deserialize<InternetakenResponse>(content, options)
+                ?? new InternetakenResponse { Results = new List<Internetaak>(), Count = 0 };
+        }
+
+        throw new HttpRequestException($"Failed to fetch internetaken: {response.StatusCode} - {response.ReasonPhrase}");
+    }
+
+    private string BuildQueryString(InterneTaakQuery query)
+    {
+        var parameters = new List<string>();
+
+        if (!string.IsNullOrEmpty(query.Status))
+            parameters.Add($"status={Uri.EscapeDataString(query.Status)}");
+
+        if (query.Page.HasValue)
+            parameters.Add($"page={query.Page.Value}");
+
+        if (query.PageSize.HasValue)
+            parameters.Add($"pageSize={query.PageSize.Value}");
+
+        if (!string.IsNullOrEmpty(query.Nummer))
+            parameters.Add($"nummer={Uri.EscapeDataString(query.Nummer)}");
+
+        if (!string.IsNullOrEmpty(query.AanleidinggevendKlantcontact_Url))
+            parameters.Add($"aanleidinggevendKlantcontact__url={Uri.EscapeDataString(query.AanleidinggevendKlantcontact_Url)}");
+
+        if (query.AanleidinggevendKlantcontact_Uuid.HasValue)
+            parameters.Add($"aanleidinggevendKlantcontact__uuid={query.AanleidinggevendKlantcontact_Uuid.Value}");
+
+        if (!string.IsNullOrEmpty(query.Actoren__Naam))
+            parameters.Add($"actoren__naam={Uri.EscapeDataString(query.Actoren__Naam)}");
+
+        if (!string.IsNullOrEmpty(query.Klantcontact__Nummer))
+            parameters.Add($"klantcontact__nummer={Uri.EscapeDataString(query.Klantcontact__Nummer)}");
+
+        if (query.Klantcontact__Uuid.HasValue)
+            parameters.Add($"klantcontact__uuid={query.Klantcontact__Uuid.Value}");
+
+        if (!string.IsNullOrEmpty(query.ToegewezenAanActor__Url))
+            parameters.Add($"toegewezenAanActor__url={Uri.EscapeDataString(query.ToegewezenAanActor__Url)}");
+
+        if (query.ToegewezenAanActor__Uuid.HasValue)
+            parameters.Add($"toegewezenAanActor__uuid={query.ToegewezenAanActor__Uuid.Value}");
+
+        if (query.ToegewezenOp.HasValue)
+            parameters.Add($"toegewezenOp={query.ToegewezenOp.Value:yyyy-MM-ddTHH:mm:ss.fffZ}");
+
+        return string.Join("&", parameters);
     }
 
     private class KlantcontactResponse
