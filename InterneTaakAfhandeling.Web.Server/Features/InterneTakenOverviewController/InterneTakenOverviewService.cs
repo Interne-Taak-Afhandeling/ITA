@@ -28,6 +28,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             var page = queryParameters.GetValidatedPage();
             var pageSize = queryParameters.GetValidatedPageSize();
 
+            //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)
             var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(new InterneTaakQuery
             {
                 Status = "te_verwerken",

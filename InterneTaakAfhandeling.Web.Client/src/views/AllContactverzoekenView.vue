@@ -10,52 +10,7 @@
   </utrecht-alert>
 
   <section v-else>
-    <utrecht-heading :level="2" id="h2-alle-contactverzoeken"
-      >Alle contactverzoeken</utrecht-heading
-    >
-
-    <utrecht-table aria-labelledby="h2-alle-contactverzoeken">
-      <utrecht-table-header>
-        <utrecht-table-row>
-          <utrecht-table-header-cell scope="col">Datum</utrecht-table-header-cell>
-          <utrecht-table-header-cell scope="col">Klantnaam</utrecht-table-header-cell>
-          <utrecht-table-header-cell scope="col">Onderwerp / vraag</utrecht-table-header-cell>
-          <utrecht-table-header-cell scope="col">Afdeling</utrecht-table-header-cell>
-          <utrecht-table-header-cell scope="col">Behandelaar</utrecht-table-header-cell>
-          <utrecht-table-header-cell scope="col">Details</utrecht-table-header-cell>
-        </utrecht-table-row>
-      </utrecht-table-header>
-
-      <utrecht-table-body>
-        <utrecht-table-row v-if="results.length === 0">
-          <utrecht-table-cell colspan="6">Geen contactverzoeken gevonden</utrecht-table-cell>
-        </utrecht-table-row>
-
-        <utrecht-table-row v-for="taak in results" :key="taak.uuid">
-          <utrecht-table-cell class="ita-no-wrap">
-            <date-time-or-nvt :date="taak.contactDatum || taak.toegewezenOp" />
-          </utrecht-table-cell>
-          <utrecht-table-cell class="text-truncate" :title="taak.klantNaam || ''">
-            {{ taak.klantNaam || "-" }}
-          </utrecht-table-cell>
-          <utrecht-table-cell
-            class="text-truncate"
-            :title="taak.onderwerp || taak.gevraagdeHandeling || ''"
-          >
-            {{ taak.onderwerp || taak.gevraagdeHandeling || "-" }}
-          </utrecht-table-cell>
-          <utrecht-table-cell class="text-truncate" :title="taak.afdelingNaam || ''">
-            {{ taak.afdelingNaam || "-" }}
-          </utrecht-table-cell>
-          <utrecht-table-cell class="text-truncate" :title="taak.behandelaarNaam || ''">
-            {{ taak.behandelaarNaam || "-" }}
-          </utrecht-table-cell>
-          <utrecht-table-cell>
-            <router-link :to="`/contactverzoek/${taak.nummer}`"> Klik hier </router-link>
-          </utrecht-table-cell>
-        </utrecht-table-row>
-      </utrecht-table-body>
-    </utrecht-table>
+    <all-interne-taken-table :interneTaken="results" />
 
     <div class="pagination-controls bottom" v-if="totalCount > pageSize">
       <utrecht-button
@@ -95,23 +50,11 @@
 import { ref, computed, onMounted } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
-import DateTimeOrNvt from "@/components/DateTimeOrNvt.vue";
+
 import { get } from "@/utils/fetchWrapper";
 
-interface InterneTaakOverviewItem {
-  uuid: string;
-  nummer: string;
-  gevraagdeHandeling: string;
-  status: string;
-  toegewezenOp: string;
-  afgehandeldOp?: string;
-  onderwerp?: string;
-  klantNaam?: string;
-  contactDatum?: string;
-  afdelingNaam?: string;
-  behandelaarNaam?: string;
-  heeftBehandelaar: boolean;
-}
+import type { InterneTaakOverviewItem } from "@/components/interneTakenTables/AllInterneTakenTable.vue";
+import AllInterneTakenTable from "@/components/interneTakenTables/AllInterneTakenTable.vue";
 
 interface InterneTakenOverviewResponse {
   count: number;

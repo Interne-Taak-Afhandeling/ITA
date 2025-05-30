@@ -18,13 +18,14 @@
           >
         </li>
 
-        <li class="utrecht-nav-list__item">
+        <!-- not implemented yet -->
+        <!-- <li class="utrecht-nav-list__item">
           <router-link
             :to="{ name: 'historie' }"
             class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
             >Historie</router-link
           >
-        </li>
+        </li> -->
       </ul>
     </div>
   </nav>

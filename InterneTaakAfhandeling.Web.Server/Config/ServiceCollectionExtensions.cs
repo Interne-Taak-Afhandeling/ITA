@@ -6,6 +6,8 @@ using InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Services;
+using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
+
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
@@ -40,11 +42,11 @@ namespace InterneTaakAfhandeling.Web.Server.Config
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
-            services.AddScoped<IInternetakenService, InternetakenService>();
+            services.AddScoped<IInternetaakService, InternetaakService>();
             services.AddScoped<IContactmomentenService, ContactmomentenService>();
             services.AddScoped<IInterneTakenOverviewService, InterneTakenOverviewService>();
 
-            services.AddScoped<IInternetakenService, InternetakenService>();
+            services.AddScoped<IInternetaakService, InternetaakService>();
             services.AddScoped<IKlantcontactService, KlantcontactService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
             services.AddScoped<IAssignInternetaakToMyselfService, AssignInternetaakToMyselfService>();
