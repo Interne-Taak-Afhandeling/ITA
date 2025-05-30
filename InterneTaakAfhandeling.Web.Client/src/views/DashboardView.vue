@@ -5,7 +5,7 @@
     <section>
       <utrecht-heading :level="2" id="h2-a">Aan mij toegewezen contacten</utrecht-heading>
       <simple-spinner v-if="isLoading" />
-      <interne-taak-table v-else :interne-taken="assignedInternetaken" aria-labelledby="h2-a" />
+      <my-interne-taken-table v-else :interne-taken="assignedInternetaken" aria-labelledby="h2-a" />
     </section>
   </div>
 </template>
@@ -26,7 +26,7 @@
 import { onMounted } from "vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
-import InterneTaakTable from "@/components/InterneTaakTable.vue";
+import MyInterneTakenTable from "@/components/interneTakenTables/MyInterneTakenTable.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 
 const userStore = useUserStore();

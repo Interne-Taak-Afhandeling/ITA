@@ -21,7 +21,8 @@ public interface IOpenKlantApiClient
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
-    Task<Internetaak?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters);
+    Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters);
+
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid);
@@ -344,7 +345,7 @@ public class OpenKlantApiClient(
         return content?.Results?.FirstOrDefault();
     }
 
-    public async Task<Internetaak?> QueryInterneTaakAsync(InterneTaakQuery interneTaakQueryParameters)
+    public async Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters)
     {
         var queryString = string.Join("&",
             interneTaakQueryParameters.GetType().GetProperties()
@@ -353,14 +354,19 @@ public class OpenKlantApiClient(
 
         var path = $"internetaken?{queryString}";
         var response = await GetInternetakenAsync(path);
-        if (response?.Results?.Count > 0)
+
+        if (response?.Results == null || response.Results.Count == 0)
         {
-            var internetaken = response.Results.FirstOrDefault();
-            if (internetaken?.ToegewezenAanActoren != null)
+            throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
+        }
+
+        foreach (var item in response.Results)
+        {
+            if (item.ToegewezenAanActoren != null)
             {
 
-                internetaken.ToegewezenAanActoren = [.. (await Task.WhenAll(
-                        internetaken.ToegewezenAanActoren
+                item.ToegewezenAanActoren = [.. (await Task.WhenAll(
+                        item.ToegewezenAanActoren
                                 .Select(async a =>
                                 {
                                    if (!string.IsNullOrEmpty(a.Uuid))
@@ -372,17 +378,11 @@ public class OpenKlantApiClient(
                     ))];
             }
 
-            if (internetaken != null)
-            {
-                internetaken.AanleidinggevendKlantcontact = await GetKlantcontactAsync(internetaken.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
-                return internetaken;
-            }
-            return null;
+            item.AanleidinggevendKlantcontact = await GetKlantcontactAsync(item.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
         }
-        else
-        {
-            throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
-        }
+
+        return response.Results;
+
     }
 
     public async Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request)
@@ -464,7 +464,7 @@ public class OpenKlantApiClient(
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<Internetaak>();
-        
+
     }
 
     public async Task<Internetaak> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid)

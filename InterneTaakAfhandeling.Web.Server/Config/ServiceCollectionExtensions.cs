@@ -6,6 +6,8 @@ using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
+
 
 namespace InterneTaakAfhandeling.Web.Server.Config
 {
@@ -37,20 +39,14 @@ namespace InterneTaakAfhandeling.Web.Server.Config
 
 
             services.AddITAApiClients(configuration);
-
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
-            services.AddScoped<IInternetakenService, InternetakenService>();
+            services.AddScoped<IInternetaakService, InternetaakService>();
             services.AddScoped<IContactmomentenService, ContactmomentenService>();
             services.AddScoped<IInterneTakenOverviewService, InterneTakenOverviewService>();
-
-            services.AddScoped<IInternetakenService, InternetakenService>();
-            services.AddScoped<IKlantcontactService, KlantcontactService>();
-            services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
+            services.AddScoped<IKlantcontactService, KlantcontactService>();     
             services.AddScoped<IAssignInternetaakToMyselfService, AssignInternetaakToMyselfService>();
-            services.AddScoped<IInterneTakenOverviewService, InterneTakenOverviewService>();
-
-
+         
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 
             services.AddProblemDetails();

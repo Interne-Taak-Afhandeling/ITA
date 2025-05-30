@@ -36,6 +36,6 @@
 
 <script setup lang="ts">
 import type { Internetaken } from "@/types/internetaken";
-import DateTimeOrNvt from "./DateTimeOrNvt.vue";
+import DateTimeOrNvt from "../DateTimeOrNvt.vue";
 defineProps<{ interneTaken: Internetaken[] }>();
 </script>

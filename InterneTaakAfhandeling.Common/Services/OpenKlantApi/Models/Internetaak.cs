@@ -5,12 +5,6 @@ using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
-
-
-
-
-
-
  
     public class Internetaak
     {
