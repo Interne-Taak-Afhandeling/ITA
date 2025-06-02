@@ -1,5 +1,6 @@
 ﻿ 
 using System.ComponentModel.DataAnnotations;
+using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 using Microsoft.Extensions.Logging;
@@ -34,7 +35,7 @@ public interface IOpenKlantApiClient
 
 }
 
-public class OpenKlantApiClient(
+public partial class OpenKlantApiClient(
     HttpClient httpClient,
     ILogger<OpenKlantApiClient> logger) : IOpenKlantApiClient
 {
@@ -552,19 +553,6 @@ public class OpenKlantApiClient(
         public string? Next { get; set; }
         public string? Previous { get; set; }
         public List<Klantcontact> Results { get; set; } = [];
-    }
-
-
-    public class ConflictException : Exception
-    {
-        public string? Code { get; set; }
-
-        public ConflictException(string message) : base(message) { }
-
-        public ConflictException(string message, string code) : base(message)
-        {
-            Code = code;
-        }
     }
 
 

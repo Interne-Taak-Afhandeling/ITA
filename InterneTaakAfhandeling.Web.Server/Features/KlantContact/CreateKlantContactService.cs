@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Helpers;
+﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;
@@ -329,10 +330,4 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
         public Betrokkene? Betrokkene { get; set; }
     }
 
-    public class ITAException
-    {
-        public string? Code { get; set; }
-
-        public string? Message { get; set; }
-    }
 }

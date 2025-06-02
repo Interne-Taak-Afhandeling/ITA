@@ -1,5 +1,7 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

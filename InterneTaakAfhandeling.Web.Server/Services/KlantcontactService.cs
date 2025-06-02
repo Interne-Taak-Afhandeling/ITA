@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Middleware;

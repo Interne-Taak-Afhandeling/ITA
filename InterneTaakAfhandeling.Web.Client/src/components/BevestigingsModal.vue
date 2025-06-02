@@ -8,15 +8,13 @@
       </utrecht-paragraph>
 
       <utrecht-button-group>
-        <utrecht-button appearance="primary-action-button" type="submit" :disabled="isProcessing">
-          <span v-if="isProcessing">Bezig...</span>
-          <span v-else>{{ confirmText }}</span>
+        <utrecht-button appearance="primary-action-button" type="submit">
+          <span>{{ confirmText }}</span>
         </utrecht-button>
         <utrecht-button
           appearance="secondary-action-button"
           type="button"
-          @click="handleCancel"
-          :disabled="isProcessing"
+          @click="handleCancel"        
         >
           {{ cancelText }}
         </utrecht-button>
@@ -47,20 +45,16 @@ const emit = defineEmits<{
 }>();
 
 const bevestigingsDialogRef = ref<{ dialogRef?: HTMLDialogElement }>();
-const isProcessing = ref(false);
 
 const show = () => {
   bevestigingsDialogRef.value?.dialogRef?.showModal();
-  isProcessing.value = false;
 };
 
 const close = () => {
   bevestigingsDialogRef.value?.dialogRef?.close();
-  isProcessing.value = false;
 };
 
 const handleConfirm = () => {
-  isProcessing.value = true;
   emit("confirm");
   close();
 };
