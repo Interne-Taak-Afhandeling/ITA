@@ -1,5 +1,5 @@
 <template>
-  <form ref="formRef" @submit.prevent="saveOnly">
+  <form ref="formRef" @submit.prevent="showConfirmation">
     <utrecht-fieldset>
       <utrecht-legend>Resultaat</utrecht-legend>
       <utrecht-form-field type="radio">
@@ -43,16 +43,16 @@
     </utrecht-form-field>
 
     <utrecht-button-group>
-      <utrecht-button
-        type="button"
-        appearance="primary-action-button"
-        :disabled="isLoading"
-        @click="showConfirmation"
-      >
+      <utrecht-button type="submit" appearance="primary-action-button" :disabled="isLoading">
         <span v-if="isLoading">Bezig met opslaan...</span>
         <span v-else>Opslaan & afronden</span>
       </utrecht-button>
-      <utrecht-button type="submit" appearance="secondary-action-button" :disabled="isLoading">
+      <utrecht-button
+        type="button"
+        appearance="secondary-action-button"
+        :disabled="isLoading"
+        @click="saveOnly"
+      >
         <span v-if="isLoading">Bezig met opslaan...</span>
         <span v-else>Alleen opslaan</span>
       </utrecht-button>
@@ -103,16 +103,16 @@ const form = ref({
 });
 
 function showConfirmation() {
+  bevestigingsModalRef.value?.show();
+}
+
+async function saveOnly() {
   //HTML5 form validatie
   if (!formRef.value?.checkValidity()) {
     formRef.value?.reportValidity();
     return;
   }
 
-  bevestigingsModalRef.value?.show();
-}
-
-async function saveOnly() {
   isLoading.value = true;
   try {
     await klantcontactService.createRelatedKlantcontact({
