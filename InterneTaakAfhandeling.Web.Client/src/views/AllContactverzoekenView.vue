@@ -50,11 +50,10 @@
 import { ref, computed, onMounted } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
-
 import { get } from "@/utils/fetchWrapper";
-
 import type { InterneTaakOverviewItem } from "@/components/interneTakenTables/AllInterneTakenTable.vue";
 import AllInterneTakenTable from "@/components/interneTakenTables/AllInterneTakenTable.vue";
+import { useBackNavigation } from "@/composables/useBackNavigation";
 
 interface InterneTakenOverviewResponse {
   count: number;
@@ -62,6 +61,8 @@ interface InterneTakenOverviewResponse {
   previous?: string;
   results: InterneTaakOverviewItem[];
 }
+
+const { setPreviousRoute } = useBackNavigation();
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);
@@ -153,6 +154,7 @@ const getItemRange = () => {
 };
 
 onMounted(() => {
+  setPreviousRoute('alleContactverzoeken');
   fetchInterneTaken();
 });
 </script>

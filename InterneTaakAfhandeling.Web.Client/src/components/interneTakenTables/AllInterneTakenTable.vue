@@ -36,7 +36,12 @@
           {{ taak.behandelaarNaam || "-" }}
         </utrecht-table-cell>
         <utrecht-table-cell>
-          <router-link :to="`/contactverzoek/${taak.nummer}`"> Klik hier </router-link>
+          <router-link 
+            :to="`/contactverzoek/${taak.nummer}`"
+            @click="setPreviousRoute('alleContactverzoeken')"
+          >
+            Klik hier
+          </router-link>
         </utrecht-table-cell>
       </utrecht-table-row>
     </utrecht-table-body>
@@ -44,9 +49,12 @@
 </template>
 
 <script setup lang="ts">
-//import type { Internetaken } from "@/types/internetaken";
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
+import { useBackNavigation } from "@/composables/useBackNavigation";
+
 defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
+
+const { setPreviousRoute } = useBackNavigation();
 
 export interface InterneTaakOverviewItem {
   uuid: string;
