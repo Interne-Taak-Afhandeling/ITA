@@ -17,7 +17,7 @@
       </utrecht-table-row>
 
       <utrecht-table-row v-for="taak in interneTaken" :key="taak.uuid">
-        <utrecht-table-cell class="ita-no-wrap">
+        <utrecht-table-cell>
           <date-time-or-nvt :date="taak.contactDatum || taak.toegewezenOp" />
         </utrecht-table-cell>
         <utrecht-table-cell class="text-truncate" :title="taak.klantNaam || ''">
@@ -71,3 +71,12 @@ export interface InterneTaakOverviewItem {
   heeftBehandelaar: boolean;
 }
 </script>
+
+<style lang="scss" scoped>
+.text-truncate {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>
