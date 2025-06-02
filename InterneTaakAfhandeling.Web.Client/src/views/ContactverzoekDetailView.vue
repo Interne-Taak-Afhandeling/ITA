@@ -40,11 +40,9 @@
     </detail-section>
 
     <detail-section title="Contactmoment bijwerken">
-      <contactmoment-registreren
-        class="same-margin-as-datalist"
-        :taak="taak"
-        @success="fetchInternetaken"
-      />
+      <div class="same-margin-as-datalist">
+        <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
+      </div>
     </detail-section>
 
     <detail-section title="Contactmomenten">
