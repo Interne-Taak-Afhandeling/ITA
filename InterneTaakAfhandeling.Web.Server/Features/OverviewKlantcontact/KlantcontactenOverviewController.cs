@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
 {
-    [Route("api/klantcontacten-overview")]
+    [Route("api/klantcontacten-overview")] 
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
