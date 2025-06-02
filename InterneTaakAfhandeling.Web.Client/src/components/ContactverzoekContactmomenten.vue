@@ -5,7 +5,11 @@
   <utrecht-alert v-else-if="error" appeareance="error" class="margin-top">
     Er ging iets mis. Probeer het later opnieuw.
   </utrecht-alert>
-  <contact-timeline v-else v-bind="timeLineProps" />
+  <contact-timeline v-else v-bind="timeLineProps">
+    <template #date="{ isoDate }">
+      <date-time-or-nvt :date="isoDate" />
+    </template>
+  </contact-timeline>
 </template>
 
 <script setup lang="ts">
@@ -16,6 +20,7 @@ import { ContactTimeline, type ContactTimelineProps } from "./denhaag-contact-ti
 import { useLoader } from "@/composables/use-loader";
 import SimpleSpinner from "./SimpleSpinner.vue";
 import UtrechtAlert from "./UtrechtAlert.vue";
+import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 
 const props = defineProps<{ taak: Internetaken }>();
 const {
