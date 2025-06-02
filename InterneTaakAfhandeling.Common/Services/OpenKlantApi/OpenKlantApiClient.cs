@@ -1,6 +1,9 @@
+using System;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Web;
+using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 using Microsoft.Extensions.Logging;
@@ -24,13 +27,15 @@ public interface IOpenKlantApiClient
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid);
-    Task<Internetaak> UpdateInternetakenAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
-    Task<Internetaak?> GetInternetakenByIdAsync(string uuid);
+    Task<Internetaak> PutInternetaakAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
+    Task<Internetaak> PatchInternetaakAsync(InternetakenPatchRequest internetakenUpdateRequest, string uuid);
+
+    Task<Internetaak?> GetInternetaakByIdAsync(string uuid);
     Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
 
 }
 
-public class OpenKlantApiClient(
+public partial class OpenKlantApiClient(
     HttpClient httpClient,
     ILogger<OpenKlantApiClient> logger) : IOpenKlantApiClient
 {
@@ -161,6 +166,7 @@ public class OpenKlantApiClient(
         return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
     }
 
+
     public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
     {
         try
@@ -237,6 +243,8 @@ public class OpenKlantApiClient(
         var jsonString = await response.Content.ReadAsStringAsync();
         _logger.LogInformation("API Response: {JsonString}", jsonString);
 
+
+       
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
 
         _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
@@ -406,7 +414,7 @@ public class OpenKlantApiClient(
             return [];
         }
     }
-    public async Task<Internetaak?> GetInternetakenByIdAsync(string uuid)
+    public async Task<Internetaak?> GetInternetaakByIdAsync(string uuid)
     {
         var response = await _httpClient.GetAsync($"internetaken/{uuid}");
         response.EnsureSuccessStatusCode();
@@ -453,6 +461,48 @@ public class OpenKlantApiClient(
 
         throw new HttpRequestException($"Failed to fetch internetaken: {response.StatusCode} - {response.ReasonPhrase}");
     }
+
+
+
+
+
+    public async Task<Internetaak> PutInternetaakAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsync($"internetaken/{uuid}", JsonContent.Create(internetakenUpdateRequest));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadFromJsonAsync<Internetaak>();
+
+            return content ?? throw new InvalidOperationException("Failed to update Internetaken. The response content is null.");
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"Failed to update Internetaken: {e}");
+        }
+    }
+
+
+    public async Task<Internetaak> PatchInternetaakAsync(InternetakenPatchRequest request, string uuid)
+    {
+        try
+        {
+            var response = await _httpClient.PatchAsync($"internetaken/{uuid}", JsonContent.Create(request));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadFromJsonAsync<Internetaak>();
+
+            return content ?? throw new InvalidOperationException("Failed to update Internetaken. The response content is null.");
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"Failed to update Internetaken: {e}");
+        }
+    }
+
+
+
 
     private string BuildQueryString(InterneTaakQuery query)
     {
@@ -506,22 +556,4 @@ public class OpenKlantApiClient(
     }
 
 
-    public class ConflictException : Exception
-    {
-        public string? Code { get; set; }
-
-        public ConflictException(string message) : base(message) { }
-
-        public ConflictException(string message, string code) : base(message)
-        {
-            Code = code;
-        }
-    }
-
-    public class ITAException
-    {
-        public string? Code { get; set; }
-
-        public string? Message { get; set; }
-    }
 }

@@ -1,10 +1,13 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
+namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantContact
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -28,20 +31,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
 
         [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost("relatedklantcontact")]
-        public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequest request)
+        [HttpPost()]
+        public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequestModel request)
         {
             try
             {
-
-                if (Guid.TryParse(request.AanleidinggevendKlantcontactUuid, out Guid parsedKlantcontact))
-                {
-                    if (Guid.TryParse(request.PartijUuid, out Guid parsedPartijUuid))
-                    {
-                        _logger.LogInformation($"Creating related klantcontact with aanleidinggevendKlantcontact UUID: {parsedKlantcontact}, partij UUID: {parsedPartijUuid}");
-                    }
-                }                
-
+               
+                _logger.LogInformation("Creating related klantcontact with aanleidinggevendKlantcontact UUID: {aanleidinggevendKlantcontactUuid}", request.AanleidinggevendKlantcontactUuid);
+                 
                 var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                     request.KlantcontactRequest,
                     request.AanleidinggevendKlantcontactUuid,
@@ -54,7 +51,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
             catch (ConflictException ex)
             {
-                _logger.LogWarning(ex, $"Conflict error creating related klantcontact: {ex.Message}");
+                _logger.LogError(ex, "Conflict error creating related klantcontact {aanleidinggevendKlantcontactUuid}", request.AanleidinggevendKlantcontactUuid);
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,
@@ -63,7 +60,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Unexpected error creating related klantcontact: {ex.Message}");
+                
+                _logger.LogError(ex, "Unexpected error creating related klantcontact {aanleidinggevendKlantcontactUuid}", request.AanleidinggevendKlantcontactUuid);
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,
@@ -73,16 +71,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.CreateKlantContact
         }
     }
 
-    public class CreateRelatedKlantcontactRequest
-    {
-        public required KlantcontactRequest KlantcontactRequest { get; set; }
-        public string? AanleidinggevendKlantcontactUuid { get; set; }
-        public string? PartijUuid { get; set; }
-    }
 
-    public class ITAException
-    {
-        public string Message { get; set; } = string.Empty;
-        public string Code { get; set; } = string.Empty;
-    }
+ 
 }

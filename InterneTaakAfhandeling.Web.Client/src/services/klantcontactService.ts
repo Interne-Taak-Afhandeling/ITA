@@ -2,7 +2,8 @@ import type {
   CreateKlantcontactRequest,
   RelatedKlantcontactResult,
   CreateRelatedKlantcontactRequest,
-  Contactmoment
+  Contactmoment,
+  CreateRelatedKlantcontactAndCloseInterneTaakRequest
 } from "@/types/internetaken";
 import { get, post } from "@/utils/fetchWrapper";
 
@@ -13,17 +14,15 @@ interface ContactmomentenResponse {
 
 export const klantcontactService = {
   createRelatedKlantcontact: (
-    klantcontactRequest: CreateKlantcontactRequest,
-    aanleidinggevendKlantcontactUuid?: string,
-    partijUuid?: string
+    request: CreateRelatedKlantcontactRequest
   ): Promise<RelatedKlantcontactResult> => {
-    const request: CreateRelatedKlantcontactRequest = {
-      klantcontactRequest,
-      aanleidinggevendKlantcontactUuid,
-      partijUuid
-    };
+    return post<RelatedKlantcontactResult>("/api/createklantcontact", request);
+  },
 
-    return post<RelatedKlantcontactResult>("/api/createklantcontact/relatedklantcontact", request);
+  createRelatedKlantcontactAndCloseInterneTaak: (
+    request: CreateRelatedKlantcontactAndCloseInterneTaakRequest
+  ): Promise<RelatedKlantcontactResult> => {
+    return post<RelatedKlantcontactResult>("/api/closeinternetaakwithklantcontact", request);
   },
 
   getContactKeten: (

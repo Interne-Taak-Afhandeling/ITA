@@ -14,9 +14,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
         public async Task<Common.Services.OpenKlantApi.Models.Internetaak> ToSelfAsync(string internetakenId, ITAUser user)
         {
             var currentUserActor = await GetActor(user) ?? await CreateEntraActor(user);
-            var internetaken = await _openKlantApiClient.GetInternetakenByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
+            var internetaak = await _openKlantApiClient.GetInternetaakByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
 
-            var actors = await GetAssignedOrganisationalUnitActors(internetaken);
+            var actors = await GetAssignedOrganisationalUnitActors(internetaak);
 
             if (currentUserActor == null)
             {
@@ -27,17 +27,17 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
 
             var internetakenUpdateRequest = new InternetakenUpdateRequest
             {
-                Nummer = internetaken.Nummer,
-                GevraagdeHandeling = internetaken.GevraagdeHandeling,
-                AanleidinggevendKlantcontact = new UuidObject { Uuid = Guid.Parse(internetaken.AanleidinggevendKlantcontact.Uuid) },
+                Nummer = internetaak.Nummer,
+                GevraagdeHandeling = internetaak.GevraagdeHandeling,
+                AanleidinggevendKlantcontact = new UuidObject { Uuid = Guid.Parse(internetaak.AanleidinggevendKlantcontact.Uuid) },
                 ToegewezenAanActoren = actors
                     .Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })
                     .ToList(),
-                Toelichting = internetaken.Toelichting ?? string.Empty,
-                Status = internetaken.Status
+                Toelichting = internetaak.Toelichting ?? string.Empty,
+                Status = internetaak.Status
             };
 
-            return await _openKlantApiClient.UpdateInternetakenAsync(internetakenUpdateRequest, internetaken.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
+            return await _openKlantApiClient.PutInternetaakAsync(internetakenUpdateRequest, internetaak.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
         }
 
         private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Common.Services.OpenKlantApi.Models.Internetaak internetaken)

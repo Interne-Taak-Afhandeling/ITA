@@ -1,5 +1,7 @@
 ﻿ 
-using System.ComponentModel.DataAnnotations; 
+using System.ComponentModel.DataAnnotations;
+using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Web.Server.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -96,15 +98,5 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
         };
     }
 
-    public class ConflictException : Exception
-    {
-        public string? Code { get; set; }
-
-        public ConflictException(string message) : base(message) { }
-
-        public ConflictException(string message, string code) : base(message)
-        {
-            Code = code;
-        }
-    }
+  
 }

@@ -89,7 +89,7 @@ const pascalCase = (s: string | undefined) =>
   !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
 const phoneNumbers = computed(
   () =>
-    contactmoment._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
+    contactmoment._expand?.hadBetrokkenen?.[0]?._expand.digitaleAdressen
       ?.filter(
         ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) =>
           soortDigitaalAdres === "telefoonnummer"
@@ -109,7 +109,7 @@ const phoneNumber2 = computed(() =>
 );
 const email = computed(
   () =>
-    contactmoment._expand?.hadBetrokkenen?.[0]?._expand?.digitaleAdressen
+    contactmoment._expand?.hadBetrokkenen?.[0]?._expand.digitaleAdressen
       ?.filter(
         ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "email"
       )

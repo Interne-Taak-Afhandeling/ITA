@@ -110,7 +110,7 @@ export interface Betrokkene {
   rol?: string;
   organisatienaam?: string;
   initiator: boolean;
-  _expand?: BetrokkeneExpand;
+  _expand: BetrokkeneExpand;
 }
 
 export interface Adres {
@@ -220,6 +220,11 @@ export interface CreateRelatedKlantcontactRequest {
   partijUuid?: string;
 }
 
+export interface CreateRelatedKlantcontactAndCloseInterneTaakRequest
+  extends CreateRelatedKlantcontactRequest {
+  interneTaakId: string;
+}
+
 export interface RelatedKlantcontactResult {
   klantcontact: Klantcontact;
   actorKlantcontact: ActorKlantcontact;
@@ -286,20 +291,14 @@ export type InterneTaakQueryParameters = {
   value?: string;
   AanleidinggevendKlantcontact_Url?: string;
   AanleidinggevendKlantcontact_Uuid?: string;
-
   Actoren_Naam?: string;
   Klantcontact_Nummer?: string;
   Klantcontact_Uuid?: string;
-
   Nummer?: string;
-
   Page?: number;
   PageSize?: number;
-
   Status?: string;
-
   ToegewezenAanActor_Url?: string;
   ToegewezenAanActor_Uuid?: string;
-
   ToegewezenOp?: Date;
 };

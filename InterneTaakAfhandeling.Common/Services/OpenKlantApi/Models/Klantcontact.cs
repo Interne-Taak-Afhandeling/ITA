@@ -63,6 +63,9 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public object? ActorIdentificatie { get; set; }
     }
 
+
+
+
     public class Actoridentificator
     {
         public required string ObjectId { get; set; }
