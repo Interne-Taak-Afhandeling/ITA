@@ -31,7 +31,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
 
         [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost("post")]
+        [HttpPost()]
         public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequestModel request)
         {
             try
