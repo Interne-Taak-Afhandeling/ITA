@@ -2,7 +2,6 @@
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Middleware;
-using Microsoft.Extensions.Logging;
 
 namespace InterneTaakAfhandeling.Web.Server.Services
 {
@@ -38,7 +37,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             {
                 if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
                 {
-                    _logger.LogError(ex, "Fout bij bepalen eerste klantcontact in keten met startpunt {ParsedKlantcontactUuid}", 
+                    _logger.LogError(ex, "Fout bij bepalen eerste klantcontact in keten met startpunt {ParsedKlantcontactUuid}",
                         parsedKlantcontactUuid);
                 }
                 throw new ConflictException(
@@ -49,19 +48,11 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 
         public async Task<List<Klantcontact>> BouwKlantcontactKetenAsync(string startKlantcontactUuid)
         {
-            var aanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(startKlantcontactUuid);
-            if (aanleidinggevendKlantcontact == null)
-            {
-                throw new ConflictException(
+            var aanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(startKlantcontactUuid) ?? throw new ConflictException(
                     $"Klantcontact with UUID {startKlantcontactUuid} not found",
                     "KLANTCONTACT_NOT_FOUND");
-            }
-
             var keten = new List<Klantcontact>();
-            var verwerkte_uuids = new HashSet<string>();
-
-            keten.Add(aanleidinggevendKlantcontact);
-            verwerkte_uuids.Add(aanleidinggevendKlantcontact.Uuid);
+            var verwerkte_uuids = new HashSet<string>() { aanleidinggevendKlantcontact.Uuid };
 
             await VoegKlantcontactenToeAanKeten(aanleidinggevendKlantcontact.Uuid, keten, verwerkte_uuids);
 
