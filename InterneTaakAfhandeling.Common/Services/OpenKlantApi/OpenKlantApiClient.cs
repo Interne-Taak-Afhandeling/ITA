@@ -209,51 +209,6 @@ public class OpenKlantApiClient(
         }
     }
 
-
-
-    public async Task<InternetakenResponse?> GetInternetaakAsync(string path)
-    {
-        try
-        {
-            _logger.LogInformation("Fetching internetaken from OpenKlant API");
-
-            var response = await _httpClient.GetAsync(path);
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
-
-            _logger.LogInformation(
-                "Successfully retrieved {Count} internetaken",
-                content?.Results?.Count ?? 0);
-
-            return content;
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(
-                ex,
-                "HTTP error occurred while fetching internetaken: {Message}",
-                ex.Message);
-            throw;
-        }
-        catch (JsonException ex)
-        {
-            _logger.LogError(
-                ex,
-                "JSON deserialization error occurred while fetching internetaken: {Message}",
-                ex.Message);
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Unexpected error occurred while fetching internetaken: {Message}",
-                ex.Message);
-            throw;
-        }
-    }
-
     public async Task<Actor> GetActorAsync(string uuid)
     {
         _logger.LogInformation("Fetching actor {Uuid}", uuid);
