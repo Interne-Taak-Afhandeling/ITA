@@ -16,7 +16,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
         public  string? GevraagdeHandeling { get; set; }
 
-        public Klantcontact? AanleidinggevendKlantcontact { get; set; }
+        public Klantcontact AanleidinggevendKlantcontact { get; set; }
 
         public Actor? ToegewezenAanActor { get; set; }
 

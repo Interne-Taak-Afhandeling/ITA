@@ -13,10 +13,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
     {
         Task<RelatedKlantcontactResult> CreateRelatedKlantcontactAsync(
             KlantcontactRequest klantcontactRequest,
-            string? previousKlantcontactUuid,
+            Guid previousKlantcontactUuid,
             string userEmail,
             string? userName,
-            string? partijUuid = null);
+            Guid? partijUuid = null);
     }
 
     public class CreateKlantContactService : ICreateKlantContactService
@@ -37,10 +37,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
 
         public async Task<RelatedKlantcontactResult> CreateRelatedKlantcontactAsync(
             KlantcontactRequest klantcontactRequest,
-            string? aanleidinggevendKlantcontactUuid,
+            Guid aanleidinggevendKlantcontactUuid,
             string userEmail,
             string? userName,
-            string? partijUuid = null)
+            Guid? partijUuid = null)
         {
             if (string.IsNullOrEmpty(userEmail))
             {
@@ -50,112 +50,69 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
             }
 
             var laatsteKlantcontactUuid = string.Empty;
-            if (!string.IsNullOrEmpty(aanleidinggevendKlantcontactUuid))
-            {
-                try
-                {
-                    //because there is no proper way to sort klantcontacten by date (date is optional),
-                    //we don't add all new klantcontacten that take place during the handling of an internetaak to the original klantcontact
-                    //instead, we add each klantcontact to the previous klantcontact. this creates a chain of klantcontacten
-                    //here we have to find the last one in the change and we will link the new klantcontact that we are creating here to that one 
-                    laatsteKlantcontactUuid = await GetLaatsteKlantcontactUuidAsync(aanleidinggevendKlantcontactUuid);
 
-                    if (!string.IsNullOrEmpty(laatsteKlantcontactUuid) && laatsteKlantcontactUuid != aanleidinggevendKlantcontactUuid)
-                    {
-                        if (Guid.TryParse(laatsteKlantcontactUuid, out Guid parsedLaatsteKlantcontactUuid))
-                        {
-                            if (Guid.TryParse(aanleidinggevendKlantcontactUuid, out Guid parsedAanleidinggevendKlantcontactUuid))
-                            {
-                                _logger.LogInformation("Linking new klantcontact to: {ParsedLaatsteKlantcontactUuid} in a chain starting with klantcontact: {ParsedAanleidinggevendKlantcontactUuid}",
-                                    parsedLaatsteKlantcontactUuid, parsedAanleidinggevendKlantcontactUuid);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (Guid.TryParse(aanleidinggevendKlantcontactUuid, out Guid parsedAanleidinggevendKlantcontactUuid))
-                    {
-                        _logger.LogWarning(ex, "Could not determine latest contact in chain. Using original: {ParsedAanleidinggevendKlantcontactUuid}",
-                            parsedAanleidinggevendKlantcontactUuid);
-                    }
-                }
+            try
+            {
+                //because there is no proper way to sort klantcontacten by date (date is optional),
+                //we don't add all new klantcontacten that take place during the handling of an internetaak to the original newKlantcontact
+                //instead, we add each newKlantcontact to the previous newKlantcontact. this creates a chain of klantcontacten
+                //here we have to find the last one in the change and we will link the new newKlantcontact that we are creating here to that one 
+                laatsteKlantcontactUuid = await GetLaatsteKlantcontactUuidAsync(aanleidinggevendKlantcontactUuid);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not determine latest contact in chain. Using original: {aanleidinggevendKlantcontactUuid}", aanleidinggevendKlantcontactUuid);
             }
 
+
             var actor = await GetOrCreateActorAsync(userEmail, userName);
-            var klantcontact = await _openKlantApiClient.CreateKlantcontactAsync(klantcontactRequest);
+            var newKlantcontact = await _openKlantApiClient.CreateKlantcontactAsync(klantcontactRequest);
             var actorKlantcontactRequest = new ActorKlantcontactRequest
             {
                 Actor = new ActorReference { Uuid = actor.Uuid },
-                Klantcontact = new KlantcontactReference { Uuid = klantcontact.Uuid }
+                Klantcontact = new KlantcontactReference { Uuid = newKlantcontact.Uuid }
             };
             var actorKlantcontact = await _openKlantApiClient.CreateActorKlantcontactAsync(actorKlantcontactRequest);
             var result = new RelatedKlantcontactResult
             {
-                Klantcontact = klantcontact,
+                Klantcontact = newKlantcontact,
                 ActorKlantcontact = actorKlantcontact
             };
 
-            if (!string.IsNullOrEmpty(laatsteKlantcontactUuid))
-            {
-                var onderwerpobject = await CreateOnderwerpobjectKlantcontactAsync(
-                    klantcontact.Uuid,
-                    laatsteKlantcontactUuid);
+            var onderwerpobject = await CreateOnderwerpobjectKlantcontactAsync(
+                newKlantcontact.Uuid,
+                laatsteKlantcontactUuid ?? aanleidinggevendKlantcontactUuid.ToString());
 
-                result.Onderwerpobject = onderwerpobject;
+            result.Onderwerpobject = onderwerpobject;
+
+            var partijForBetrokkeneId = partijUuid.HasValue ? partijUuid.ToString() : null;
+            if (!string.IsNullOrWhiteSpace(partijForBetrokkeneId))
+            {
+                var betrokkene = await CreateBetrokkeneAsync(newKlantcontact.Uuid, partijForBetrokkeneId);
+                result.Betrokkene = betrokkene;
             }
 
-            await CreateBetrokkeneRelationshipAsync(result, klantcontact.Uuid, partijUuid);
 
             return result;
         }
 
-        private async Task<string> GetLaatsteKlantcontactUuidAsync(string klantcontactUuid)
+        private async Task<string> GetLaatsteKlantcontactUuidAsync(Guid klantcontactUuid)
         {
             try
             {
-                var ketenVolgorde = await _klantcontactService.BouwKlantcontactKetenAsync(klantcontactUuid);
+                var ketenVolgorde = await _klantcontactService.BouwKlantcontactKetenAsync(klantcontactUuid.ToString());
                 ketenVolgorde.Reverse(); // Nieuwste bovenaan
 
-                return ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid;
+                return ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid.ToString();
             }
             catch (Exception ex)
             {
-                if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
-                {
-                    _logger.LogWarning(ex, "Could not determine latest klantcontact in chain, using original {ParsedKlantcontactUuid}",
-                        parsedKlantcontactUuid);
-                }
+                _logger.LogWarning(ex, "Could not determine latest klantcontact in chain, using original {klantcontactUuid}", klantcontactUuid);
 
-                return klantcontactUuid;
+                return klantcontactUuid.ToString();
             }
         }
 
-        private async Task CreateBetrokkeneRelationshipAsync(
-            RelatedKlantcontactResult result,
-            string klantcontactUuid,
-            string? providedPartijUuid)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(providedPartijUuid))
-                {
-                    if (Guid.TryParse(providedPartijUuid, out Guid parsedprovidedPartijUuid))
-                    {
-                        _logger.LogInformation("Creating betrokkene using provided partijUuid: {ParsedProvidedPartijUuid}",
-                            parsedprovidedPartijUuid);
-                    }
-
-                    var betrokkene = await CreateBetrokkeneAsync(klantcontactUuid, providedPartijUuid);
-                    result.Betrokkene = betrokkene;
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Could not create betrokkene for klantcontact {KlantcontactUuid}", klantcontactUuid);
-            }
-        }
 
         private async Task<Actor> GetOrCreateActorAsync(string email, string? naam = null)
         {
@@ -275,24 +232,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
 
             try
             {
-                var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontactUuid);
-                var safePartijUuid = SecureLogging.SanitizeUuid(partijUuid);
-                _logger.LogInformation("Creating betrokkene for klantcontact {SafeKlantcontactUuid} and partij {SafePartijUuid}",
-                    safeKlantcontactUuid, safePartijUuid);
+                _logger.LogInformation("Creating betrokkene for klantcontact {klantcontactUuid} and partij {partijUuid}",
+                    klantcontactUuid, partijUuid);
 
                 var betrokkene = await _openKlantApiClient.CreateBetrokkeneAsync(betrokkeneRequest);
 
-                var safeBetrokkeneUuid = SecureLogging.SanitizeUuid(betrokkene.Uuid);
-                _logger.LogInformation("Successfully created betrokkene {SafeBetrokkeneUuid}", safeBetrokkeneUuid);
+                _logger.LogInformation("Successfully created betrokkene {SafeBetrokkeneUuid}", betrokkene.Uuid);
 
                 return betrokkene;
             }
             catch (Exception ex)
             {
-                var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontactUuid);
-                var safePartijUuid = SecureLogging.SanitizeUuid(partijUuid);
-                _logger.LogError(ex, "Error creating betrokkene for klantcontact {SafeKlantcontactUuid} and partij {SafePartijUuid}",
-                    safeKlantcontactUuid, safePartijUuid);
+                _logger.LogError(ex, "Error creating betrokkene for klantcontact {klantcontactUuid} and partij {partijUuid}",
+                    klantcontactUuid, partijUuid);
 
                 throw new ConflictException(
                     $"Error creating betrokkene: {ex.Message}",

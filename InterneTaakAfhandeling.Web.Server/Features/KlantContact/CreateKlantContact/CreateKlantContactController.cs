@@ -36,8 +36,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
         {
             try
             {
-                var sanatizedAanleidinggevendKlantcontactUuid = Common.Helpers.SecureLogging.SanitizeUuid(request.AanleidinggevendKlantcontactUuid);
-                _logger.LogInformation("Creating related klantcontact with aanleidinggevendKlantcontact UUID: {sanatizedAanleidinggevendKlantcontactUuid}", sanatizedAanleidinggevendKlantcontactUuid);
+               
+                _logger.LogInformation("Creating related klantcontact with aanleidinggevendKlantcontact UUID: {aanleidinggevendKlantcontactUuid}", request.AanleidinggevendKlantcontactUuid);
                  
                 var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                     request.KlantcontactRequest,
@@ -51,8 +51,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
             }
             catch (ConflictException ex)
             {
-                var sanatizedAanleidinggevendKlantcontactUuid = Common.Helpers.SecureLogging.SanitizeUuid(request.AanleidinggevendKlantcontactUuid);
-                _logger.LogError(ex, "Conflict error creating related klantcontact {sanatizedAanleidinggevendKlantcontactUuid}", sanatizedAanleidinggevendKlantcontactUuid);
+                _logger.LogError(ex, "Conflict error creating related klantcontact {aanleidinggevendKlantcontactUuid}", request.AanleidinggevendKlantcontactUuid);
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,
@@ -61,8 +60,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
             }
             catch (Exception ex)
             {
-                var sanatizedAanleidinggevendKlantcontactUuid = Common.Helpers.SecureLogging.SanitizeUuid(request.AanleidinggevendKlantcontactUuid);
-                _logger.LogError(ex, "Unexpected error creating related klantcontact {sanatizedAanleidinggevendKlantcontactUuid}", sanatizedAanleidinggevendKlantcontactUuid);
+                
+                _logger.LogError(ex, "Unexpected error creating related klantcontact {aanleidinggevendKlantcontactUuid}", request.AanleidinggevendKlantcontactUuid);
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,

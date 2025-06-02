@@ -32,15 +32,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
         {
             try
             {
-                var sanatizedAanleidinggevendKlantcontactUuid = Common.Helpers.SecureLogging.SanitizeUuid(request.AanleidinggevendKlantcontactUuid);
-                _logger.LogInformation("Closing Interne taak and creating related klantcontact with aanleidinggevendKlantcontact UUID: {sanatizedAanleidinggevendKlantcontactUuid}", sanatizedAanleidinggevendKlantcontactUuid);
-
-
+                _logger.LogInformation("Closing Interne taak and creating related klantcontact with aanleidinggevendKlantcontact UUID: {AanleidinggevendKlantcontactUuid}", request.AanleidinggevendKlantcontactUuid);
 
                 //check if the internetaak that will be closed and the klantcontact to which the new klantcontact will be related belong to eachother
-                var interneTaak = await openKlantApiClient.GetInternetaakByIdAsync(request.InterneTaakId);
+                var interneTaak = await openKlantApiClient.GetInternetaakByIdAsync(request.InterneTaakId.ToString());
 
-                if(interneTaak?.Uuid != request.InterneTaakId)
+                if(interneTaak?.Uuid != request.InterneTaakId.ToString())
                 {
                     return BadRequest(new ProblemDetails
                     {
@@ -66,14 +63,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
                     Status = "verwerkt",
                 };
 
-                await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId);
+                await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }
             catch (ConflictException ex)
             {
-                var sanatizedInterneTaakId = Common.Helpers.SecureLogging.SanitizeUuid(request.InterneTaakId);
-                _logger.LogError(ex, "Conflict error creating related klantcontact and closing internetaak {sanatizedInterneTaakId},  {ex.Message}", sanatizedInterneTaakId, ex.Message);
+                _logger.LogError(ex, "Conflict error creating related klantcontact and closing internetaak {interneTaakId}, {ex.Message}", request.InterneTaakId, ex.Message);
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,
@@ -82,8 +78,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
             }
             catch (Exception ex)
             {
-                var sanatizedInterneTaakId = Common.Helpers.SecureLogging.SanitizeUuid(request.InterneTaakId);
-                _logger.LogError(ex, "Unexpected error creating related klantcontactand and closing internetaak {sanatizedInterneTaakId},: {ex.Message}", sanatizedInterneTaakId, ex.Message);
+                _logger.LogError(ex, "Unexpected error creating related klantcontactand and closing internetaak {interneTaakId}, {ex.Message}", request.InterneTaakId, ex.Message);
                 return StatusCode(409, new ITAException
                 {
                     Message = ex.Message,

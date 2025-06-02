@@ -5,7 +5,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
     public class CreateRelatedKlantcontactRequestModel
     {
         public required KlantcontactRequest KlantcontactRequest { get; set; }
-        public string? AanleidinggevendKlantcontactUuid { get; set; }
-        public string? PartijUuid { get; set; }
+        public Guid AanleidinggevendKlantcontactUuid { get; set; }
+        public Guid? PartijUuid { get; set; }
     }
 }
