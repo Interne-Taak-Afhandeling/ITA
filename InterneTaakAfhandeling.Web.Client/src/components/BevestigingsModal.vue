@@ -11,11 +11,7 @@
         <utrecht-button appearance="primary-action-button" type="submit">
           <span>{{ confirmText }}</span>
         </utrecht-button>
-        <utrecht-button
-          appearance="secondary-action-button"
-          type="button"
-          @click="handleCancel"        
-        >
+        <utrecht-button appearance="secondary-action-button" type="button" @click="handleCancel">
           {{ cancelText }}
         </utrecht-button>
       </utrecht-button-group>
