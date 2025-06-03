@@ -39,7 +39,6 @@ import UtrechtPagination from "@/components/UtrechtPagination.vue";
 import { get } from "@/utils/fetchWrapper";
 import type { InterneTaakOverviewItem } from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
 import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
-import { useBackNavigation } from "@/composables/use-back-navigation";
 import { usePagination } from "@/composables/use-pagination";
 
 interface InterneTakenOverviewResponse {
@@ -48,8 +47,6 @@ interface InterneTakenOverviewResponse {
   previous?: string;
   results: InterneTaakOverviewItem[];
 }
-
-const { setPreviousRoute } = useBackNavigation();
 
 const fetchInterneTaken = async (
   page: number,
@@ -83,7 +80,6 @@ const {
 });
 
 onMounted(() => {
-  setPreviousRoute("alleContactverzoeken");
   fetchData();
 });
 </script>

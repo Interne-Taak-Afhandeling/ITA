@@ -1,7 +1,7 @@
 <template>
   <div class="ita-cv-detail-header">
     <div>
-      <back-button />
+      <back-link class="back-link" />
     </div>
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
@@ -56,7 +56,7 @@
 <script lang="ts" setup>
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
-import BackButton from "@/components/BackButton.vue";
+import BackLink from "@/components/BackLink.vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";

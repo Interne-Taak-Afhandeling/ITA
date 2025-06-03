@@ -1,46 +1,32 @@
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed, watch } from "vue";
+import { useRouter, type RouteLocationNormalizedGeneric } from "vue-router";
 
-const previousRoute = ref<string | null>(null);
+const previousRoute = ref<RouteLocationNormalizedGeneric>();
+
+const DASHBOARD_ROUTE = {
+  text: "Terug naar Dashboard",
+  route: { name: "dashboard" }
+};
+
+export function setupPreviousRoute() {
+  const { currentRoute } = useRouter();
+  watch(currentRoute, (_, old) => {
+    previousRoute.value = old;
+  });
+}
 
 export function useBackNavigation() {
-  const router = useRouter();
-
-  const setPreviousRoute = (routeName: string) => {
-    previousRoute.value = routeName;
-  };
-
   const backButtonInfo = computed(() => {
-    switch (previousRoute.value) {
-      case "dashboard":
-        return {
-          text: "Terug naar Dashboard",
-          route: { name: "dashboard" }
-        };
-      case "alleContactverzoeken":
-        return {
-          text: "Terug naar Contactverzoeken",
-          route: { name: "alleContactverzoeken" }
-        };
-      default:
-        return {
-          text: "Terug",
-          route: { name: "dashboard" }
-        };
-    }
+    if (!previousRoute.value) return DASHBOARD_ROUTE;
+    return {
+      route: previousRoute.value,
+      text: previousRoute.value.meta.title
+        ? `Terug naar ${previousRoute.value.meta.title}`
+        : "Terug"
+    };
   });
 
-  const goBack = () => {
-    if (backButtonInfo.value.route) {
-      router.push(backButtonInfo.value.route);
-    } else {
-      router.push({ name: "dashboard" });
-    }
-  };
-
   return {
-    setPreviousRoute,
-    backButtonInfo,
-    goBack
+    backButtonInfo
   };
 }
