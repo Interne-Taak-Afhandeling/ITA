@@ -26,11 +26,13 @@
 import { onMounted } from "vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
-import MyInterneTakenTable from "@/components/interneTakenTables/MyInterneTakenTable.vue";
+import MyInterneTakenTable from "@/components/interne-taken-tables/MyInterneTakenTable.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 
 const userStore = useUserStore();
 const { assignedInternetaken, isLoading } = storeToRefs(userStore);
 
-onMounted(async () => userStore.fetchAssignedInternetaken());
+onMounted(async () => {
+  await userStore.fetchAssignedInternetaken();
+});
 </script>

@@ -24,11 +24,9 @@
             .find(Boolean)
         }}</utrecht-table-cell>
         <utrecht-table-cell>{{ taak.aanleidinggevendKlantcontact?.onderwerp }}</utrecht-table-cell>
-        <utrecht-table-cell
-          ><router-link :to="`/contactverzoek/${taak?.nummer}`"
-            >Klik hier</router-link
-          ></utrecht-table-cell
-        >
+        <utrecht-table-cell>
+          <router-link :to="`/contactverzoek/${taak?.nummer}`">Klik hier</router-link>
+        </utrecht-table-cell>
       </utrecht-table-row>
     </utrecht-table-body>
   </utrecht-table>

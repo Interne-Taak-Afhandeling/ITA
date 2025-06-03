@@ -1,5 +1,8 @@
 <template>
   <utrecht-table aria-labelledby="h2-alle-contactverzoeken">
+    <utrecht-table-caption v-if="$slots.caption">
+      <slot name="caption"></slot>
+    </utrecht-table-caption>
     <utrecht-table-header>
       <utrecht-table-row>
         <utrecht-table-header-cell scope="col">Datum</utrecht-table-header-cell>
@@ -36,7 +39,7 @@
           {{ taak.behandelaarNaam || "-" }}
         </utrecht-table-cell>
         <utrecht-table-cell>
-          <router-link :to="`/contactverzoek/${taak.nummer}`"> Klik hier </router-link>
+          <router-link :to="`/contactverzoek/${taak.nummer}`">Klik hier</router-link>
         </utrecht-table-cell>
       </utrecht-table-row>
     </utrecht-table-body>
@@ -44,7 +47,6 @@
 </template>
 
 <script setup lang="ts">
-//import type { Internetaken } from "@/types/internetaken";
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
 defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
 
@@ -63,3 +65,12 @@ export interface InterneTaakOverviewItem {
   heeftBehandelaar: boolean;
 }
 </script>
+
+<style lang="scss" scoped>
+.text-truncate {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

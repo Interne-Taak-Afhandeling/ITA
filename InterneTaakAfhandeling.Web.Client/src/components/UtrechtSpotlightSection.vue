@@ -13,7 +13,3 @@ const appeareanceClass = computed(
   () => props.appeareance && `utrecht-spotlight-section--${props.appeareance}`
 );
 </script>
-
-<style lang="scss" scoped>
-@import "@utrecht/spotlight-section-css/src/index.scss";
-</style>
