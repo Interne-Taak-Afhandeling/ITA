@@ -49,6 +49,7 @@
 <script setup lang="ts">
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
 defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
+
 export interface InterneTaakOverviewItem {
   uuid: string;
   nummer: string;
