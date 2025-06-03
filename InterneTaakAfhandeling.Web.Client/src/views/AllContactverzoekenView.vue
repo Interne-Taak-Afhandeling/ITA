@@ -12,7 +12,7 @@
   <section v-else>
     <all-interne-taken-table :interneTaken="results">
       <template #caption v-if="itemRange">
-        {{ itemRange.start }}-{{ itemRange.end }} van {{ totalCount }} contactverzoeken
+        {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} contactverzoeken
       </template>
     </all-interne-taken-table>
 
