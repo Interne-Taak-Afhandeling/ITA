@@ -1,6 +1,6 @@
 import { ref, computed } from "vue";
 
-export interface PaginationResponse<T = any> {
+export interface PaginationResponse<T = unknown> {
   count: number;
   next?: string;
   previous?: string;
@@ -13,7 +13,7 @@ export interface PaginationOptions {
   maxVisiblePages?: number;
 }
 
-export function usePagination<T = any>(
+export function usePagination<T = unknown>(
   fetchFunction: (page: number, pageSize: number) => Promise<PaginationResponse<T>>,
   options: PaginationOptions = {}
 ) {
