@@ -17,7 +17,7 @@
   column-gap: var(--ita-dashboard-tables-column-gap);
 
   section {
-    min-inline-size: 40rem;
+    flex: 1;
   }
 }
 </style>
