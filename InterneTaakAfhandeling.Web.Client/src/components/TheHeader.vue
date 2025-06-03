@@ -1,6 +1,6 @@
 <template>
   <utrecht-page-header v-if="isAuthenticated">
-    <div class="utrecht-page">
+    <div class="container-like-utrecht-page header-wrapper">
       <utrecht-skip-link href="#main">Naar inhoud</utrecht-skip-link>
 
       <utrecht-skip-link href="#menu">Naar menu</utrecht-skip-link>
@@ -42,7 +42,18 @@ const svg = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-.utrecht-page {
+.container-like-utrecht-page {
+  margin-inline-end: auto;
+  margin-inline-start: auto;
+  max-inline-size: calc(
+    var(--utrecht-page-max-inline-size) - var(--utrecht-page-margin-inline-start, 0px) - var(
+        --utrecht-page-margin-inline-end,
+        0px
+      )
+  );
+}
+
+.header-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
