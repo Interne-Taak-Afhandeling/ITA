@@ -1,15 +1,15 @@
 <template>
   <nav class="utrecht-pagination" v-if="totalPages > 1">
     <span class="utrecht-pagination__before">
-      <button
+      <a
         v-if="hasPreviousPage"
-        @click="goToPreviousPage"
-        :disabled="isLoading"
+        @click.prevent="goToPreviousPage"
+        href="#previous"
         class="utrecht-pagination__relative-link utrecht-pagination__relative-link--prev"
         aria-label="Ga naar vorige pagina"
       >
         Vorige
-      </button>
+      </a>
       <span
         v-else
         class="utrecht-pagination__relative-link utrecht-pagination__relative-link--prev utrecht-pagination__relative-link--disabled"
@@ -20,11 +20,11 @@
     </span>
 
     <span role="group" class="utrecht-pagination__pages" aria-label="Paginanummers">
-      <button
+      <a
         v-for="pageNum in visiblePages"
         :key="pageNum"
-        @click="goToPage(pageNum)"
-        :disabled="isLoading"
+        @click.prevent="goToPage(pageNum)"
+        :href="`#page-${pageNum}`"
         :class="[
           'utrecht-pagination__page-link',
           pageNum === currentPage && 'utrecht-pagination__page-link--current'
@@ -33,19 +33,19 @@
         :aria-label="`Ga naar pagina ${pageNum}`"
       >
         {{ pageNum }}
-      </button>
+      </a>
     </span>
 
     <span class="utrecht-pagination__after">
-      <button
+      <a
         v-if="hasNextPage"
-        @click="goToNextPage"
-        :disabled="isLoading"
+        @click.prevent="goToNextPage"
+        href="#next"
         class="utrecht-pagination__relative-link utrecht-pagination__relative-link--next"
         aria-label="Ga naar volgende pagina"
       >
         Volgende
-      </button>
+      </a>
       <span
         v-else
         class="utrecht-pagination__relative-link utrecht-pagination__relative-link--next utrecht-pagination__relative-link--disabled"
