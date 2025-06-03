@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
 
 export interface PaginationResponse<T = any> {
   count: number;
@@ -17,11 +17,7 @@ export function usePagination<T = any>(
   fetchFunction: (page: number, pageSize: number) => Promise<PaginationResponse<T>>,
   options: PaginationOptions = {}
 ) {
-  const {
-    initialPage = 1,
-    initialPageSize = 20,
-    maxVisiblePages = 5
-  } = options;
+  const { initialPage = 1, initialPageSize = 20, maxVisiblePages = 5 } = options;
 
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -33,7 +29,7 @@ export function usePagination<T = any>(
   const hasPreviousPage = ref(false);
 
   const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value));
-  
+
   const visiblePages = computed(() => {
     const total = totalPages.value;
     const current = currentPage.value;
@@ -64,16 +60,16 @@ export function usePagination<T = any>(
     return pages;
   });
 
-  const getItemRange = computed(() => {
-    if (totalCount.value === 0) return '';
+  const itemRange = computed(() => {
+    if (totalCount.value === 0) return undefined;
     const start = (currentPage.value - 1) * pageSize.value + 1;
     const end = Math.min(currentPage.value * pageSize.value, totalCount.value);
-    return `${start}-${end}`;
+    return { start, end };
   });
 
   const fetchData = async (page: number = currentPage.value) => {
     if (isLoading.value) return;
-    
+
     isLoading.value = true;
     error.value = null;
 
@@ -86,23 +82,19 @@ export function usePagination<T = any>(
       hasNextPage.value = !!response.next;
       hasPreviousPage.value = !!response.previous;
     } catch (err: unknown) {
-      const message = err instanceof Error 
-        ? err.message 
-        : "Er is een fout opgetreden bij het ophalen van gegevens";
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Er is een fout opgetreden bij het ophalen van gegevens";
       error.value = message;
-      console.error('Pagination fetch error:', err);
+      console.error("Pagination fetch error:", err);
     } finally {
       isLoading.value = false;
     }
   };
 
   const goToPage = (page: number) => {
-    if (
-      page !== currentPage.value && 
-      !isLoading.value && 
-      page >= 1 && 
-      page <= totalPages.value
-    ) {
+    if (page !== currentPage.value && !isLoading.value && page >= 1 && page <= totalPages.value) {
       fetchData(page);
     }
   };
@@ -144,12 +136,12 @@ export function usePagination<T = any>(
     pageSize,
     hasNextPage,
     hasPreviousPage,
-    
+
     // Computed
     totalPages,
     visiblePages,
-    getItemRange,
-    
+    itemRange,
+
     // Methods
     fetchData,
     goToPage,

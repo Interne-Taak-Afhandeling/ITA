@@ -26,16 +26,16 @@
 import { onMounted } from "vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
-import MyInterneTakenTable from "@/components/interneTakenTables/MyInterneTakenTable.vue";
+import MyInterneTakenTable from "@/components/interne-taken-tables/MyInterneTakenTable.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
-import { useBackNavigation } from "@/composables/useBackNavigation";
+import { useBackNavigation } from "@/composables/use-back-navigation";
 
 const userStore = useUserStore();
 const { assignedInternetaken, isLoading } = storeToRefs(userStore);
 const { setPreviousRoute } = useBackNavigation();
 
 onMounted(async () => {
-  setPreviousRoute('dashboard');
+  setPreviousRoute("dashboard");
   await userStore.fetchAssignedInternetaken();
 });
 </script>

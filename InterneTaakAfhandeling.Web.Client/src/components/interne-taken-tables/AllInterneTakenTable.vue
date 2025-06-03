@@ -1,5 +1,8 @@
 <template>
   <utrecht-table aria-labelledby="h2-alle-contactverzoeken">
+    <utrecht-table-caption v-if="$slots.caption">
+      <slot name="caption"></slot>
+    </utrecht-table-caption>
     <utrecht-table-header>
       <utrecht-table-row>
         <utrecht-table-header-cell scope="col">Datum</utrecht-table-header-cell>
@@ -36,7 +39,7 @@
           {{ taak.behandelaarNaam || "-" }}
         </utrecht-table-cell>
         <utrecht-table-cell>
-          <router-link 
+          <router-link
             :to="`/contactverzoek/${taak.nummer}`"
             @click="setPreviousRoute('alleContactverzoeken')"
           >
@@ -50,7 +53,7 @@
 
 <script setup lang="ts">
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
-import { useBackNavigation } from "@/composables/useBackNavigation";
+import { useBackNavigation } from "@/composables/use-back-navigation";
 
 defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
 

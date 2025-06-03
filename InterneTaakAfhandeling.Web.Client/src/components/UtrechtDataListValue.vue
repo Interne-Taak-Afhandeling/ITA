@@ -20,5 +20,3 @@ const { value = "" } = defineProps<{
 }>();
 const empty = computed(() => value === "" || value === undefined);
 </script>
-
-<style src="@utrecht/data-list-css/dist/index.css"></style>

@@ -5,9 +5,9 @@
 </template>
 
 <script setup lang="ts">
-import { useBackNavigation } from '@/composables/useBackNavigation'
+import { useBackNavigation } from "@/composables/use-back-navigation";
 
-const { backButtonInfo } = useBackNavigation()
+const { backButtonInfo } = useBackNavigation();
 </script>
 
 <style scoped>
