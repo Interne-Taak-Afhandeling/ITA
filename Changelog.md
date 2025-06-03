@@ -12,6 +12,7 @@
 - Connect the contact request to a related 'zaak' #55
 - Overview of the ContactMoments following from the ContactRequest #110
 - Overview of contact requests all municipality #111
+- Close a contact request #15
 
 ### Warnings and deployment notes
 
