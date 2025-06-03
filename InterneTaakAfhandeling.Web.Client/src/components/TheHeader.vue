@@ -15,22 +15,53 @@
           <img :src="resources.logoUrl" alt="Logo gemeente" crossorigin="anonymous" />
         </figure>
       </router-link>
-      <utrecht-nav-bar />
-      <user-info />
+      <nav class="utrecht-nav-bar" aria-label="Hoofdmenu">
+        <div class="utrecht-nav-bar__content">
+          <ul role="list" class="utrecht-nav-list" id="menu">
+            <li class="utrecht-nav-list__item">
+              <router-link
+                :to="{ name: 'dashboard' }"
+                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+                >Dashboard</router-link
+              >
+            </li>
+
+            <li class="utrecht-nav-list__item">
+              <router-link
+                :to="{ name: 'alleContactverzoeken' }"
+                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+                >Alle contactverzoeken</router-link
+              >
+            </li>
+            <li
+              class="user-name utrecht-nav-list__item utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+            >
+              {{ user?.name }}
+            </li>
+            <li class="utrecht-nav-list__item">
+              <a
+                href="/api/logoff"
+                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+              >
+                Uitloggen
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
     </div>
   </utrecht-page-header>
 </template>
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import UtrechtNavBar from "./UtrechtNavBar.vue";
 import { injectResources } from "@/resources";
-import UserInfo from "./UserInfo.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const resources = injectResources();
 const authStore = useAuthStore();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+const user = computed(() => authStore.user);
 
 const svg = computed(() => {
   if (!resources?.logoUrl?.endsWith(".svg")) return;
@@ -55,6 +86,7 @@ const svg = computed(() => {
 
 .header-wrapper {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   position: relative;
@@ -63,5 +95,9 @@ const svg = computed(() => {
 
 .utrecht-page-header :deep(.utrecht-link) {
   color: currentColor !important;
+}
+
+:has(+ .user-name) {
+  flex: 1;
 }
 </style>
