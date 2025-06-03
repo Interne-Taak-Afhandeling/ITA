@@ -20,7 +20,7 @@
       </utrecht-table-row>
 
       <utrecht-table-row v-for="taak in interneTaken" :key="taak.uuid">
-        <utrecht-table-cell>
+        <utrecht-table-cell class="ita-no-wrap">
           <date-time-or-nvt :date="taak.contactDatum || taak.toegewezenOp" />
         </utrecht-table-cell>
         <utrecht-table-cell class="text-truncate" :title="taak.klantNaam || ''">
