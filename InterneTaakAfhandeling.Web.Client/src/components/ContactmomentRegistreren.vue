@@ -35,11 +35,7 @@
       <utrecht-form-label for="informatie-burger"
         >Informatie voor burger / bedrijf</utrecht-form-label
       >
-      <utrecht-textarea
-        :required="form.resultaat === RESULTS.contactGelukt"
-        id="informatie-burger"
-        v-model="form.informatieBurger"
-      />
+      <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
     </utrecht-form-field>
 
     <utrecht-button-group>
