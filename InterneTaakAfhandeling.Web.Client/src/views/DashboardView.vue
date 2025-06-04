@@ -5,7 +5,9 @@
     <section>
       <utrecht-heading :level="2" id="h2-a">Aan mij toegewezen contacten</utrecht-heading>
       <simple-spinner v-if="isLoading" />
-      <my-interne-taken-table v-else :interne-taken="assignedInternetaken" aria-labelledby="h2-a" />
+      <scroll-container v-else>
+        <my-interne-taken-table :interne-taken="assignedInternetaken" aria-labelledby="h2-a" />
+      </scroll-container>
     </section>
   </div>
 </template>
@@ -16,8 +18,9 @@
   flex-wrap: wrap;
   column-gap: var(--ita-dashboard-tables-column-gap);
 
-  section {
+  > * {
     flex: 1;
+    inline-size: 100%;
   }
 }
 </style>
@@ -28,6 +31,7 @@ import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
 import MyInterneTakenTable from "@/components/interne-taken-tables/MyInterneTakenTable.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import ScrollContainer from "@/components/ScrollContainer.vue";
 
 const userStore = useUserStore();
 const { assignedInternetaken, isLoading } = storeToRefs(userStore);

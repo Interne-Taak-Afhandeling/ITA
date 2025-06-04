@@ -10,11 +10,13 @@
   </utrecht-alert>
 
   <section v-else>
-    <all-interne-taken-table :interneTaken="results">
-      <template #caption v-if="itemRange">
-        {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} contactverzoeken
-      </template>
-    </all-interne-taken-table>
+    <scroll-container>
+      <all-interne-taken-table :interneTaken="results">
+        <template #caption v-if="itemRange">
+          {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} contactverzoeken
+        </template>
+      </all-interne-taken-table>
+    </scroll-container>
 
     <utrecht-pagination
       v-if="totalPages > 1"
@@ -40,6 +42,7 @@ import { get } from "@/utils/fetchWrapper";
 import type { InterneTaakOverviewItem } from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
 import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
 import { usePagination } from "@/composables/use-pagination";
+import ScrollContainer from "@/components/ScrollContainer.vue";
 
 interface InterneTakenOverviewResponse {
   count: number;
