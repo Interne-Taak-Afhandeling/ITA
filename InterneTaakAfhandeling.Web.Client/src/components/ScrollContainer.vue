@@ -4,7 +4,7 @@
 
 <style lang="scss" scoped>
 div {
-  max-inline-size: 100%;
+  inline-size: 100%;
   overflow-x: auto;
 
   // indicate that the container can be scrolled.
