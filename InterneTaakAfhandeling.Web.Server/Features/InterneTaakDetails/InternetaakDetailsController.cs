@@ -8,7 +8,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
     [Route("api/internetaken")]
     [ApiController]
     [Authorize]
-    public class InternetaakController(IInternetaakService internetakenService) : Controller
+    public class InternetaakDetailsController(IInternetaakService internetakenService) : Controller
     {
 
         private readonly IInternetaakService _internetakenService = internetakenService;

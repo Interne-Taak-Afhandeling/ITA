@@ -9,7 +9,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class MyInterneTakenController(IUserService userService, ITAUser user) : Controller
+    public class MyInterneTakenOverviewController(IUserService userService, ITAUser user) : Controller
     {
            private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
