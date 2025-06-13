@@ -49,6 +49,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
                 var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                     request.KlantcontactRequest,
                     request.AanleidinggevendKlantcontactUuid,
+                    request.InterneTaakId,
                     _user.Email,
                     _user.Name,
                     request.PartijUuid

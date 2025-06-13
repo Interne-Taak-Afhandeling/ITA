@@ -14,6 +14,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
         Task<RelatedKlantcontactResult> CreateRelatedKlantcontactAsync(
             KlantcontactRequest klantcontactRequest,
             Guid previousKlantcontactUuid,
+            Guid internetaakUuid,
             string userEmail,
             string? userName,
             Guid? partijUuid = null);
@@ -24,20 +25,25 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
         private readonly IOpenKlantApiClient _openKlantApiClient;
         private readonly IKlantcontactService _klantcontactService;
         private readonly ILogger<CreateKlantContactService> _logger;
+        private readonly ILogboekService _logboekService;
 
         public CreateKlantContactService(
             IOpenKlantApiClient openKlantApiClient,
             IKlantcontactService klantcontactService,
-            ILogger<CreateKlantContactService> logger)
+            ILogger<CreateKlantContactService> logger,
+            ILogboekService logboekService
+            )
         {
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logboekService = logboekService;
         }
 
         public async Task<RelatedKlantcontactResult> CreateRelatedKlantcontactAsync(
             KlantcontactRequest klantcontactRequest,
             Guid aanleidinggevendKlantcontactUuid,
+            Guid internetaakUuid,
             string userEmail,
             string? userName,
             Guid? partijUuid = null)
@@ -91,6 +97,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
                 var betrokkene = await CreateBetrokkeneAsync(newKlantcontact.Uuid, partijForBetrokkeneId);
                 result.Betrokkene = betrokkene;
             }
+
+
+            //add this action to the Internetaak logboek           
+            _logboekService.AddContactmoment(internetaakUuid);
 
 
             return result;

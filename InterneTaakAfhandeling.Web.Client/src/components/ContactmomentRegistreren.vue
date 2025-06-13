@@ -114,7 +114,8 @@ async function saveOnly() {
     await klantcontactService.createRelatedKlantcontact({
       klantcontactRequest: buildKlantcontactModel(),
       aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
-      partijUuid: getPartijId()
+      partijUuid: getPartijId(),
+      interneTaakId: taak.uuid
     });
     toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
     resetForm();

@@ -46,6 +46,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IInterneTakenOverviewService, InterneTakenOverviewService>();
             services.AddScoped<IKlantcontactService, KlantcontactService>();     
             services.AddScoped<IAssignInternetaakToMyselfService, AssignInternetaakToMyselfService>();
+            services.AddScoped<ILogboekService, LogboekService>();
          
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 

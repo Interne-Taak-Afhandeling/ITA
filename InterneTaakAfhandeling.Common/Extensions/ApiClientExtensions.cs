@@ -32,9 +32,9 @@ namespace InterneTaakAfhandeling.Common.Extensions
             {
                 var objectApiBaseUrl = configuration.GetValue<string>("ObjectApi:BaseUrl") ?? throw new Exception("ObjectApi:BaseUrl configuration value is missing");
                 var objectApiKey = configuration.GetValue<string>("ObjectApi:ApiKey") ?? throw new Exception("ObjectApi:ApiKey configuration value is missing");
-
                 client.BaseAddress = new Uri(objectApiBaseUrl);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", objectApiKey);
+                client.DefaultRequestHeaders.Add("Content-Crs", "EPSG:4326");
             });
 
             services.AddHttpClient<IZakenApiClient, ZakenApiClient>(client =>
