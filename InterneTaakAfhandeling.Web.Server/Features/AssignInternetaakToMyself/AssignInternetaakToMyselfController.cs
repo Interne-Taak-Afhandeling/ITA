@@ -14,7 +14,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
 
         private readonly IAssignInternetaakToMyselfService _AssignInternetakenService = AssignInternetakenService;
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [HttpPost("{internetakenId}/to-self")]
+        [HttpPost("{internetakenId}/assign-to-self")]
         public async Task<IActionResult> AssignInternetakenAsync([FromRoute] string internetakenId)
         {
             return Ok(await _AssignInternetakenService.ToSelfAsync(internetakenId, user));

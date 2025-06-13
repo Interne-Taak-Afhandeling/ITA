@@ -1,8 +1,8 @@
 import { get } from "@/utils/fetchWrapper";
-import type { InterneTaakQueryParameters, Internetaken } from "@/types/internetaken";
+import type { Internetaken } from "@/types/internetaken";
 
 export const internetakenService = {
-  getInternetaak: (internetaakQuery: InterneTaakQueryParameters): Promise<Internetaken> => {
-    return get<Internetaken>(`/api/internetaken`, internetaakQuery);
+  getInternetaak: (internetaakNummer: string): Promise<Internetaken> => {
+    return get<Internetaken>(`/api/internetaken/${internetaakNummer}`);
   }
 };

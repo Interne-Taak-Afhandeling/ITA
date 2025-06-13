@@ -6,11 +6,10 @@ using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTaakWithKlantContact
 {
-    [Route("api/[controller]")]
+    [Route("api/internetaken")]
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -27,7 +26,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
 
         [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost()]
+        [HttpPost("close-with-klantcontact")] //todo: refactor to "HttpPost("[internetaakUuid]/close-with-klantcontact)" and consider making it a PUT
         public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] RequestModel request)
         {
             try

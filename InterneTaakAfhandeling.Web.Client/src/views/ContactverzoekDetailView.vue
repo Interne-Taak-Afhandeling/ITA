@@ -88,9 +88,7 @@ onMounted(async () => {
 const fetchInternetaken = async () => {
   isLoadingTaak.value = true;
   try {
-    taak.value = await internetakenService.getInternetaak({
-      Nummer: String(cvId.value)
-    });
+    taak.value = await internetakenService.getInternetaak(cvId.value);
   } catch (err: unknown) {
     console.error("Error loading contactverzoek:", err);
   } finally {

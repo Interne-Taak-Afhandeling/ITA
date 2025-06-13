@@ -9,7 +9,7 @@ using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiCli
 
 namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantContact
 {
-    [Route("api/[controller]")]
+    [Route("api/klantcontacten")]
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -31,7 +31,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
 
         [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost()]
+        [HttpPost("add-klantcontact")] //todo refactor, route should be api/klantcontacten/[klantcontactUuid]/klantcontacten
         public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequestModel request)
         {
             try

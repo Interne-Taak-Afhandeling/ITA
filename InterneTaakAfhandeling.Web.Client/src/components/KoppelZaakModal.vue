@@ -82,7 +82,7 @@ const koppelZaak = async () => {
   isLoading.value = true;
 
   try {
-    const response = await fetch("/api/koppelzaak/koppel-zaak-aan-klantcontact", {
+    const response = await fetch("/api/internetaken/koppel-zaak", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

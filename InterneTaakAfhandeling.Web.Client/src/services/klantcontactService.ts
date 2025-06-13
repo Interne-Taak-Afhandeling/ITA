@@ -16,13 +16,13 @@ export const klantcontactService = {
   createRelatedKlantcontact: (
     request: CreateRelatedKlantcontactRequest
   ): Promise<RelatedKlantcontactResult> => {
-    return post<RelatedKlantcontactResult>("/api/createklantcontact", request);
+    return post<RelatedKlantcontactResult>("/api/klantcontacten/add-klantcontact", request);
   },
 
   createRelatedKlantcontactAndCloseInterneTaak: (
     request: CreateRelatedKlantcontactAndCloseInterneTaakRequest
   ): Promise<RelatedKlantcontactResult> => {
-    return post<RelatedKlantcontactResult>("/api/closeinternetaakwithklantcontact", request);
+    return post<RelatedKlantcontactResult>("/api/internetaken/close-with-klantcontact", request);
   },
 
   getContactKeten: (
@@ -30,7 +30,7 @@ export const klantcontactService = {
     signal?: AbortSignal
   ): Promise<ContactmomentenResponse> =>
     get<ContactmomentenResponse>(
-      `/api/klantcontacten-overview/${klantcontactId}/contactketen`,
+      `/api/klantcontacten/${klantcontactId}/klantcontacten`,
       undefined,
       { signal }
     )

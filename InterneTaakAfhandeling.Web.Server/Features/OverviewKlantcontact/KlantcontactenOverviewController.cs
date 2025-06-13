@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
 {
-    [Route("api/klantcontacten-overview")] 
+    [Route("api/klantcontacten")] 
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -26,7 +26,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
 
         [ProducesResponseType(typeof(ContactmomentenResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpGet("{klantcontactId}/contactketen")]
+        [HttpGet("{klantcontactId}/klantcontacten")]
         public async Task<IActionResult> GetKlantcontactKeten(string klantcontactId)
         {
             try

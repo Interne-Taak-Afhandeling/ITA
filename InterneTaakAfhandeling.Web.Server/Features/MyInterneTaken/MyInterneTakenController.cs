@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
 {
-    [Route("api/[controller]")]
+    [Route("api/internetaken")]
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -16,7 +16,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
 
         [ProducesResponseType(typeof(List<InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models.Internetaak>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [HttpGet("internetaken")]
+        [HttpGet("assigned-to-me")]
         public async Task<IActionResult> GetInternetaken()
         {
             var result = await _userService.GetInterneTakenByAssignedUser(user);
