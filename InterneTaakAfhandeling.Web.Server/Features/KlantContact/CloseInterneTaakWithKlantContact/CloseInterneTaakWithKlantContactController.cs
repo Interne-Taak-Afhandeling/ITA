@@ -4,6 +4,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Middleware;
+using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,12 +18,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
         ITAUser user,
         ICreateKlantContactService createKlantContactService,
         ILogger<CloseInterneTaakWithKlantContactController> logger,
-        IOpenKlantApiClient openKlantApiClient) : Controller
+        IOpenKlantApiClient openKlantApiClient,
+        ILogboekService logboekService) : Controller
     {
         private readonly ITAUser _user = user ?? throw new ArgumentNullException(nameof(user));
         private readonly ICreateKlantContactService _createKlantContactService = createKlantContactService ?? throw new ArgumentNullException(nameof(createKlantContactService));
         private readonly ILogger<CloseInterneTaakWithKlantContactController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        private readonly IOpenKlantApiClient openKlantApiClient = openKlantApiClient;
+        private readonly IOpenKlantApiClient openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+        private readonly ILogboekService _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
 
         [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
@@ -64,6 +67,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
                 };
 
                 await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
+
+                //add this action to the Internetaak logboek           
+                _logboekService.AddContactmoment(request.InterneTaakId);
+
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }

@@ -3,6 +3,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Middleware;
+using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
@@ -18,15 +19,17 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
         private readonly ITAUser _user;
         private readonly ICreateKlantContactService _createKlantContactService;
         private readonly ILogger<CreateKlantContactController> _logger;
-
+        private readonly ILogboekService _logboekService;
         public CreateKlantContactController(
-            ITAUser user,
+        ITAUser user,
             ICreateKlantContactService createKlantContactService,
-            ILogger<CreateKlantContactController> logger)
+            ILogger<CreateKlantContactController> logger,
+            ILogboekService logboekService)
         {
             _user = user ?? throw new ArgumentNullException(nameof(user));
             _createKlantContactService = createKlantContactService ?? throw new ArgumentNullException(nameof(createKlantContactService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
         }
 
         [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
@@ -47,6 +50,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantCon
                     _user.Name,
                     request.PartijUuid
                 );
+
+                //add this action to the Internetaak logboek           
+                _logboekService.AddContactmoment(request.InterneTaakId);
+
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }

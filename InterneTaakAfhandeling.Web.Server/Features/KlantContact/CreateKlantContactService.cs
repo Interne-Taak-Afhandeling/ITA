@@ -24,20 +24,17 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
     {
         private readonly IOpenKlantApiClient _openKlantApiClient;
         private readonly IKlantcontactService _klantcontactService;
-        private readonly ILogger<CreateKlantContactService> _logger;
-        private readonly ILogboekService _logboekService;
+        private readonly ILogger<CreateKlantContactService> _logger;   
 
         public CreateKlantContactService(
             IOpenKlantApiClient openKlantApiClient,
             IKlantcontactService klantcontactService,
-            ILogger<CreateKlantContactService> logger,
-            ILogboekService logboekService
+            ILogger<CreateKlantContactService> logger         
             )
         {
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _logboekService = logboekService;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));     
         }
 
         public async Task<RelatedKlantcontactResult> CreateRelatedKlantcontactAsync(
@@ -97,10 +94,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
                 var betrokkene = await CreateBetrokkeneAsync(newKlantcontact.Uuid, partijForBetrokkeneId);
                 result.Betrokkene = betrokkene;
             }
-
-
-            //add this action to the Internetaak logboek           
-            _logboekService.AddContactmoment(internetaakUuid);
 
 
             return result;
