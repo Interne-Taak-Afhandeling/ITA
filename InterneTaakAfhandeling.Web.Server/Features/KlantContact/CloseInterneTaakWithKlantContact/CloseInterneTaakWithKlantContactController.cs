@@ -69,7 +69,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
                 await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
 
                 //add this action to the Internetaak logboek           
-                _logboekService.AddContactmoment(request.InterneTaakId);
+                await _logboekService.AddContactmoment(request.InterneTaakId);
 
 
                 return StatusCode(StatusCodes.Status201Created, result);

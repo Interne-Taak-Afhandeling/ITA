@@ -2,27 +2,27 @@ using System.Text.Json.Serialization;
 
 namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 {
-    public class ObjectResponse
+    public class ObjectResponse<T>
     {
         public int Count { get; set; }
         public string? Next { get; set; }
         public string? Previous { get; set; }
-        public required List<ObjectResult> Results { get; set; }
+        public required List<ObjectResult<T>> Results { get; set; }
     }
 
-    public class ObjectResult
+    public class ObjectResult<T>
     {
         public required string Url { get; set; }
         public required string Uuid { get; set; }
         public required string Type { get; set; }
-        public required ObjectRecord Record { get; set; }
+        public required ObjectRecord<T> Record { get; set; }
     }
 
-    public class ObjectRecord
+    public class ObjectRecord<T>
     {
         public int Index { get; set; }
         public int TypeVersion { get; set; }
-        public required ObjectData Data { get; set; }
+        public required T Data { get; set; }
         public object? Geometry { get; set; }
         public required string StartAt { get; set; }
         public string? EndAt { get; set; }
@@ -31,7 +31,9 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
         public string? CorrectedBy { get; set; }
     }
 
-    public class ObjectData
+
+ 
+    public class MedewerkerObjectData
     {
         public  List<Emails>? Emails { get; set; }
         public string? Email { get; set; }

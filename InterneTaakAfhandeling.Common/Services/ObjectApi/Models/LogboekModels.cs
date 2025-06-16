@@ -1,6 +1,6 @@
 ﻿namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 {
-    public class CreateLogboekRequest
+    public class LogboekModels
     {
         public required string Type { get; set; }
         public required LogboekRecord Record { get; set; }

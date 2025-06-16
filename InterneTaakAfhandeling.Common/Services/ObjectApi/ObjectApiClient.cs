@@ -7,8 +7,9 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi;
 
 public interface IObjectApiClient
 {
-    Task<List<ObjectRecord>> GetObjectsByIdentificatie(string identificatie);
-    Task<ObjectRecord> CreateLogboekForInternetaak(Guid internetaakId);
+    Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie);
+    Task<LogboekData> CreateLogboekForInternetaak(Guid internetaakId);
+    Task<LogboekData?> GetLogboek(Guid internetaakId);
 }
 
 public class ObjectApiClient(
@@ -18,7 +19,7 @@ public class ObjectApiClient(
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly ILogger<ObjectApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public async Task<List<ObjectRecord>> GetObjectsByIdentificatie(string identificatie)
+    public async Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie)
     {
         var truncated = TruncateId(identificatie);
         _logger.LogInformation("Fetching objects for identificatie {Identificatie}", truncated);
@@ -28,7 +29,7 @@ public class ObjectApiClient(
             var response = await _httpClient.GetAsync($"objects?ordering=record__data__identificatie&data_attr=identificatie__exact__{identificatie}");
             response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadFromJsonAsync<ObjectResponse>();
+            var result = await response.Content.ReadFromJsonAsync<ObjectResponse<MedewerkerObjectData>>();
 
             if (result?.Results == null || result.Results.Count == 0)
             {
@@ -55,12 +56,52 @@ public class ObjectApiClient(
     }
 
 
-
-    public async Task<ObjectRecord> CreateLogboekForInternetaak(Guid internetaakId)
+    public async Task<LogboekData?> GetLogboek(Guid internetaakId)
     {
         try
         {
-            var request = new CreateLogboekRequest
+            //todo: get objecttype from config
+            var objecttype = "https://objecttypen.dev.kiss-demo.nl/api/v2/objecttypes/5ff0821a-4846-4bd4-ada2-b1f72505eacb";
+
+            var response = await _httpClient.GetAsync($"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={objecttype}");
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ObjectResponse<LogboekData>>();
+
+            if (result?.Results == null || result.Results.Count == 0)
+            {
+                _logger.LogInformation("No Logboek found for internetaak {internetaakId}", internetaakId);
+                return null;
+            }
+
+            if (result.Results.Count > 1)
+            {
+                _logger.LogWarning("Multiple Logboeken found for internetaak {internetaakId}", internetaakId);
+                return null;
+            }
+
+            return result.Results.Single().Record?.Data;
+                
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error fetching Logboek for internetaak {internetaakId}", internetaakId);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error occurred while fetching a Logboek for internetaak {internetaakId}", internetaakId);
+            throw;
+        }
+    }
+
+
+
+    public async Task<LogboekData> CreateLogboekForInternetaak(Guid internetaakId)
+    {
+        try
+        {
+            var request = new LogboekModels
             {
                 //add to configuration
                 Type = "https://objecttypen.dev.kiss-demo.nl/api/v2/objecttypes/5ff0821a-4846-4bd4-ada2-b1f72505eacb",
@@ -87,14 +128,14 @@ public class ObjectApiClient(
            
             response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadFromJsonAsync<ObjectResult>();
+            var result = await response.Content.ReadFromJsonAsync<ObjectResult<LogboekData>>();
 
-            if (result?.Record == null)
+            if (result?.Record?.Data == null)
             {
                 throw new Exception("...");
             }
             
-            return result.Record;
+            return result.Record.Data;
             
         }
         catch (HttpRequestException ex)
