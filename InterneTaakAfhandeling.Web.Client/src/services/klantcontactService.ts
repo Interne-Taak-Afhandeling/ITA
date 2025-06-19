@@ -24,11 +24,12 @@ export const klantcontactService = {
     return post<RelatedKlantcontactResult>("/api/internetaken/close-with-klantcontact", request);
   },
 
-  //todo replace with
-  //   getLogboek: (internetaakId: string, signal?: AbortSignal): Promise<ContactmomentenResponse> =>
-  // get<ContactmomentenResponse>(`/api/internetaken/${internetaakId}/logboek`, undefined, {
-  //   signal
-  // })
+  //todo replace getContactKeten with getLogboek
+  getLogboek: (internetaakId: string, signal?: AbortSignal): Promise<ContactmomentenResponse> =>
+    get<ContactmomentenResponse>(`/api/internetaken/${internetaakId}/logboek`, undefined, {
+      signal
+    }),
+
   getContactKeten: (
     klantcontactId: string,
     signal?: AbortSignal
