@@ -6,9 +6,11 @@ import type {
 } from "@/types/internetaken";
 import { get, post } from "@/utils/fetchWrapper";
 
-interface ContactmomentenResponse {
-  contactmomenten: Contactmoment[];
-  laatsteBekendKlantcontactUuid: string;
+interface LogboekActiviteit {
+  datum: string;
+  type: string;
+  kanaal: string;
+  tekst: string;
 }
 
 export const klantcontactService = {
@@ -24,21 +26,20 @@ export const klantcontactService = {
     return post<RelatedKlantcontactResult>("/api/internetaken/close-with-klantcontact", request);
   },
 
-  //todo replace getContactKeten with getLogboek
-  getLogboek: (internetaakId: string, signal?: AbortSignal): Promise<ContactmomentenResponse> =>
-    get<ContactmomentenResponse>(`/api/internetaken/${internetaakId}/logboek`, undefined, {
+  getLogboek: (internetaakId: string, signal?: AbortSignal): Promise<LogboekActiviteit[]> =>
+    get<LogboekActiviteit[]>(`/api/internetaken/${internetaakId}/logboek`, undefined, {
       signal
-    }),
+    })
 
-  getContactKeten: (
-    klantcontactId: string,
-    signal?: AbortSignal
-  ): Promise<ContactmomentenResponse> =>
-    get<ContactmomentenResponse>(
-      `/api/klantcontacten/${klantcontactId}/klantcontacten`,
-      undefined,
-      { signal }
-    )
+  // getContactKeten: (
+  //   klantcontactId: string,
+  //   signal?: AbortSignal
+  // ): Promise<ContactmomentenResponse> =>
+  //   get<ContactmomentenResponse>(
+  //     `/api/klantcontacten/${klantcontactId}/klantcontacten`,
+  //     undefined,
+  //     { signal }
+  //   )
 
   // /**
   //  * Helper-functie die alleen het UUID van het laatste klantcontact in de keten ophaalt
@@ -54,5 +55,5 @@ export type {
   CreateKlantcontactRequest,
   RelatedKlantcontactResult,
   Contactmoment,
-  ContactmomentenResponse
+  LogboekActiviteit
 };
