@@ -2,6 +2,7 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Options;
 
 namespace InterneTaakAfhandeling.Common.Services.ObjectApi;
 
@@ -14,11 +15,12 @@ public interface IObjectApiClient
 
 public class ObjectApiClient(
     HttpClient httpClient,
-    ILogger<ObjectApiClient> logger) : IObjectApiClient
+    ILogger<ObjectApiClient> logger,IOptions<LogboekOptions> logboekOptions) : IObjectApiClient
 {
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly ILogger<ObjectApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
+    private readonly LogboekOptions _logboekOptions = logboekOptions.Value;  
+     
     public async Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie)
     {
         var truncated = TruncateId(identificatie);
@@ -61,9 +63,9 @@ public class ObjectApiClient(
         try
         {
             //todo: get objecttype from config
-            var objecttype = "https://objecttypen.dev.kiss-demo.nl/api/v2/objecttypes/5ff0821a-4846-4bd4-ada2-b1f72505eacb";
+            //var objecttype = "https://objecttypen.dev.kiss-demo.nl/api/v2/objecttypes/5ff0821a-4846-4bd4-ada2-b1f72505eacb";
 
-            var response = await _httpClient.GetAsync($"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={objecttype}");
+            var response = await _httpClient.GetAsync($"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={_logboekOptions.Type}");
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<ObjectResponse<LogboekData>>();
@@ -102,20 +104,19 @@ public class ObjectApiClient(
         try
         {
             var request = new LogboekModels
-            {
-                //add to configuration
-                Type = "https://objecttypen.dev.kiss-demo.nl/api/v2/objecttypes/5ff0821a-4846-4bd4-ada2-b1f72505eacb",
+            { 
+                Type =  _logboekOptions.Type, 
                 Record = new LogboekRecord
                 {
                     StartAt = DateTime.Now.ToString("yyyy-MM-dd"),
-                    TypeVersion = "1",  //add to configuration
+                    TypeVersion =  _logboekOptions.TypeVersion, 
                     Data = new LogboekData
                     {
                         HeeftBetrekkingOp = new ObjectIdentificator
                         {
-                            CodeObjecttype = "internetaak", //add to configuration
-                            CodeRegister = "openklant",     //add to configuration
-                            CodeSoortObjectId = "uuid",     //add to configuration
+                            CodeObjecttype = _logboekOptions.CodeObjectType, 
+                            CodeRegister =_logboekOptions.CodeRegister, 
+                            CodeSoortObjectId = _logboekOptions.CodeSoortObjectId, 
                             ObjectId = internetaakId.ToString()
                         },
 

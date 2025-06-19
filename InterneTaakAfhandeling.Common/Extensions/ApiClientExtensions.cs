@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using Microsoft.Extensions.Configuration;
@@ -48,9 +49,12 @@ namespace InterneTaakAfhandeling.Common.Extensions
                 client.DefaultRequestHeaders.Add("Accept-Crs", DefaultCrs);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GenerateZakenApiToken(zaakSysteemKey, zaakSysteemClientId));
             });
-
+            // registered logboek options 
+            services.Configure<LogboekOptions>(configuration.GetSection("LogBoekOption"));
+                
+            
             return services;
-        }
+        } 
  
 
           public static string GenerateZakenApiToken(string JwtSecretKey, string ClientId)
