@@ -1,21 +1,19 @@
 ﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Services
 {
     public interface ILogboekService
     {        
         Task<LogboekData> AddContactmoment(Guid internetaakId);
+        Task<List<Activiteit>> GetLogboek(Guid internetaakId);
     }
 
-    public class LogboekService : ILogboekService
+    public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient) : ILogboekService
     {
-        private readonly IObjectApiClient _objectenApiClient;
-
-        public LogboekService( IObjectApiClient objectenApiClient)
-        {
-            _objectenApiClient = objectenApiClient;
-        }
+        private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
+        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
 
         public async Task<LogboekData> AddContactmoment(Guid internetaakId)
         {
@@ -35,8 +33,53 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             //3 add an antry to the logboek with information about this contactmoment
 
         }
-    }
 
+
+        public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
+        {          
+            var logboek = await _objectenApiClient.GetLogboek(internetaakId);
+
+            if(logboek == null)
+            {
+                return [];
+            }
+
+            var activiteiten = new List<Activiteit>();
+
+            foreach (var item in logboek.Activiteiten)
+            {
+                var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
+
+                if (item.Type == KnownLogboekActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp != null)
+                {
+                    var contactmoment = await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.ObjectId);
+                    if (contactmoment != null)
+                    {
+                        activiteit.Kanaal = contactmoment.Kanaal;
+                        activiteit.Tekst = contactmoment.Inhoud;
+                    }
+                }
+
+                activiteiten.Add(activiteit);
+            }
+
+            return activiteiten;
+        }
+    }
     
+
+    public class Activiteit
+    {
+         
+            public required string Datum { get; set; }
+            public required string Type { get; set; }
+       
+            public  string? Kanaal { get; set; }
+            public  string? Tekst { get; set; }
+
+           
+
+         
+    }
 
 }
