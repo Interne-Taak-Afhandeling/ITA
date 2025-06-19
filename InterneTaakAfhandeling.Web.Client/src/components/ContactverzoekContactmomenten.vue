@@ -33,6 +33,8 @@ const {
       props.taak.aanleidinggevendKlantcontact.uuid,
       signal
     );
+    //todo replace with
+    // return klantcontactService.getLogboek(props.taak.uuid, signal);
   }
 });
 

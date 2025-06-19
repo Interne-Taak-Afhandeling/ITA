@@ -6,6 +6,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
     public interface ILogboekService
     {        
         Task<LogboekData> AddContactmoment(Guid internetaakId);
+        Task<LogboekData?> GetLogboek(Guid internetaakId);
     }
 
     public class LogboekService : ILogboekService
@@ -35,8 +36,13 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             //3 add an antry to the logboek with information about this contactmoment
 
         }
-    }
 
+
+        public async Task<LogboekData?> GetLogboek(Guid internetaakId)
+        {          
+            return await _objectenApiClient.GetLogboek(internetaakId);
+        }
+    }
     
 
 }
