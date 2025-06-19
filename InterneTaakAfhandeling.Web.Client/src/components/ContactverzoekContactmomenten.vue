@@ -37,14 +37,14 @@ const timeLineProps = computed<ContactTimelineProps>(() => ({
   labels: { today: "Vandaag", yesterday: "Gisteren" },
   collapsible: true,
   items:
-    logboekActiviteiten.value?.map(({ kanaal, datum, tekst }) => ({
-      title: "test", //contactGelukt ? "Contact gelukt" : "Geen gehoor",
-      id: "123", //uuid,
+    logboekActiviteiten.value?.map(({ kanaal, datum, tekst, contactGelukt, id, medewerker }) => ({
+      title: contactGelukt ? "Contact gelukt" : "Geen gehoor",
+      id: id,
       channel: kanaal,
       isoDate: datum,
       description: tekst,
-      sender: "temp" // medewerker
+      sender: medewerker
     })) ?? [],
-  expandedItems: logboekActiviteiten.value?.map(({ uuid }) => uuid) ?? []
+  expandedItems: logboekActiviteiten.value?.map(({ id }) => id) ?? []
 }));
 </script>

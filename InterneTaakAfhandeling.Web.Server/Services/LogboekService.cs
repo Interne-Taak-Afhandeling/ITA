@@ -5,7 +5,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 namespace InterneTaakAfhandeling.Web.Server.Services
 {
     public interface ILogboekService
-    {        
+    {
         Task<LogboekData> AddContactmoment(Guid internetaakId);
         Task<List<Activiteit>> GetLogboek(Guid internetaakId);
     }
@@ -18,7 +18,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         public async Task<LogboekData> AddContactmoment(Guid internetaakId)
         {
             //1 check if a logboek for the Intenretaak already exists
-            var exisistingLogboek = await  _objectenApiClient.GetLogboek(internetaakId);
+            var exisistingLogboek = await _objectenApiClient.GetLogboek(internetaakId);
 
 
             if (exisistingLogboek != null)
@@ -28,7 +28,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 
             //2 if not create it
             return await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
-           
+
 
             //3 add an antry to the logboek with information about this contactmoment
 
@@ -36,10 +36,10 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 
 
         public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
-        {          
+        {
             var logboek = await _objectenApiClient.GetLogboek(internetaakId);
 
-            if(logboek == null)
+            if (logboek == null)
             {
                 return [];
             }
@@ -55,8 +55,12 @@ namespace InterneTaakAfhandeling.Web.Server.Services
                     var contactmoment = await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.ObjectId);
                     if (contactmoment != null)
                     {
-                        activiteit.Kanaal = contactmoment.Kanaal;
+                        activiteit.Id = contactmoment.Uuid;
+                        activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
                         activiteit.Tekst = contactmoment.Inhoud;
+                        activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
+                        activiteit.Medewerker = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
+
                     }
                 }
 
@@ -66,20 +70,19 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             return activiteiten;
         }
     }
-    
+
 
     public class Activiteit
     {
-         
-            public required string Datum { get; set; }
-            public required string Type { get; set; }
-       
-            public  string? Kanaal { get; set; }
-            public  string? Tekst { get; set; }
 
-           
+        public required string Datum { get; set; }
+        public required string Type { get; set; }
 
-         
+        public string? Kanaal { get; set; }
+        public string? Tekst { get; set; }
+        public bool? ContactGelukt { get; set; }
+        public string? Id { get; set; }
+        public string? Medewerker { get; set; }
     }
 
 }
