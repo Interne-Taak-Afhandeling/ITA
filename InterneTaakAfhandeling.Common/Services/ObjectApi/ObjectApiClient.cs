@@ -67,7 +67,7 @@ public class ObjectApiClient(
         try
         {
             var response = await _httpClient.GetAsync(
-                $"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={_logboekOptions.Type}");
+                $"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={_logboekOptions.Type}&typeVersion={_logboekOptions.TypeVersion}");
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<ObjectResponse<LogboekData>>();

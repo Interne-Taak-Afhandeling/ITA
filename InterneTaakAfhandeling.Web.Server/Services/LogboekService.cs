@@ -1,6 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using Microsoft.Extensions.Options;
 
 namespace InterneTaakAfhandeling.Web.Server.Services;
 
@@ -12,11 +13,12 @@ public interface ILogboekService
  
 }
 
-public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
+public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient, IOptions<LogboekOptions> logboekOptions)
     : ILogboekService
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
+    private readonly IOptions<LogboekOptions> _logboekOptions = logboekOptions;
 
     public async Task<LogboekData> AddContactmoment(Guid internetaakId, string type, string description)
     { 
