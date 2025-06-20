@@ -6,12 +6,10 @@ namespace InterneTaakAfhandeling.Web.Server.Services;
 
 public interface ILogboekService
 {
-    Task<ObjectResult<LogboekData>> AddContactmoment(Guid internetaakId);
+    Task<LogboekData> AddContactmoment(Guid internetaakId,string type, string description);
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
 
-    Task<LogboekData> LogActivity(ObjectResult<LogboekData> logboekData, string interneTaakId,
-        string type,
-        string description);
+ 
 }
 
 public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
@@ -20,20 +18,39 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
 
-    public async Task<ObjectResult<LogboekData>> AddContactmoment(Guid internetaakId)
-    {
+    public async Task<LogboekData> AddContactmoment(Guid internetaakId, string type, string description)
+    { 
         //1 check if a logboek for the Intenretaak already exists
-        var exisistingLogboek = await _objectenApiClient.GetLogboek(internetaakId);
+        var logboekData = await _objectenApiClient.GetLogboek(internetaakId);
+        if (logboekData == null)
+        {
+            //2 if not create it
+            logboekData= await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
 
-
-        if (exisistingLogboek != null) return exisistingLogboek;
-
-        //2 if not create it
-        return await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
-
-
-        //3 add an antry to the logboek with information about this contactmoment
+        }
+        var activity = BuildActivity(logboekData, internetaakId.ToString(), type, description);
+        return await objectenApiClient.UpdateLogboek(activity, logboekData.Uuid);
+        
     }
+    
+    public ObjectResult<LogboekData> BuildActivity(ObjectResult<LogboekData> logboekData, string internetaakId,
+        string type, string description)
+    {
+        logboekData.Record.Data.Activiteiten.Add(new ActiviteitData
+        {
+            Datum = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+            Type = type,
+            Omschrijving = description,
+            HeeftBetrekkingOp =
+            [
+                new ObjectIdentificator(internetaakId, LogboekObjectIdentificators.CodeRegister,
+                    LogboekObjectIdentificators.CodeObjectType,
+                    LogboekObjectIdentificators.CodeSoortObjectId)
+            ]
+        });
+        return logboekData;
+    }
+
 
 
     public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
@@ -67,14 +84,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         return activiteiten;
     }
-
-    public Task<LogboekData> LogActivity(ObjectResult<LogboekData> logboekData, string interneTaakId,
-        string type,
-        string description)
-    {
-        var activity = objectenApiClient.BuildActivity(logboekData, interneTaakId, type, description);
-        return objectenApiClient.UpdateLogboek(activity, logboekData.Uuid);
-    }
+ 
 }
 
 public class Activiteit

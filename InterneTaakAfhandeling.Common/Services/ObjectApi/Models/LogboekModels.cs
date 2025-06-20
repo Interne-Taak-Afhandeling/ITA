@@ -58,4 +58,6 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
         public required string CodeRegister { get; init; }
         public required string CodeSoortObjectId { get; init; }
     }
+    
+   
 }

@@ -54,11 +54,8 @@ public class CreateKlantContactController : Controller
             );
 
             //add this action to the Internetaak logboek           
-            var logboek = await _logboekService.AddContactmoment(request.InterneTaakId);
-
-            await _logboekService.LogActivity(logboek, request.InterneTaakId.ToString(),
-                KnownLogboekActiviteitTypes.Klantcontact, request.KlantcontactRequest.Inhoud);
-
+             await _logboekService.AddContactmoment(request.InterneTaakId,KnownLogboekActiviteitTypes.Klantcontact,request.KlantcontactRequest.Inhoud);
+ 
 
             return StatusCode(StatusCodes.Status201Created, result);
         }

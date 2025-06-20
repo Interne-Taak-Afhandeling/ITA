@@ -1,4 +1,5 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
@@ -69,7 +70,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
                 await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
 
                 //add this action to the Internetaak logboek           
-                await _logboekService.AddContactmoment(request.InterneTaakId);
+                await _logboekService.AddContactmoment(request.InterneTaakId,KnownLogboekActiviteitTypes.Close,request.KlantcontactRequest.Inhoud);
 
 
                 return StatusCode(StatusCodes.Status201Created, result);

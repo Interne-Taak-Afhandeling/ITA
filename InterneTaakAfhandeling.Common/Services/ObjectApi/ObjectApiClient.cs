@@ -11,9 +11,6 @@ public interface IObjectApiClient
     Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId);
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
     Task<LogboekData> UpdateLogboek(ObjectResult<LogboekData> logboekData, string logboekDataUuid);
-
-    ObjectResult<LogboekData> BuildActivity(ObjectResult<LogboekData> logboekData, string interneTaakId, string type,
-        string description);
 }
 
 public class ObjectApiClient(
@@ -102,8 +99,7 @@ public class ObjectApiClient(
         }
     }
 
-  
-   
+
     public async Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId)
     {
         try
@@ -152,6 +148,7 @@ public class ObjectApiClient(
             throw;
         }
     }
+
     public async Task<LogboekData> UpdateLogboek(ObjectResult<LogboekData> logboekResult, string logboekUuid)
     {
         try
@@ -166,7 +163,7 @@ public class ObjectApiClient(
 
             return result.Record.Data;
         }
-     
+
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error occurred while ...");
@@ -174,23 +171,6 @@ public class ObjectApiClient(
         }
     }
 
-    public ObjectResult<LogboekData> BuildActivity(ObjectResult<LogboekData> logboekData, string internetaakId,
-        string type, string description)
-    {
-        logboekData.Record.Data.Activiteiten.Add(new ActiviteitData
-        {
-            Datum = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-            Type = type,
-            Omschrijving = description,
-            HeeftBetrekkingOp =
-            [
-                new ObjectIdentificator(internetaakId, _logboekOptions.CodeRegister,
-                    _logboekOptions.CodeObjectType,
-                    _logboekOptions.CodeSoortObjectId)
-            ]
-        });
-        return logboekData;
-    }
 
     private static string TruncateId(string id)
     {
