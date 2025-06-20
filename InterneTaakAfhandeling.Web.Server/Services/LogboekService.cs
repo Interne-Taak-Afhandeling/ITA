@@ -1,6 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using Microsoft.Extensions.Options;
 
 namespace InterneTaakAfhandeling.Web.Server.Services;
 
@@ -14,11 +15,12 @@ public interface ILogboekService
         string description);
 }
 
-public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
+public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient, IOptions<LogboekOptions> logboekOptions)
     : ILogboekService
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
+    private readonly IOptions<LogboekOptions> _logboekOptions = logboekOptions;
 
     public async Task<ObjectResult<LogboekData>> AddContactmoment(Guid internetaakId)
     {
@@ -68,12 +70,35 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         return activiteiten;
     }
 
-    public Task<LogboekData> LogActivity(ObjectResult<LogboekData> logboekData, string interneTaakId,
+    public Task<LogboekData> LogActivity(ObjectResult<LogboekData> logboekData, string klantcontactId,
         string type,
         string description)
     {
-        var activity = objectenApiClient.BuildActivity(logboekData, interneTaakId, type, description);
+        var activity = BuildActivity(logboekData, klantcontactId, type, description);
         return objectenApiClient.UpdateLogboek(activity, logboekData.Uuid);
+    }
+
+
+
+
+    private ObjectResult<LogboekData> BuildActivity(ObjectResult<LogboekData> logboekData, string klantcontactId,
+    string type, string description)
+    {
+        logboekData.Record.Data.Activiteiten.Add(new ActiviteitData
+        {
+            Datum = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+            Type = type,
+            Omschrijving = description,
+            HeeftBetrekkingOp =
+            [
+                new ObjectIdentificator(
+                    klantcontactId,
+                    _logboekOptions.Value.CodeRegister,
+                    _logboekOptions.Value.CodeObjectType,
+                    _logboekOptions.Value.CodeSoortObjectId)
+            ]
+        });
+        return logboekData;
     }
 }
 

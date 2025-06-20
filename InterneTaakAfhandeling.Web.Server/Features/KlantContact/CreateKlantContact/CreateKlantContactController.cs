@@ -56,7 +56,7 @@ public class CreateKlantContactController : Controller
             //add this action to the Internetaak logboek           
             var logboek = await _logboekService.AddContactmoment(request.InterneTaakId);
 
-            await _logboekService.LogActivity(logboek, request.InterneTaakId.ToString(),
+            await _logboekService.LogActivity(logboek, result.Klantcontact.Uuid.ToString(),
                 KnownLogboekActiviteitTypes.Klantcontact, request.KlantcontactRequest.Inhoud);
 
 

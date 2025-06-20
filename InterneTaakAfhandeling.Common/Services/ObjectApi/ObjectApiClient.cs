@@ -12,8 +12,7 @@ public interface IObjectApiClient
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
     Task<LogboekData> UpdateLogboek(ObjectResult<LogboekData> logboekData, string logboekDataUuid);
 
-    ObjectResult<LogboekData> BuildActivity(ObjectResult<LogboekData> logboekData, string interneTaakId, string type,
-        string description);
+
 }
 
 public class ObjectApiClient(
@@ -70,7 +69,7 @@ public class ObjectApiClient(
         try
         {
             var response = await _httpClient.GetAsync(
-                $"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={_logboekOptions.Type}");
+                $"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={_logboekOptions.Type}&typeVersion={_logboekOptions.TypeVersion}");
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<ObjectResponse<LogboekData>>();
@@ -174,23 +173,7 @@ public class ObjectApiClient(
         }
     }
 
-    public ObjectResult<LogboekData> BuildActivity(ObjectResult<LogboekData> logboekData, string internetaakId,
-        string type, string description)
-    {
-        logboekData.Record.Data.Activiteiten.Add(new ActiviteitData
-        {
-            Datum = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-            Type = type,
-            Omschrijving = description,
-            HeeftBetrekkingOp =
-            [
-                new ObjectIdentificator(internetaakId, _logboekOptions.CodeRegister,
-                    _logboekOptions.CodeObjectType,
-                    _logboekOptions.CodeSoortObjectId)
-            ]
-        });
-        return logboekData;
-    }
+
 
     private static string TruncateId(string id)
     {
