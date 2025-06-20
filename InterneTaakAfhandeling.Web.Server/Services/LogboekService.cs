@@ -2,84 +2,90 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
-namespace InterneTaakAfhandeling.Web.Server.Services
+namespace InterneTaakAfhandeling.Web.Server.Services;
+
+public interface ILogboekService
 {
-    public interface ILogboekService
-    {        
-        Task<LogboekData> AddContactmoment(Guid internetaakId);
-        Task<List<Activiteit>> GetLogboek(Guid internetaakId);
+    Task<ObjectResult<LogboekData>> AddContactmoment(Guid internetaakId);
+    Task<List<Activiteit>> GetLogboek(Guid internetaakId);
+
+    Task<LogboekData> LogActivity(ObjectResult<LogboekData> logboekData, string interneTaakId,
+        string type,
+        string description);
+}
+
+public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
+    : ILogboekService
+{
+    private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
+    private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
+
+    public async Task<ObjectResult<LogboekData>> AddContactmoment(Guid internetaakId)
+    {
+        //1 check if a logboek for the Intenretaak already exists
+        var exisistingLogboek = await _objectenApiClient.GetLogboek(internetaakId);
+
+
+        if (exisistingLogboek != null) return exisistingLogboek;
+
+        //2 if not create it
+        return await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
+
+
+        //3 add an antry to the logboek with information about this contactmoment
     }
 
-    public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient) : ILogboekService
-    {
-        private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
-        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
 
-        public async Task<LogboekData> AddContactmoment(Guid internetaakId)
+    public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
+    {
+        var logboek = await _objectenApiClient.GetLogboek(internetaakId);
+
+        if (logboek == null) return [];
+
+        var activiteiten = new List<Activiteit>();
+
+        foreach (var item in logboek.Record.Data.Activiteiten)
         {
-            //1 check if a logboek for the Intenretaak already exists
-            var exisistingLogboek = await  _objectenApiClient.GetLogboek(internetaakId);
+            var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
 
-
-            if (exisistingLogboek != null)
+            if (item.Type == KnownLogboekActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp != null)
             {
-                return exisistingLogboek;
-            }
-
-            //2 if not create it
-            return await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
-           
-
-            //3 add an antry to the logboek with information about this contactmoment
-
-        }
-
-
-        public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
-        {          
-            var logboek = await _objectenApiClient.GetLogboek(internetaakId);
-
-            if(logboek == null)
-            {
-                return [];
-            }
-
-            var activiteiten = new List<Activiteit>();
-
-            foreach (var item in logboek.Activiteiten)
-            {
-                var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
-
-                if (item.Type == KnownLogboekActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp != null)
+                var contactmoment =
+                    await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.Single().ObjectId);
+                if (contactmoment != null)
                 {
-                    var contactmoment = await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.ObjectId);
-                    if (contactmoment != null)
-                    {
-                        activiteit.Kanaal = contactmoment.Kanaal;
-                        activiteit.Tekst = contactmoment.Inhoud;
-                    }
+                    activiteit.Kanaal = contactmoment.Kanaal;
+                    activiteit.Tekst = contactmoment.Inhoud;
                 }
-
-                activiteiten.Add(activiteit);
             }
 
-            return activiteiten;
+            activiteiten.Add(activiteit);
+        }
+
+        return activiteiten;
+    }
+
+    public Task<LogboekData> LogActivity(ObjectResult<LogboekData> logboekData, string interneTaakId,
+        string type,
+        string description)
+    {
+        try
+        {
+            var activity = objectenApiClient.BuildActivity(logboekData, interneTaakId, type, description);
+            return objectenApiClient.UpdateLogboek(activity, logboekData.Uuid);
+        }
+        catch (Exception ee)
+        {
+            throw ee;
         }
     }
-    
+}
 
-    public class Activiteit
-    {
-         
-            public required string Datum { get; set; }
-            public required string Type { get; set; }
-       
-            public  string? Kanaal { get; set; }
-            public  string? Tekst { get; set; }
+public class Activiteit
+{
+    public required string Datum { get; set; }
+    public required string Type { get; set; }
 
-           
-
-         
-    }
-
+    public string? Kanaal { get; set; }
+    public string? Tekst { get; set; }
 }

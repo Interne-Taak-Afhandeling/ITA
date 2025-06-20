@@ -1,4 +1,6 @@
-﻿namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 {
     public class LogboekModels
     {
@@ -16,20 +18,33 @@
     public class LogboekData
     {
         public required ObjectIdentificator HeeftBetrekkingOp { get; set; }
-        public required List<Activiteit> Activiteiten { get; set; }
+        public required List<ActiviteitData> Activiteiten { get; set; }
     }
 
-    public class Activiteit
+    public class ActiviteitData
     {
         public required string Datum { get; set; }
         public required string Type { get; set; }
         public required string Omschrijving { get; set; }
-        public ObjectIdentificator? HeeftBetrekkingOp { get; set; }
+        public List<ObjectIdentificator> HeeftBetrekkingOp { get; set; }
         
     }
 
     public class ObjectIdentificator
     {
+        public ObjectIdentificator()
+        {
+        }
+
+        [SetsRequiredMembers]
+        public ObjectIdentificator(string objectId, string codeRegister, string codeObjecttype, string codeSoortObjectId)
+        {
+            ObjectId = objectId;
+            CodeRegister = codeRegister;
+            CodeObjecttype = codeObjecttype;
+            CodeSoortObjectId = codeSoortObjectId;
+        }
+
         public required string CodeRegister { get; set; }
         public required string CodeObjecttype { get; set; }
         public required string CodeSoortObjectId { get; set; }

@@ -1,7 +1,6 @@
-
+using System.Net.Http.Json;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
 
 namespace InterneTaakAfhandeling.Common.Services.ObjectApi;
@@ -9,18 +8,24 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi;
 public interface IObjectApiClient
 {
     Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie);
-    Task<LogboekData> CreateLogboekForInternetaak(Guid internetaakId);
-    Task<LogboekData?> GetLogboek(Guid internetaakId);
+    Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId);
+    Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
+    Task<LogboekData> UpdateLogboek(ObjectResult<LogboekData> logboekData, string logboekDataUuid);
+
+    ObjectResult<LogboekData> BuildActivity(ObjectResult<LogboekData> logboekData, string interneTaakId, string type,
+        string description);
 }
 
 public class ObjectApiClient(
     HttpClient httpClient,
-    ILogger<ObjectApiClient> logger,IOptions<LogboekOptions> logboekOptions) : IObjectApiClient
+    ILogger<ObjectApiClient> logger,
+    IOptions<LogboekOptions> logboekOptions) : IObjectApiClient
 {
+    private const int TruncatedLength = 3;
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+    private readonly LogboekOptions _logboekOptions = logboekOptions.Value;
     private readonly ILogger<ObjectApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private readonly LogboekOptions _logboekOptions = logboekOptions.Value;  
-     
+
     public async Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie)
     {
         var truncated = TruncateId(identificatie);
@@ -28,7 +33,8 @@ public class ObjectApiClient(
 
         try
         {
-            var response = await _httpClient.GetAsync($"objects?ordering=record__data__identificatie&data_attr=identificatie__exact__{identificatie}");
+            var response = await _httpClient.GetAsync(
+                $"objects?ordering=record__data__identificatie&data_attr=identificatie__exact__{identificatie}");
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<ObjectResponse<MedewerkerObjectData>>();
@@ -52,20 +58,19 @@ public class ObjectApiClient(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error occurred while fetching objects for identificatie {Identificatie}", truncated);
+            _logger.LogError(ex, "Unexpected error occurred while fetching objects for identificatie {Identificatie}",
+                truncated);
             return [];
         }
     }
 
 
-    public async Task<LogboekData?> GetLogboek(Guid internetaakId)
+    public async Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId)
     {
         try
         {
-            //todo: get objecttype from config
-            //var objecttype = "https://objecttypen.dev.kiss-demo.nl/api/v2/objecttypes/5ff0821a-4846-4bd4-ada2-b1f72505eacb";
-
-            var response = await _httpClient.GetAsync($"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={_logboekOptions.Type}");
+            var response = await _httpClient.GetAsync(
+                $"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={_logboekOptions.Type}");
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<ObjectResponse<LogboekData>>();
@@ -82,8 +87,7 @@ public class ObjectApiClient(
                 return null;
             }
 
-            return result.Results.Single().Record?.Data;
-                
+            return result.Results.Single();
         }
         catch (HttpRequestException ex)
         {
@@ -92,31 +96,32 @@ public class ObjectApiClient(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error occurred while fetching a Logboek for internetaak {internetaakId}", internetaakId);
+            _logger.LogError(ex, "Unexpected error occurred while fetching a Logboek for internetaak {internetaakId}",
+                internetaakId);
             throw;
         }
     }
 
-
-
-    public async Task<LogboekData> CreateLogboekForInternetaak(Guid internetaakId)
+  
+   
+    public async Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId)
     {
         try
         {
             var request = new LogboekModels
-            { 
-                Type =  _logboekOptions.Type, 
+            {
+                Type = _logboekOptions.Type,
                 Record = new LogboekRecord
                 {
                     StartAt = DateTime.Now.ToString("yyyy-MM-dd"),
-                    TypeVersion =  _logboekOptions.TypeVersion, 
+                    TypeVersion = _logboekOptions.TypeVersion,
                     Data = new LogboekData
                     {
                         HeeftBetrekkingOp = new ObjectIdentificator
                         {
-                            CodeObjecttype = _logboekOptions.CodeObjectType, 
-                            CodeRegister =_logboekOptions.CodeRegister, 
-                            CodeSoortObjectId = _logboekOptions.CodeSoortObjectId, 
+                            CodeObjecttype = _logboekOptions.CodeObjectType,
+                            CodeRegister = _logboekOptions.CodeRegister,
+                            CodeSoortObjectId = _logboekOptions.CodeSoortObjectId,
                             ObjectId = internetaakId.ToString()
                         },
 
@@ -126,26 +131,20 @@ public class ObjectApiClient(
             };
 
             var response = await _httpClient.PostAsJsonAsync("objects", request);
-           
+
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<ObjectResult<LogboekData>>();
 
-            if (result?.Record?.Data == null)
-            {
-                throw new Exception("...");
-            }
-            
-            return result.Record.Data;
-            
+            if (result?.Record?.Data == null) throw new Exception("No Logboek found");
+
+            return result;
         }
         catch (HttpRequestException ex)
         {
-
             //todo: try to read the content to get useful info on the failure:  var contents = await response.Content.ReadAsStringAsync();
             _logger.LogError(ex, "Error ...");
             throw;
-
         }
         catch (Exception ex)
         {
@@ -153,12 +152,50 @@ public class ObjectApiClient(
             throw;
         }
     }
+    public async Task<LogboekData> UpdateLogboek(ObjectResult<LogboekData> logboekResult, string logboekUuid)
+    {
+        try
+        {
+            var response = await _httpClient.PatchAsJsonAsync($"objects/{logboekUuid}", logboekResult);
 
+            response.EnsureSuccessStatusCode();
 
+            var result = await response.Content.ReadFromJsonAsync<ObjectResult<LogboekData>>();
 
-    const int TruncatedLength = 3;
+            if (result?.Record?.Data == null) throw new Exception("No Logboek found");
 
-    private static string TruncateId(string id) =>
-        id.Length < TruncatedLength ? "***"
-        : $"{id.AsSpan()[..TruncatedLength]}***";
+            return result.Record.Data;
+        }
+     
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error occurred while ...");
+            throw;
+        }
+    }
+
+    public ObjectResult<LogboekData> BuildActivity(ObjectResult<LogboekData> logboekData, string internetaakId,
+        string type, string description)
+    {
+        logboekData.Record.Data.Activiteiten.Add(new ActiviteitData
+        {
+            Datum = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+            Type = type,
+            Omschrijving = description,
+            HeeftBetrekkingOp =
+            [
+                new ObjectIdentificator(internetaakId, _logboekOptions.CodeRegister,
+                    _logboekOptions.CodeObjectType,
+                    _logboekOptions.CodeSoortObjectId)
+            ]
+        });
+        return logboekData;
+    }
+
+    private static string TruncateId(string id)
+    {
+        return id.Length < TruncatedLength
+            ? "***"
+            : $"{id.AsSpan()[..TruncatedLength]}***";
+    }
 }
