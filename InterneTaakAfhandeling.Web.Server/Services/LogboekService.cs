@@ -54,8 +54,11 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                     await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.Single().ObjectId);
                 if (contactmoment != null)
                 {
-                    activiteit.Kanaal = contactmoment.Kanaal;
+                    activiteit.Id = contactmoment.Uuid;
+                    activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
                     activiteit.Tekst = contactmoment.Inhoud;
+                    activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
+                    activiteit.Medewerker = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
                 }
             }
 
@@ -69,15 +72,8 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         string type,
         string description)
     {
-        try
-        {
-            var activity = objectenApiClient.BuildActivity(logboekData, interneTaakId, type, description);
-            return objectenApiClient.UpdateLogboek(activity, logboekData.Uuid);
-        }
-        catch (Exception ee)
-        {
-            throw ee;
-        }
+        var activity = objectenApiClient.BuildActivity(logboekData, interneTaakId, type, description);
+        return objectenApiClient.UpdateLogboek(activity, logboekData.Uuid);
     }
 }
 
@@ -88,4 +84,7 @@ public class Activiteit
 
     public string? Kanaal { get; set; }
     public string? Tekst { get; set; }
+    public bool? ContactGelukt { get; set; }
+    public string? Id { get; set; }
+    public string? Medewerker { get; set; }
 }

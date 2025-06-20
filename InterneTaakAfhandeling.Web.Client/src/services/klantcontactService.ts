@@ -9,8 +9,11 @@ import { get, post } from "@/utils/fetchWrapper";
 interface LogboekActiviteit {
   datum: string;
   type: string;
-  kanaal: string;
-  tekst: string;
+  kanaal: string | undefined;
+  tekst: string | undefined;
+  id: string | undefined;
+  contactGelukt: string | undefined;
+  medewerker: string | undefined;
 }
 
 export const klantcontactService = {
