@@ -50,9 +50,10 @@ namespace InterneTaakAfhandeling.Common.Extensions
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GenerateZakenApiToken(zaakSysteemKey, zaakSysteemClientId));
             });
             // registered logboek options 
-            services.Configure<LogboekOptions>(configuration.GetSection("LogBoekOptions"));
-                
-            
+            services.AddOptions<LogboekOptions>()
+                .Bind(configuration.GetSection("LogBoekOptions"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
             return services;
         } 
  
