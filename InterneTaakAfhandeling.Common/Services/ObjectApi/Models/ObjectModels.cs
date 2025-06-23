@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 {
-    public class ObjectResponse<T>
+    public class ObjectModels<T>
     {
         public int Count { get; set; }
         public string? Next { get; set; }
@@ -32,7 +32,15 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
     }
 
 
- 
+
+    public class ObjectPatchModel<T>
+    {
+        public required string Uuid { get; set; }
+        public required string Type { get; set; }
+        public required ObjectRecord<T> Record { get; set; }
+    }
+
+
     public class MedewerkerObjectData
     {
         public  List<Emails>? Emails { get; set; }

@@ -10,7 +10,7 @@ public interface IObjectApiClient
     Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie);
     Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId);
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
-    Task<LogboekData> UpdateLogboek(ObjectResult<LogboekData> logboekData, string logboekDataUuid);
+    Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, string logboekDataUuid);
 }
 
 public class ObjectApiClient(
@@ -34,7 +34,7 @@ public class ObjectApiClient(
                 $"objects?ordering=record__data__identificatie&data_attr=identificatie__exact__{identificatie}");
             response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadFromJsonAsync<ObjectResponse<MedewerkerObjectData>>();
+            var result = await response.Content.ReadFromJsonAsync<ObjectModels<MedewerkerObjectData>>();
 
             if (result?.Results == null || result.Results.Count == 0)
             {
@@ -70,7 +70,7 @@ public class ObjectApiClient(
                 $"objects?data_attr=heeftBetrekkingOp__objectId__exact__{internetaakId}&type={_logboekOptions.Type}&typeVersion={_logboekOptions.TypeVersion}");
             response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadFromJsonAsync<ObjectResponse<LogboekData>>();
+            var result = await response.Content.ReadFromJsonAsync<ObjectModels<LogboekData>>();
 
             if (result?.Results == null || result.Results.Count == 0)
             {
@@ -102,6 +102,9 @@ public class ObjectApiClient(
 
     public async Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId)
     {
+
+        HttpResponseMessage? response = null;
+
         try
         {
             var request = new LogboekModels
@@ -126,7 +129,7 @@ public class ObjectApiClient(
                 }
             };
 
-            var response = await _httpClient.PostAsJsonAsync("objects", request);
+            response = await _httpClient.PostAsJsonAsync("objects", request);
 
             response.EnsureSuccessStatusCode();
 
@@ -138,8 +141,9 @@ public class ObjectApiClient(
         }
         catch (HttpRequestException ex)
         {
-            //todo: try to read the content to get useful info on the failure:  var contents = await response.Content.ReadAsStringAsync();
-            _logger.LogError(ex, "Error ...");
+            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
+
+            _logger.LogError(ex, "Error creating logboek for internetaak {internetaakId}. Error response {errorResponse}", internetaakId, errorResponse);
             throw;
         }
         catch (Exception ex)
@@ -149,11 +153,11 @@ public class ObjectApiClient(
         }
     }
 
-    public async Task<LogboekData> UpdateLogboek(ObjectResult<LogboekData> logboekResult, string logboekUuid)
+    public async Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekPatch, string logboekUuid)
     {
         try
         {
-            var response = await _httpClient.PatchAsJsonAsync($"objects/{logboekUuid}", logboekResult);
+            var response = await _httpClient.PatchAsJsonAsync($"objects/{logboekUuid}", logboekPatch);
 
             response.EnsureSuccessStatusCode();
 
@@ -166,7 +170,7 @@ public class ObjectApiClient(
 
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error occurred while ...");
+            _logger.LogError(ex, "Unexpected error occurred while updateing the logboek for ");
             throw;
         }
     }

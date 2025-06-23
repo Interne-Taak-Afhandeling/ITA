@@ -70,8 +70,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
                 await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
 
                 //add this action to the Internetaak logboek           
-                await _logboekService.AddContactmoment(request.InterneTaakId,KnownLogboekActiviteitTypes.Close,request.KlantcontactRequest.Inhoud);
-
+                await _logboekService.AddContactmoment(request.InterneTaakId, result.Klantcontact.Uuid, request.KlantcontactRequest.IndicatieContactGelukt);
+           
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }

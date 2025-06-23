@@ -1,59 +1,64 @@
 ﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using Microsoft.Extensions.Options;
 
 namespace InterneTaakAfhandeling.Web.Server.Services;
 
 public interface ILogboekService
 {
-    Task<LogboekData> AddContactmoment(Guid internetaakId,string type, string description);
+    Task<LogboekData> AddContactmoment(Guid internetaakId,string klantcontactId, bool?  isContactGelukt );
+    Task<LogboekData> AddAfsluitendContactmoment(Guid internetaakId, string klantcontactId, bool? isContactGelukt);
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
-
- 
+    
 }
 
-public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient, IOptions<LogboekOptions> logboekOptions)
+public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient )
     : ILogboekService
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-    private readonly IOptions<LogboekOptions> _logboekOptions = logboekOptions;
 
-    public async Task<LogboekData> AddContactmoment(Guid internetaakId, string type, string description)
+    public async Task<LogboekData> AddAfsluitendContactmoment(Guid internetaakId, string klancontactId, bool? isContactGelukt)
+    {
+        return await AddContactmomentLogActivity(internetaakId,  klancontactId, isContactGelukt, KnownLogboekActiviteitTypes.Afsluiting);
+    }
+
+
+    public async Task<LogboekData> AddContactmoment(Guid internetaakId, string klancontactId, bool? isContactGelukt)
+    {
+        return await AddContactmomentLogActivity(internetaakId, klancontactId, isContactGelukt, KnownLogboekActiviteitTypes.Klantcontact);
+    }
+
+    private async Task<LogboekData> AddContactmomentLogActivity(Guid internetaakId, string klancontactId, bool? isContactGelukt, string activityType)
     { 
         //1 check if a logboek for the Intenretaak already exists
-        var logboekData = await _objectenApiClient.GetLogboek(internetaakId);
-        if (logboekData == null)
-        {
-            //2 if not create it
-            logboekData= await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
+        var logboek = await _objectenApiClient.GetLogboek(internetaakId);
 
-        }
-        var activity = BuildActivity(logboekData, internetaakId.ToString(), type, description);
-        return await objectenApiClient.UpdateLogboek(activity, logboekData.Uuid);
-        
-    }
-    
-    public ObjectResult<LogboekData> BuildActivity(ObjectResult<LogboekData> logboekData, string internetaakId,
-        string type, string description)
-    {
-        logboekData.Record.Data.Activiteiten.Add(new ActiviteitData
+        //2 if not create it
+        logboek ??= await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
+
+        //3 add the contactmoment as an activity to the log
+
+        var logBoekPatch = new ObjectPatchModel<LogboekData> { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
+
+        logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {
-            Datum = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-            Type = type,
-            Omschrijving = description,
+            Datum = DateTime.UtcNow.ToString("o"),
+            Type = activityType, 
+            Omschrijving = (isContactGelukt.HasValue && isContactGelukt.Value ) ? "contact gehad" : "geen contact kunnen leggen",
             HeeftBetrekkingOp =
             [
-                new ObjectIdentificator(internetaakId, LogboekObjectIdentificators.CodeRegister,
-                    LogboekObjectIdentificators.CodeObjectType,
-                    LogboekObjectIdentificators.CodeSoortObjectId)
+                new ObjectIdentificator(
+                    klancontactId,
+                    LogboekActiviteitContactmomentObjectIdentificators.CodeRegister,
+                    LogboekActiviteitContactmomentObjectIdentificators.CodeObjectType,
+                    LogboekActiviteitContactmomentObjectIdentificators.CodeSoortObjectId)
             ]
         });
-        return logboekData;
+
+        return await _objectenApiClient.UpdateLogboek(logBoekPatch, logboek.Uuid);
+        
     }
-
-
 
     public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
     {
@@ -62,6 +67,9 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         if (logboek == null) return [];
 
         var activiteiten = new List<Activiteit>();
+
+        //newest on top
+        logboek.Record.Data.Activiteiten.Reverse();
 
         foreach (var item in logboek.Record.Data.Activiteiten)
         {
