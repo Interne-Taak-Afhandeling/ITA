@@ -49,6 +49,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
             ]
         });
 
+
         return await _objectenApiClient.UpdateLogboek(logBoekPatch, logboek.Uuid);
     }
 
