@@ -1,6 +1,4 @@
-﻿namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
-
-namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
+﻿namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 {
     public class LogboekModel
     {
