@@ -7,7 +7,6 @@ namespace InterneTaakAfhandeling.Web.Server.Services;
 public interface ILogboekService
 {
     Task<LogboekData> AddContactmoment(Guid internetaakId,string klantcontactId, bool?  isContactGelukt );
-    Task<LogboekData> AddAfsluitendContactmoment(Guid internetaakId, string klantcontactId, bool? isContactGelukt);
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
     
 }
@@ -17,20 +16,11 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-
-    public async Task<LogboekData> AddAfsluitendContactmoment(Guid internetaakId, string klancontactId, bool? isContactGelukt)
-    {
-        return await AddContactmomentLogActivity(internetaakId,  klancontactId, isContactGelukt, KnownLogboekActiviteitTypes.Afsluiting);
-    }
-
+     
 
     public async Task<LogboekData> AddContactmoment(Guid internetaakId, string klancontactId, bool? isContactGelukt)
     {
-        return await AddContactmomentLogActivity(internetaakId, klancontactId, isContactGelukt, KnownLogboekActiviteitTypes.Klantcontact);
-    }
-
-    private async Task<LogboekData> AddContactmomentLogActivity(Guid internetaakId, string klancontactId, bool? isContactGelukt, string activityType)
-    { 
+   
         //1 check if a logboek for the Intenretaak already exists
         var logboek = await _objectenApiClient.GetLogboek(internetaakId);
 
@@ -44,7 +34,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {
             Datum = DateTime.UtcNow.ToString("o"),
-            Type = activityType, 
+            Type = KnownLogboekActiviteitTypes.Klantcontact, 
             Omschrijving = (isContactGelukt.HasValue && isContactGelukt.Value ) ? "contact gehad" : "geen contact kunnen leggen",
             HeeftBetrekkingOp =
             [

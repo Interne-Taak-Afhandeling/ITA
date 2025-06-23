@@ -11,7 +11,7 @@ interface LogboekActiviteit {
   type: string;
   kanaal: string | undefined;
   tekst: string | undefined;
-  id: string | undefined;
+  id: string;
   contactGelukt: string | undefined;
   medewerker: string | undefined;
 }

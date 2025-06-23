@@ -40,7 +40,7 @@ const timeLineProps = computed<ContactTimelineProps>(() => ({
     logboekActiviteiten.value?.map(({ kanaal, datum, tekst, contactGelukt, id, medewerker }) => ({
       title: contactGelukt ? "Contact gelukt" : "Geen gehoor",
       id: id,
-      channel: kanaal,
+      channel: kanaal ?? "onbekend",
       isoDate: datum,
       description: tekst,
       sender: medewerker
