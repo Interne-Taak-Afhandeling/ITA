@@ -39,9 +39,9 @@
     {  
         public required string Type { get; init; }
         public required string TypeVersion { get; init; }
-        public required string CodeObjectType { get; init; }
-        public required string CodeRegister { get; init; }
-        public required string CodeSoortObjectId { get; init; }
+        public required string InternetaakCodeObjectType { get; init; }
+        public required string InternetaakCodeRegister { get; init; }
+        public required string InternetaakCodeSoortObjectId { get; init; }
     }
     
    

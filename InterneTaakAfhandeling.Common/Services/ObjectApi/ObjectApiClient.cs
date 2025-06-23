@@ -118,9 +118,9 @@ public class ObjectApiClient(
                     {
                         HeeftBetrekkingOp = new ObjectIdentificator
                         {
-                            CodeObjecttype = _logboekOptions.CodeObjectType,
-                            CodeRegister = _logboekOptions.CodeRegister,
-                            CodeSoortObjectId = _logboekOptions.CodeSoortObjectId,
+                            CodeObjecttype = _logboekOptions.InternetaakCodeObjectType,
+                            CodeRegister = _logboekOptions.InternetaakCodeRegister,
+                            CodeSoortObjectId = _logboekOptions.InternetaakCodeSoortObjectId,
                             ObjectId = internetaakId.ToString()
                         },
 
