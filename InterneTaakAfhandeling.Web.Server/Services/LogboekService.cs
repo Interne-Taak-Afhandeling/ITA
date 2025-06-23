@@ -33,7 +33,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {
-            Datum = DateTime.UtcNow.ToString("o"),
+            Datum = DateTime.Now,
             Type = KnownLogboekActiviteitTypes.Klantcontact, 
             Omschrijving = (isContactGelukt.HasValue && isContactGelukt.Value ) ? "contact gehad" : "geen contact kunnen leggen",
             HeeftBetrekkingOp =
@@ -59,9 +59,9 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         var activiteiten = new List<Activiteit>();
 
         //newest on top
-        logboek.Record.Data.Activiteiten.Reverse();
+        var activiteitenOrderedByDate = logboek.Record.Data.Activiteiten.OrderByDescending(x =>x.Datum);
 
-        foreach (var item in logboek.Record.Data.Activiteiten)
+        foreach (var item in activiteitenOrderedByDate)
         {
             var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
 
@@ -89,7 +89,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
 public class Activiteit
 {
-    public required string Datum { get; set; }
+    public required DateTimeOffset Datum { get; set; }
     public required string Type { get; set; }
 
     public string? Kanaal { get; set; }

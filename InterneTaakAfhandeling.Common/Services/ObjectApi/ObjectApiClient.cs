@@ -107,7 +107,7 @@ public class ObjectApiClient(
 
         try
         {
-            var request = new LogboekModels
+            var request = new LogboekModel
             {
                 Type = _logboekOptions.Type,
                 Record = new LogboekRecord

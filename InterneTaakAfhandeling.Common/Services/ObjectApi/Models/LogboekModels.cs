@@ -2,7 +2,7 @@
 
 namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 {
-    public class LogboekModels
+    public class LogboekModel
     {
         public required string Type { get; set; }
         public required LogboekRecord Record { get; set; }
@@ -23,7 +23,7 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 
     public class ActiviteitData
     {
-        public required string Datum { get; set; }
+        public required DateTimeOffset Datum { get; set; }
         public required string Type { get; set; }
         public required string Omschrijving { get; set; }
         public List<ObjectIdentificator> HeeftBetrekkingOp { get; set; }
