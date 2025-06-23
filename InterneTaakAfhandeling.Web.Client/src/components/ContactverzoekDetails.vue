@@ -1,34 +1,154 @@
 <template>
-  <utrecht-data-list>
-    <utrecht-data-list-item>
-      <utrecht-data-list-key>Vraag</utrecht-data-list-key>
-      <utrecht-data-list-value :value="taak.aanleidinggevendKlantcontact?.onderwerp" multiline>
-        {{ taak.aanleidinggevendKlantcontact?.onderwerp }}
-      </utrecht-data-list-value>
-    </utrecht-data-list-item>
-    <utrecht-data-list-item>
-      <utrecht-data-list-key>Informatie voor burger / bedrijf</utrecht-data-list-key>
-      <utrecht-data-list-value
-        :value="taak.aanleidinggevendKlantcontact?.inhoud"
-        multiline
-        class="preserve-newline"
-      >
-        {{ taak.aanleidinggevendKlantcontact?.inhoud }}
-      </utrecht-data-list-value>
-    </utrecht-data-list-item>
-    <utrecht-data-list-item>
-      <utrecht-spotlight-section>
-        <utrecht-data-list-key>Interne toelichting KCC</utrecht-data-list-key>
-        <utrecht-data-list-value :value="taak.toelichting" multiline class="preserve-newline">
-          {{ taak.toelichting }}
-        </utrecht-data-list-value>
-      </utrecht-spotlight-section>
-    </utrecht-data-list-item>
-  </utrecht-data-list>
+  <div class="ita-cv-detail-header">
+    <div>
+      <back-link class="back-link" />
+    </div>
+    <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
+    <utrecht-button-group v-if="taak?.uuid">
+      <assign-contactverzoek-to-myself :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
+      <KoppelZaakModal
+        v-if="taak?.aanleidinggevendKlantcontact?.uuid"
+        :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
+        :zaakIdentificatie="taak?.zaak?.identificatie"
+        @zaak-gekoppeld="handleZaakGekoppeld"
+      />
+    </utrecht-button-group>
+  </div>
+
+  <simple-spinner v-if="isLoadingTaak" />
+
+  <utrecht-alert v-else-if="!taak && !isLoadingTaak" type="error">
+    Dit contactverzoek bestaat niet of is niet meer beschikbaar.
+  </utrecht-alert>
+
+  <div v-else-if="taak" class="ita-cv-detail-sections">
+    <detail-section title="Onderwerp / vraag">
+      <contactverzoek-details :taak="taak" />
+    </detail-section>
+
+    <detail-section
+      v-if="taak.aanleidinggevendKlantcontact"
+      class="contact-data"
+      title="Gegevens van contact"
+    >
+      <contactmoment-details
+        :contactmoment="taak.aanleidinggevendKlantcontact"
+        :zaak="taak.zaak"
+        :status="taak.status"
+        :actoren="taak.toegewezenAanActoren || []"
+      />
+    </detail-section>
+
+    <detail-section title="Contactmoment registreren">
+      <div class="same-margin-as-datalist">
+        <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
+      </div>
+    </detail-section>
+
+    <detail-section title="Logboek contactverzoek">
+      <div class="same-margin-as-datalist">
+        <logboek-contactverzoek v-if="taak" :taak="taak" />
+      </div>
+    </detail-section>
+  </div>
 </template>
 
-<script setup lang="ts">
-import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
-import type { Internetaken } from "@/types/internetaken";
-defineProps<{ taak: Internetaken }>();
+<script lang="ts" setup>
+import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import BackLink from "@/components/BackLink.vue";
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import LogboekContactverzoek from "@/components/LogboekContactverzoek.vue";
+import type { Internetaken, Zaak } from "@/types/internetaken";
+import { internetakenService } from "@/services/internetakenService";
+import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
+import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
+import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
+import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
+import ContactmomentRegistreren from "@/components/ContactmomentRegistreren.vue";
+import DetailSection from "@/components/DetailSection.vue";
+
+const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
+const route = useRoute();
+const cvId = computed(() => first(route.params.number));
+const isLoadingTaak = ref(false);
+const taak = ref<Internetaken | null>(null);
+
+const handleZaakGekoppeld = (zaak: Zaak) => {
+  if (taak.value) {
+    taak.value.zaak = zaak;
+  }
+};
+
+onMounted(async () => {
+  await fetchInternetaken();
+});
+
+const fetchInternetaken = async () => {
+  isLoadingTaak.value = true;
+  try {
+    taak.value = await internetakenService.getInternetaak({
+      Nummer: String(cvId.value)
+    });
+  } catch (err: unknown) {
+    console.error("Error loading contactverzoek:", err);
+  } finally {
+    isLoadingTaak.value = false;
+  }
+};
 </script>
+
+<style lang="scss" scoped>
+.contactverzoek-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.back-link {
+  margin-bottom: 1.5rem;
+}
+
+.ita-cv-detail-sections {
+  --_column-size: 42rem;
+  display: grid;
+  column-gap: var(--ita-cv-details-sections-column-gap);
+  row-gap: var(--ita-cv-details-sections-row-gap);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_column-size)), 1fr));
+  align-items: start;
+
+  > * {
+    min-height: 22rem;
+  }
+}
+
+.ita-cv-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+
+  > :first-child {
+    min-inline-size: 100%;
+  }
+}
+
+.contact-data {
+  container-type: inline-size;
+}
+
+.same-margin-as-datalist {
+  margin-block-end: calc(
+    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-end, 0)
+  );
+  margin-block-start: calc(
+    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-start, 0)
+  );
+}
+
+.ita-cv-detail-sections :deep(.denhaag-process-steps__step:last-child) {
+  padding-block-end: 0;
+}
+</style>
