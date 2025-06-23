@@ -33,25 +33,6 @@ export const klantcontactService = {
     get<LogboekActiviteit[]>(`/api/internetaken/${internetaakId}/logboek`, undefined, {
       signal
     })
-
-  // getContactKeten: (
-  //   klantcontactId: string,
-  //   signal?: AbortSignal
-  // ): Promise<ContactmomentenResponse> =>
-  //   get<ContactmomentenResponse>(
-  //     `/api/klantcontacten/${klantcontactId}/klantcontacten`,
-  //     undefined,
-  //     { signal }
-  //   )
-
-  // /**
-  //  * Helper-functie die alleen het UUID van het laatste klantcontact in de keten ophaalt
-  //  * @param klantcontactId - De UUID van het klantcontact
-  //  * @returns Een promise met alleen het UUID van het laatste klantcontact
-  //  */
-  // getLaatsteKlantcontactUuid: (klantcontactId: string): Promise<string> =>
-  //   get<ContactmomentenResponse>(`/api/klantcontacten-overview/${klantcontactId}/contactketen`)
-  //     .then(response => response.laatsteBekendKlantcontactUuid)
 };
 
 export type {

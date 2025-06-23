@@ -27,7 +27,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
                 resourcesConfig.FontSources
             };
 
-            // AddContactmoment svg logo to connectSources to be able to fetch through js
+            // Add svg logo to connectSources to be able to fetch through js
             var logoUrl = resourcesConfig.LogoUrl;
 
             if (!string.IsNullOrEmpty(logoUrl))
