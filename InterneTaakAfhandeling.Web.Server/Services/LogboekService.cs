@@ -34,17 +34,19 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {
             Datum = DateTime.Now,
-            Type = KnownLogboekActiviteitTypes.Klantcontact, 
-            Omschrijving = (isContactGelukt.HasValue && isContactGelukt.Value ) ? "contact gehad" : "geen contact kunnen leggen",
+            Type = KnownLogboekActiviteitTypes.Klantcontact,
+            Omschrijving = (isContactGelukt.HasValue && isContactGelukt.Value) ? "contact gehad" : "geen contact kunnen leggen",
             HeeftBetrekkingOp =
             [
-                new ObjectIdentificator(
-                    klancontactId,
-                    LogboekActiviteitContactmomentObjectIdentificators.CodeRegister,
-                    LogboekActiviteitContactmomentObjectIdentificators.CodeObjectType,
-                    LogboekActiviteitContactmomentObjectIdentificators.CodeSoortObjectId)
+                new ObjectIdentificator {
+                    ObjectId = klancontactId,
+                    CodeRegister = LogboekActiviteitContactmomentObjectIdentificators.CodeRegister,
+                    CodeObjecttype =  LogboekActiviteitContactmomentObjectIdentificators.CodeObjectType,
+                    CodeSoortObjectId = LogboekActiviteitContactmomentObjectIdentificators.CodeSoortObjectId
+                }
             ]
         });
+
 
         return await _objectenApiClient.UpdateLogboek(logBoekPatch, logboek.Uuid);
         

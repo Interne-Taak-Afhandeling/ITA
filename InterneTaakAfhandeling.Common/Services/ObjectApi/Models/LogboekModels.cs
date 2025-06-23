@@ -32,19 +32,6 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 
     public class ObjectIdentificator
     {
-        public ObjectIdentificator()
-        {
-        }
-
-        [SetsRequiredMembers]
-        public ObjectIdentificator(string objectId, string codeRegister, string codeObjecttype, string codeSoortObjectId)
-        {
-            ObjectId = objectId;
-            CodeRegister = codeRegister;
-            CodeObjecttype = codeObjecttype;
-            CodeSoortObjectId = codeSoortObjectId;
-        }
-
         public required string CodeRegister { get; set; }
         public required string CodeObjecttype { get; set; }
         public required string CodeSoortObjectId { get; set; }
