@@ -26,7 +26,7 @@ public class ActiviteitData
     public required DateTimeOffset Datum { get; set; }
     public required string Type { get; set; }
     public required string Omschrijving { get; set; }
-    public List<ObjectIdentificator> HeeftBetrekkingOp { get; set; }
+    public required List<ObjectIdentificator> HeeftBetrekkingOp { get; set; }
 }
 
 public class ObjectIdentificator

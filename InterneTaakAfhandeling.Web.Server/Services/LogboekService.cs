@@ -68,7 +68,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         {
             var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
 
-            if (item.Type == KnownLogboekActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp != null)
+            if (item.Type == KnownLogboekActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp.Count == 1)
             {
                 var contactmoment =
                     await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.Single().ObjectId);
