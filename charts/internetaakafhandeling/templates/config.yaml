@@ -46,6 +46,3 @@ data:
   
   LogBoekOptions__Type: {{ .Values.logboek.type | quote }}
   LogBoekOptions__TypeVersion: {{ .Values.logboek.typeVersion | toString | quote }}
-  LogBoekOptions__InternetaakCodeObjectType: {{ .Values.logboek.interneTaak.codeObjectType | quote }}
-  LogBoekOptions__InternetaakCodeRegister: {{ .Values.logboek.interneTaak.codeRegister | quote }}
-  LogBoekOptions__InternetaakCodeSoortObjectId: {{ .Values.logboek.interneTaak.codeSoortObjectId | quote }}

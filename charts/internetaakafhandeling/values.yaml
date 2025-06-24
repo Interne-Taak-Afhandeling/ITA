@@ -53,10 +53,6 @@ apiConnections:
 logboek:
   type: ""
   typeVersion: 1
-  interneTaak:
-    codeObjectType: "internetaak"
-    codeRegister: "openklant"
-    codeSoortObjectId: "uuid"
 
 # Web Application Configuration
 web:
