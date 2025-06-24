@@ -34,9 +34,6 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | ingress.enabled | bool | `true` |  |
 | ingress.host | string | `""` |  |
 | ingress.port | int | `80` |  |
-| logboek.interneTaak.codeObjectType | string | `"internetaak"` |  |
-| logboek.interneTaak.codeRegister | string | `"openklant"` |  |
-| logboek.interneTaak.codeSoortObjectId | string | `"uuid"` |  |
 | logboek.type | string | `""` |  |
 | logboek.typeVersion | int | `1` |  |
 | poller.image.pullPolicy | string | `"Always"` |  |

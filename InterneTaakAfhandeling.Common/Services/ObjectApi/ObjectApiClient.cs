@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models; 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -118,9 +119,9 @@ public class ObjectApiClient(
                     {
                         HeeftBetrekkingOp = new ObjectIdentificator
                         {
-                            CodeObjecttype = _logboekOptions.InternetaakCodeObjectType,
-                            CodeRegister = _logboekOptions.InternetaakCodeRegister,
-                            CodeSoortObjectId = _logboekOptions.InternetaakCodeSoortObjectId,
+                            CodeObjecttype = InternetaakObjectIdentificator.CodeObjectType,
+                            CodeRegister = InternetaakObjectIdentificator.CodeRegister,
+                            CodeSoortObjectId = InternetaakObjectIdentificator.CodeSoortObjectId,
                             ObjectId = internetaakId.ToString()
                         },
 

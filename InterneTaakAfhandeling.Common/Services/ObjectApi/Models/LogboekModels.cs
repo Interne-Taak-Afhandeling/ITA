@@ -42,10 +42,4 @@ public class LogboekOptions
     [Required] public required string Type { get; init; }
 
     [Required] public required string TypeVersion { get; init; }
-
-    [Required] public required string InternetaakCodeObjectType { get; init; }
-
-    [Required] public required string InternetaakCodeRegister { get; init; }
-
-    [Required] public required string InternetaakCodeSoortObjectId { get; init; }
 }

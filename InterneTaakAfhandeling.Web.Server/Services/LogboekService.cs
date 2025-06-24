@@ -1,4 +1,5 @@
 ﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
@@ -33,7 +34,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {
             Datum = DateTime.Now,
-            Type = KnownLogboekActiviteitTypes.Klantcontact,
+            Type = ActiviteitTypes.Klantcontact,
             Omschrijving = isContactGelukt.HasValue && isContactGelukt.Value
                 ? "contact gehad"
                 : "geen contact kunnen leggen",
@@ -42,9 +43,9 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                 new ObjectIdentificator
                 {
                     ObjectId = klancontactId,
-                    CodeRegister = LogboekActiviteitContactmomentObjectIdentificators.CodeRegister,
-                    CodeObjecttype = LogboekActiviteitContactmomentObjectIdentificators.CodeObjectType,
-                    CodeSoortObjectId = LogboekActiviteitContactmomentObjectIdentificators.CodeSoortObjectId
+                    CodeRegister = ActiviteitContactmomentObjectIdentificator.CodeRegister,
+                    CodeObjecttype = ActiviteitContactmomentObjectIdentificator.CodeObjectType,
+                    CodeSoortObjectId = ActiviteitContactmomentObjectIdentificator.CodeSoortObjectId
                 }
             ]
         });
@@ -68,7 +69,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         {
             var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
 
-            if (item.Type == KnownLogboekActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp.Count == 1)
+            if (item.Type == ActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp.Count == 1)
             {
                 var contactmoment =
                     await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.Single().ObjectId);
