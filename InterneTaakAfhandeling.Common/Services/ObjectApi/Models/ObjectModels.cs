@@ -13,7 +13,7 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
     public class ObjectResult<T>
     {
         public required string Url { get; set; }
-        public required string Uuid { get; set; }
+        public required Guid Uuid { get; set; }
         public required string Type { get; set; }
         public required ObjectRecord<T> Record { get; set; }
     }
@@ -35,7 +35,7 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 
     public class ObjectPatchModel<T>
     {
-        public required string Uuid { get; set; }
+        public required Guid Uuid { get; set; }
         public required string Type { get; set; }
         public required ObjectRecord<T> Record { get; set; }
     }

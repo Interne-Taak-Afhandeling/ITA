@@ -10,7 +10,7 @@ public interface IObjectApiClient
     Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie);
     Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId);
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
-    Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, string logboekDataUuid);
+    Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, Guid logboekDataUuid);
 }
 
 public class ObjectApiClient(
@@ -153,7 +153,7 @@ public class ObjectApiClient(
         }
     }
 
-    public async Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekPatch, string logboekUuid)
+    public async Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekPatch, Guid logboekUuid)
     {
         try
         {
