@@ -11,7 +11,7 @@ public class LogboekModel
 public class LogboekRecord
 {
     public required string TypeVersion { get; set; }
-    public required string StartAt { get; set; }
+    public required DateOnly StartAt { get; set; }
     public required LogboekData Data { get; set; }
 }
 

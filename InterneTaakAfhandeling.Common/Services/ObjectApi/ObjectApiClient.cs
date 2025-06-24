@@ -112,7 +112,7 @@ public class ObjectApiClient(
                 Type = _logboekOptions.Type,
                 Record = new LogboekRecord
                 {
-                    StartAt = DateTime.Now.ToString("yyyy-MM-dd"),
+                    StartAt = DateOnly.FromDateTime(DateTime.Now),
                     TypeVersion = _logboekOptions.TypeVersion,
                     Data = new LogboekData
                     {

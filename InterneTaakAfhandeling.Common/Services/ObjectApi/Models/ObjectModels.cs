@@ -24,7 +24,7 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
         public int TypeVersion { get; set; }
         public required T Data { get; set; }
         public object? Geometry { get; set; }
-        public required string StartAt { get; set; }
+        public required DateOnly StartAt { get; set; }
         public string? EndAt { get; set; }
         public  string? RegistrationAt { get; set; }
         public string? CorrectionFor { get; set; }
