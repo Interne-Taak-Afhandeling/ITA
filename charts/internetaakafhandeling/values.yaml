@@ -50,6 +50,10 @@ apiConnections:
     clientId: ""
     key: ""
 
+logboek:
+  type: ""
+  typeVersion: 1
+
 # Web Application Configuration
 web:
   image:

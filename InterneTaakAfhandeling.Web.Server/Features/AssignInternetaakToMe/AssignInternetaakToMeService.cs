@@ -38,6 +38,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
             };
 
             return await _openKlantApiClient.PutInternetaakAsync(internetakenUpdateRequest, internetaak.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
+            
         }
 
         private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Common.Services.OpenKlantApi.Models.Internetaak internetaken)

@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models; 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,7 +11,7 @@ public interface IObjectApiClient
     Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie);
     Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId);
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
-    Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, string logboekDataUuid);
+    Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, Guid logboekDataUuid);
 }
 
 public class ObjectApiClient(
@@ -112,15 +113,15 @@ public class ObjectApiClient(
                 Type = _logboekOptions.Type,
                 Record = new LogboekRecord
                 {
-                    StartAt = DateTime.Now.ToString("yyyy-MM-dd"),
+                    StartAt = DateOnly.FromDateTime(DateTime.Now),
                     TypeVersion = _logboekOptions.TypeVersion,
                     Data = new LogboekData
                     {
                         HeeftBetrekkingOp = new ObjectIdentificator
                         {
-                            CodeObjecttype = _logboekOptions.InternetaakCodeObjectType,
-                            CodeRegister = _logboekOptions.InternetaakCodeRegister,
-                            CodeSoortObjectId = _logboekOptions.InternetaakCodeSoortObjectId,
+                            CodeObjecttype = InternetaakObjectIdentificator.CodeObjectType,
+                            CodeRegister = InternetaakObjectIdentificator.CodeRegister,
+                            CodeSoortObjectId = InternetaakObjectIdentificator.CodeSoortObjectId,
                             ObjectId = internetaakId.ToString()
                         },
 
@@ -153,7 +154,7 @@ public class ObjectApiClient(
         }
     }
 
-    public async Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekPatch, string logboekUuid)
+    public async Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekPatch, Guid logboekUuid)
     {
         try
         {

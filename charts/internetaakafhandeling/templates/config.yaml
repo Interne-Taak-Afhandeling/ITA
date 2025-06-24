@@ -43,3 +43,6 @@ data:
   # Notification settings
   pollerMessage: {{ .Values.poller.notification.pollerMessage | quote }}
   InternetakenNotifier__HourThreshold: {{ .Values.poller.notification.hourThreshold | quote }}
+  
+  LogBoekOptions__Type: {{ .Values.logboek.type | quote }}
+  LogBoekOptions__TypeVersion: {{ .Values.logboek.typeVersion | toString | quote }}

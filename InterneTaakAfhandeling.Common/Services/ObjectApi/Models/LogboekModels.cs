@@ -11,7 +11,7 @@ public class LogboekModel
 public class LogboekRecord
 {
     public required string TypeVersion { get; set; }
-    public required string StartAt { get; set; }
+    public required DateOnly StartAt { get; set; }
     public required LogboekData Data { get; set; }
 }
 
@@ -26,7 +26,7 @@ public class ActiviteitData
     public required DateTimeOffset Datum { get; set; }
     public required string Type { get; set; }
     public required string Omschrijving { get; set; }
-    public List<ObjectIdentificator> HeeftBetrekkingOp { get; set; }
+    public required List<ObjectIdentificator> HeeftBetrekkingOp { get; set; }
 }
 
 public class ObjectIdentificator
@@ -42,10 +42,4 @@ public class LogboekOptions
     [Required] public required string Type { get; init; }
 
     [Required] public required string TypeVersion { get; init; }
-
-    [Required] public required string InternetaakCodeObjectType { get; init; }
-
-    [Required] public required string InternetaakCodeRegister { get; init; }
-
-    [Required] public required string InternetaakCodeSoortObjectId { get; init; }
 }
