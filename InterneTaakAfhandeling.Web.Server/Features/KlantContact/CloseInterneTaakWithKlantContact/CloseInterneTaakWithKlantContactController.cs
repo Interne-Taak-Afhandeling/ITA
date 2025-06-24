@@ -1,16 +1,17 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Middleware;
+using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTaakWithKlantContact
 {
-    [Route("api/[controller]")]
+    [Route("api/internetaken")]
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -18,16 +19,18 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
         ITAUser user,
         ICreateKlantContactService createKlantContactService,
         ILogger<CloseInterneTaakWithKlantContactController> logger,
-        IOpenKlantApiClient openKlantApiClient) : Controller
+        IOpenKlantApiClient openKlantApiClient,
+        ILogboekService logboekService) : Controller
     {
         private readonly ITAUser _user = user ?? throw new ArgumentNullException(nameof(user));
         private readonly ICreateKlantContactService _createKlantContactService = createKlantContactService ?? throw new ArgumentNullException(nameof(createKlantContactService));
         private readonly ILogger<CloseInterneTaakWithKlantContactController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        private readonly IOpenKlantApiClient openKlantApiClient = openKlantApiClient;
+        private readonly IOpenKlantApiClient openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+        private readonly ILogboekService _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
 
         [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
-        [HttpPost()]
+        [HttpPost("close-with-klantcontact")] //todo: refactor to "HttpPost("[internetaakUuid]/close-with-klantcontact)" and consider making it a PUT
         public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] RequestModel request)
         {
             try
@@ -50,6 +53,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
                 var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                     request.KlantcontactRequest,
                     request.AanleidinggevendKlantcontactUuid,
+                    request.InterneTaakId,
                     _user.Email,
                     _user.Name,
                     request.PartijUuid
@@ -64,6 +68,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
                 };
 
                 await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
+
+                //add this action to the Internetaak logboek           
+                await _logboekService.AddContactmoment(request.InterneTaakId, result.Klantcontact.Uuid, request.KlantcontactRequest.IndicatieContactGelukt);
+           
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }

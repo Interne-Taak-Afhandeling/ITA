@@ -14,6 +14,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
         Task<RelatedKlantcontactResult> CreateRelatedKlantcontactAsync(
             KlantcontactRequest klantcontactRequest,
             Guid previousKlantcontactUuid,
+            Guid internetaakUuid,
             string userEmail,
             string? userName,
             Guid? partijUuid = null);
@@ -23,21 +24,23 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
     {
         private readonly IOpenKlantApiClient _openKlantApiClient;
         private readonly IKlantcontactService _klantcontactService;
-        private readonly ILogger<CreateKlantContactService> _logger;
+        private readonly ILogger<CreateKlantContactService> _logger;   
 
         public CreateKlantContactService(
             IOpenKlantApiClient openKlantApiClient,
             IKlantcontactService klantcontactService,
-            ILogger<CreateKlantContactService> logger)
+            ILogger<CreateKlantContactService> logger         
+            )
         {
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));     
         }
 
         public async Task<RelatedKlantcontactResult> CreateRelatedKlantcontactAsync(
             KlantcontactRequest klantcontactRequest,
             Guid aanleidinggevendKlantcontactUuid,
+            Guid internetaakUuid,
             string userEmail,
             string? userName,
             Guid? partijUuid = null)

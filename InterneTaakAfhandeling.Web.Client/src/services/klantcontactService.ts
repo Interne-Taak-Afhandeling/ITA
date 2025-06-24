@@ -2,52 +2,42 @@ import type {
   CreateKlantcontactRequest,
   RelatedKlantcontactResult,
   CreateRelatedKlantcontactRequest,
-  Contactmoment,
-  CreateRelatedKlantcontactAndCloseInterneTaakRequest
+  Contactmoment
 } from "@/types/internetaken";
 import { get, post } from "@/utils/fetchWrapper";
 
-interface ContactmomentenResponse {
-  contactmomenten: Contactmoment[];
-  laatsteBekendKlantcontactUuid: string;
+interface LogboekActiviteit {
+  datum: string;
+  type: string;
+  kanaal: string | undefined;
+  tekst: string | undefined;
+  id: string;
+  contactGelukt: string | undefined;
+  medewerker: string | undefined;
 }
 
 export const klantcontactService = {
   createRelatedKlantcontact: (
     request: CreateRelatedKlantcontactRequest
   ): Promise<RelatedKlantcontactResult> => {
-    return post<RelatedKlantcontactResult>("/api/createklantcontact", request);
+    return post<RelatedKlantcontactResult>("/api/klantcontacten/add-klantcontact", request);
   },
 
   createRelatedKlantcontactAndCloseInterneTaak: (
-    request: CreateRelatedKlantcontactAndCloseInterneTaakRequest
+    request: CreateRelatedKlantcontactRequest
   ): Promise<RelatedKlantcontactResult> => {
-    return post<RelatedKlantcontactResult>("/api/closeinternetaakwithklantcontact", request);
+    return post<RelatedKlantcontactResult>("/api/internetaken/close-with-klantcontact", request);
   },
 
-  getContactKeten: (
-    klantcontactId: string,
-    signal?: AbortSignal
-  ): Promise<ContactmomentenResponse> =>
-    get<ContactmomentenResponse>(
-      `/api/klantcontacten-overview/${klantcontactId}/contactketen`,
-      undefined,
-      { signal }
-    )
-
-  // /**
-  //  * Helper-functie die alleen het UUID van het laatste klantcontact in de keten ophaalt
-  //  * @param klantcontactId - De UUID van het klantcontact
-  //  * @returns Een promise met alleen het UUID van het laatste klantcontact
-  //  */
-  // getLaatsteKlantcontactUuid: (klantcontactId: string): Promise<string> =>
-  //   get<ContactmomentenResponse>(`/api/klantcontacten-overview/${klantcontactId}/contactketen`)
-  //     .then(response => response.laatsteBekendKlantcontactUuid)
+  getLogboek: (internetaakId: string, signal?: AbortSignal): Promise<LogboekActiviteit[]> =>
+    get<LogboekActiviteit[]>(`/api/internetaken/${internetaakId}/logboek`, undefined, {
+      signal
+    })
 };
 
 export type {
   CreateKlantcontactRequest,
   RelatedKlantcontactResult,
   Contactmoment,
-  ContactmomentenResponse
+  LogboekActiviteit
 };

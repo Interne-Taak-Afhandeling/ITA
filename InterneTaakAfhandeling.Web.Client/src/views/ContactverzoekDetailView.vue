@@ -5,7 +5,7 @@
     </div>
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
-      <assign-contactverzoek-to-myself :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
+      <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
       <KoppelZaakModal
         v-if="taak?.aanleidinggevendKlantcontact?.uuid"
         :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
@@ -62,7 +62,7 @@ import { useRoute } from "vue-router";
 import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
 import type { Internetaken, Zaak } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
-import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
+import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
 import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
 import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
 import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
@@ -88,9 +88,7 @@ onMounted(async () => {
 const fetchInternetaken = async () => {
   isLoadingTaak.value = true;
   try {
-    taak.value = await internetakenService.getInternetaak({
-      Nummer: String(cvId.value)
-    });
+    taak.value = await internetakenService.getInternetaak(cvId.value);
   } catch (err: unknown) {
     console.error("Error loading contactverzoek:", err);
   } finally {

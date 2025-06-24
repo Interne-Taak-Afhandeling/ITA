@@ -218,10 +218,6 @@ export interface CreateRelatedKlantcontactRequest {
   klantcontactRequest: CreateKlantcontactRequest;
   aanleidinggevendKlantcontactUuid?: string;
   partijUuid?: string;
-}
-
-export interface CreateRelatedKlantcontactAndCloseInterneTaakRequest
-  extends CreateRelatedKlantcontactRequest {
   interneTaakId: string;
 }
 

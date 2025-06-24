@@ -405,3 +405,5 @@ FodyWeavers.xsd
 
 secrets/
  
+.idea/
+charts/internetaakafhandeling/charts/*.tgz

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
 {
-    [Route("api/koppelzaak")]
+    [Route("api/internetaken")]
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -30,7 +30,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        [HttpPost("koppel-zaak-aan-klantcontact")]
+        [HttpPost("koppel-zaak")]
         [ProducesResponseType(typeof(KoppelZaakAanKlantcontactResult), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]

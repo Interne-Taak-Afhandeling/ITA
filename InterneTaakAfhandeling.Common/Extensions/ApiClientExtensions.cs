@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using Microsoft.Extensions.Configuration;
@@ -32,9 +33,9 @@ namespace InterneTaakAfhandeling.Common.Extensions
             {
                 var objectApiBaseUrl = configuration.GetValue<string>("ObjectApi:BaseUrl") ?? throw new Exception("ObjectApi:BaseUrl configuration value is missing");
                 var objectApiKey = configuration.GetValue<string>("ObjectApi:ApiKey") ?? throw new Exception("ObjectApi:ApiKey configuration value is missing");
-
                 client.BaseAddress = new Uri(objectApiBaseUrl);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", objectApiKey);
+                client.DefaultRequestHeaders.Add("Content-Crs", "EPSG:4326");
             });
 
             services.AddHttpClient<IZakenApiClient, ZakenApiClient>(client =>
@@ -48,9 +49,13 @@ namespace InterneTaakAfhandeling.Common.Extensions
                 client.DefaultRequestHeaders.Add("Accept-Crs", DefaultCrs);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GenerateZakenApiToken(zaakSysteemKey, zaakSysteemClientId));
             });
-
+            // registered logboek options 
+            services.AddOptions<LogboekOptions>()
+                .Bind(configuration.GetSection("LogBoekOptions"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
             return services;
-        }
+        } 
  
 
           public static string GenerateZakenApiToken(string JwtSecretKey, string ClientId)

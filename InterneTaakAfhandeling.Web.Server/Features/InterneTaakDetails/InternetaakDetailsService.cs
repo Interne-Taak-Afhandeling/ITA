@@ -9,7 +9,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
     {
         Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters);
     }
-    public class InternetaakService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient, IContactmomentenService contactmomentenService) : IInternetaakService
+    public class InternetaakDetailsService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient, IContactmomentenService contactmomentenService) : IInternetaakService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;

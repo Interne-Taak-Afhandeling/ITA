@@ -8,16 +8,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
     [Route("api/internetaken")]
     [ApiController]
     [Authorize]
-    public class InternetaakController(IInternetaakService internetakenService) : Controller
+    public class InternetaakDetailsController(IInternetaakService internetakenService) : Controller
     {
 
         private readonly IInternetaakService _internetakenService = internetakenService;
 
         [ProducesResponseType(typeof(Internetaak), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [HttpGet()]
-        public async Task<IActionResult> Get([FromQuery] InterneTaakQuery interneTaakQueryParameters)
+        [HttpGet("{internetaakNummer}")]
+
+        //todo: refactor to use Id instead of nummer
+        public async Task<IActionResult> Get([FromRoute] string internetaakNummer)
         {
+            var interneTaakQueryParameters = new InterneTaakQuery { Nummer = internetaakNummer };
             var internetaak = await _internetakenService.Get(interneTaakQueryParameters);
 
             if (internetaak == null) {

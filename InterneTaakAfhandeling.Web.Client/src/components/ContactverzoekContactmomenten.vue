@@ -24,15 +24,12 @@ import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 
 const props = defineProps<{ taak: Internetaken }>();
 const {
-  data: contactmomenten,
+  data: logboekActiviteiten,
   loading,
   error
 } = useLoader((signal) => {
   if (props.taak.aanleidinggevendKlantcontact?.uuid) {
-    return klantcontactService.getContactKeten(
-      props.taak.aanleidinggevendKlantcontact.uuid,
-      signal
-    );
+    return klantcontactService.getLogboek(props.taak.uuid, signal);
   }
 });
 
@@ -40,16 +37,14 @@ const timeLineProps = computed<ContactTimelineProps>(() => ({
   labels: { today: "Vandaag", yesterday: "Gisteren" },
   collapsible: true,
   items:
-    contactmomenten.value?.contactmomenten.map(
-      ({ uuid, contactGelukt, kanaal, datum, tekst, medewerker }) => ({
-        title: contactGelukt ? "Contact gelukt" : "Geen gehoor",
-        id: uuid,
-        channel: kanaal,
-        isoDate: datum,
-        description: tekst,
-        sender: medewerker
-      })
-    ) ?? [],
-  expandedItems: contactmomenten.value?.contactmomenten.map(({ uuid }) => uuid) ?? []
+    logboekActiviteiten.value?.map(({ kanaal, datum, tekst, contactGelukt, id, medewerker }) => ({
+      title: contactGelukt ? "Contact gelukt" : "Geen gehoor",
+      id: id,
+      channel: kanaal ?? "onbekend",
+      isoDate: datum,
+      description: tekst,
+      sender: medewerker
+    })) ?? [],
+  expandedItems: logboekActiviteiten.value?.map(({ id }) => id) ?? []
 }));
 </script>
