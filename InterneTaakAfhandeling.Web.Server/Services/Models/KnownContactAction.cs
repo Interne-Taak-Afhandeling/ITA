@@ -30,17 +30,8 @@ public class KnownContactAction
         Title = "Logboek contactverzoek"
     };
 
-    public static readonly KnownContactAction ContactSuccessful = new()
-    {
-        Key = "ContactSuccessful",
-        Description = "contact successful",
-        Title = "Logboek contactverzoek"
-    };
-
 
     public required string Key { get; init; }
     public required string Title { get; init; }
-    public required string Description { get; init; } 
-
-
+    public required string Description { get; init; }
 }
