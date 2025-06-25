@@ -12,14 +12,14 @@ public class KnownContactAction
     public static readonly KnownContactAction CaseLinked = new()
     {
         Key = "CaseLinked",
-        Description = "case linked",
+        Description = "zaak gekoppel",
         Title = "Logboek contactverzoek"
     };
 
     public static readonly KnownContactAction CaseModified = new()
     {
         Key = "CaseModified",
-        Description = "case modified",
+        Description = "zaak gewijzigd",
         Title = "Logboek contactverzoek"
     };
 
