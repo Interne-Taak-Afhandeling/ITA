@@ -97,7 +97,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
     {
         var logboekData = await GetOrCreateLogboek(internetaakId);
 
-        var logboekAction = BuildLogboekAction(logboekData, objectId, knownContactAction.Title,
+        var logboekAction = BuildLogboekAction(logboekData, objectId, knownContactAction.Type,
             knownContactAction.Description);
 
         await objectenApiClient.UpdateLogboek(logboekAction, logboekData.Uuid);
