@@ -24,6 +24,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             });
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
+            services.AddHealthChecks();
             services.AddSingleton<ResourcesConfig>();
             services.AddAuth(options =>
           {
