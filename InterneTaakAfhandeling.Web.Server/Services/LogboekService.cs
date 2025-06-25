@@ -135,19 +135,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         });
         return logBoekPatch;
     }
-
-    private string GetObjectIdPerAction(KnownContactAction knownContactAction, Internetaak internetaak)
-    {
-        return knownContactAction.Key switch
-        {
-            "Completed" => internetaak.Uuid,
-            "CaseLinked" => internetaak.AanleidinggevendKlantcontact.Uuid,
-            "CaseModified" => internetaak.Uuid,
-            "AssignedToSelf" => internetaak.Uuid,
-            "ContactSuccessful" => internetaak.Uuid,
-            _ => string.Empty
-        };
-    }
+   
 
     #endregion
 }
