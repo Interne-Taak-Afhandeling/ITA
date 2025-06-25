@@ -29,6 +29,7 @@ app.UseAuthorization();
 app.UseItaSecurityHeaders();
 app.MapControllers();
 app.MapITAAuthEndpoints();
+app.MapHealthChecks("/healthz").AllowAnonymous();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
