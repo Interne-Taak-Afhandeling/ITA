@@ -96,9 +96,8 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId, Guid objectId)
     {
         var logboekData = await GetOrCreateLogboek(internetaakId);
-
-        var logboekAction = BuildLogboekAction(logboekData, objectId, knownContactAction.Type,
-            knownContactAction.Description);
+        
+        var logboekAction = BuildLogboekAction(knownContactAction,logboekData, objectId);
 
         await objectenApiClient.UpdateLogboek(logboekAction, logboekData.Uuid);
     }
@@ -110,26 +109,25 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         return await _objectenApiClient.GetLogboek(internetaakId)
                ?? await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
     }
-
-    private ObjectPatchModel<LogboekData> BuildLogboekAction(ObjectResult<LogboekData> logboek, Guid objectId,
-        string type, string description)
+ 
+    private ObjectPatchModel<LogboekData> BuildLogboekAction(KnownContactAction knownContactAction,ObjectResult<LogboekData> logboek, Guid objectId)
     {
         var logBoekPatch = new ObjectPatchModel<LogboekData>
             { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
-
+  
         logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {
             Datum = DateTime.Now,
-            Type = type,
-            Omschrijving = description,
+            Type = knownContactAction.Type,
+            Omschrijving = knownContactAction.Description,
             HeeftBetrekkingOp =
             [
                 new ObjectIdentificator
                 {
+                    CodeRegister = knownContactAction.CodeRegister,
+                    CodeObjecttype = knownContactAction.CodeObjectType,
+                    CodeSoortObjectId = knownContactAction.CodeSoortObjectId,
                     ObjectId = objectId.ToString(),
-                    CodeRegister = ActiviteitContactmomentObjectIdentificator.CodeRegister,
-                    CodeObjecttype = ActiviteitContactmomentObjectIdentificator.CodeObjectType,
-                    CodeSoortObjectId = ActiviteitContactmomentObjectIdentificator.CodeSoortObjectId
                 }
             ]
         });
