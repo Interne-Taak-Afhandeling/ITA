@@ -12,47 +12,50 @@
       <pre>{{ JSON.stringify(logboekSteps, null, 2) }}</pre>
     </div>
     
-    <!-- Low-level components -->
+    <!-- Low-level components voor volledige controle -->
     <div class="logboek-steps">
       <StepList>
         <Step v-for="step in logboekSteps" :key="step.id" :appearance="step.status">
           <StepHeader>
             <StepMarker :appearance="step.status" />
-            <StepHeading :appearance="step.status">{{ step.title }}</StepHeading>
+            <StepHeading :appearance="step.status" class="actieomschrijving-titel">{{ step.title }}</StepHeading>
           </StepHeader>
           <StepDetails v-if="step.steps && step.steps.length > 0" :id="`${step.id}--details`" :collapsed="false">
-            <StepList nested>
-              <SubStep v-for="subStep in step.steps" :key="`${step.id}-${subStep.title}`">
-                <StepMarker nested :appearance="subStep.status" />
-                <SubStepHeading>{{ subStep.title }}</SubStepHeading>
-              </SubStep>
-            </StepList>
+<StepList nested>
+  <!-- Informatie burger/bedrijf -->
+  <SubStep v-for="subStep in step.steps.filter(s => !s.header.includes('Interne'))" :key="`${step.id}-${subStep.title}`">
+    <StepMarker nested :appearance="subStep.status" />
+    <div class="substep-content">
+      <h4 class="substep-header">{{ subStep.header }}</h4>
+      <SubStepHeading>{{ subStep.title }}</SubStepHeading>
+    </div>
+  </SubStep>
+  
+  <!-- Interne toelichting met grijze achtergrond -->
+  <div class="internal-wrapper" v-if="step.steps.some(s => s.header.includes('Interne'))">
+    <SubStep v-for="subStep in step.steps.filter(s => s.header.includes('Interne'))" :key="`${step.id}-${subStep.title}`">
+      <StepMarker nested :appearance="subStep.status" />
+      <div class="substep-content">
+        <h4 class="substep-header">{{ subStep.header }}</h4>
+        <SubStepHeading>{{ subStep.title }}</SubStepHeading>
+      </div>
+    </SubStep>
+  </div>
+</StepList>
+            
+            <!-- Aangepaste footer met datum/naam links en kanaal rechts -->
+            <div class="step-footer">
+              <div class="step-footer-left">
+                {{ formatDatum(getStepData(step.id).datum) }} - {{ getStepData(step.id).medewerker }}
+              </div>
+              <div class="step-footer-right">
+                Kanaal: {{ getStepData(step.id).kanaal }}
+              </div>
+            </div>
           </StepDetails>
         </Step>
       </StepList>
     </div>
-    
-    <!-- Alternatief: als Status niet werkt, gebruik dan de low-level componenten -->
-    <!--
-    <div class="logboek-steps">
-      <StepList>
-        <Step v-for="step in logboekSteps" :key="step.id" :appearance="step.status">
-          <StepHeader>
-            <StepMarker :appearance="step.status" />
-            <StepHeading :appearance="step.status">{{ step.title }}</StepHeading>
-          </StepHeader>
-          <StepDetails v-if="step.steps && step.steps.length > 0" :id="`${step.id}--details`">
-            <StepList nested>
-              <SubStep v-for="subStep in step.steps" :key="`${step.id}-${subStep.title}`">
-                <StepMarker nested :appearance="subStep.status" />
-                <SubStepHeading>{{ subStep.title }}</SubStepHeading>
-              </SubStep>
-            </StepList>
-          </StepDetails>
-        </Step>
-      </StepList>
-    </div>
-    -->
   </div>
 </template>
 
@@ -68,7 +71,6 @@ import {
   SubStep,
   SubStepHeading
 } from "@/components/denhaag-process-steps";
-import { StepMarker } from "@/components/denhaag-step-marker";
 import type { StepProps } from "@/components/denhaag-process-steps/types";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
@@ -81,40 +83,44 @@ const loading = ref(false);
 const error = ref(false);
 const expandedSteps = ref<string[]>(["1", "2", "3", "4"]); // Alle items standaard uitgeklapd
 
-// Mock logboek data - later vervangen door echte API call
+// Mock logboek data - met dezelfde structuur als ContactverzoekDetails
 // Gesorteerd van nieuw naar oud
 const mockLogboekData = [
   {
     id: "1",
-    actieOmschrijving: "afgerond",
+    actieOmschrijving: "Afgerond",
     datum: new Date().toISOString(),
     medewerker: "John Doe",
-    details: "Contactverzoek succesvol afgerond na het registreren van contactmoment",
-    kanaal: ""
+    kanaal: "E-mail",
+    informatieBurger: "Contactverzoek succesvol afgerond na het registreren van contactmoment",
+    interneToelichting: "Alle benodigde informatie is verstrekt aan de klant"
   },
   {
     id: "2", 
     actieOmschrijving: "Contact gelukt",
     datum: new Date(Date.now() - 3600000).toISOString(), // 1 uur geleden
     medewerker: "John Doe", 
-    details: "Telefonisch contact opgenomen met klant. Vraag beantwoord over belastingaanslag.",
-    kanaal: "Telefoon"
+    kanaal: "Telefoon",
+    informatieBurger: "Telefonisch contact opgenomen met klant. Vraag beantwoord over belastingaanslag.",
+    interneToelichting: "Klant was tevreden met de uitleg over de belastingaanslag"
   },
   {
     id: "3",
-    actieOmschrijving: "zaak gekoppeld", 
+    actieOmschrijving: "Zaak gekoppeld", 
     datum: new Date(Date.now() - 86400000).toISOString(), // 1 dag geleden
     medewerker: "Jane Smith",
-    details: "Zaak Z2024-001234 gekoppeld aan contactverzoek",
-    kanaal: ""
+    kanaal: "Systeem",
+    informatieBurger: "Zaak Z2024-001234 gekoppeld aan contactverzoek",
+    interneToelichting: "Zaak betreft dezelfde belastingkwestie als het contactverzoek"
   },
   {
     id: "4",
-    actieOmschrijving: "opgepakt",
+    actieOmschrijving: "Opgepakt",
     datum: new Date(Date.now() - 172800000).toISOString(), // 2 dagen geleden
     medewerker: "Bob Johnson", 
-    details: "Contactverzoek toegewezen aan mezelf",
-    kanaal: ""
+    kanaal: "Systeem",
+    informatieBurger: "Contactverzoek in behandeling genomen",
+    interneToelichting: "Contactverzoek toegewezen aan mezelf voor verdere afhandeling"
   }
 ];
 
@@ -124,7 +130,7 @@ const formatDatum = (datum: Date | string) => {
 
 const getStepStatus = (actieOmschrijving: string) => {
   switch (actieOmschrijving) {
-    case "afgerond":
+    case "Afgerond":
       return "checked";
     case "zaak gekoppeld":
     case "zaak gewijzigd": 
@@ -140,6 +146,10 @@ const getStepStatus = (actieOmschrijving: string) => {
   }
 };
 
+const getStepData = (stepId: string) => {
+  return mockLogboekData.find(item => item.id === stepId) || mockLogboekData[0];
+};
+
 const logboekSteps = computed<StepProps[]>(() => {
   return mockLogboekData.map((item, index) => ({
     id: item.id,
@@ -147,21 +157,53 @@ const logboekSteps = computed<StepProps[]>(() => {
     status: getStepStatus(item.actieOmschrijving),
     collapsible: true,
     steps: [
-      // Compacte meta-informatie
+      // Informatie voor burger/bedrijf
       {
-        title: `${formatDatum(item.datum)} - ${item.medewerker}${item.kanaal ? ` via ${item.kanaal}` : ''}`,
-        status: "checked"
-      },
-      // Details alleen als ze bestaan en niet te lang zijn
-      ...(item.details ? [{
-        title: item.details,
+        title: item.informatieBurger,
+        header: "Informatie burger/bedrijf:",
         status: "checked"  
-      }] : [])
+      },
+      // Interne toelichting
+      {
+        title: item.interneToelichting,
+        header: "Interne toelichting:",
+        status: "checked"  
+      }
     ]
   }));
 });
 </script>
 
 <style lang="scss" scoped>
+.step-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+  border-bottom: 1px solid #afb0b2; 
+  font-size: 0.875rem;
+  color: #6c757d;
+}
 
+.step-footer-right {
+  font-style: italic;
+}
+
+.actieomschrijving-titel {
+  color: #24578F;
+}
+
+.substep-header {
+  color: #333;
+  margin: 0 0 0.25rem 0;
+}
+
+.substep-content {
+  margin-left: -7px; // Compensate for the extra 7px zodat die niet inspringt(23px - 16px)
+}
+.internal-wrapper {
+  background-color: #ececec;
+  padding: 4px;
+  font-style: italic;
+}
 </style>
