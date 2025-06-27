@@ -1,5 +1,4 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Services;
@@ -54,14 +53,16 @@ public class CreateKlantContactController : Controller
                 request.PartijUuid
             );
 
-            //add this action to the Internetaak logboek     
-            var klantContactAction = KnownContactAction.Klantcontact.WithDescription(
-                request.KlantcontactRequest.IndicatieContactGelukt.HasValue &&
-                request.KlantcontactRequest.IndicatieContactGelukt.Value
-                    ? "contact gehad"
-                    : "geen contact kunnen leggen");
+            //add this action to the Internetaak logboek  
+            var actionDescription = request.KlantcontactRequest.IndicatieContactGelukt.HasValue &&
+                                    request.KlantcontactRequest.IndicatieContactGelukt.Value
+                ? "contact gehad"
+                : "geen contact kunnen leggen";
+            var klantContactAction = KnownContactAction.Klantcontact(
+                Guid.Parse(result.Klantcontact.Uuid), actionDescription
+            );
 
-            await _logboekService.LogContactRequestAction(klantContactAction, request.InterneTaakId, Guid.Parse(result.Klantcontact.Uuid));
+            await _logboekService.LogContactRequestAction(klantContactAction, request.InterneTaakId);
 
 
             return StatusCode(StatusCodes.Status201Created, result);

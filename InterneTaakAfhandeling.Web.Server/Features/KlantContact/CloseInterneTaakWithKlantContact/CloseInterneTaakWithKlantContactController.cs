@@ -77,7 +77,7 @@ public class CloseInterneTaakWithKlantContactController(
             await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
 
             //add this action to the Internetaak logboek
-            await _logboekService.LogContactRequestAction(KnownContactAction.Completed, request.InterneTaakId,Guid.Empty);
+            await _logboekService.LogContactRequestAction(KnownContactAction.Completed(), request.InterneTaakId);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
