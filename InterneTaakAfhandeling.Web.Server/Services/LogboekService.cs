@@ -71,8 +71,10 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                ?? await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
     }
 
-    private ObjectPatchModel<LogboekData> BuildLogboekAction(KnownContactAction knownContactAction,
-        ObjectResult<LogboekData> logboek, Guid objectId)
+    private ObjectPatchModel<LogboekData> BuildLogboekAction(
+        KnownContactAction knownContactAction,
+        ObjectResult<LogboekData> logboek,
+        Guid objectId)
     {
         var logBoekPatch = new ObjectPatchModel<LogboekData>
             { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
@@ -82,16 +84,18 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
             Datum = DateTime.Now,
             Type = knownContactAction.Type,
             Omschrijving = knownContactAction.Description,
-            HeeftBetrekkingOp =
-            [
-                new ObjectIdentificator
-                {
-                    CodeRegister = knownContactAction.CodeRegister,
-                    CodeObjecttype = knownContactAction.CodeObjectType,
-                    CodeSoortObjectId = knownContactAction.CodeSoortObjectId,
-                    ObjectId = objectId.ToString()
-                }
-            ]
+            HeeftBetrekkingOp = objectId != Guid.Empty
+                ?
+                [
+                    new ObjectIdentificator
+                    {
+                        CodeRegister = knownContactAction.CodeRegister,
+                        CodeObjecttype = knownContactAction.CodeObjectType,
+                        CodeSoortObjectId = knownContactAction.CodeSoortObjectId,
+                        ObjectId = objectId.ToString()
+                    }
+                ]
+                : []
         });
         return logBoekPatch;
     }

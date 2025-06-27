@@ -76,16 +76,8 @@ public class CloseInterneTaakWithKlantContactController(
 
             await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
 
-            //add this action to the Internetaak logboek           
-            var klantContactAction = KnownContactAction.Klantcontact.WithDescription(
-                request.KlantcontactRequest.IndicatieContactGelukt.HasValue &&
-                request.KlantcontactRequest.IndicatieContactGelukt.Value
-                    ? "contact gehad"
-                    : "geen contact kunnen leggen");
-
-            await _logboekService.LogContactRequestAction(klantContactAction, request.InterneTaakId,
-                Guid.Parse(result.Klantcontact.Uuid));
-
+            //add this action to the Internetaak logboek
+            await _logboekService.LogContactRequestAction(KnownContactAction.Completed, request.InterneTaakId,Guid.Empty);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
