@@ -1,7 +1,6 @@
 ﻿using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Services.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -38,14 +37,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
                 var assignedAction = KnownContactAction.AssignedToSelf(Guid.Parse(currentUserActor.Uuid));
                 await _logboekService.LogContactRequestAction(assignedAction, internetakenId);
 
-                _logger.LogInformation("Successfully assigned internetaak {SafeInternetaakId} to user {SafeUserEmail} and logged action",
+                _logger.LogInformation("Successfully assigned internetaak {InternetaakId} to user {SafeUserEmail} and logged action",
                     internetakenId, safeUserEmail);
 
                 return Ok(updatedInterneTaak);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error assigning internetaak {SafeInternetaakId} to user {SafeUserEmail}",
+                _logger.LogError(ex, "Error assigning internetaak {InternetaakId} to user {SafeUserEmail}",
           internetakenId, safeUserEmail);
                 throw;
             }
