@@ -6,7 +6,7 @@ public class KnownContactAction
 {
     public required string Type { get; init; }
     public required string Description { get; init; }
-    public ObjectIdentificator? HeeftBetrekkingOp { get; init; }
+    public ObjectIdentificator? HeeftBetrekkingOp { get; private init; }
 
     public static KnownContactAction Completed()
     {
@@ -41,8 +41,8 @@ public class KnownContactAction
             Type = "zaakkoppeling-gewijzigd",
             HeeftBetrekkingOp = new ObjectIdentificator
             {
-                CodeRegister = "openklant",
-                CodeObjecttype = "internetaak",
+                CodeRegister = "openzaak",
+                CodeObjecttype = "zgw-Zaak",
                 CodeSoortObjectId = "uuid",
                 ObjectId = zaakId.ToString()
             }
@@ -65,7 +65,7 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction Klantcontact(Guid klantContactId,string description)
+    public static KnownContactAction Klantcontact(Guid klantContactId, string description)
     {
         return new KnownContactAction
         {
@@ -80,6 +80,4 @@ public class KnownContactAction
             }
         };
     }
-
-  
 }
