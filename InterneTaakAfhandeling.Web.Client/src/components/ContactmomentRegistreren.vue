@@ -155,8 +155,8 @@ function getPartijId() {
   if (taak.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.[0]) {
     const betrokkene = taak.aanleidinggevendKlantcontact._expand.hadBetrokkenen[0];
 
-    if (betrokkene._expand.wasPartij && "uuid" in betrokkene._expand.wasPartij) {
-      partijUuid = betrokkene._expand.wasPartij.uuid;
+    if (betrokkene.wasPartij && "uuid" in betrokkene.wasPartij) {
+      partijUuid = betrokkene.wasPartij.uuid;
     }
   }
   return partijUuid;
