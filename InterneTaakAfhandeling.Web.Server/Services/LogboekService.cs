@@ -2,7 +2,6 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Web.Server.Services.Models;
 
 namespace InterneTaakAfhandeling.Web.Server.Services;
@@ -11,9 +10,6 @@ public interface ILogboekService
 {
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
     Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId);
-
-    Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId,
-        RelatedKlantcontactResult klantcontactResult);
 }
 
 public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
@@ -67,30 +63,8 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         await objectenApiClient.UpdateLogboek(logboekAction, logboekData.Uuid);
     }
 
-    public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId,
-        RelatedKlantcontactResult klantcontactResult)
-    {
-        if (knownContactAction.Type.Equals(KnownContactAction.Completed().Type))
-        {
-            var actionDescription = klantcontactResult.Klantcontact.IndicatieContactGelukt.HasValue &&
-                                    klantcontactResult.Klantcontact.IndicatieContactGelukt.Value
-                ? "contact gehad"
-                : "geen contact kunnen leggen";
-            var klantContactAction = KnownContactAction.Klantcontact(
-                Guid.Parse(klantcontactResult.Klantcontact.Uuid), actionDescription
-            );
-            await LogContactRequestAction(klantContactAction, internetaakId);
-            await LogContactRequestAction(KnownContactAction.Completed(), internetaakId);
+    #region Util
 
-        }
-        else
-        {
-            await LogContactRequestAction(knownContactAction, internetaakId);
-        }
-    }
-    
-    
- #region Util
     private async Task<ObjectResult<LogboekData>> GetOrCreateLogboek(Guid internetaakId)
     {
         return await _objectenApiClient.GetLogboek(internetaakId)

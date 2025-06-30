@@ -73,10 +73,21 @@ public class CloseInterneTaakWithKlantContactController(
             {
                 Status = "verwerkt"
             };
-
+ 
             await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
-       
-            await _logboekService.LogContactRequestAction(KnownContactAction.Completed(), request.InterneTaakId,result);
+           // logging klant contact action
+            var actionDescription = request.KlantcontactRequest.IndicatieContactGelukt.HasValue &&
+                                    request.KlantcontactRequest.IndicatieContactGelukt.Value
+                ? "contact gehad"
+                : "geen contact kunnen leggen";
+            var klantContactAction = KnownContactAction.Klantcontact(
+                Guid.Parse(result.Klantcontact.Uuid), actionDescription
+            );
+
+            await _logboekService.LogContactRequestAction(klantContactAction, request.InterneTaakId);
+
+            // logging the completed action
+            await _logboekService.LogContactRequestAction(KnownContactAction.Completed(), request.InterneTaakId);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
