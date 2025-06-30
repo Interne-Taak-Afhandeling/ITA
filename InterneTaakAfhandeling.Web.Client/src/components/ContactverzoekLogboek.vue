@@ -8,45 +8,40 @@
   <div v-else class="logboek-container">
     <div class="logboek-steps">
       <StepList>
-        <Step v-for="logboekItem in mockLogboekData" :key="logboekItem.id" :appearance="getStepStatus(logboekItem.actieOmschrijving)">
+        <Step
+          v-for="logboekItem in logboekActiviteiten"
+          :key="logboekItem.id"
+          :appearance="
+            getStepStatus(logboekItem.contactGelukt ? 'Contact gelukt' : 'Contact niet gelukt')
+          "
+          class="ita-step"
+        >
           <StepHeader>
-            <StepHeading :appearance="getStepStatus(logboekItem.actieOmschrijving)" class="actieomschrijving-titel">{{
-              logboekItem.actieOmschrijving
-            }}</StepHeading>
+            <StepHeading
+              :appearance="
+                getStepStatus(logboekItem.contactGelukt ? 'Contact gelukt' : 'Contact niet gelukt')
+              "
+              class="actieomschrijving-titel"
+              >{{
+                logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt"
+              }}</StepHeading
+            >
           </StepHeader>
-          <StepDetails
-            :id="`${logboekItem.id}--details`"
-            :collapsed="false"
-          >
-            <StepList nested>
-              <!-- Informatie burger/bedrijf -->
-              <SubStep>
-                <div class="substep-content">
-                  <h4 class="substep-header">Informatie burger/bedrijf:</h4>
-                  <SubStepHeading>{{ logboekItem.informatieBurger }}</SubStepHeading>
-                </div>
-              </SubStep>
-
-              <!-- Interne toelichting met grijze achtergrond -->
-              <div class="internal-wrapper">
-                <SubStep>
-                  <div class="substep-content">
-                    <h4 class="substep-header">Interne toelichting:</h4>
-                    <SubStepHeading>{{ logboekItem.interneToelichting }}</SubStepHeading>
-                  </div>
-                </SubStep>
-              </div>
-            </StepList>
-
-            <!-- Footer met datum/naam links en kanaal rechts -->
-            <div class="step-footer">
-              <div class="step-footer-left">
-                {{ formatDatum(logboekItem.datum) }} -
-                {{ logboekItem.medewerker }}
-              </div>
-              <div class="step-footer-right">Kanaal: {{ logboekItem.kanaal }}</div>
+          <StepBody>
+            <utrecht-data-list>
+              <utrecht-data-list-item v-if="logboekItem.tekst">
+                <utrecht-data-list-key>Informatie burger/bedrijf</utrecht-data-list-key>
+                <utrecht-data-list-value :value="logboekItem.tekst" multiline>{{
+                  logboekItem.tekst
+                }}</utrecht-data-list-value>
+              </utrecht-data-list-item>
+            </utrecht-data-list>
+            <div class="ita-step-meta-list">
+              <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
+              <StepMeta>{{ logboekItem.medewerker }}</StepMeta>
+              <StepMeta>Kanaal: {{ logboekItem.kanaal }}</StepMeta>
             </div>
-          </StepDetails>
+          </StepBody>
         </Step>
       </StepList>
     </div>
@@ -54,73 +49,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import type { Internetaken } from "@/types/internetaken";
 import {
   Step,
   StepHeader,
   StepHeading,
-  StepDetails,
+  StepBody,
   StepList,
-  SubStep,
-  SubStepHeading
+  StepMeta
 } from "@/components/denhaag-process-steps";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
-import { formatNlDateTime } from "@/utils/dateUtils";
+import DateTimeOrNvt from "./DateTimeOrNvt.vue";
+import { useLoader } from "@/composables/use-loader";
+import { klantcontactService } from "@/services/klantcontactService";
 
 const props = defineProps<{ taak: Internetaken }>();
-
-// Mock loading en error states
-const loading = ref(false);
-const error = ref(false);
-
-// Mock logboek data - gesorteerd van nieuw naar oud
-const mockLogboekData = [
-  {
-    id: "1",
-    actieOmschrijving: "Afgerond",
-    datum: new Date().toISOString(),
-    medewerker: "John Doe",
-    kanaal: "E-mail",
-    informatieBurger: "Contactverzoek succesvol afgerond na het registreren van contactmoment",
-    interneToelichting: "Alle benodigde informatie is verstrekt aan de klant"
-  },
-  {
-    id: "2",
-    actieOmschrijving: "Contact gelukt",
-    datum: new Date(Date.now() - 3600000).toISOString(), // 1 uur geleden
-    medewerker: "John Doe",
-    kanaal: "Telefoon",
-    informatieBurger:
-      "Telefonisch contact opgenomen met klant. Vraag beantwoord over belastingaanslag.",
-    interneToelichting: "Klant was tevreden met de uitleg over de belastingaanslag"
-  },
-  {
-    id: "3",
-    actieOmschrijving: "Zaak gekoppeld",
-    datum: new Date(Date.now() - 86400000).toISOString(), // 1 dag geleden
-    medewerker: "Jane Smith",
-    kanaal: "Systeem",
-    informatieBurger: "Zaak Z2024-001234 gekoppeld aan contactverzoek",
-    interneToelichting: "Zaak betreft dezelfde belastingkwestie als het contactverzoek"
-  },
-  {
-    id: "4",
-    actieOmschrijving: "Opgepakt",
-    datum: new Date(Date.now() - 172800000).toISOString(), // 2 dagen geleden
-    medewerker: "Bob Johnson",
-    kanaal: "Systeem",
-    informatieBurger: "Contactverzoek in behandeling genomen",
-    interneToelichting: "Contactverzoek toegewezen aan mezelf voor verdere afhandeling"
+const {
+  data: logboekActiviteiten,
+  loading,
+  error
+} = useLoader((signal) => {
+  if (props.taak.aanleidinggevendKlantcontact?.uuid) {
+    return klantcontactService.getLogboek(props.taak.uuid, signal);
   }
-];
+});
 
-const formatDatum = (datum: Date | string) => {
-  return formatNlDateTime(datum);
-};
-
-const getStepStatus = (actieOmschrijving: string) => {
+const getStepStatus = (actieOmschrijving: string | undefined) => {
   switch (actieOmschrijving) {
     case "Afgerond":
       return "checked";
@@ -140,32 +95,25 @@ const getStepStatus = (actieOmschrijving: string) => {
 </script>
 
 <style lang="scss" scoped>
-.step-footer {
+.ita-step {
+  border-bottom-width: var(--ita-step-border-bottom-width);
+  border-bottom-color: var(--ita-step-border-bottom-color);
+  border-bottom-style: solid;
+}
+
+.ita-step-meta-list {
   display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 0rem;
-  margin-top: 0.5rem;
-  border-bottom: 1px solid #afb0b2;
-  font-size: 0.875rem;
-  color: #6c757d;
+  flex-wrap: wrap;
+  column-gap: var(--ita-step-meta-list-column-gap);
+  row-gap: var(--ita-step-meta-list-row-gap);
+
+  > :nth-last-child(2) {
+    flex: 1;
+  }
 }
 
-.step-footer-right {
-  font-style: italic;
-}
-
-.actieomschrijving-titel {
-  color: #24578f;
-}
-
-.substep-header {
-  color: #333;
-  margin: 0 0 0.25rem 0;
-}
-
-.internal-wrapper {
-  background-color: #ececec;
-  padding: 4px;
-  font-style: italic;
+// hack: the nl-design system component forces a 16px margin
+.denhaag-process-steps__step-meta {
+  margin-inline-start: 0;
 }
 </style>
