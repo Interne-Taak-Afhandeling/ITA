@@ -95,7 +95,7 @@ const getStepStatus = (actieOmschrijving: string | undefined) => {
 </script>
 
 <style lang="scss" scoped>
-.ita-step {
+.ita-step:not(:last-child) {
   border-bottom-width: var(--ita-step-border-bottom-width);
   border-bottom-color: var(--ita-step-border-bottom-color);
   border-bottom-style: solid;
