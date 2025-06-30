@@ -45,18 +45,12 @@
       </div>
     </detail-section>
 
-<detail-section title="Logboek contactverzoek">
-  <div class="same-margin-as-datalist">
-    <contactverzoek-logboek v-if="taak" :taak="taak" />
-  </div>
-</detail-section>
-  </div>
-
-      <detail-section title="Contactmomenten">
+    <detail-section title="Logboek contactverzoek">
       <div class="same-margin-as-datalist">
-        <contactverzoek-contactmomenten v-if="taak" :taak="taak" />
+        <contactverzoek-logboek v-if="taak" :taak="taak" />
       </div>
     </detail-section>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -67,8 +61,6 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import ContactverzoekLogboek from "@/components/ContactverzoekLogboek.vue";
 
-
-import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
 import type { Internetaken, Zaak } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import AssignContactverzoekToMyself from "@/features/assign-contactverzoek-to-myself/AssignContactverzoekToMyself.vue";
