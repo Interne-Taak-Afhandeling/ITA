@@ -5,6 +5,8 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Middleware;
+using InterneTaakAfhandeling.Web.Server.Services;
+using InterneTaakAfhandeling.Web.Server.Services.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,15 +21,18 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
         private readonly IZakenApiClient _zakenApiClient;
         private readonly IOpenKlantApiClient _openKlantApiClient;
         private readonly ILogger<KoppelZaakAanKlantcontactController> _logger;
+        private readonly ILogboekService  _logboekService;
 
         public KoppelZaakAanKlantcontactController(
             IZakenApiClient zakenApiClient,
             IOpenKlantApiClient openKlantApiClient,
-            ILogger<KoppelZaakAanKlantcontactController> logger)
+            ILogger<KoppelZaakAanKlantcontactController> logger,
+            ILogboekService logboekService)
         {
             _zakenApiClient = zakenApiClient ?? throw new ArgumentNullException(nameof(zakenApiClient));
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
         }
 
         [HttpPost("koppel-zaak")]
@@ -178,8 +183,15 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                 var safeKlantUuid = SecureLogging.SanitizeUuid(klantcontact.Uuid);
                 _logger.LogInformation("Aanmaken nieuw onderwerpobject voor zaak {SafeZaakUuid} en klantcontact {SafeKlantUuid}",
                     safeZaakUuid, safeKlantUuid);
+               
+                  var linkedKlantContact = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
 
-                return await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
+                  var internetaakId = klantcontact?.LeiddeTotInterneTaken?.First()?.Uuid;
+                  if (internetaakId != null)
+                      await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(Guid.Parse(zaakUuid)),
+                          Guid.Parse(internetaakId));
+
+                  return linkedKlantContact;
             }
         }
     }
