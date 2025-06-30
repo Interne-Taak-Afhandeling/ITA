@@ -58,7 +58,7 @@ public class KnownContactAction
             HeeftBetrekkingOp = new ObjectIdentificator
             {
                 CodeRegister = "openklant",
-                CodeObjecttype = "actor",
+                CodeObjecttype = "internetaak",
                 CodeSoortObjectId = "uuid",
                 ObjectId = actorId.ToString()
             }
