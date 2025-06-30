@@ -167,6 +167,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                     CodeSoortObjectId = "uuid"
                 }
             };
+            var internetaakId = klantcontact?.LeiddeTotInterneTaken?.First()?.Uuid;
 
             if (bestaandZaakOnderwerpobject != null && !string.IsNullOrEmpty(bestaandZaakOnderwerpobject.Uuid))
             {
@@ -175,7 +176,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                 _logger.LogInformation("Bijwerken bestaand zaak-onderwerpobject {SafeOnderwerpUuid} met nieuwe zaak {SafeZaakUuid}",
                     safeOnderwerpUuid, safeZaakUuid);
 
-                return await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, request);
+                var modifiedKlantContact = await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, request);
+                
+                if (internetaakId != null)
+                    await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid)),
+                        Guid.Parse(internetaakId));
+
+                return modifiedKlantContact;
             }
             else
             {
@@ -186,7 +193,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                
                   var linkedKlantContact = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
 
-                  var internetaakId = klantcontact?.LeiddeTotInterneTaken?.First()?.Uuid;
                   if (internetaakId != null)
                       await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(Guid.Parse(zaakUuid)),
                           Guid.Parse(internetaakId));
