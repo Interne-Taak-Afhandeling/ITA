@@ -24,35 +24,34 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpPost("{internetakenId}/assign-to-me")]
-        public async Task<IActionResult> AssignInternetakenAsync([FromRoute] string internetakenId)
+        public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetakenId)
         {
+            var safeUserEmail = SecureLogging.SanitizeAndTruncate(user.Email, 5);
+
             try
             {
-                var safeInternetaakId = SecureLogging.SanitizeUuid(internetakenId);
-                var safeUserEmail = SecureLogging.SanitizeAndTruncate(user.Email, 5);
+                _logger.LogInformation("Assigning internetaak {InternetaakId} to user {SafeUserEmail}",
+                    internetakenId, safeUserEmail);
 
-                _logger.LogInformation("Assigning internetaak {SafeInternetaakId} to user {SafeUserEmail}",
-                    safeInternetaakId, safeUserEmail);
-
-                var (result, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetakenId, user);
+                var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetakenId, user);
 
                 var assignedAction = KnownContactAction.AssignedToSelf(Guid.Parse(currentUserActor.Uuid));
-                await _logboekService.LogContactRequestAction(assignedAction, Guid.Parse(internetakenId));
+                await _logboekService.LogContactRequestAction(assignedAction, internetakenId);
 
                 _logger.LogInformation("Successfully assigned internetaak {SafeInternetaakId} to user {SafeUserEmail} and logged action",
-                    safeInternetaakId, safeUserEmail);
+                    internetakenId, safeUserEmail);
 
-                return Ok(result);
+                return Ok(updatedInterneTaak);
             }
             catch (Exception ex)
             {
-                var safeInternetaakId = SecureLogging.SanitizeUuid(internetakenId);
-                var safeUserEmail = SecureLogging.SanitizeAndTruncate(user.Email, 5);
-
                 _logger.LogError(ex, "Error assigning internetaak {SafeInternetaakId} to user {SafeUserEmail}",
-                    safeInternetaakId, safeUserEmail);
+          internetakenId, safeUserEmail);
                 throw;
             }
         }
     }
 }
+
+
+
