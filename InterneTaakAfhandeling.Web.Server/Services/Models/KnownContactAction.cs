@@ -1,63 +1,88 @@
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+
 namespace InterneTaakAfhandeling.Web.Server.Services.Models;
 
 public class KnownContactAction
 {
-    public static readonly KnownContactAction Completed = new()
-    {
-        Description = "afgerond",
-        Type = "verwerkt",
-        CodeRegister = "openklant",
-        CodeObjectType ="internetaak",
-        CodeSoortObjectId = "uuid"
-    };
-
-    public static readonly KnownContactAction CaseLinked = new()
-    {
-        Description = "zaak gekoppeld",
-        Type = "zaak-gekoppeld",
-        CodeObjectType = "zgw-Zaak",
-        CodeRegister = "openzaak",
-        CodeSoortObjectId = "uuid"
-    };
-
-    public static readonly KnownContactAction CaseModified = new()
-    {
-        Description = "zaak gewijzigd",
-        Type = "zaakkoppeling-gewijzigd",
-        CodeRegister = "openklant",
-        CodeObjectType ="internetaak",
-        CodeSoortObjectId = "uuid"
-    };
-
-    public static readonly KnownContactAction AssignedToSelf = new()
-    {
-        Description = "opgepakt",
-        Type = "toegewezen",
-        CodeRegister = "openklant",
-        CodeObjectType ="internetaak",
-        CodeSoortObjectId = "uuid"
-    };
-    public static readonly KnownContactAction Klantcontact = new()
-    {
-        Description = "geen contact kunnen leggen",
-        Type = "klantcontact",
-        CodeRegister = "openklant",
-        CodeObjectType ="klantcontact",
-        CodeSoortObjectId = "uuid"
-    };
-
-    public KnownContactAction WithDescription(string newDescription) =>
-        new KnownContactAction
-        {
-            Type = this.Type,
-            Description = newDescription,
-            CodeRegister = this.CodeRegister,
-            CodeObjectType = this.CodeObjectType,
-            CodeSoortObjectId = this.CodeSoortObjectId
-        };
     public required string Type { get; init; }
     public required string Description { get; init; }
-    public required string CodeRegister { get; init; }
-    public required string CodeObjectType { get; init; }
-    public required string CodeSoortObjectId { get; init; }
+    public ObjectIdentificator? HeeftBetrekkingOp { get; private init; }
+
+    public static KnownContactAction Completed()
+    {
+        return new KnownContactAction
+        {
+            Description = "afgerond",
+            Type = "verwerkt"
+        };
+    }
+
+    public static KnownContactAction CaseLinked(Guid zaakId)
+    {
+        return new KnownContactAction
+        {
+            Description = "zaak gekoppeld",
+            Type = "zaak-gekoppeld",
+            HeeftBetrekkingOp = new ObjectIdentificator
+            {
+                CodeObjecttype = "zgw-Zaak",
+                CodeRegister = "openzaak",
+                CodeSoortObjectId = "uuid",
+                ObjectId = zaakId.ToString()
+            }
+        };
+    }
+
+    public static KnownContactAction CaseModified(Guid zaakId)
+    {
+        return new KnownContactAction
+        {
+            Description = "zaak gewijzigd",
+            Type = "zaakkoppeling-gewijzigd",
+            HeeftBetrekkingOp = new ObjectIdentificator
+            {
+                CodeRegister = "openzaak",
+                CodeObjecttype = "zgw-Zaak",
+                CodeSoortObjectId = "uuid",
+                ObjectId = zaakId.ToString()
+            }
+        };
+    }
+
+    public static KnownContactAction AssignedToSelf(Guid actorId)
+    {
+        return new KnownContactAction
+        {
+            Description = "opgepakt",
+            Type = "toegewezen",
+            HeeftBetrekkingOp = new ObjectIdentificator
+            {
+                CodeRegister = "openklant",
+                CodeObjecttype = "actor",
+                CodeSoortObjectId = "uuid",
+                ObjectId = actorId.ToString()
+            }
+        };
+    }
+
+    public static KnownContactAction Klantcontact(Klantcontact klantContact)
+    {
+        var description =   klantContact.IndicatieContactGelukt.HasValue && klantContact.IndicatieContactGelukt.Value
+            ? "contact gehad"
+            : "geen contact kunnen leggen";
+ 
+        return new KnownContactAction
+        {
+            Description = description,
+            Type = "klantcontact",
+            HeeftBetrekkingOp = new ObjectIdentificator
+            {
+                CodeRegister = "openklant",
+                CodeObjecttype = "klantcontact",
+                CodeSoortObjectId = "uuid",
+                ObjectId = klantContact.Uuid.ToString()
+            }
+        };
+    }
 }

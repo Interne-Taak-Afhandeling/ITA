@@ -9,7 +9,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services;
 public interface ILogboekService
 {
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
-    Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId, Guid objectId);
+    Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId); 
 }
 
 public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
@@ -54,13 +54,17 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         return activiteiten;
     }
 
-    public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId, Guid objectId)
+
+
+   
+
+    public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
         var logboekData = await GetOrCreateLogboek(internetaakId);
 
-        var logboekAction = BuildLogboekAction(knownContactAction, logboekData, objectId);
+        var logboekAction = BuildLogboekAction(knownContactAction, logboekData);
 
-        await objectenApiClient.UpdateLogboek(logboekAction, logboekData.Uuid);
+        await _objectenApiClient.UpdateLogboek(logboekAction, logboekData.Uuid);
     }
 
     #region Util
@@ -71,8 +75,9 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                ?? await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
     }
 
-    private ObjectPatchModel<LogboekData> BuildLogboekAction(KnownContactAction knownContactAction,
-        ObjectResult<LogboekData> logboek, Guid objectId)
+    private ObjectPatchModel<LogboekData> BuildLogboekAction(
+        KnownContactAction knownContactAction,
+        ObjectResult<LogboekData> logboek)
     {
         var logBoekPatch = new ObjectPatchModel<LogboekData>
             { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
@@ -82,16 +87,12 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
             Datum = DateTime.Now,
             Type = knownContactAction.Type,
             Omschrijving = knownContactAction.Description,
-            HeeftBetrekkingOp =
-            [
-                new ObjectIdentificator
-                {
-                    CodeRegister = knownContactAction.CodeRegister,
-                    CodeObjecttype = knownContactAction.CodeObjectType,
-                    CodeSoortObjectId = knownContactAction.CodeSoortObjectId,
-                    ObjectId = objectId.ToString()
-                }
-            ]
+            HeeftBetrekkingOp = knownContactAction.HeeftBetrekkingOp != null
+                ?
+                [
+                    knownContactAction.HeeftBetrekkingOp
+                ]
+                : []
         });
         return logBoekPatch;
     }
