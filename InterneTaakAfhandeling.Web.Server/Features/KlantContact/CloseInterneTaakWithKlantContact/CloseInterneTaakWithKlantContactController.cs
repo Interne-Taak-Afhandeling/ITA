@@ -47,7 +47,7 @@ public class CloseInterneTaakWithKlantContactController(
                 request.AanleidinggevendKlantcontactUuid);
 
             //check if the internetaak that will be closed and the klantcontact to which the new klantcontact will be related belong to eachother
-            var interneTaak = await openKlantApiClient.GetInternetaakByIdAsync(request.InterneTaakId.ToString());
+            var interneTaak = await openKlantApiClient.GetInternetaakByIdAsync(request.InterneTaakId);
 
             if (interneTaak?.Uuid != request.InterneTaakId.ToString())
                 return BadRequest(new ProblemDetails

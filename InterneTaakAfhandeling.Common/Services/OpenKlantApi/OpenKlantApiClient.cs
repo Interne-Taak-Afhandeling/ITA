@@ -30,7 +30,7 @@ public interface IOpenKlantApiClient
     Task<Internetaak> PutInternetaakAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
     Task<Internetaak> PatchInternetaakAsync(InternetakenPatchRequest internetakenUpdateRequest, string uuid);
 
-    Task<Internetaak?> GetInternetaakByIdAsync(string uuid);
+    Task<Internetaak?> GetInternetaakByIdAsync(Guid uuid);
     Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
 
 }
@@ -414,7 +414,7 @@ public partial class OpenKlantApiClient(
             return [];
         }
     }
-    public async Task<Internetaak?> GetInternetaakByIdAsync(string uuid)
+    public async Task<Internetaak?> GetInternetaakByIdAsync(Guid uuid)
     {
         var response = await _httpClient.GetAsync($"internetaken/{uuid}");
         response.EnsureSuccessStatusCode();
