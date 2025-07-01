@@ -45,7 +45,7 @@
       </div>
     </detail-section>
 
-    <detail-section title="Contactmomenten">
+    <detail-section title="Logboek contactverzoek">
       <div class="same-margin-as-datalist">
         <contactverzoek-logboek v-if="taak" :taak="taak" />
       </div>
