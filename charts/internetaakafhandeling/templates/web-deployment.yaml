@@ -13,6 +13,12 @@ spec:
     metadata:
       labels:
         {{- include "internetaakafhandeling.web.selectorLabels" . | nindent 8 }}
+      annotations:
+        # we include the checksum of the config and secrets in here.
+        # the key of the annotations can be anything
+        # by doing this, we make sure a re-deploy is triggered whenever any config / secret changes 
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
+        checksum/secrets: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
     spec:
       containers:
         - name: internetaakafhandeling-web
@@ -20,6 +26,15 @@ spec:
           imagePullPolicy: {{ .Values.web.image.pullPolicy }}
           ports:
             - containerPort: 8080
+              name: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
           volumeMounts:
             - name: appsettings-volume
               mountPath: /app/appsettings.json

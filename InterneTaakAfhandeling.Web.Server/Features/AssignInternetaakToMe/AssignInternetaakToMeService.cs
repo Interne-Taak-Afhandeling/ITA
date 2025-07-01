@@ -2,13 +2,13 @@
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMyself
+namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
 {
-    public interface IAssignInternetaakToMyselfService
+    public interface IAssignInternetaakToMeService
     {
         Task<Common.Services.OpenKlantApi.Models.Internetaak> ToSelfAsync(string internetakenId, ITAUser user);
     }
-    public class AssignInternetaakToMyselfService(IOpenKlantApiClient openKlantApiClient) : IAssignInternetaakToMyselfService
+    public class AssignInternetaakToMeService(IOpenKlantApiClient openKlantApiClient) : IAssignInternetaakToMeService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         public async Task<Common.Services.OpenKlantApi.Models.Internetaak> ToSelfAsync(string internetakenId, ITAUser user)

@@ -1,4 +1,5 @@
 ﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
@@ -6,31 +7,19 @@ namespace InterneTaakAfhandeling.Web.Server.Services;
 
 public interface ILogboekService
 {
-    Task<LogboekData> AddContactmoment(Guid internetaakId,string klantcontactId, bool?  isContactGelukt );
-    Task<LogboekData> AddAfsluitendContactmoment(Guid internetaakId, string klantcontactId, bool? isContactGelukt);
+    Task<LogboekData> AddContactmoment(Guid internetaakId, string klantcontactId, bool? isContactGelukt);
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
-    
 }
 
-public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient )
+public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
     : ILogboekService
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
 
-    public async Task<LogboekData> AddAfsluitendContactmoment(Guid internetaakId, string klancontactId, bool? isContactGelukt)
-    {
-        return await AddContactmomentLogActivity(internetaakId,  klancontactId, isContactGelukt, KnownLogboekActiviteitTypes.Afsluiting);
-    }
-
 
     public async Task<LogboekData> AddContactmoment(Guid internetaakId, string klancontactId, bool? isContactGelukt)
     {
-        return await AddContactmomentLogActivity(internetaakId, klancontactId, isContactGelukt, KnownLogboekActiviteitTypes.Klantcontact);
-    }
-
-    private async Task<LogboekData> AddContactmomentLogActivity(Guid internetaakId, string klancontactId, bool? isContactGelukt, string activityType)
-    { 
         //1 check if a logboek for the Intenretaak already exists
         var logboek = await _objectenApiClient.GetLogboek(internetaakId);
 
@@ -39,25 +28,30 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         //3 add the contactmoment as an activity to the log
 
-        var logBoekPatch = new ObjectPatchModel<LogboekData> { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
+        var logBoekPatch = new ObjectPatchModel<LogboekData>
+            { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
 
         logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {
-            Datum = DateTime.UtcNow.ToString("o"),
-            Type = activityType, 
-            Omschrijving = (isContactGelukt.HasValue && isContactGelukt.Value ) ? "contact gehad" : "geen contact kunnen leggen",
+            Datum = DateTime.Now,
+            Type = ActiviteitTypes.Klantcontact,
+            Omschrijving = isContactGelukt.HasValue && isContactGelukt.Value
+                ? "contact gehad"
+                : "geen contact kunnen leggen",
             HeeftBetrekkingOp =
             [
-                new ObjectIdentificator(
-                    klancontactId,
-                    LogboekActiviteitContactmomentObjectIdentificators.CodeRegister,
-                    LogboekActiviteitContactmomentObjectIdentificators.CodeObjectType,
-                    LogboekActiviteitContactmomentObjectIdentificators.CodeSoortObjectId)
+                new ObjectIdentificator
+                {
+                    ObjectId = klancontactId,
+                    CodeRegister = ActiviteitContactmomentObjectIdentificator.CodeRegister,
+                    CodeObjecttype = ActiviteitContactmomentObjectIdentificator.CodeObjectType,
+                    CodeSoortObjectId = ActiviteitContactmomentObjectIdentificator.CodeSoortObjectId
+                }
             ]
         });
 
+
         return await _objectenApiClient.UpdateLogboek(logBoekPatch, logboek.Uuid);
-        
     }
 
     public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
@@ -69,13 +63,13 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         var activiteiten = new List<Activiteit>();
 
         //newest on top
-        logboek.Record.Data.Activiteiten.Reverse();
+        var activiteitenOrderedByDate = logboek.Record.Data.Activiteiten.OrderByDescending(x => x.Datum);
 
-        foreach (var item in logboek.Record.Data.Activiteiten)
+        foreach (var item in activiteitenOrderedByDate)
         {
             var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
 
-            if (item.Type == KnownLogboekActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp != null)
+            if (item.Type == ActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp.Count == 1)
             {
                 var contactmoment =
                     await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.Single().ObjectId);
@@ -94,12 +88,11 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         return activiteiten;
     }
- 
 }
 
 public class Activiteit
 {
-    public required string Datum { get; set; }
+    public required DateTimeOffset Datum { get; set; }
     public required string Type { get; set; }
 
     public string? Kanaal { get; set; }
