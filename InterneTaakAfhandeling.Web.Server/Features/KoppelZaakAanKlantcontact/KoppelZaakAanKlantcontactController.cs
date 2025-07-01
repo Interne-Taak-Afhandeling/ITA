@@ -88,7 +88,7 @@ public class KoppelZaakAanKlantcontactController : Controller
             // validating internetaak is related to klant contact 
             var isInternetaakRelatedToKlantContact = aanleidinggevendKlantcontact?.LeiddeTotInterneTaken?
                 .Where(x => x.Uuid == request.InternetaakId).Any();
-            if (isInternetaakRelatedToKlantContact == null)
+            if (isInternetaakRelatedToKlantContact == false)
                 return NotFound(new ProblemDetails
                 {
                     Title = "Internetaak niet gerelateerd aan klantcontact",
