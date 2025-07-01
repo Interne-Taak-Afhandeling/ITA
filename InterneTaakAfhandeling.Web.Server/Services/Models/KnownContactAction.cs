@@ -1,4 +1,5 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 
 namespace InterneTaakAfhandeling.Web.Server.Services.Models;
 
@@ -65,8 +66,12 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction Klantcontact(Guid klantContactId, string description)
+    public static KnownContactAction Klantcontact(Klantcontact klantContact)
     {
+        var description =   klantContact.IndicatieContactGelukt.HasValue && klantContact.IndicatieContactGelukt.Value
+            ? "contact gehad"
+            : "geen contact kunnen leggen";
+ 
         return new KnownContactAction
         {
             Description = description,
@@ -76,7 +81,7 @@ public class KnownContactAction
                 CodeRegister = "openklant",
                 CodeObjecttype = "klantcontact",
                 CodeSoortObjectId = "uuid",
-                ObjectId = klantContactId.ToString()
+                ObjectId = klantContact.Uuid.ToString()
             }
         };
     }

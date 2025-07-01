@@ -9,8 +9,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services;
 public interface ILogboekService
 {
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
-    Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId);
-    Task LogContactRequestKlantContactAction(bool? contactGelukt, string klantcontactId, Guid internetaakId);
+    Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId); 
 }
 
 public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
@@ -57,18 +56,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
 
 
-    public async Task LogContactRequestKlantContactAction(bool? contactGelukt, string klantcontactId, Guid internetaakId)
-    {
-        var actionDescription = contactGelukt.HasValue && contactGelukt.Value
-            ? "contact gehad"
-            : "geen contact kunnen leggen";
-
-        var klantContactAction = KnownContactAction.Klantcontact(
-            Guid.Parse(klantcontactId), actionDescription
-        );
-
-        await LogContactRequestAction(klantContactAction,  internetaakId);
-    }
+   
 
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
