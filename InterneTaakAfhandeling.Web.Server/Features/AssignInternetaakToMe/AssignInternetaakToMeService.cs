@@ -6,15 +6,15 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
 {
     public interface IAssignInternetaakToMeService
     {
-        Task<(Internetaak internetaak, Actor currentUserActor)> ToSelfAsync(Guid internetakenId, ITAUser user);
+        Task<(Internetaak internetaak, Actor currentUserActor)> ToSelfAsync(Guid internetaakId, ITAUser user);
     }
     public class AssignInternetaakToMeService(IOpenKlantApiClient openKlantApiClient) : IAssignInternetaakToMeService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-        public async Task<(Common.Services.OpenKlantApi.Models.Internetaak internetaak, Actor currentUserActor)> ToSelfAsync(Guid internetakenId, ITAUser user)
+        public async Task<(Internetaak internetaak, Actor currentUserActor)> ToSelfAsync(Guid internetaakId, ITAUser user)
         {
             var currentUserActor = await GetActor(user) ?? await CreateEntraActor(user);
-            var internetaak = await _openKlantApiClient.GetInternetaakByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
+            var internetaak = await _openKlantApiClient.GetInternetaakByIdAsync(internetaakId) ?? throw new Exception($"Internetaken with ID {internetaakId} not found.");
 
             var actors = await GetAssignedOrganisationalUnitActors(internetaak);
 
@@ -37,7 +37,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
                 Status = internetaak.Status
             };
 
-            var updatedInternetaak = await _openKlantApiClient.PutInternetaakAsync(internetakenUpdateRequest, internetaak.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetakenId}.");
+            var updatedInternetaak = await _openKlantApiClient.PutInternetaakAsync(internetakenUpdateRequest, internetaak.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetaakId}.");
 
             return (updatedInternetaak, currentUserActor);
         }

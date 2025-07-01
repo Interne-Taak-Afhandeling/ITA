@@ -22,15 +22,15 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         private readonly ILogger<AssignInternetaakToMeController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [HttpPost("{internetakenId}/assign-to-me")]
-        public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetakenId)
+        [HttpPost("{internetaakId}/assign-to-me")]
+        public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetaakId)
         {
             try
             {
-                var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetakenId, user);
+                var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetaakId, user);
 
                 var assignedAction = KnownContactAction.AssignedToSelf(Guid.Parse(currentUserActor.Uuid));
-                await _logboekService.LogContactRequestAction(assignedAction, internetakenId);
+                await _logboekService.LogContactRequestAction(assignedAction, internetaakId);
 
                 return Ok(updatedInterneTaak);
             }
@@ -39,7 +39,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
                 var safeUserEmail = SecureLogging.SanitizeAndTruncate(user.Email, 5);
 
                 _logger.LogError(ex, "Error assigning internetaak {InternetaakId} to user {SafeUserEmail}",
-          internetakenId, safeUserEmail);
+          internetaakId, safeUserEmail);
                 throw;
             }
         }
