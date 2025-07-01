@@ -10,6 +10,7 @@ public interface ILogboekService
 {
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
     Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId);
+    Task LogContactRequestKlantContactAction(bool? contactGelukt, string klantcontactId, Guid internetaakId);
 }
 
 public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
@@ -54,13 +55,28 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         return activiteiten;
     }
 
+
+
+    public async Task LogContactRequestKlantContactAction(bool? contactGelukt, string klantcontactId, Guid internetaakId)
+    {
+        var actionDescription = contactGelukt.HasValue && contactGelukt.Value
+            ? "contact gehad"
+            : "geen contact kunnen leggen";
+
+        var klantContactAction = KnownContactAction.Klantcontact(
+            Guid.Parse(klantcontactId), actionDescription
+        );
+
+        await LogContactRequestAction(klantContactAction,  internetaakId);
+    }
+
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
         var logboekData = await GetOrCreateLogboek(internetaakId);
 
         var logboekAction = BuildLogboekAction(knownContactAction, logboekData);
 
-        await objectenApiClient.UpdateLogboek(logboekAction, logboekData.Uuid);
+        await _objectenApiClient.UpdateLogboek(logboekAction, logboekData.Uuid);
     }
 
     #region Util
