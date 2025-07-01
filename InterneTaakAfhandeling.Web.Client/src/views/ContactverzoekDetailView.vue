@@ -10,6 +10,7 @@
         v-if="taak?.aanleidinggevendKlantcontact?.uuid"
         :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
         :zaakIdentificatie="taak?.zaak?.identificatie"
+        :internetaak-id="taak.uuid"
         @zaak-gekoppeld="handleZaakGekoppeld"
       />
     </utrecht-button-group>

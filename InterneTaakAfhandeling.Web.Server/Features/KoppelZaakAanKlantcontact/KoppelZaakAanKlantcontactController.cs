@@ -93,7 +93,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                     });
                 }
 
-                var onderwerpobject = await KoppelZaakAanOnderwerpobject(aanleidinggevendKlantcontact, zaak.Uuid);
+                var onderwerpobject = await KoppelZaakAanOnderwerpobject(aanleidinggevendKlantcontact, zaak.Uuid,request.InternetaakId);
 
                 return Ok(new KoppelZaakAanKlantcontactResult
                 {
@@ -116,7 +116,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
             }
         }
 
-        private async Task<Onderwerpobject> KoppelZaakAanOnderwerpobject(Klantcontact klantcontact, string zaakUuid)
+        private async Task<Onderwerpobject> KoppelZaakAanOnderwerpobject(Klantcontact klantcontact, string zaakUuid,
+            string requestInternetaakId)
         {
             var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontact.Uuid);
             _logger.LogInformation("Koppelen zaak aan klantcontact met UUID: {SafeKlantcontactUuid}", safeKlantcontactUuid);
@@ -167,6 +168,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                     CodeSoortObjectId = "uuid"
                 }
             };
+            var internetaakId = klantcontact?.LeiddeTotInterneTaken?.First(x=> x.Uuid == requestInternetaakId)?.Uuid;
 
             if (bestaandZaakOnderwerpobject != null && !string.IsNullOrEmpty(bestaandZaakOnderwerpobject.Uuid))
             {
@@ -186,8 +188,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                
                   var linkedKlantContact = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
 
-                  var internetaakId = klantcontact?.LeiddeTotInterneTaken?.First()?.Uuid;
-                  if (internetaakId != null)
+                if (internetaakId != null)
                       await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(Guid.Parse(zaakUuid)),
                           Guid.Parse(internetaakId));
 
@@ -200,6 +201,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
     {
         public required string ZaakIdentificatie { get; set; }
         public required string AanleidinggevendKlantcontactUuid { get; set; }
+        
+        public required string InternetaakId  { get; set; }
     }
 
     public class KoppelZaakAanKlantcontactResult
