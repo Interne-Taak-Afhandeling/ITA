@@ -92,6 +92,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                         Status = StatusCodes.Status404NotFound
                     });
                 }
+                // validating internetaak is related to klant contact 
+               var isInternetaakRelatedToKlantContact=  aanleidinggevendKlantcontact?.LeiddeTotInterneTaken?
+                     .Where(x=> x.Uuid == request.InternetaakId).Any();
+               if (isInternetaakRelatedToKlantContact == null)
+               {
+                   return NotFound(new ProblemDetails
+                   {
+                       Title = "Internetaak niet gerelateerd aan klantcontact",
+                       Detail = $"Internetaak is niet gekoppeld aan klantcontact met UUID: {safeKlantcontactUuid}",
+                       Status = StatusCodes.Status409Conflict
+                   });
+               }
+
 
                 var onderwerpobject = await KoppelZaakAanOnderwerpobject(aanleidinggevendKlantcontact, zaak.Uuid,request.InternetaakId);
 
@@ -117,7 +130,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
         }
 
         private async Task<Onderwerpobject> KoppelZaakAanOnderwerpobject(Klantcontact klantcontact, string zaakUuid,
-            string requestInternetaakId)
+            string internetaakId)
         {
             var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontact.Uuid);
             _logger.LogInformation("Koppelen zaak aan klantcontact met UUID: {SafeKlantcontactUuid}", safeKlantcontactUuid);
@@ -168,8 +181,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KoppelZaak
                     CodeSoortObjectId = "uuid"
                 }
             };
-            var internetaakId = klantcontact?.LeiddeTotInterneTaken?.First(x=> x.Uuid == requestInternetaakId)?.Uuid;
-
+           
             if (bestaandZaakOnderwerpobject != null && !string.IsNullOrEmpty(bestaandZaakOnderwerpobject.Uuid))
             {
                 var safeOnderwerpUuid = SecureLogging.SanitizeUuid(bestaandZaakOnderwerpobject.Uuid);
