@@ -65,7 +65,7 @@
   --denhaag-process-steps-step-heading-not-checked-color: var(--utrecht-color-blue-40);
   --denhaag-process-steps-step-heading-checked-color: var(--utrecht-color-blue-40);
   --denhaag-process-steps-step-meta-color: rgba(0, 0, 0, 0.6);
-
+  --denhaag-process-steps-step-meta-font-size: 0.875rem;
   // custom ita-theme tokens
   @include ita.ita-theme;
 }
