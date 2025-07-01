@@ -62,6 +62,10 @@
   --denhaag-step-marker-connector-outline-color: var(--utrecht-color-grey-90);
   --denhaag-step-marker-default-color: var(--utrecht-color-grey-90);
 
+  --denhaag-process-steps-step-heading-not-checked-color: var(--utrecht-color-blue-40);
+  --denhaag-process-steps-step-heading-checked-color: var(--utrecht-color-blue-40);
+  --denhaag-process-steps-step-meta-color: rgba(0, 0, 0, 0.6);
+
   // custom ita-theme tokens
   @include ita.ita-theme;
 }

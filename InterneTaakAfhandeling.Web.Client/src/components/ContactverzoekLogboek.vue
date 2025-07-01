@@ -30,7 +30,7 @@
           <StepBody>
             <utrecht-data-list>
               <utrecht-data-list-item v-if="logboekItem.tekst">
-                <utrecht-data-list-key>Informatie burger/bedrijf</utrecht-data-list-key>
+                <utrecht-data-list-key>Informatie voor burger/bedrijf</utrecht-data-list-key>
                 <utrecht-data-list-value :value="logboekItem.tekst" multiline>{{
                   logboekItem.tekst
                 }}</utrecht-data-list-value>
@@ -95,6 +95,12 @@ const getStepStatus = (actieOmschrijving: string | undefined) => {
 </script>
 
 <style lang="scss" scoped>
+.ita-step {
+  padding-block-end: var(--ita-step-padding-block-end);
+  --utrecht-data-list-margin-block-start: 0.5rem;
+  --utrecht-data-list-margin-block-end: 0.5rem;
+}
+
 .ita-step:not(:last-child) {
   border-bottom-width: var(--ita-step-border-bottom-width);
   border-bottom-color: var(--ita-step-border-bottom-color);
@@ -115,5 +121,9 @@ const getStepStatus = (actieOmschrijving: string | undefined) => {
 // hack: the nl-design system component forces a 16px margin
 .denhaag-process-steps__step-meta {
   margin-inline-start: 0;
+}
+
+.denhaag-process-steps {
+  --denhaag-process-steps-step-distance: var(--ita-step-distance);
 }
 </style>
