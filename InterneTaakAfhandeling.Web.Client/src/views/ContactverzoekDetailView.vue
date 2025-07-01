@@ -46,9 +46,9 @@
       </div>
     </detail-section>
 
-    <detail-section title="Contactmomenten">
+    <detail-section title="Logboek contactverzoek">
       <div class="same-margin-as-datalist">
-        <contactverzoek-contactmomenten v-if="taak" :taak="taak" />
+        <contactverzoek-logboek v-if="taak" :taak="taak" />
       </div>
     </detail-section>
   </div>
@@ -60,7 +60,8 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import BackLink from "@/components/BackLink.vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
+import ContactverzoekLogboek from "@/components/ContactverzoekLogboek.vue";
+
 import type { Internetaken, Zaak } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
