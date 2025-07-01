@@ -48,7 +48,7 @@
 
     <detail-section title="Logboek contactverzoek">
       <div class="same-margin-as-datalist">
-        <contactverzoek-logboek v-if="taak" :taak="taak" />
+        <contactverzoek-logboek v-if="taak" :key="logboekRefreshKey" :taak="taak" />
       </div>
     </detail-section>
   </div>
@@ -76,11 +76,14 @@ const route = useRoute();
 const cvId = computed(() => first(route.params.number));
 const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
+const logboekRefreshKey = ref(0);
 
 const handleZaakGekoppeld = (zaak: Zaak) => {
   if (taak.value) {
     taak.value.zaak = zaak;
   }
+
+  logboekRefreshKey.value++;
 };
 
 onMounted(async () => {

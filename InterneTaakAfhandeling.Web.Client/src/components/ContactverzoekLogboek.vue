@@ -11,24 +11,19 @@
         <Step
           v-for="logboekItem in logboekActiviteiten"
           :key="logboekItem.id"
-          :appearance="
-            getStepStatus(logboekItem.contactGelukt ? 'Contact gelukt' : 'Contact niet gelukt')
-          "
+          :appearance="getStepStatus(logboekItem.type)"
           class="ita-step"
         >
           <StepHeader>
             <StepHeading
-              :appearance="
-                getStepStatus(logboekItem.contactGelukt ? 'Contact gelukt' : 'Contact niet gelukt')
-              "
+              :appearance="getStepStatus(logboekItem.type)"
               class="actieomschrijving-titel"
-              >{{
-                logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt"
-              }}</StepHeading
             >
+              {{ getActionDescription(logboekItem) }}
+            </StepHeading>
           </StepHeader>
           <StepBody>
-            <utrecht-data-list>
+            <utrecht-data-list v-if="shouldShowDataList(logboekItem)">
               <utrecht-data-list-item v-if="logboekItem.tekst">
                 <utrecht-data-list-key>Informatie voor burger/bedrijf</utrecht-data-list-key>
                 <utrecht-data-list-value :value="logboekItem.tekst" multiline>{{
@@ -38,8 +33,8 @@
             </utrecht-data-list>
             <div class="ita-step-meta-list">
               <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
-              <StepMeta>{{ logboekItem.medewerker }}</StepMeta>
-              <StepMeta>Kanaal: {{ logboekItem.kanaal }}</StepMeta>
+              <StepMeta v-if="logboekItem.medewerker">{{ logboekItem.medewerker }}</StepMeta>
+              <StepMeta v-if="logboekItem.kanaal">Kanaal: {{ logboekItem.kanaal }}</StepMeta>
             </div>
           </StepBody>
         </Step>
@@ -75,22 +70,46 @@ const {
   }
 });
 
-const getStepStatus = (actieOmschrijving: string | undefined) => {
-  switch (actieOmschrijving) {
-    case "Afgerond":
+const getActionDescription = (logboekItem: any) => {
+  if (logboekItem.type === "klantcontact") {
+    return logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt";
+  }
+  
+  switch (logboekItem.type) {
+    case "verwerkt":
+      return "Afgerond";
+    case "zaak-gekoppeld":
+      return "Zaak gekoppeld";
+    case "zaakkoppeling-gewijzigd":
+      return "Zaak gewijzigd";
+    case "toegewezen":
+      return "Opgepakt";
+    default:
+      return logboekItem.type || "Onbekende actie";
+  }
+};
+
+const getStepStatus = (actieType: string) => {
+  switch (actieType) {
+    case "verwerkt":
       return "checked";
-    case "Zaak gekoppeld":
-    case "zaak gewijzigd":
+    case "zaak-gekoppeld":
+    case "zaakkoppeling-gewijzigd":
       return "checked";
-    case "Opgepakt":
-      return "current";
-    case "Contact gelukt":
+    case "toegewezen":
+      return "checked";  
+    case "klantcontact":
       return "checked";
-    case "Geen gehoor":
+    case "geen-contact":
       return "warning";
     default:
       return "not-checked";
   }
+};
+
+const shouldShowDataList = (logboekItem: any) => {
+  // Alleen tonen voor contactmomenten die tekst hebben
+  return logboekItem.type === "klantcontact" && logboekItem.tekst;
 };
 </script>
 
