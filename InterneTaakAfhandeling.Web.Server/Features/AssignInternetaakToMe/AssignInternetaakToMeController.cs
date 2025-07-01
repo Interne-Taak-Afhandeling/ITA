@@ -25,25 +25,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         [HttpPost("{internetakenId}/assign-to-me")]
         public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetakenId)
         {
-            var safeUserEmail = SecureLogging.SanitizeAndTruncate(user.Email, 5);
-
             try
             {
-                _logger.LogInformation("Assigning internetaak {InternetaakId} to user {SafeUserEmail}",
-                    internetakenId, safeUserEmail);
-
                 var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetakenId, user);
 
                 var assignedAction = KnownContactAction.AssignedToSelf(Guid.Parse(currentUserActor.Uuid));
                 await _logboekService.LogContactRequestAction(assignedAction, internetakenId);
 
-                _logger.LogInformation("Successfully assigned internetaak {InternetaakId} to user {SafeUserEmail} and logged action",
-                    internetakenId, safeUserEmail);
-
                 return Ok(updatedInterneTaak);
             }
             catch (Exception ex)
             {
+                var safeUserEmail = SecureLogging.SanitizeAndTruncate(user.Email, 5);
+
                 _logger.LogError(ex, "Error assigning internetaak {InternetaakId} to user {SafeUserEmail}",
           internetakenId, safeUserEmail);
                 throw;

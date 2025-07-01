@@ -14,7 +14,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         public async Task<(Common.Services.OpenKlantApi.Models.Internetaak internetaak, Actor currentUserActor)> ToSelfAsync(Guid internetakenId, ITAUser user)
         {
             var currentUserActor = await GetActor(user) ?? await CreateEntraActor(user);
-            var internetaak = await _openKlantApiClient.GetInternetaakByIdAsync(internetakenId.ToString()) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
+            var internetaak = await _openKlantApiClient.GetInternetaakByIdAsync(internetakenId) ?? throw new Exception($"Internetaken with ID {internetakenId} not found.");
 
             var actors = await GetAssignedOrganisationalUnitActors(internetaak);
 
