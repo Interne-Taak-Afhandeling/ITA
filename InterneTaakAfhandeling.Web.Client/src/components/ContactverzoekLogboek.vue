@@ -5,34 +5,30 @@
   <utrecht-alert v-else-if="error" appeareance="error" class="margin-top">
     Er ging iets mis. Probeer het later opnieuw.
   </utrecht-alert>
-  <div v-else class="logboek-container">
-    <div class="logboek-steps">
-      <StepList>
-        <Step v-for="logboekItem in logboekActiviteiten" :key="logboekItem.id" class="ita-step">
-          <StepHeader>
-            <StepHeading class="actieomschrijving-titel">{{
-              logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt"
-            }}</StepHeading>
-          </StepHeader>
-          <StepBody>
-            <utrecht-data-list>
-              <utrecht-data-list-item v-if="logboekItem.tekst">
-                <utrecht-data-list-key>Informatie voor burger/bedrijf</utrecht-data-list-key>
-                <utrecht-data-list-value :value="logboekItem.tekst" multiline>{{
-                  logboekItem.tekst
-                }}</utrecht-data-list-value>
-              </utrecht-data-list-item>
-            </utrecht-data-list>
-            <div class="ita-step-meta-list">
-              <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
-              <StepMeta>{{ logboekItem.medewerker }}</StepMeta>
-              <StepMeta>Kanaal: {{ logboekItem.kanaal }}</StepMeta>
-            </div>
-          </StepBody>
-        </Step>
-      </StepList>
-    </div>
-  </div>
+  <StepList v-else>
+    <Step v-for="logboekItem in logboekActiviteiten" :key="logboekItem.id" class="ita-step">
+      <StepHeader>
+        <StepHeading class="actieomschrijving-titel">{{
+          logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt"
+        }}</StepHeading>
+      </StepHeader>
+      <StepBody>
+        <utrecht-data-list>
+          <utrecht-data-list-item v-if="logboekItem.tekst">
+            <utrecht-data-list-key>Informatie voor burger/bedrijf</utrecht-data-list-key>
+            <utrecht-data-list-value :value="logboekItem.tekst" multiline>{{
+              logboekItem.tekst
+            }}</utrecht-data-list-value>
+          </utrecht-data-list-item>
+        </utrecht-data-list>
+        <div class="ita-step-meta-list">
+          <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
+          <StepMeta>{{ logboekItem.medewerker }}</StepMeta>
+          <StepMeta>Kanaal: {{ logboekItem.kanaal }}</StepMeta>
+        </div>
+      </StepBody>
+    </Step>
+  </StepList>
 </template>
 
 <script setup lang="ts">
