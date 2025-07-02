@@ -8,24 +8,11 @@
   <div v-else class="logboek-container">
     <div class="logboek-steps">
       <StepList>
-        <Step
-          v-for="logboekItem in logboekActiviteiten"
-          :key="logboekItem.id"
-          :appearance="
-            getStepStatus(logboekItem.contactGelukt ? 'Contact gelukt' : 'Contact niet gelukt')
-          "
-          class="ita-step"
-        >
+        <Step v-for="logboekItem in logboekActiviteiten" :key="logboekItem.id" class="ita-step">
           <StepHeader>
-            <StepHeading
-              :appearance="
-                getStepStatus(logboekItem.contactGelukt ? 'Contact gelukt' : 'Contact niet gelukt')
-              "
-              class="actieomschrijving-titel"
-              >{{
-                logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt"
-              }}</StepHeading
-            >
+            <StepHeading class="actieomschrijving-titel">{{
+              logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt"
+            }}</StepHeading>
           </StepHeader>
           <StepBody>
             <utrecht-data-list>
@@ -74,24 +61,6 @@ const {
     return klantcontactService.getLogboek(props.taak.uuid, signal);
   }
 });
-
-const getStepStatus = (actieOmschrijving: string | undefined) => {
-  switch (actieOmschrijving) {
-    case "Afgerond":
-      return "checked";
-    case "Zaak gekoppeld":
-    case "zaak gewijzigd":
-      return "checked";
-    case "Opgepakt":
-      return "current";
-    case "Contact gelukt":
-      return "checked";
-    case "Geen gehoor":
-      return "warning";
-    default:
-      return "not-checked";
-  }
-};
 </script>
 
 <style lang="scss" scoped>
