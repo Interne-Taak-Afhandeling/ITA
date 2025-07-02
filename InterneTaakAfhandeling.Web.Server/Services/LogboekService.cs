@@ -31,7 +31,12 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         foreach (var item in activiteitenOrderedByDate)
         {
-            var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
+            var activiteit = new Activiteit
+            {
+                Datum = item.Datum,
+                Type = item.Type,
+                Titel = GetActionTitle(item.Type) 
+            };
 
             if (item.Type == ActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp.Count == 1)
             {
@@ -41,9 +46,13 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                 {
                     activiteit.Id = contactmoment.Uuid;
                     activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
-                    activiteit.Tekst = contactmoment.Inhoud;
+                    activiteit.Tekst = contactmoment.Inhoud; // Direct de inhoud van het contactmoment
                     activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
                     activiteit.Medewerker = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
+
+                    activiteit.Titel = contactmoment.IndicatieContactGelukt.HasValue && contactmoment.IndicatieContactGelukt.Value
+                        ? "Contact gelukt"
+                        : "Contact niet gelukt";
                 }
             }
             else if (item.Type == ActiviteitTypes.Toegewezen && item.HeeftBetrekkingOp.Count == 1)
@@ -54,6 +63,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                 {
                     activiteit.Id = actor.Uuid;
                     activiteit.Medewerker = actor.Naam ?? "Onbekend";
+                    activiteit.Tekst = $"Contactverzoek opgepakt door {actor.Naam ?? "Onbekend"}";
                 }
             }
 
@@ -71,6 +81,16 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         await _objectenApiClient.UpdateLogboek(logboekAction, logboekData.Uuid);
     }
+
+    private static string GetActionTitle(string type) => type switch
+    {
+        ActiviteitTypes.Klantcontact => "Klantcontact",
+        ActiviteitTypes.Verwerkt => "Afgerond",
+        ActiviteitTypes.ZaakGekoppeld => "Zaak gekoppeld",
+        ActiviteitTypes.ZaakkoppelingGewijzigd => "Zaak gewijzigd",
+        ActiviteitTypes.Toegewezen => "Opgepakt",
+        _ => type ?? "Onbekende actie"
+    };
 
     #region Util
 
@@ -108,7 +128,8 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 public class Activiteit
 {
     public required DateTimeOffset Datum { get; set; }
-    public required string Type { get; set; }
+    public required string Type { get; set; }   
+    public required string Titel { get; set; }   
 
     public string? Kanaal { get; set; }
     public string? Tekst { get; set; }

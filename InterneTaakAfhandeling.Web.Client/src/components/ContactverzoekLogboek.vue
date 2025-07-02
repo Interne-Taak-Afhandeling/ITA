@@ -8,22 +8,12 @@
   <StepList v-else>
     <Step v-for="logboekItem in logboekActiviteiten" :key="logboekItem.id" class="ita-step">
       <StepHeader>
-        <StepHeading>{{ getActionDescription(logboekItem) }}</StepHeading>
+        <StepHeading>{{ logboekItem.titel }}</StepHeading>
       </StepHeader>
       <StepBody>
-        <utrecht-data-list>
-          <utrecht-data-list-item v-if="logboekItem.tekst">
-            <utrecht-data-list-key>Informatie voor burger/bedrijf</utrecht-data-list-key>
-            <utrecht-data-list-value :value="logboekItem.tekst" multiline>{{
-              logboekItem.tekst
-            }}</utrecht-data-list-value>
-          </utrecht-data-list-item>
-          <utrecht-data-list-item v-if="logboekItem.type === 'toegewezen' && logboekItem.medewerker">
-            <utrecht-data-list-value :value="logboekItem.medewerker">{{
-              "Contactverzoek opgepakt door " + logboekItem.medewerker
-            }}</utrecht-data-list-value>
-          </utrecht-data-list-item>
-        </utrecht-data-list>
+        <utrecht-paragraph v-if="logboekItem.tekst" class="preserve-newline">
+          {{ logboekItem.tekst }}
+        </utrecht-paragraph>
         <div class="ita-step-meta-list">
           <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
           <StepMeta v-if="logboekItem.medewerker">{{ logboekItem.medewerker }}</StepMeta>
@@ -60,31 +50,13 @@ const {
     return klantcontactService.getLogboek(props.taak.uuid, signal);
   }
 });
-
-const getActionDescription = (logboekItem: LogboekActiviteit) => {
-  switch (logboekItem.type) {
-    case "klantcontact":
-      return logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt";
-    case "verwerkt":
-      return "Afgerond";
-    case "zaak-gekoppeld":
-      return "Zaak gekoppeld";
-    case "zaakkoppeling-gewijzigd":
-      return "Zaak gewijzigd";
-    case "toegewezen":
-      return "Opgepakt";
-    default:
-      return logboekItem.type || "Onbekende actie";
-  }
-};
-
 </script>
 
 <style lang="scss" scoped>
 .ita-step {
   padding-block-end: var(--ita-step-padding-block-end);
-  --utrecht-data-list-margin-block-start: 0.5rem;
-  --utrecht-data-list-margin-block-end: 0.5rem;
+  --utrecht-paragraph-margin-block-start: 0.5rem;
+  --utrecht-paragraph-margin-block-end: 0.5rem;
 }
 
 .ita-step:not(:last-child) {

@@ -9,6 +9,7 @@ import { get, post } from "@/utils/fetchWrapper";
 interface LogboekActiviteit {
   datum: string;
   type: string;
+  titel: string;
   kanaal: string | undefined;
   tekst: string | undefined;
   id: string;
