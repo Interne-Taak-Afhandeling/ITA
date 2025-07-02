@@ -21,7 +21,7 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction CaseLinked(Guid zaakId, string userId)
+    public static KnownContactAction CaseLinked(Guid zaakId, string actorId)
     {
         return new KnownContactAction
         {
@@ -32,7 +32,7 @@ public class KnownContactAction
                 CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
                 CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
                 CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-                ObjectId = userId,
+                ObjectId = actorId,
             },
             HeeftBetrekkingOp = new ObjectIdentificator
             {
@@ -44,7 +44,7 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction CaseModified(Guid zaakId, string userId)
+    public static KnownContactAction CaseModified(Guid zaakId, string actorId)
     {
         return new KnownContactAction
         {
@@ -55,7 +55,7 @@ public class KnownContactAction
                 CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
                 CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
                 CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-                ObjectId = userId,
+                ObjectId = actorId,
             },
             HeeftBetrekkingOp = new ObjectIdentificator
             {
