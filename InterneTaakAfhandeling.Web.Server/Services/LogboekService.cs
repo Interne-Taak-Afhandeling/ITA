@@ -2,6 +2,7 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Web.Server.Services.Models;
 
 namespace InterneTaakAfhandeling.Web.Server.Services;
@@ -12,11 +13,13 @@ public interface ILogboekService
     Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId);
 }
 
-public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
+public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient, ILogger<LogboekService> logger)
     : ILogboekService
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
+    private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
+    private readonly ILogger<LogboekService> _logger = logger;
 
     public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
     {
@@ -56,6 +59,52 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                     activiteit.Medewerker = actor.Naam ?? "Onbekend";
                 }
             }
+            else if ((item.Type == ActiviteitTypes.ZaakGekoppeld || item.Type == ActiviteitTypes.ZaakkoppelingGewijzigd) && item.HeeftBetrekkingOp.Count >= 1)
+            {
+                var zaakObject = item.HeeftBetrekkingOp.FirstOrDefault(x => x.CodeObjecttype == "zgw-Zaak");
+                var actorObject = item.HeeftBetrekkingOp.FirstOrDefault(x => x.CodeObjecttype == "actor");
+
+                if (zaakObject != null)
+                {
+                    var zaakId = zaakObject.ObjectId;
+
+                    try
+                    {
+                        var zaak = await _zakenApiClient.GetZaakAsync(zaakId);
+                        if (zaak != null)
+                        {
+                            activiteit.Id = zaak.Uuid;
+                            activiteit.ZaakIdentificatie = zaak.Identificatie;
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Zaak with ID {ZaakId} not found in ZakenApi", zaakId);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error retrieving zaak {ZaakId} from ZakenApi", zaakId);
+                    }
+                }
+
+                // We need actor to show colleague in logboek with zaken
+                if (actorObject != null)
+                {
+                    try
+                    {
+                        var actor = await _openKlantApiClient.GetActorAsync(actorObject.ObjectId);
+                        if (actor != null)
+                        {
+                            activiteit.Medewerker = actor.Naam ?? "Onbekend";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error retrieving actor {ActorId} from OpenKlant API", actorObject.ObjectId);
+                        activiteit.Medewerker = "Onbekend";
+                    }
+                }
+            }
 
             activiteiten.Add(activiteit);
         }
@@ -87,17 +136,21 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         var logBoekPatch = new ObjectPatchModel<LogboekData>
         { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
 
+        var heeftBetrekkingOp = new List<ObjectIdentificator>();
+
+        if (knownContactAction.HeeftBetrekkingOp != null)
+        {
+            heeftBetrekkingOp.Add(knownContactAction.HeeftBetrekkingOp);
+        }
+
+        heeftBetrekkingOp.AddRange(knownContactAction.AlleObjecten);
+
         logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {
             Datum = DateTime.Now,
             Type = knownContactAction.Type,
             Omschrijving = knownContactAction.Description,
-            HeeftBetrekkingOp = knownContactAction.HeeftBetrekkingOp != null
-                ?
-                [
-                    knownContactAction.HeeftBetrekkingOp
-                ]
-                : []
+            HeeftBetrekkingOp = heeftBetrekkingOp
         });
         return logBoekPatch;
     }
@@ -115,4 +168,5 @@ public class Activiteit
     public bool? ContactGelukt { get; set; }
     public string? Id { get; set; }
     public string? Medewerker { get; set; }
+    public string? ZaakIdentificatie { get; set; }
 }

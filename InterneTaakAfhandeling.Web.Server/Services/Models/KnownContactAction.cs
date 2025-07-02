@@ -8,6 +8,7 @@ public class KnownContactAction
     public required string Type { get; init; }
     public required string Description { get; init; }
     public ObjectIdentificator? HeeftBetrekkingOp { get; private init; }
+    public List<ObjectIdentificator> AlleObjecten { get; private init; } = new();
 
     public static KnownContactAction Completed()
     {
@@ -18,9 +19,9 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction CaseLinked(Guid zaakId)
+    public static KnownContactAction CaseLinked(Guid zaakId, Guid? actorId = null)
     {
-        return new KnownContactAction
+        var action = new KnownContactAction
         {
             Description = "zaak gekoppeld",
             Type = "zaak-gekoppeld",
@@ -32,11 +33,25 @@ public class KnownContactAction
                 ObjectId = zaakId.ToString()
             }
         };
+
+        // Voeg actor toe als tweede object
+        if (actorId.HasValue)
+        {
+            action.AlleObjecten.Add(new ObjectIdentificator
+            {
+                CodeRegister = "openklant",
+                CodeObjecttype = "actor",
+                CodeSoortObjectId = "uuid",
+                ObjectId = actorId.Value.ToString()
+            });
+        }
+
+        return action;
     }
 
-    public static KnownContactAction CaseModified(Guid zaakId)
+    public static KnownContactAction CaseModified(Guid zaakId, Guid? actorId = null)
     {
-        return new KnownContactAction
+        var action = new KnownContactAction
         {
             Description = "zaak gewijzigd",
             Type = "zaakkoppeling-gewijzigd",
@@ -48,6 +63,20 @@ public class KnownContactAction
                 ObjectId = zaakId.ToString()
             }
         };
+
+        // Voeg actor toe als tweede object
+        if (actorId.HasValue)
+        {
+            action.AlleObjecten.Add(new ObjectIdentificator
+            {
+                CodeRegister = "openklant",
+                CodeObjecttype = "actor",
+                CodeSoortObjectId = "uuid",
+                ObjectId = actorId.Value.ToString()
+            });
+        }
+
+        return action;
     }
 
     public static KnownContactAction AssignedToSelf(Guid actorId)
@@ -68,10 +97,10 @@ public class KnownContactAction
 
     public static KnownContactAction Klantcontact(Klantcontact klantContact)
     {
-        var description =   klantContact.IndicatieContactGelukt.HasValue && klantContact.IndicatieContactGelukt.Value
+        var description = klantContact.IndicatieContactGelukt.HasValue && klantContact.IndicatieContactGelukt.Value
             ? "contact gehad"
             : "geen contact kunnen leggen";
- 
+
         return new KnownContactAction
         {
             Description = description,

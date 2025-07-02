@@ -24,6 +24,12 @@
               logboekItem.medewerker
             }}</utrecht-data-list-value>
           </utrecht-data-list-item>
+          <utrecht-data-list-item v-if="(logboekItem.type === 'zaak-gekoppeld' || logboekItem.type === 'zaakkoppeling-gewijzigd') && logboekItem.zaakIdentificatie">
+            <utrecht-data-list-key>Zaaknummer</utrecht-data-list-key>
+            <utrecht-data-list-value :value="logboekItem.zaakIdentificatie">{{
+              logboekItem.zaakIdentificatie
+            }}</utrecht-data-list-value>
+          </utrecht-data-list-item>
         </utrecht-data-list>
         <div class="ita-step-meta-list">
           <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
@@ -82,9 +88,10 @@ const getActionDescription = (logboekItem: LogboekActiviteit) => {
 };
 
 const shouldShowDataList = (logboekItem: LogboekActiviteit) => {
-  // Tonen voor contactmomenten die tekst hebben, of voor toegewezen acties met medewerker info
+  // Tonen voor contactmomenten die tekst hebben, toegewezen acties met medewerker info, of zaak acties met zaakIdentificatie
   return (logboekItem.type === "klantcontact" && logboekItem.tekst) ||
-         (logboekItem.type === "toegewezen" && logboekItem.medewerker);
+         (logboekItem.type === "toegewezen" && logboekItem.medewerker) ||
+         ((logboekItem.type === "zaak-gekoppeld" || logboekItem.type === "zaakkoppeling-gewijzigd") && logboekItem.zaakIdentificatie);
 };
 </script>
 
