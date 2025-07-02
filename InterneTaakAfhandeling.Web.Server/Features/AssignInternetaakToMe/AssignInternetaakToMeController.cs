@@ -29,7 +29,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
             {
                 var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetaakId, user);
 
-                var assignedAction = KnownContactAction.AssignedToSelf(Guid.Parse(currentUserActor.Uuid));
+                var assignedAction = KnownContactAction.AssignedToSelf(Guid.Parse(currentUserActor.Uuid),user.Email);
                 await _logboekService.LogContactRequestAction(assignedAction, internetaakId);
 
                 return Ok(updatedInterneTaak);
