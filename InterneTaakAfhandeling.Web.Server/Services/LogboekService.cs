@@ -35,7 +35,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
             {
                 Datum = item.Datum,
                 Type = item.Type,
-                Titel = GetActionTitle(item.Type) 
+                Titel = GetActionTitle(item.Type)
             };
 
             if (item.Type == ActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp.Count == 1)
@@ -46,7 +46,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                 {
                     activiteit.Id = contactmoment.Uuid;
                     activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
-                    activiteit.Tekst = contactmoment.Inhoud; // Direct de inhoud van het contactmoment
+                    activiteit.Tekst = contactmoment.Inhoud;
                     activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
                     activiteit.Medewerker = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
 
@@ -128,8 +128,8 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 public class Activiteit
 {
     public required DateTimeOffset Datum { get; set; }
-    public required string Type { get; set; }   
-    public required string Titel { get; set; }   
+    public required string Type { get; set; }
+    public required string Titel { get; set; }
 
     public string? Kanaal { get; set; }
     public string? Tekst { get; set; }
