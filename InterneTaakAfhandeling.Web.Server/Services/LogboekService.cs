@@ -9,7 +9,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services;
 public interface ILogboekService
 {
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
-    Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId); 
+    Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId);
 }
 
 public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
@@ -17,7 +17,6 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-
 
     public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
     {
@@ -47,16 +46,22 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                     activiteit.Medewerker = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
                 }
             }
+            else if (item.Type == ActiviteitTypes.Toegewezen && item.HeeftBetrekkingOp.Count == 1)
+            {
+                var actorId = item.HeeftBetrekkingOp.Single().ObjectId;
+                var actor = await _openKlantApiClient.GetActorAsync(actorId);
+                if (actor != null)
+                {
+                    activiteit.Id = actor.Uuid;
+                    activiteit.Medewerker = actor.Naam ?? "Onbekend";
+                }
+            }
 
             activiteiten.Add(activiteit);
         }
 
         return activiteiten;
     }
-
-
-
-   
 
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
@@ -80,7 +85,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         ObjectResult<LogboekData> logboek)
     {
         var logBoekPatch = new ObjectPatchModel<LogboekData>
-            { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
+        { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
 
         logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {

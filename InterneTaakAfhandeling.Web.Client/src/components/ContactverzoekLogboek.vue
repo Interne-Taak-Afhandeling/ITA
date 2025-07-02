@@ -18,6 +18,12 @@
               logboekItem.tekst
             }}</utrecht-data-list-value>
           </utrecht-data-list-item>
+          <utrecht-data-list-item v-if="logboekItem.type === 'toegewezen' && logboekItem.medewerker">
+            <utrecht-data-list-key>Toegewezen aan</utrecht-data-list-key>
+            <utrecht-data-list-value :value="logboekItem.medewerker">{{
+              logboekItem.medewerker
+            }}</utrecht-data-list-value>
+          </utrecht-data-list-item>
         </utrecht-data-list>
         <div class="ita-step-meta-list">
           <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
@@ -76,8 +82,9 @@ const getActionDescription = (logboekItem: LogboekActiviteit) => {
 };
 
 const shouldShowDataList = (logboekItem: LogboekActiviteit) => {
-  // Alleen tonen voor contactmomenten die tekst hebben
-  return logboekItem.type === "klantcontact" && logboekItem.tekst;
+  // Tonen voor contactmomenten die tekst hebben, of voor toegewezen acties met medewerker info
+  return (logboekItem.type === "klantcontact" && logboekItem.tekst) ||
+         (logboekItem.type === "toegewezen" && logboekItem.medewerker);
 };
 </script>
 
@@ -100,8 +107,9 @@ const shouldShowDataList = (logboekItem: LogboekActiviteit) => {
   column-gap: var(--ita-step-meta-list-column-gap);
   row-gap: var(--ita-step-meta-list-row-gap);
 
-  > :nth-last-child(2) {
+  > :last-child:nth-child(n+3) {
     flex: 1;
+    text-align: end;  
   }
 }
 
