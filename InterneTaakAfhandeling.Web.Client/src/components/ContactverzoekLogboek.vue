@@ -62,11 +62,9 @@ const {
 });
 
 const getActionDescription = (logboekItem: LogboekActiviteit) => {
-  if (logboekItem.type === "klantcontact") {
-    return logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt";
-  }
-
   switch (logboekItem.type) {
+    case "klantcontact":
+      return logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt";
     case "verwerkt":
       return "Afgerond";
     case "zaak-gekoppeld":

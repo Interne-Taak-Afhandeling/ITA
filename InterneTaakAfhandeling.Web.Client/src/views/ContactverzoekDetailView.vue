@@ -48,7 +48,7 @@
 
     <detail-section title="Logboek contactverzoek">
       <div class="same-margin-as-datalist">
-        <contactverzoek-logboek v-if="taak" :key="logboekRefreshKey" :taak="taak" />
+        <contactverzoek-logboek v-if="taak" :taak="taak" />
       </div>
     </detail-section>
   </div>
@@ -62,7 +62,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import ContactverzoekLogboek from "@/components/ContactverzoekLogboek.vue";
 
-import type { Internetaken, Zaak } from "@/types/internetaken";
+import type { Internetaken } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
 import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
@@ -76,7 +76,6 @@ const route = useRoute();
 const cvId = computed(() => first(route.params.number));
 const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
-const logboekRefreshKey = ref(0);
 
 const handleZaakGekoppeld = () => {
   fetchInternetaken();
