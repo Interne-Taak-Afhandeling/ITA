@@ -25,9 +25,8 @@
             }}</utrecht-data-list-value>
           </utrecht-data-list-item>
           <utrecht-data-list-item v-if="(logboekItem.type === 'zaak-gekoppeld' || logboekItem.type === 'zaakkoppeling-gewijzigd') && logboekItem.zaakIdentificatie">
-            <utrecht-data-list-key>Zaaknummer</utrecht-data-list-key>
             <utrecht-data-list-value :value="logboekItem.zaakIdentificatie">{{
-              logboekItem.zaakIdentificatie
+              "Zaak " +logboekItem.zaakIdentificatie+ " gekoppeld aan contactverzoek" 
             }}</utrecht-data-list-value>
           </utrecht-data-list-item>
         </utrecht-data-list>
