@@ -9,7 +9,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services;
 public interface ILogboekService
 {
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
-    Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId); 
+    Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId);
 }
 
 public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
@@ -17,7 +17,6 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
-
 
     public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
     {
@@ -32,7 +31,12 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         foreach (var item in activiteitenOrderedByDate)
         {
-            var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
+            var activiteit = new Activiteit
+            {
+                Datum = item.Datum,
+                Type = item.Type,
+                Titel = GetActionTitle(item.Type)
+            };
 
             if (item.Type == ActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp.Count == 1)
             {
@@ -45,6 +49,21 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                     activiteit.Tekst = contactmoment.Inhoud;
                     activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
                     activiteit.Medewerker = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
+
+                    activiteit.Titel = contactmoment.IndicatieContactGelukt.HasValue && contactmoment.IndicatieContactGelukt.Value
+                        ? "Contact gelukt"
+                        : "Contact niet gelukt";
+                }
+            }
+            else if (item.Type == ActiviteitTypes.Toegewezen && item.HeeftBetrekkingOp.Count == 1)
+            {
+                var actorId = item.HeeftBetrekkingOp.Single().ObjectId;
+                var actor = await _openKlantApiClient.GetActorAsync(actorId);
+                if (actor != null)
+                {
+                    activiteit.Id = actor.Uuid;
+                    activiteit.Medewerker = actor.Naam ?? "Onbekend";
+                    activiteit.Tekst = $"Contactverzoek opgepakt door {actor.Naam ?? "Onbekend"}";
                 }
             }
 
@@ -54,10 +73,6 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         return activiteiten;
     }
 
-
-
-   
-
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
         var logboekData = await GetOrCreateLogboek(internetaakId);
@@ -66,6 +81,16 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         await _objectenApiClient.UpdateLogboek(logboekAction, logboekData.Uuid);
     }
+
+    private static string GetActionTitle(string type) => type switch
+    {
+        ActiviteitTypes.Klantcontact => "Klantcontact",
+        ActiviteitTypes.Verwerkt => "Afgerond",
+        ActiviteitTypes.ZaakGekoppeld => "Zaak gekoppeld",
+        ActiviteitTypes.ZaakkoppelingGewijzigd => "Zaak gewijzigd",
+        ActiviteitTypes.Toegewezen => "Opgepakt",
+        _ => type ?? "Onbekende actie"
+    };
 
     #region Util
 
@@ -80,7 +105,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         ObjectResult<LogboekData> logboek)
     {
         var logBoekPatch = new ObjectPatchModel<LogboekData>
-            { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
+        { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
 
         logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
         {
@@ -104,6 +129,7 @@ public class Activiteit
 {
     public required DateTimeOffset Datum { get; set; }
     public required string Type { get; set; }
+    public required string Titel { get; set; }
 
     public string? Kanaal { get; set; }
     public string? Tekst { get; set; }
