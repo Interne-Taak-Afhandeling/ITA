@@ -11,7 +11,7 @@
         <StepHeading>{{ getActionDescription(logboekItem) }}</StepHeading>
       </StepHeader>
       <StepBody>
-        <utrecht-data-list v-if="shouldShowDataList(logboekItem)">
+        <utrecht-data-list>
           <utrecht-data-list-item v-if="logboekItem.tekst">
             <utrecht-data-list-key>Informatie voor burger/bedrijf</utrecht-data-list-key>
             <utrecht-data-list-value :value="logboekItem.tekst" multiline>{{
@@ -19,7 +19,7 @@
             }}</utrecht-data-list-value>
           </utrecht-data-list-item>
           <utrecht-data-list-item v-if="logboekItem.type === 'toegewezen' && logboekItem.medewerker">
-              <utrecht-data-list-value :value="logboekItem.medewerker">{{
+            <utrecht-data-list-value :value="logboekItem.medewerker">{{
               "Contactverzoek opgepakt door " + logboekItem.medewerker
             }}</utrecht-data-list-value>
           </utrecht-data-list-item>
@@ -80,11 +80,6 @@ const getActionDescription = (logboekItem: LogboekActiviteit) => {
   }
 };
 
-const shouldShowDataList = (logboekItem: LogboekActiviteit) => {
-  // Tonen voor contactmomenten die tekst hebben, of voor toegewezen acties met medewerker info
-  return (logboekItem.type === "klantcontact" && logboekItem.tekst) ||
-         (logboekItem.type === "toegewezen" && logboekItem.medewerker);
-};
 </script>
 
 <style lang="scss" scoped>
