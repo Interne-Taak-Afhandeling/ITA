@@ -43,7 +43,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { useLoader } from "@/composables/use-loader";
-import { klantcontactService } from "@/services/klantcontactService";
+import { klantcontactService, type LogboekActiviteit } from "@/services/klantcontactService";
 
 const props = defineProps<{ taak: Internetaken }>();
 const {
@@ -56,7 +56,7 @@ const {
   }
 });
 
-const getActionDescription = (logboekItem: any) => {
+const getActionDescription = (logboekItem: LogboekActiviteit) => {
   if (logboekItem.type === "klantcontact") {
     return logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt";
   }
@@ -75,7 +75,7 @@ const getActionDescription = (logboekItem: any) => {
   }
 };
 
-const shouldShowDataList = (logboekItem: any) => {
+const shouldShowDataList = (logboekItem: LogboekActiviteit) => {
   // Alleen tonen voor contactmomenten die tekst hebben
   return logboekItem.type === "klantcontact" && logboekItem.tekst;
 };
