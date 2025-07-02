@@ -19,9 +19,8 @@
             }}</utrecht-data-list-value>
           </utrecht-data-list-item>
           <utrecht-data-list-item v-if="logboekItem.type === 'toegewezen' && logboekItem.medewerker">
-            <utrecht-data-list-key>Toegewezen aan</utrecht-data-list-key>
-            <utrecht-data-list-value :value="logboekItem.medewerker">{{
-              logboekItem.medewerker
+              <utrecht-data-list-value :value="logboekItem.medewerker">{{
+              "Contactverzoek opgepakt door " + logboekItem.medewerker
             }}</utrecht-data-list-value>
           </utrecht-data-list-item>
         </utrecht-data-list>
