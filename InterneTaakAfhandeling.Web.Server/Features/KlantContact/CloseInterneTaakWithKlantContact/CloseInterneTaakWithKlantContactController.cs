@@ -73,11 +73,11 @@ public class CloseInterneTaakWithKlantContactController(
             {
                 Status = "verwerkt"
             };
- 
+
             await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
-                      
+
             // logging klantcontact
-            await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result.Klantcontact,_user.Email), request.InterneTaakId);
+            await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result), request.InterneTaakId);
 
             // logging the completed action
             await _logboekService.LogContactRequestAction(KnownContactAction.Completed(), request.InterneTaakId);
