@@ -62,7 +62,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import ContactverzoekLogboek from "@/components/ContactverzoekLogboek.vue";
 
-import type { Internetaken, Zaak } from "@/types/internetaken";
+import type { Internetaken } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
 import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
@@ -77,10 +77,8 @@ const cvId = computed(() => first(route.params.number));
 const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
 
-const handleZaakGekoppeld = (zaak: Zaak) => {
-  if (taak.value) {
-    taak.value.zaak = zaak;
-  }
+const handleZaakGekoppeld = () => {
+  fetchInternetaken();
 };
 
 onMounted(async () => {

@@ -8,12 +8,10 @@
   <StepList v-else>
     <Step v-for="logboekItem in logboekActiviteiten" :key="logboekItem.id" class="ita-step">
       <StepHeader>
-        <StepHeading class="actieomschrijving-titel">{{
-          logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt"
-        }}</StepHeading>
+        <StepHeading>{{ getActionDescription(logboekItem) }}</StepHeading>
       </StepHeader>
       <StepBody>
-        <utrecht-data-list>
+        <utrecht-data-list v-if="shouldShowDataList(logboekItem)">
           <utrecht-data-list-item v-if="logboekItem.tekst">
             <utrecht-data-list-key>Informatie voor burger/bedrijf</utrecht-data-list-key>
             <utrecht-data-list-value :value="logboekItem.tekst" multiline>{{
@@ -23,8 +21,8 @@
         </utrecht-data-list>
         <div class="ita-step-meta-list">
           <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
-          <StepMeta>{{ logboekItem.medewerker }}</StepMeta>
-          <StepMeta>Kanaal: {{ logboekItem.kanaal }}</StepMeta>
+          <StepMeta v-if="logboekItem.medewerker">{{ logboekItem.medewerker }}</StepMeta>
+          <StepMeta v-if="logboekItem.kanaal">Kanaal: {{ logboekItem.kanaal }}</StepMeta>
         </div>
       </StepBody>
     </Step>
@@ -45,7 +43,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { useLoader } from "@/composables/use-loader";
-import { klantcontactService } from "@/services/klantcontactService";
+import { klantcontactService, type LogboekActiviteit } from "@/services/klantcontactService";
 
 const props = defineProps<{ taak: Internetaken }>();
 const {
@@ -57,6 +55,28 @@ const {
     return klantcontactService.getLogboek(props.taak.uuid, signal);
   }
 });
+
+const getActionDescription = (logboekItem: LogboekActiviteit) => {
+  switch (logboekItem.type) {
+    case "klantcontact":
+      return logboekItem.contactGelukt ? "Contact gelukt" : "Contact niet gelukt";
+    case "verwerkt":
+      return "Afgerond";
+    case "zaak-gekoppeld":
+      return "Zaak gekoppeld";
+    case "zaakkoppeling-gewijzigd":
+      return "Zaak gewijzigd";
+    case "toegewezen":
+      return "Opgepakt";
+    default:
+      return logboekItem.type || "Onbekende actie";
+  }
+};
+
+const shouldShowDataList = (logboekItem: LogboekActiviteit) => {
+  // Alleen tonen voor contactmomenten die tekst hebben
+  return logboekItem.type === "klantcontact" && logboekItem.tekst;
+};
 </script>
 
 <style lang="scss" scoped>
