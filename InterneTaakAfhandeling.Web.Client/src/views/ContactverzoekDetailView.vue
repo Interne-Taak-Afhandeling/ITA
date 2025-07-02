@@ -78,12 +78,8 @@ const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
 const logboekRefreshKey = ref(0);
 
-const handleZaakGekoppeld = (zaak: Zaak) => {
-  if (taak.value) {
-    taak.value.zaak = zaak;
-  }
-
-  logboekRefreshKey.value++;
+const handleZaakGekoppeld = () => {
+  fetchInternetaken();
 };
 
 onMounted(async () => {
