@@ -182,11 +182,10 @@ public class KoppelZaakAanKlantcontactController : Controller
                 "Bijwerken bestaand zaak-onderwerpobject {SafeOnderwerpUuid} met nieuwe zaak {SafeZaakUuid}",
                 safeOnderwerpUuid, safeZaakUuid);
 
-            var updatedOnderwerpobject = await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, request);
-
-            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid)), Guid.Parse(internetaakId));
-
-            return updatedOnderwerpobject;
+            var modifiedKlantContact = await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, request);
+            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid)),
+                Guid.Parse(internetaakId));
+            return modifiedKlantContact;
         }
         else
         {
