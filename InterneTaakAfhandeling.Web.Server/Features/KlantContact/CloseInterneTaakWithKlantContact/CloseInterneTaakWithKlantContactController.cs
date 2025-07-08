@@ -37,10 +37,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
             {
                 _logger.LogInformation("Closing Interne taak and creating related klantcontact with aanleidinggevendKlantcontact UUID: {AanleidinggevendKlantcontactUuid}", request.AanleidinggevendKlantcontactUuid);
 
-                //check if the internetaak that will be closed and the klantcontact to which the new klantcontact will be related belong to eachother
                 var interneTaak = await openKlantApiClient.GetInternetaakByIdAsync(request.InterneTaakId.ToString());
 
-                if(interneTaak?.Uuid != request.InterneTaakId.ToString())
+                if (interneTaak?.Uuid != request.InterneTaakId.ToString())
                 {
                     return BadRequest(new ProblemDetails
                     {
@@ -48,6 +47,21 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
                         Detail = "Internetaak en klantcontact zijn niet gerelateerd",
                         Status = StatusCodes.Status400BadRequest
                     });
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.InterneNotitie) &&
+                    string.IsNullOrWhiteSpace(request.KlantcontactRequest.Kanaal) &&
+                    string.IsNullOrWhiteSpace(request.KlantcontactRequest.Inhoud))
+                {
+                    await _logboekService.AddInterneNotitie(request.InterneTaakId, request.InterneNotitie);
+
+                    var internetakenUpdateRequestForNote = new InternetakenPatchRequest
+                    {
+                        Status = "verwerkt",
+                    };
+                    await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequestForNote, request.InterneTaakId.ToString());
+
+                    return StatusCode(StatusCodes.Status201Created, new { message = "Interne notitie toegevoegd en internetaak afgesloten" });
                 }
 
                 var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
@@ -69,9 +83,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
 
                 await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
 
-                //add this action to the Internetaak logboek           
-                await _logboekService.AddContactmoment(request.InterneTaakId, result.Klantcontact.Uuid, request.KlantcontactRequest.IndicatieContactGelukt);
-           
+                await _logboekService.AddContactmoment(
+                    request.InterneTaakId,
+                    result.Klantcontact.Uuid,
+                    request.KlantcontactRequest.IndicatieContactGelukt,
+                    request.InterneNotitie
+                );
+
 
                 return StatusCode(StatusCodes.Status201Created, result);
             }
@@ -95,6 +113,4 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
             }
         }
     }
-
-
-}
+}   

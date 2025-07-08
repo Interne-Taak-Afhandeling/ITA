@@ -7,7 +7,8 @@ namespace InterneTaakAfhandeling.Web.Server.Services;
 
 public interface ILogboekService
 {
-    Task<LogboekData> AddContactmoment(Guid internetaakId, string klantcontactId, bool? isContactGelukt);
+    Task<LogboekData> AddContactmoment(Guid internetaakId, string klantcontactId, bool? isContactGelukt, string? interneNotitie = null);
+    Task<LogboekData> AddInterneNotitie(Guid internetaakId, string interneNotitie);
     Task<List<Activiteit>> GetLogboek(Guid internetaakId);
 }
 
@@ -18,9 +19,9 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
 
 
-    public async Task<LogboekData> AddContactmoment(Guid internetaakId, string klancontactId, bool? isContactGelukt)
+    public async Task<LogboekData> AddContactmoment(Guid internetaakId, string klantcontactId, bool? isContactGelukt, string? interneNotitie = null)
     {
-        //1 check if a logboek for the Intenretaak already exists
+        //1 check if a logboek for the Internetaak already exists
         var logboek = await _objectenApiClient.GetLogboek(internetaakId);
 
         //2 if not create it
@@ -29,9 +30,9 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         //3 add the contactmoment as an activity to the log
 
         var logBoekPatch = new ObjectPatchModel<LogboekData>
-            { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
+        { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
 
-        logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
+        var activiteit = new ActiviteitData
         {
             Datum = DateTime.Now,
             Type = ActiviteitTypes.Klantcontact,
@@ -42,14 +43,45 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
             [
                 new ObjectIdentificator
                 {
-                    ObjectId = klancontactId,
+                    ObjectId = klantcontactId,
                     CodeRegister = ActiviteitContactmomentObjectIdentificator.CodeRegister,
                     CodeObjecttype = ActiviteitContactmomentObjectIdentificator.CodeObjectType,
                     CodeSoortObjectId = ActiviteitContactmomentObjectIdentificator.CodeSoortObjectId
                 }
             ]
-        });
+        };
 
+        // Voeg interne notitie toe als deze bestaat
+        if (!string.IsNullOrWhiteSpace(interneNotitie))
+        {
+            activiteit.Notitie = interneNotitie;
+        }
+
+        logBoekPatch.Record.Data.Activiteiten.Add(activiteit);
+
+        return await _objectenApiClient.UpdateLogboek(logBoekPatch, logboek.Uuid);
+    }
+
+    public async Task<LogboekData> AddInterneNotitie(Guid internetaakId, string interneNotitie)
+    {
+        //1 check if a logboek for the Internetaak already exists
+        var logboek = await _objectenApiClient.GetLogboek(internetaakId);
+
+        //2 if not create it
+        logboek ??= await _objectenApiClient.CreateLogboekForInternetaak(internetaakId);
+
+        //3 add the internal note as an activity to the log
+        var logBoekPatch = new ObjectPatchModel<LogboekData>
+        { Record = logboek.Record, Type = logboek.Type, Uuid = logboek.Uuid };
+
+        logBoekPatch.Record.Data.Activiteiten.Add(new ActiviteitData
+        {
+            Datum = DateTime.Now,
+            Type = ActiviteitTypes.InterneNotitie, 
+            Omschrijving = "interne notitie toegevoegd",
+            Notitie = interneNotitie,
+            HeeftBetrekkingOp = [] 
+        });
 
         return await _objectenApiClient.UpdateLogboek(logBoekPatch, logboek.Uuid);
     }
@@ -67,7 +99,12 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         foreach (var item in activiteitenOrderedByDate)
         {
-            var activiteit = new Activiteit { Datum = item.Datum, Type = item.Type };
+            var activiteit = new Activiteit
+            {
+                Datum = item.Datum,
+                Type = item.Type,
+                InterneNotitie = item.Notitie
+            };
 
             if (item.Type == ActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp.Count == 1)
             {
@@ -81,6 +118,15 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                     activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
                     activiteit.Medewerker = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
                 }
+            }
+            //todo ffnakijken hier
+            else if (item.Type == ActiviteitTypes.InterneNotitie)
+            {
+                activiteit.Id = Guid.NewGuid().ToString(); 
+                activiteit.Kanaal = "Intern";
+                activiteit.Tekst = item.Notitie;
+                activiteit.ContactGelukt = null; 
+                activiteit.Medewerker = "Systeem";
             }
 
             activiteiten.Add(activiteit);
@@ -100,4 +146,5 @@ public class Activiteit
     public bool? ContactGelukt { get; set; }
     public string? Id { get; set; }
     public string? Medewerker { get; set; }
+    public string? InterneNotitie { get; set; }
 }

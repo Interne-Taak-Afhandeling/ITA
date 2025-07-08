@@ -44,6 +44,15 @@ public class CreateKlantContactController : Controller
                 "Creating related klantcontact with aanleidinggevendKlantcontact UUID: {aanleidinggevendKlantcontactUuid}",
                 request.AanleidinggevendKlantcontactUuid);
 
+            if (!string.IsNullOrWhiteSpace(request.InterneNotitie) &&
+                string.IsNullOrWhiteSpace(request.KlantcontactRequest.Kanaal) &&
+                string.IsNullOrWhiteSpace(request.KlantcontactRequest.Inhoud))
+            {
+                await _logboekService.AddInterneNotitie(request.InterneTaakId, request.InterneNotitie);
+
+                return StatusCode(StatusCodes.Status201Created, new { message = "Interne notitie toegevoegd" });
+            }
+
             var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                 request.KlantcontactRequest,
                 request.AanleidinggevendKlantcontactUuid,
@@ -53,9 +62,13 @@ public class CreateKlantContactController : Controller
                 request.PartijUuid
             );
 
-            //add this action to the Internetaak logboek           
-            await _logboekService.AddContactmoment(request.InterneTaakId, result.Klantcontact.Uuid, request.KlantcontactRequest.IndicatieContactGelukt );
- 
+            await _logboekService.AddContactmoment(
+                request.InterneTaakId,
+                result.Klantcontact.Uuid,
+                request.KlantcontactRequest.IndicatieContactGelukt,
+                request.InterneNotitie
+            );
+
 
             return StatusCode(StatusCodes.Status201Created, result);
         }

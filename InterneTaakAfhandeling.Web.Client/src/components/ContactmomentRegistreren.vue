@@ -26,16 +26,47 @@
           {{ RESULTS.geenGehoor }}
         </utrecht-form-label>
       </utrecht-form-field>
+      <utrecht-form-field type="radio">
+        <utrecht-radiobutton
+          name="contact-gelukt"
+          id="interne-notitie"
+          :value="RESULTS.interneNotitie"
+          v-model="form.resultaat"
+          required
+        />
+        <utrecht-form-label for="interne-notitie" type="radio">
+          {{ RESULTS.interneNotitie }}
+        </utrecht-form-label>
+      </utrecht-form-field>
     </utrecht-fieldset>
     <utrecht-form-field>
       <utrecht-form-label for="kanalen">Kanaal</utrecht-form-label>
-      <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
+      <utrecht-select 
+        :required="!isInterneNotitie" 
+        id="kanalen" 
+        v-model="form.kanaal" 
+        :options="kanalen" 
+        :disabled="isInterneNotitie"
+      />
     </utrecht-form-field>
     <utrecht-form-field>
       <utrecht-form-label for="informatie-burger"
         >Informatie voor burger / bedrijf</utrecht-form-label
       >
-      <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
+      <utrecht-textarea 
+        :required="!isInterneNotitie" 
+        id="informatie-burger" 
+        v-model="form.informatieBurger" 
+        :disabled="isInterneNotitie"
+      />
+    </utrecht-form-field>
+    <utrecht-form-field>
+      <utrecht-form-label for="interne-notitie-text">Interne notitie</utrecht-form-label>
+      <utrecht-textarea 
+        id="interne-notitie-text" 
+        v-model="form.interneNotitie" 
+        placeholder="Voeg hier een interne notitie toe (optioneel)"
+      />
     </utrecht-form-field>
 
     <utrecht-button-group>
@@ -68,7 +99,7 @@
 <script setup lang="ts">
 import { klantcontactService } from "@/services/klantcontactService";
 import type { CreateKlantcontactRequest, Internetaken } from "@/types/internetaken";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
 import { useRouter } from "vue-router";
@@ -80,7 +111,8 @@ const router = useRouter();
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
-  geenGehoor: "Contact opnemen niet gelukt"
+  geenGehoor: "Contact opnemen niet gelukt",
+  interneNotitie: "Interne notitie toevoegen"
 } as const;
 
 const kanalen = [
@@ -95,15 +127,23 @@ const formRef = ref<HTMLFormElement>();
 const form = ref({
   resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
   kanaal: "",
-  informatieBurger: ""
+  informatieBurger: "",
+  interneNotitie: ""
 });
+
+const isInterneNotitie = computed(() => form.value.resultaat === RESULTS.interneNotitie);
 
 function showConfirmation() {
   bevestigingsModalRef.value?.show();
 }
 
 async function saveOnly() {
-  //HTML5 form validatie
+  if (isInterneNotitie.value && !form.value.interneNotitie.trim()) {
+    toast.add({ text: "Interne notitie is verplicht wanneer je deze optie selecteert", type: "error" });
+    return;
+  }
+
+  //HTML5 form validatie voor andere velden
   if (!formRef.value?.checkValidity()) {
     formRef.value?.reportValidity();
     return;
@@ -115,7 +155,8 @@ async function saveOnly() {
       klantcontactRequest: buildKlantcontactModel(),
       aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
       partijUuid: getPartijId(),
-      interneTaakId: taak.uuid
+      interneTaakId: taak.uuid,
+      interneNotitie: form.value.interneNotitie.trim() || undefined
     });
     toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
     resetForm();
@@ -134,7 +175,8 @@ async function saveAndFinish() {
       klantcontactRequest: buildKlantcontactModel(),
       aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
       partijUuid: getPartijId(),
-      interneTaakId: taak.uuid
+      interneTaakId: taak.uuid,
+      interneNotitie: form.value.interneNotitie.trim() || undefined
     });
     toast.add({ text: "Contactmoment succesvol opgeslagen en afgerond", type: "ok" });
     router.push({ name: "dashboard" });
@@ -163,6 +205,19 @@ function getPartijId() {
 }
 
 function buildKlantcontactModel(): CreateKlantcontactRequest {
+  if (isInterneNotitie.value) {
+    // Voor interne notitie: geen klantcontact aanmaken, alleen logboek entry
+    return {
+      kanaal: "", // Leeg voor interne notitie
+      onderwerp: "Interne notitie",
+      inhoud: "", // Leeg voor interne notitie
+      indicatieContactGelukt: undefined, // Niet van toepassing voor interne notitie
+      taal: "nld",
+      vertrouwelijk: false,
+      plaatsgevondenOp: new Date().toISOString()
+    };
+  }
+
   return {
     kanaal: form.value.kanaal,
     onderwerp: taak.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
@@ -178,7 +233,8 @@ function resetForm() {
   form.value = {
     resultaat: RESULTS.contactGelukt,
     kanaal: "",
-    informatieBurger: ""
+    informatieBurger: "",
+    interneNotitie: ""
   };
 }
 

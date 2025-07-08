@@ -1,3 +1,11 @@
+export interface CreateRelatedKlantcontactRequest {
+  klantcontactRequest: CreateKlantcontactRequest;
+  aanleidinggevendKlantcontactUuid?: string;
+  partijUuid?: string;
+  interneTaakId: string;
+  interneNotitie?: string; 
+}
+
 import type {
   CreateKlantcontactRequest,
   RelatedKlantcontactResult,
@@ -14,6 +22,7 @@ interface LogboekActiviteit {
   id: string;
   contactGelukt: string | undefined;
   medewerker: string | undefined;
+  notitie?: string; 
 }
 
 export const klantcontactService = {

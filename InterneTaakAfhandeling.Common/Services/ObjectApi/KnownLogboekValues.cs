@@ -6,6 +6,7 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues
     {
         public static readonly string Klantcontact = "klantcontact"; 
         public static readonly string Afsluiting = "afsluiting";
+        public const string InterneNotitie = "interne_notitie";
     }
 
     public static class InternetaakObjectIdentificator
