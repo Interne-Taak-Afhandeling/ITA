@@ -54,7 +54,7 @@ public class CreateKlantContactController : Controller
             );
 
             // logging klantcontact
-            await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result), request.InterneTaakId);
+            await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result, _user), request.InterneTaakId);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }

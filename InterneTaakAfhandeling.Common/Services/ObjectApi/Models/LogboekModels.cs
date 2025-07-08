@@ -27,23 +27,30 @@ public class ActiviteitData
     public required string Type { get; set; }
     public required string Omschrijving { get; set; }
     
-    public ActiviteitActor Actor { get; set; }
+    public ActiviteitActor? Actor { get; set; }
     public required List<ObjectIdentificator> HeeftBetrekkingOp { get; set; }
 }
 
-public class ActiviteitActor   
+public class ActiviteitActor
+{
+   public string? Naam { get;set; }
+   public required Actoridentificator Actoridentificator { get; set; }
+}
+
+
+public class Actoridentificator
 {
     [Required]
-    public string CodeRegister { get; set; }
+    public required string CodeRegister { get; set; }
  
     [Required]
-    public string CodeObjecttype { get; set; }
+    public required string CodeObjecttype { get; set; }
  
     [Required]
-    public string CodeSoortObjectId { get; set; }
+    public required string CodeSoortObjectId { get; set; }
  
     [Required]
-    public string ObjectId { get; set; }
+    public required string ObjectId { get; set; }
 }
 
 public class ObjectIdentificator

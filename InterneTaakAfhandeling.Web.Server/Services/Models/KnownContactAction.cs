@@ -1,5 +1,6 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 
 namespace InterneTaakAfhandeling.Web.Server.Services.Models;
@@ -9,31 +10,26 @@ public class KnownContactAction
     public required string Type { get; init; }
     public required string Description { get; init; }
 
-    public ActiviteitActor Actor { get; init; }
+    public required ActiviteitActor Actor { get; init; }
     public ObjectIdentificator? HeeftBetrekkingOp { get; private init; }
 
-    public static KnownContactAction Completed()
+    public static KnownContactAction Completed(ITAUser loggedByUser)
     {
         return new KnownContactAction
         {
             Description = "afgerond",
-            Type = "verwerkt"
+            Type = "verwerkt",
+            Actor = CreateActor(loggedByUser),
         };
     }
 
-    public static KnownContactAction CaseLinked(Guid zaakId, string actorId)
+    public static KnownContactAction CaseLinked(Guid zaakId, ITAUser loggedByUser)
     {
         return new KnownContactAction
         {
             Description = "zaak gekoppeld",
             Type = "zaak-gekoppeld",
-            Actor = new ActiviteitActor()
-            {
-                CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
-                CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
-                CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-                ObjectId = actorId,
-            },
+            Actor = CreateActor(loggedByUser),
             HeeftBetrekkingOp = new ObjectIdentificator
             {
                 CodeObjecttype = "zgw-Zaak",
@@ -44,19 +40,13 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction CaseModified(Guid zaakId, string actorId)
+    public static KnownContactAction CaseModified(Guid zaakId, ITAUser loggedByUser)
     {
         return new KnownContactAction
         {
             Description = "zaak gewijzigd",
             Type = "zaakkoppeling-gewijzigd",
-            Actor = new ActiviteitActor()
-            {
-                CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
-                CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
-                CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-                ObjectId = actorId,
-            },
+            Actor = CreateActor(loggedByUser),
             HeeftBetrekkingOp = new ObjectIdentificator
             {
                 CodeRegister = "openzaak",
@@ -67,30 +57,24 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction AssignedToSelf(Guid actorId)
+    public static KnownContactAction AssignedToSelf(string actorId, ITAUser loggedByUser)
     {
         return new KnownContactAction
         {
             Description = "opgepakt",
             Type = "toegewezen",
-            Actor = new ActiviteitActor()
-            {
-                CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
-                CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
-                CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-                ObjectId = actorId.ToString(),
-            },
+            Actor = CreateActor(loggedByUser),
             HeeftBetrekkingOp = new ObjectIdentificator
             {
                 CodeRegister = "openklant",
                 CodeObjecttype = "actor",
                 CodeSoortObjectId = "uuid",
-                ObjectId = actorId.ToString()
+                ObjectId = actorId
             }
         };
     }
 
-    public static KnownContactAction Klantcontact(RelatedKlantcontactResult relatedKlantcontactResult)
+    public static KnownContactAction Klantcontact(RelatedKlantcontactResult relatedKlantcontactResult, ITAUser loggedByUser)
     {
         var description = relatedKlantcontactResult.Klantcontact.IndicatieContactGelukt.HasValue && relatedKlantcontactResult.Klantcontact.IndicatieContactGelukt.Value
             ? "contact gehad"
@@ -100,13 +84,7 @@ public class KnownContactAction
         {
             Description = description,
             Type = "klantcontact",
-            Actor = new ActiviteitActor()
-            {
-                CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
-                CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
-                CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-                ObjectId = relatedKlantcontactResult.ActorKlantcontact.Uuid,
-            },
+            Actor = CreateActor(loggedByUser),
             HeeftBetrekkingOp = new ObjectIdentificator
             {
                 CodeRegister = "openklant",
@@ -116,4 +94,22 @@ public class KnownContactAction
             }
         };
     }
+
+
+    private static ActiviteitActor CreateActor(ITAUser loggedByUser)
+    {
+        return new ActiviteitActor()
+        {
+            Naam = loggedByUser.Name,
+            Actoridentificator = new Actoridentificator
+            {
+                CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
+                CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                ObjectId = loggedByUser.Email,
+            }
+        };
+    }
+
+
 }

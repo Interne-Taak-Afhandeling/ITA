@@ -18,6 +18,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         ILogger<AssignInternetaakToMeController> logger) : Controller
     {
         private readonly IAssignInternetaakToMeService _AssignInternetakenService = AssignInternetakenService;
+        private readonly ITAUser _user = user;
         private readonly ILogboekService _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
         private readonly ILogger<AssignInternetaakToMeController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -28,7 +29,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
             {
                 var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetaakId, user);
 
-                var assignedAction = KnownContactAction.AssignedToSelf(Guid.Parse(currentUserActor.Uuid));
+                var assignedAction = KnownContactAction.AssignedToSelf(currentUserActor.Uuid, _user);
                 await _logboekService.LogContactRequestAction(assignedAction, internetaakId);
 
                 return Ok(updatedInterneTaak);

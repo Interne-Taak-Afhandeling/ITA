@@ -51,7 +51,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                             activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
                             activiteit.Tekst = contactmoment.Inhoud;
                             activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
-                            activiteit.Medewerker = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
+                            activiteit.UitgevoerdDoor = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
 
                             activiteit.Titel = contactmoment.IndicatieContactGelukt.HasValue && contactmoment.IndicatieContactGelukt.Value
                                 ? "Contact gelukt"
@@ -66,8 +66,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                         var actor = await _openKlantApiClient.GetActorAsync(actorId);
                         if (actor != null)
                         {
-                            activiteit.Id = actor.Uuid;
-                            activiteit.Medewerker = actor.Naam ?? "Onbekend";
+                            activiteit.UitgevoerdDoor = item.Actor?.Naam ?? "Onbekend";
                             activiteit.Tekst = $"Contactverzoek opgepakt door {actor.Naam ?? "Onbekend"}";
                         }
 
@@ -75,27 +74,31 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                     }
                 case ActiviteitTypes.ZaakGekoppeld:
                     {
-                        var actor = await _openKlantApiClient.GetActorAsync(item.Actor.ObjectId);
                         var zaak = await zakenApiClient.GetZaakAsync(item.HeeftBetrekkingOp.Single().ObjectId);
                         if (zaak != null)
                         {
-                            activiteit.Id = actor.Uuid;
-                            activiteit.Medewerker = actor.Naam ?? "Onbekend";
-                            activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan contactverzoek";
+                            activiteit.UitgevoerdDoor = item.Actor?.Naam ?? "Onbekend";
+                            activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan het contactverzoek";
                         }
 
                         break;
                     }
                 case ActiviteitTypes.ZaakkoppelingGewijzigd:
                     {
-                        var actor = await _openKlantApiClient.GetActorAsync(item.Actor.ObjectId);
                         var zaak = await zakenApiClient.GetZaakAsync(item.HeeftBetrekkingOp.Single().ObjectId);
                         if (zaak != null)
                         {
-                            activiteit.Id = actor.Uuid;
-                            activiteit.Medewerker = actor.Naam ?? "Onbekend";
-                            activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan contactverzoek";
+                            activiteit.UitgevoerdDoor = item.Actor?.Naam ?? "Onbekend";
+                            activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan het contactverzoek";
                         }
+
+                        break;
+                    }
+                case ActiviteitTypes.Verwerkt:
+                    {
+
+                        activiteit.UitgevoerdDoor = item.Actor?.Naam ?? "Onbekend";
+                        activiteit.Tekst = $"Contactverzoek afgerond";
 
                         break;
                     }
@@ -170,5 +173,5 @@ public class Activiteit
     public string? Tekst { get; set; }
     public bool? ContactGelukt { get; set; }
     public string? Id { get; set; }
-    public string? Medewerker { get; set; }
+    public string? UitgevoerdDoor { get; set; }
 }

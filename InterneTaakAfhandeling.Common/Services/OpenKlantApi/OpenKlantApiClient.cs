@@ -13,7 +13,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 public interface IOpenKlantApiClient
 {
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
-    Task<Actor> GetActorAsync(string uuid);
+    Task<Actor> GetActorAsync(string? uuid);
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
@@ -210,7 +210,7 @@ public partial class OpenKlantApiClient(
         }
     }
 
-    public async Task<Actor> GetActorAsync(string uuid)
+    public async Task<Actor> GetActorAsync(string? uuid)
     {
         _logger.LogInformation("Fetching actor {Uuid}", uuid);
 

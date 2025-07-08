@@ -178,7 +178,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                 CodeSoortObjectId = "uuid"
             }
         };
-        var actor = await GetOrCreateActorAsync(_user.Email, _user.Name);
+        
         if (bestaandZaakOnderwerpobject != null && !string.IsNullOrEmpty(bestaandZaakOnderwerpobject.Uuid))
         {
             var safeOnderwerpUuid = SecureLogging.SanitizeUuid(bestaandZaakOnderwerpobject.Uuid);
@@ -188,7 +188,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                 safeOnderwerpUuid, safeZaakUuid);
 
             var modifiedKlantContact = await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, request);
-            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid), actor.Uuid),
+            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid), _user),
                 Guid.Parse(internetaakId));
             return modifiedKlantContact;
         }
@@ -202,7 +202,7 @@ public class KoppelZaakAanKlantcontactController : Controller
 
             var linkedKlantContact = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
 
-            await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(Guid.Parse(zaakUuid), actor.Uuid),
+            await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(Guid.Parse(zaakUuid), _user),
                 Guid.Parse(internetaakId));
 
             return linkedKlantContact;
@@ -210,70 +210,7 @@ public class KoppelZaakAanKlantcontactController : Controller
     }
 
 
-    private async Task<Actor> GetOrCreateActorAsync(string email, string? naam = null)
-    {
-        if (string.IsNullOrEmpty(email))
-        {
-            throw new ConflictException(
-                "Email must not be empty",
-                "EMPTY_EMAIL_ADDRESS");
-        }
-
-        Actor? actor;
-        try
-        {
-            actor = await GetEntraActorByEmailAsync(email);
-        }
-        catch (Exception ex)
-        {
-            var safeEmailId = SecureLogging.SanitizeAndTruncate(email, 5);
-            _logger.LogError(ex, "Error retrieving actor by email {SafeEmailId}", safeEmailId);
-
-            throw new ConflictException(
-                $"Error retrieving actor by email: {ex.Message}",
-                "ACTOR_RETRIEVAL_ERROR");
-        }
-
-        if (actor == null)
-        {
-            var actorRequest = new ActorRequest
-            {
-                Naam = naam ?? email,
-                SoortActor = SoortActor.medewerker,
-                IndicatieActief = true,
-                Actoridentificator = new Actoridentificator
-                {
-                    ObjectId = email,
-                    CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
-                    CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-                    CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId
-                }
-            };
-
-            try
-            {
-                actor = await _openKlantApiClient.CreateActorAsync(actorRequest);
-            }
-            catch (Exception ex)
-            {
-                var safeActorId = SecureLogging.SanitizeAndTruncate(actorRequest.Naam, 5);
-                _logger.LogError(ex, "Error creating actor with identifier {SafeActorId}", safeActorId);
-                throw new ConflictException(
-                    $"Error creating actor: {ex.Message}",
-                    "ACTOR_CREATION_ERROR");
-            }
-        }
-
-        if (actor == null)
-        {
-            throw new ConflictException(
-                "Failed to get or create actor",
-                "ACTOR_CREATION_FAILED");
-        }
-
-        return actor;
-    }
-
+   
     private async Task<Actor?> GetEntraActorByEmailAsync(string userEmail)
     {
 
