@@ -6,6 +6,7 @@ public static class ActiviteitTypes
     public const string Verwerkt = "verwerkt";
     public const string ZaakGekoppeld = "zaak-gekoppeld";
     public const string ZaakkoppelingGewijzigd = "zaakkoppeling-gewijzigd";
+    public const string InterneNotitie = "interne_notitie";
 }
 
 public static class InternetaakObjectIdentificator
