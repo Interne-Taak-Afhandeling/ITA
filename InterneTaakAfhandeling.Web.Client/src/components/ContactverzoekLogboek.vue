@@ -38,7 +38,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { useLoader } from "@/composables/use-loader";
-import { klantcontactService, type LogboekActiviteit } from "@/services/klantcontactService";
+import { klantcontactService } from "@/services/klantcontactService";
 
 const props = defineProps<{ taak: Internetaken }>();
 const {
