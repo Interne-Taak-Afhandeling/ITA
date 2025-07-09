@@ -34,22 +34,18 @@ public class ActiviteitData
 public class ActiviteitActor
 {
    public string? Naam { get;set; }
-   public required Actoridentificator Actoridentificator { get; set; }
+   public required ActiviteitActoridentificator Actoridentificator { get; set; }
 }
 
 
-public class Actoridentificator
+public class ActiviteitActoridentificator
 {
-    [Required]
     public required string CodeRegister { get; set; }
  
-    [Required]
     public required string CodeObjecttype { get; set; }
  
-    [Required]
     public required string CodeSoortObjectId { get; set; }
  
-    [Required]
     public required string ObjectId { get; set; }
 }
 
@@ -63,7 +59,7 @@ public class ObjectIdentificator
 
 public class LogboekOptions
 {
-    [Required] public required string Type { get; init; }
+    public required string Type { get; init; }
 
-    [Required] public required string TypeVersion { get; init; }
+    public required string TypeVersion { get; init; }
 }

@@ -101,7 +101,7 @@ public class KnownContactAction
         return new ActiviteitActor()
         {
             Naam = loggedByUser.Name,
-            Actoridentificator = new Actoridentificator
+            Actoridentificator = new ActiviteitActoridentificator
             {
                 CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
                 CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
