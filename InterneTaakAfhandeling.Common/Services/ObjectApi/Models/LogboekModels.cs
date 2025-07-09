@@ -26,8 +26,28 @@ public class ActiviteitData
     public required DateTimeOffset Datum { get; set; }
     public required string Type { get; set; }
     public required string Omschrijving { get; set; }
+    
+    public ActiviteitActor? Actor { get; set; }
     public required List<ObjectIdentificator> HeeftBetrekkingOp { get; set; }
     public string? Notitie { get; set; }
+}
+
+public class ActiviteitActor
+{
+   public string? Naam { get;set; }
+   public required ActiviteitActoridentificator Actoridentificator { get; set; }
+}
+
+
+public class ActiviteitActoridentificator
+{
+    public required string CodeRegister { get; set; }
+ 
+    public required string CodeObjecttype { get; set; }
+ 
+    public required string CodeSoortObjectId { get; set; }
+ 
+    public required string ObjectId { get; set; }
 }
 
 public class ObjectIdentificator
@@ -40,7 +60,7 @@ public class ObjectIdentificator
 
 public class LogboekOptions
 {
-    [Required] public required string Type { get; init; }
+    public required string Type { get; init; }
 
-    [Required] public required string TypeVersion { get; init; }
+    public required string TypeVersion { get; init; }
 }

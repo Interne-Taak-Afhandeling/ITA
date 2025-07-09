@@ -7,6 +7,7 @@ using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
+using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 
 
 namespace InterneTaakAfhandeling.Web.Server.Config

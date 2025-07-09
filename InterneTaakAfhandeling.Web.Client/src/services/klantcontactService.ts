@@ -1,11 +1,3 @@
-export interface CreateRelatedKlantcontactRequest {
-  klantcontactRequest: CreateKlantcontactRequest;
-  aanleidinggevendKlantcontactUuid?: string;
-  partijUuid?: string;
-  interneTaakId: string;
-  interneNotitie?: string; 
-}
-
 import type {
   CreateKlantcontactRequest,
   RelatedKlantcontactResult,
@@ -17,12 +9,12 @@ import { get, post } from "@/utils/fetchWrapper";
 interface LogboekActiviteit {
   datum: string;
   type: string;
+  titel: string;
   kanaal: string | undefined;
   tekst: string | undefined;
   id: string;
   contactGelukt: string | undefined;
-  medewerker: string | undefined;
-  notitie?: string; 
+  uitgevoerdDoor: string | undefined;
 }
 
 export const klantcontactService = {

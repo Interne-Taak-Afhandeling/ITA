@@ -1,8 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
-using InterneTaakAfhandeling.Web.Server.Services;
+using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,15 +43,6 @@ public class CreateKlantContactController : Controller
                 "Creating related klantcontact with aanleidinggevendKlantcontact UUID: {aanleidinggevendKlantcontactUuid}",
                 request.AanleidinggevendKlantcontactUuid);
 
-            if (!string.IsNullOrWhiteSpace(request.InterneNotitie) &&
-                string.IsNullOrWhiteSpace(request.KlantcontactRequest.Kanaal) &&
-                string.IsNullOrWhiteSpace(request.KlantcontactRequest.Inhoud))
-            {
-                await _logboekService.AddInterneNotitie(request.InterneTaakId, request.InterneNotitie);
-
-                return StatusCode(StatusCodes.Status201Created, new { message = "Interne notitie toegevoegd" });
-            }
-
             var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                 request.KlantcontactRequest,
                 request.AanleidinggevendKlantcontactUuid,
@@ -62,13 +52,8 @@ public class CreateKlantContactController : Controller
                 request.PartijUuid
             );
 
-            await _logboekService.AddContactmoment(
-                request.InterneTaakId,
-                result.Klantcontact.Uuid,
-                request.KlantcontactRequest.IndicatieContactGelukt,
-                request.InterneNotitie
-            );
-
+            // logging klantcontact
+            await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result, _user), request.InterneTaakId);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
