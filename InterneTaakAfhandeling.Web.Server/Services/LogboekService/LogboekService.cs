@@ -3,9 +3,8 @@ using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
-using InterneTaakAfhandeling.Web.Server.Services.Models;
 
-namespace InterneTaakAfhandeling.Web.Server.Services;
+namespace InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 
 public interface ILogboekService
 {
@@ -110,7 +109,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         return activiteiten;
     }
 
-    
+
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
         var logboekData = await GetOrCreateLogboek(internetaakId);

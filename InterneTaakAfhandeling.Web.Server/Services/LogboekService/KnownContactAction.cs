@@ -3,7 +3,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 
-namespace InterneTaakAfhandeling.Web.Server.Services.Models;
+namespace InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 
 public class KnownContactAction
 {
