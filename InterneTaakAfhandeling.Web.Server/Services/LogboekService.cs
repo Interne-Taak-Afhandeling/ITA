@@ -51,7 +51,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                             activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
                             activiteit.Tekst = contactmoment.Inhoud;
                             activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
-                            activiteit.UitgevoerdDoor = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
+                            activiteit.UitgevoerdDoor = GetName(item);
 
                             activiteit.Titel = contactmoment.IndicatieContactGelukt.HasValue && contactmoment.IndicatieContactGelukt.Value
                                 ? "Contact gelukt"
@@ -66,7 +66,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                         var actor = await _openKlantApiClient.GetActorAsync(actorId);
                         if (actor != null)
                         {
-                            activiteit.UitgevoerdDoor = item.Actor?.Naam ?? "Onbekend";
+                            activiteit.UitgevoerdDoor = GetName(item);
                             activiteit.Tekst = $"Contactverzoek opgepakt door {actor.Naam ?? "Onbekend"}";
                         }
 
@@ -77,7 +77,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                         var zaak = await zakenApiClient.GetZaakAsync(item.HeeftBetrekkingOp.Single().ObjectId);
                         if (zaak != null)
                         {
-                            activiteit.UitgevoerdDoor = item.Actor?.Naam ?? "Onbekend";
+                            activiteit.UitgevoerdDoor = GetName(item);
                             activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan het contactverzoek";
                         }
 
@@ -88,7 +88,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                         var zaak = await zakenApiClient.GetZaakAsync(item.HeeftBetrekkingOp.Single().ObjectId);
                         if (zaak != null)
                         {
-                            activiteit.UitgevoerdDoor = item.Actor?.Naam ?? "Onbekend";
+                            activiteit.UitgevoerdDoor = GetName(item);
                             activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan het contactverzoek";
                         }
 
@@ -97,7 +97,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                 case ActiviteitTypes.Verwerkt:
                     {
 
-                        activiteit.UitgevoerdDoor = item.Actor?.Naam ?? "Onbekend";
+                        activiteit.UitgevoerdDoor = GetName(item);
                         activiteit.Tekst = $"Contactverzoek afgerond";
 
                         break;
@@ -110,6 +110,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         return activiteiten;
     }
 
+    
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
         var logboekData = await GetOrCreateLogboek(internetaakId);
@@ -159,6 +160,10 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         });
         return logBoekPatch;
     }
+
+
+    private static string GetName(ActiviteitData item) => item.Actor?.Naam ?? "Onbekend";
+
 
     #endregion
 }
