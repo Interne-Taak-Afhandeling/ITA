@@ -13,7 +13,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 public interface IOpenKlantApiClient
 {
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
-    Task<Actor> GetActorAsync(string uuid);
+    Task<Actor> GetActorAsync(string? uuid);
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
@@ -30,7 +30,7 @@ public interface IOpenKlantApiClient
     Task<Internetaak> PutInternetaakAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid);
     Task<Internetaak> PatchInternetaakAsync(InternetakenPatchRequest internetakenUpdateRequest, string uuid);
 
-    Task<Internetaak?> GetInternetaakByIdAsync(string uuid);
+    Task<Internetaak?> GetInternetaakByIdAsync(Guid uuid);
     Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
 
 }
@@ -210,7 +210,7 @@ public partial class OpenKlantApiClient(
         }
     }
 
-    public async Task<Actor> GetActorAsync(string uuid)
+    public async Task<Actor> GetActorAsync(string? uuid)
     {
         _logger.LogInformation("Fetching actor {Uuid}", uuid);
 
@@ -414,7 +414,7 @@ public partial class OpenKlantApiClient(
             return [];
         }
     }
-    public async Task<Internetaak?> GetInternetaakByIdAsync(string uuid)
+    public async Task<Internetaak?> GetInternetaakByIdAsync(Guid uuid)
     {
         var response = await _httpClient.GetAsync($"internetaken/{uuid}");
         response.EnsureSuccessStatusCode();

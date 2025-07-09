@@ -10,6 +10,7 @@
         v-if="taak?.aanleidinggevendKlantcontact?.uuid"
         :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
         :zaakIdentificatie="taak?.zaak?.identificatie"
+        :internetaak-id="taak.uuid"
         @zaak-gekoppeld="handleZaakGekoppeld"
       />
     </utrecht-button-group>
@@ -45,9 +46,9 @@
       </div>
     </detail-section>
 
-    <detail-section title="Contactmomenten">
+    <detail-section title="Logboek contactverzoek">
       <div class="same-margin-as-datalist">
-        <contactverzoek-contactmomenten v-if="taak" :taak="taak" />
+        <contactverzoek-logboek v-if="taak" :taak="taak" />
       </div>
     </detail-section>
   </div>
@@ -59,8 +60,9 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import BackLink from "@/components/BackLink.vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import ContactverzoekContactmomenten from "@/components/ContactverzoekContactmomenten.vue";
-import type { Internetaken, Zaak } from "@/types/internetaken";
+import ContactverzoekLogboek from "@/components/ContactverzoekLogboek.vue";
+
+import type { Internetaken } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
 import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
@@ -75,10 +77,8 @@ const cvId = computed(() => first(route.params.number));
 const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
 
-const handleZaakGekoppeld = (zaak: Zaak) => {
-  if (taak.value) {
-    taak.value.zaak = zaak;
-  }
+const handleZaakGekoppeld = () => {
+  fetchInternetaken();
 };
 
 onMounted(async () => {

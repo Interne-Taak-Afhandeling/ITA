@@ -52,6 +52,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 const props = defineProps<{
   aanleidinggevendKlantcontactUuid: string;
   zaakIdentificatie?: string;
+  internetaakId: string;
 }>();
 
 const emit = defineEmits(["zaakGekoppeld"]);
@@ -89,7 +90,8 @@ const koppelZaak = async () => {
       },
       body: JSON.stringify({
         zaakIdentificatie: zaakNummer.value,
-        aanleidinggevendKlantcontactUuid: props.aanleidinggevendKlantcontactUuid
+        aanleidinggevendKlantcontactUuid: props.aanleidinggevendKlantcontactUuid,
+        internetaakId: props.internetaakId
       })
     });
 
