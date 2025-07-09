@@ -2,9 +2,9 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Web.Server.Services.Models;
+using InterneTaakAfhandeling.Common.Services.ZakenApi;
 
-namespace InterneTaakAfhandeling.Web.Server.Services;
+namespace InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 
 public interface ILogboekService
 {
@@ -12,7 +12,7 @@ public interface ILogboekService
     Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId);
 }
 
-public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient)
+public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient)
     : ILogboekService
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
@@ -38,33 +38,69 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                 Titel = GetActionTitle(item.Type)
             };
 
-            if (item.Type == ActiviteitTypes.Klantcontact && item.HeeftBetrekkingOp.Count == 1)
+            switch (item.Type)
             {
-                var contactmoment =
-                    await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.Single().ObjectId);
-                if (contactmoment != null)
-                {
-                    activiteit.Id = contactmoment.Uuid;
-                    activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
-                    activiteit.Tekst = contactmoment.Inhoud;
-                    activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
-                    activiteit.Medewerker = contactmoment.HadBetrokkenActoren?.FirstOrDefault()?.Naam ?? "Onbekend";
+                case ActiviteitTypes.Klantcontact when item.HeeftBetrekkingOp.Count == 1:
+                    {
+                        var contactmoment =
+                            await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.Single().ObjectId);
+                        if (contactmoment != null)
+                        {
+                            activiteit.Id = contactmoment.Uuid;
+                            activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
+                            activiteit.Tekst = contactmoment.Inhoud;
+                            activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
+                            activiteit.UitgevoerdDoor = GetName(item);
 
-                    activiteit.Titel = contactmoment.IndicatieContactGelukt.HasValue && contactmoment.IndicatieContactGelukt.Value
-                        ? "Contact gelukt"
-                        : "Contact niet gelukt";
-                }
-            }
-            else if (item.Type == ActiviteitTypes.Toegewezen && item.HeeftBetrekkingOp.Count == 1)
-            {
-                var actorId = item.HeeftBetrekkingOp.Single().ObjectId;
-                var actor = await _openKlantApiClient.GetActorAsync(actorId);
-                if (actor != null)
-                {
-                    activiteit.Id = actor.Uuid;
-                    activiteit.Medewerker = actor.Naam ?? "Onbekend";
-                    activiteit.Tekst = $"Contactverzoek opgepakt door {actor.Naam ?? "Onbekend"}";
-                }
+                            activiteit.Titel = contactmoment.IndicatieContactGelukt.HasValue && contactmoment.IndicatieContactGelukt.Value
+                                ? "Contact gelukt"
+                                : "Contact niet gelukt";
+                        }
+
+                        break;
+                    }
+                case ActiviteitTypes.Toegewezen when item.HeeftBetrekkingOp.Count == 1:
+                    {
+                        var actorId = item.HeeftBetrekkingOp.Single().ObjectId;
+                        var actor = await _openKlantApiClient.GetActorAsync(actorId);
+                        if (actor != null)
+                        {
+                            activiteit.UitgevoerdDoor = GetName(item);
+                            activiteit.Tekst = $"Contactverzoek opgepakt door {actor.Naam ?? "Onbekend"}";
+                        }
+
+                        break;
+                    }
+                case ActiviteitTypes.ZaakGekoppeld:
+                    {
+                        var zaak = await zakenApiClient.GetZaakAsync(item.HeeftBetrekkingOp.Single().ObjectId);
+                        if (zaak != null)
+                        {
+                            activiteit.UitgevoerdDoor = GetName(item);
+                            activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan het contactverzoek";
+                        }
+
+                        break;
+                    }
+                case ActiviteitTypes.ZaakkoppelingGewijzigd:
+                    {
+                        var zaak = await zakenApiClient.GetZaakAsync(item.HeeftBetrekkingOp.Single().ObjectId);
+                        if (zaak != null)
+                        {
+                            activiteit.UitgevoerdDoor = GetName(item);
+                            activiteit.Tekst = $"Zaak {zaak.Identificatie} gekoppeld aan het contactverzoek";
+                        }
+
+                        break;
+                    }
+                case ActiviteitTypes.Verwerkt:
+                    {
+
+                        activiteit.UitgevoerdDoor = GetName(item);
+                        activiteit.Tekst = $"Contactverzoek afgerond";
+
+                        break;
+                    }
             }
 
             activiteiten.Add(activiteit);
@@ -72,6 +108,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
         return activiteiten;
     }
+
 
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
@@ -112,6 +149,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
             Datum = DateTime.Now,
             Type = knownContactAction.Type,
             Omschrijving = knownContactAction.Description,
+            Actor = knownContactAction.Actor,
             HeeftBetrekkingOp = knownContactAction.HeeftBetrekkingOp != null
                 ?
                 [
@@ -121,6 +159,10 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         });
         return logBoekPatch;
     }
+
+
+    private static string GetName(ActiviteitData item) => item.Actor?.Naam ?? "Onbekend";
+
 
     #endregion
 }
@@ -135,5 +177,5 @@ public class Activiteit
     public string? Tekst { get; set; }
     public bool? ContactGelukt { get; set; }
     public string? Id { get; set; }
-    public string? Medewerker { get; set; }
+    public string? UitgevoerdDoor { get; set; }
 }

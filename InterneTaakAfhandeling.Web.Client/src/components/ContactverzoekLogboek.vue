@@ -16,7 +16,7 @@
         </utrecht-paragraph>
         <div class="ita-step-meta-list">
           <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
-          <StepMeta v-if="logboekItem.medewerker">{{ logboekItem.medewerker }}</StepMeta>
+          <StepMeta v-if="logboekItem.uitgevoerdDoor">{{ logboekItem.uitgevoerdDoor }}</StepMeta>
           <StepMeta v-if="logboekItem.kanaal">Kanaal: {{ logboekItem.kanaal }}</StepMeta>
         </div>
       </StepBody>
@@ -71,9 +71,9 @@ const {
   column-gap: var(--ita-step-meta-list-column-gap);
   row-gap: var(--ita-step-meta-list-row-gap);
 
-  > :last-child:nth-child(n+3) {
+  > :last-child:nth-child(n + 3) {
     flex: 1;
-    text-align: end;  
+    text-align: end;
   }
 }
 

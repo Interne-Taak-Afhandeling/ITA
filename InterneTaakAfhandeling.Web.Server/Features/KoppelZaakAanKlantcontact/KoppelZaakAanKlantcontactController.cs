@@ -4,8 +4,8 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
-using InterneTaakAfhandeling.Web.Server.Services;
-using InterneTaakAfhandeling.Web.Server.Services.Models;
+using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,17 +21,21 @@ public class KoppelZaakAanKlantcontactController : Controller
     private readonly ILogger<KoppelZaakAanKlantcontactController> _logger;
     private readonly IOpenKlantApiClient _openKlantApiClient;
     private readonly IZakenApiClient _zakenApiClient;
+    private readonly ITAUser _user;
 
     public KoppelZaakAanKlantcontactController(
         IZakenApiClient zakenApiClient,
         IOpenKlantApiClient openKlantApiClient,
         ILogger<KoppelZaakAanKlantcontactController> logger,
-        ILogboekService logboekService)
+        ILogboekService logboekService,
+        ITAUser user
+        )
     {
         _zakenApiClient = zakenApiClient ?? throw new ArgumentNullException(nameof(zakenApiClient));
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
+        _user = user;
     }
 
     [HttpPost("koppel-zaak")]
@@ -173,7 +177,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                 CodeSoortObjectId = "uuid"
             }
         };
-
+        
         if (bestaandZaakOnderwerpobject != null && !string.IsNullOrEmpty(bestaandZaakOnderwerpobject.Uuid))
         {
             var safeOnderwerpUuid = SecureLogging.SanitizeUuid(bestaandZaakOnderwerpobject.Uuid);
@@ -183,7 +187,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                 safeOnderwerpUuid, safeZaakUuid);
 
             var modifiedKlantContact = await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, request);
-            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid)),
+            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid), _user),
                 Guid.Parse(internetaakId));
             return modifiedKlantContact;
         }
@@ -197,12 +201,37 @@ public class KoppelZaakAanKlantcontactController : Controller
 
             var linkedKlantContact = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
 
-            await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(Guid.Parse(zaakUuid)),
+            await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(Guid.Parse(zaakUuid), _user),
                 Guid.Parse(internetaakId));
 
             return linkedKlantContact;
         }
     }
+
+
+   
+    private async Task<Actor?> GetEntraActorByEmailAsync(string userEmail)
+    {
+
+        if (!string.IsNullOrWhiteSpace(userEmail))
+        {
+            var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+            {
+                ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
+                IndicatieActief = true,
+                SoortActor = SoortActor.medewerker,
+                ActoridentificatorObjectId = userEmail
+            });
+
+            return fromEntra;
+
+        }
+
+        return null;
+    }
+
 }
 
 public class KoppelZaakAanKlantcontactRequest

@@ -1,8 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
-using InterneTaakAfhandeling.Web.Server.Services;
-using InterneTaakAfhandeling.Web.Server.Services.Models;
+using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -54,7 +53,7 @@ public class CreateKlantContactController : Controller
             );
 
             // logging klantcontact
-            await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result.Klantcontact), request.InterneTaakId);
+            await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result, _user), request.InterneTaakId);
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
