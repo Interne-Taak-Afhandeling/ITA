@@ -101,6 +101,12 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
                         break;
                     }
+                case ActiviteitTypes.InterneNotitie:
+                    {
+                        activiteit.UitgevoerdDoor = GetName(item);
+                        activiteit.Tekst = item.Notitie;
+                        break;
+                    }
             }
 
             activiteiten.Add(activiteit);
@@ -126,6 +132,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         ActiviteitTypes.ZaakGekoppeld => "Zaak gekoppeld",
         ActiviteitTypes.ZaakkoppelingGewijzigd => "Zaak gewijzigd",
         ActiviteitTypes.Toegewezen => "Opgepakt",
+        ActiviteitTypes.InterneNotitie => "Interne notitie",
         _ => type ?? "Onbekende actie"
     };
 
