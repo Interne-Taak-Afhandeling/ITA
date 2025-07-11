@@ -10,10 +10,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakNote.AddNoteToIn
 [Authorize]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 public class AddNoteToInternetaakController(
-    ITAUser user, 
+    ITAUser user,
     ILogboekService logboekService) : Controller
 {
-    private readonly ILogboekService _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService)); 
+    private readonly ILogboekService _logboekService =
+        logboekService ?? throw new ArgumentNullException(nameof(logboekService));
+
     private readonly ITAUser _user = user ?? throw new ArgumentNullException(nameof(user));
 
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -22,13 +24,10 @@ public class AddNoteToInternetaakController(
     [HttpPost("{internetaakId}/notitie")]
     public async Task<IActionResult> AddNote([FromRoute] Guid internetaakId, [FromBody] AddNoteRequest request)
     {
-     
-            var noteAction = KnownContactAction.Note(request.Note, _user);
-            await _logboekService.LogContactRequestAction(noteAction, internetaakId); 
+        var noteAction = KnownContactAction.Note(request.Note, _user);
+        await _logboekService.LogContactRequestAction(noteAction, internetaakId);
 
-            return Ok(new { Message = "Notitie succesvol toegevoegd" });
-      
-   
+        return Ok(new { Message = "Notitie succesvol toegevoegd" });
     }
 }
 
