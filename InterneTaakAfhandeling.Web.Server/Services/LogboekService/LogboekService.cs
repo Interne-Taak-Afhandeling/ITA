@@ -155,7 +155,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         {
             Datum = DateTime.Now,
             Type = knownContactAction.Type,
-            Notitie = knownContactAction.Notitie,
+            Notitie = knownContactAction.Notitie ?? string.Empty,
             Omschrijving = knownContactAction.Description,
             Actor = knownContactAction.Actor,
             HeeftBetrekkingOp = knownContactAction.HeeftBetrekkingOp != null
