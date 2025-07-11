@@ -76,7 +76,7 @@ public class CloseInterneTaakWithKlantContactController(
             await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
 
             // logging klantcontact
-            await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result, _user,request.InterneNotitie), request.InterneTaakId);
+            await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result, _user, request.InterneNotitie), request.InterneTaakId);
 
             // logging the completed action
             await _logboekService.LogContactRequestAction(KnownContactAction.Completed(_user), request.InterneTaakId);

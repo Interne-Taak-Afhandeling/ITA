@@ -7,6 +7,6 @@ export const internetakenService = {
     return get<Internetaken>(`/api/internetaken/${internetaakNummer}`);
   },
   addNoteToInternetaak: (internetaakId: string, note: string) => {
-    return post(`/api/internetaken/${internetaakId}/add-note`, { note });
+    return post(`/api/internetaken/${internetaakId}/notitie`, { note });
   }
 };

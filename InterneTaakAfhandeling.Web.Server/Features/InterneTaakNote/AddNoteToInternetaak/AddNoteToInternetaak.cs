@@ -19,7 +19,7 @@ public class AddNoteToInternetaakController(
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [HttpPost("{internetaakId}/add-note")]
+    [HttpPost("{internetaakId}/notitie")]
     public async Task<IActionResult> AddNote([FromRoute] Guid internetaakId, [FromBody] AddNoteRequest request)
     {
         try
