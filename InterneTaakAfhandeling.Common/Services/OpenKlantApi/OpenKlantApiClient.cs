@@ -17,7 +17,7 @@ public interface IOpenKlantApiClient
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
-    Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
+    Task<List<Internetaak>> GetInternetakenByToegewezenAanActor(string uuid, bool? afgerond);
     Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
@@ -258,10 +258,11 @@ public partial class OpenKlantApiClient(
         return klantcontact;
     }
 
-    public async Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid)
+    public async Task<List<Internetaak>> GetInternetakenByToegewezenAanActor(string uuid, bool? afgerond)
     {
+        var status = (afgerond.HasValue && afgerond.Value) ? "verwerkt" : "te_verwerken";
         List<Internetaak> content = [];
-        var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status=te_verwerken";
+        var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status={status}";
         while (!string.IsNullOrEmpty(page))
         {
             var response = await _httpClient.GetAsync(page);
