@@ -22,32 +22,13 @@ public class AddNoteToInternetaakController(
     [HttpPost("{internetaakId}/notitie")]
     public async Task<IActionResult> AddNote([FromRoute] Guid internetaakId, [FromBody] AddNoteRequest request)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(request.Note))
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Ongeldige aanvraag",
-                    Detail = "Notitie is vereist en mag niet leeg zijn",
-                    Status = StatusCodes.Status400BadRequest
-                });
-            } 
-
+     
             var noteAction = KnownContactAction.Note(request.Note, _user);
             await _logboekService.LogContactRequestAction(noteAction, internetaakId); 
 
             return Ok(new { Message = "Notitie succesvol toegevoegd" });
-        }
-        catch (Exception)
-        { 
-            return StatusCode(500, new ProblemDetails
-            {
-                Title = "Interne server fout",
-                Detail = "Er is een fout opgetreden bij het toevoegen van de notitie",
-                Status = StatusCodes.Status500InternalServerError
-            });
-        }
+      
+   
     }
 }
 
