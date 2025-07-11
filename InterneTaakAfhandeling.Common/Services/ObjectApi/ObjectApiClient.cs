@@ -156,9 +156,11 @@ public class ObjectApiClient(
 
     public async Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekPatch, Guid logboekUuid)
     {
+
+        HttpResponseMessage? response = null;
         try
         {
-            var response = await _httpClient.PatchAsJsonAsync($"objects/{logboekUuid}", logboekPatch);
+            response = await _httpClient.PatchAsJsonAsync($"objects/{logboekUuid}", logboekPatch);
 
             response.EnsureSuccessStatusCode();
 
@@ -171,8 +173,12 @@ public class ObjectApiClient(
 
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error occurred while updateing the logboek for ");
+
+            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
+
+            _logger.LogError(ex, "Error updating logboek {logboekUuid}. Error response {errorResponse}", logboekUuid, errorResponse);
             throw;
+             
         }
     }
 

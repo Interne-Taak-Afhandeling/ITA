@@ -8,6 +8,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CloseInterneTa
         public required Guid AanleidinggevendKlantcontactUuid { get; set; }
         public Guid? PartijUuid { get; set; }
         public required Guid InterneTaakId { get; set; }
-
+        public string? InterneNotitie { get; set; }
     }
 }
