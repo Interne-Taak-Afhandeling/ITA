@@ -219,6 +219,7 @@ export interface CreateRelatedKlantcontactRequest {
   aanleidinggevendKlantcontactUuid?: string;
   partijUuid?: string;
   interneTaakId: string;
+  interneNotitie?: string;
 }
 
 export interface RelatedKlantcontactResult {

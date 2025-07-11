@@ -1,76 +1,62 @@
 <template>
   <form ref="formRef" @submit.prevent="showConfirmation">
     <utrecht-fieldset>
-      <utrecht-legend>Resultaat</utrecht-legend>
-      <utrecht-form-field type="radio">
+      <utrecht-legend>Kies een handeling</utrecht-legend>
+      <utrecht-form-field v-for="(label, key) in HANDLINGS" :key="key" type="radio">
         <utrecht-radiobutton
-          name="contact-gelukt"
-          id="contact-gelukt"
-          :value="RESULTS.contactGelukt"
-          v-model="form.resultaat"
+          name="handeling"
+          :id="key"
+          :value="label"
+          v-model="form.handeling"
           required
         />
-        <utrecht-form-label for="contact-gelukt" type="radio">
-          {{ RESULTS.contactGelukt }}
-        </utrecht-form-label>
+        <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
       </utrecht-form-field>
-      <utrecht-form-field type="radio">
-        <utrecht-radiobutton
-          name="contact-gelukt"
-          id="geen-gehoor"
-          :value="RESULTS.geenGehoor"
-          v-model="form.resultaat"
-          required
-        />
-        <utrecht-form-label for="geen-gehoor" type="radio">
-          {{ RESULTS.geenGehoor }}
-        </utrecht-form-label>
+    </utrecht-fieldset>
+
+    <utrecht-fieldset v-if="isContactmoment">
+      <utrecht-fieldset>
+        <utrecht-legend>Resultaat</utrecht-legend>
+        <utrecht-form-field v-for="(label, key) in RESULTS" :key="key" type="radio">
+          <utrecht-radiobutton
+            name="resultaat"
+            :id="key"
+            :value="label"
+            v-model="form.resultaat"
+            required
+          />
+          <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
+        </utrecht-form-field>
+      </utrecht-fieldset>
+
+      <utrecht-form-field>
+        <utrecht-form-label for="kanalen">Kanaal</utrecht-form-label>
+        <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
       </utrecht-form-field>
-      <utrecht-form-field type="radio">
-        <utrecht-radiobutton
-          name="contact-gelukt"
-          id="interne-notitie"
-          :value="RESULTS.interneNotitie"
-          v-model="form.resultaat"
-          required
-        />
-        <utrecht-form-label for="interne-notitie" type="radio">
-          {{ RESULTS.interneNotitie }}
-        </utrecht-form-label>
+      <utrecht-form-field>
+        <utrecht-form-label for="informatie-burger"
+          >Informatie voor burger / bedrijf</utrecht-form-label
+        >
+        <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
       </utrecht-form-field>
     </utrecht-fieldset>
     <utrecht-form-field>
-      <utrecht-form-label for="kanalen">Kanaal</utrecht-form-label>
-      <utrecht-select 
-        :required="!isInterneNotitie" 
-        id="kanalen" 
-        v-model="form.kanaal" 
-        :options="kanalen" 
-        :disabled="isInterneNotitie"
-      />
-    </utrecht-form-field>
-    <utrecht-form-field>
-      <utrecht-form-label for="informatie-burger"
-        >Informatie voor burger / bedrijf</utrecht-form-label
-      >
-      <utrecht-textarea 
-        :required="!isInterneNotitie" 
-        id="informatie-burger" 
-        v-model="form.informatieBurger" 
-        :disabled="isInterneNotitie"
-      />
-    </utrecht-form-field>
-    <utrecht-form-field>
       <utrecht-form-label for="interne-notitie-text">Interne notitie</utrecht-form-label>
-      <utrecht-textarea 
-        id="interne-notitie-text" 
-        v-model="form.interneNotitie" 
-        placeholder="Voeg hier een interne notitie toe (optioneel)"
+      <utrecht-textarea
+        id="interne-notitie-text"
+        v-model="form.interneNotitie"
+        :required="!isContactmoment"
+        placeholder="Voeg hier een interne notitie toe"
       />
     </utrecht-form-field>
 
     <utrecht-button-group>
-      <utrecht-button type="submit" appearance="primary-action-button" :disabled="isLoading">
+      <utrecht-button
+        type="submit"
+        appearance="primary-action-button"
+        :disabled="isLoading"
+        v-if="isContactmoment"
+      >
         <span v-if="isLoading">Bezig met opslaan...</span>
         <span v-else>Opslaan & afronden</span>
       </utrecht-button>
@@ -78,7 +64,7 @@
         type="button"
         appearance="secondary-action-button"
         :disabled="isLoading"
-        @click="saveOnly"
+        @click="isContactmoment ? saveContactmoment() : saveNote()"
       >
         <span v-if="isLoading">Bezig met opslaan...</span>
         <span v-else>Alleen opslaan</span>
@@ -92,27 +78,31 @@
     message="Weet je zeker dat je het contactverzoek wilt opslaan en afronden?"
     confirm-text="Opslaan & afronden"
     cancel-text="Annuleren"
-    @confirm="saveAndFinish"
+    @confirm="finishContactmoment()"
   />
 </template>
 
 <script setup lang="ts">
 import { klantcontactService } from "@/services/klantcontactService";
 import type { CreateKlantcontactRequest, Internetaken } from "@/types/internetaken";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
 import { useRouter } from "vue-router";
+import { internetakenService } from "@/services/internetakenService";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
 
 const router = useRouter();
+const HANDLINGS = {
+  contactmoment: "Contactmoment",
+  interneToelichting: "Interne toelichting"
+} as const;
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
-  geenGehoor: "Contact opnemen niet gelukt",
-  interneNotitie: "Interne notitie toevoegen"
+  geenGehoor: "Contact opnemen niet gelukt"
 } as const;
 
 const kanalen = [
@@ -125,39 +115,43 @@ const bevestigingsModalRef = ref<InstanceType<typeof BevestigingsModal>>();
 const formRef = ref<HTMLFormElement>();
 
 const form = ref({
+  handeling: HANDLINGS.contactmoment as (typeof HANDLINGS)[keyof typeof HANDLINGS],
   resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
   kanaal: "",
   informatieBurger: "",
   interneNotitie: ""
 });
-
-const isInterneNotitie = computed(() => form.value.resultaat === RESULTS.interneNotitie);
-
+const isContactmoment = computed(() => form.value.handeling === HANDLINGS.contactmoment);
 function showConfirmation() {
   bevestigingsModalRef.value?.show();
 }
-
-async function saveOnly() {
-  if (isInterneNotitie.value && !form.value.interneNotitie.trim()) {
-    toast.add({ text: "Interne notitie is verplicht wanneer je deze optie selecteert", type: "error" });
-    return;
-  }
-
-  //HTML5 form validatie voor andere velden
+function isValidForm() {
   if (!formRef.value?.checkValidity()) {
     formRef.value?.reportValidity();
-    return;
+    return false;
   }
-
+  return true;
+}
+async function saveNote() {
+  if (!isValidForm()) return;
   isLoading.value = true;
   try {
-    await klantcontactService.createRelatedKlantcontact({
-      klantcontactRequest: buildKlantcontactModel(),
-      aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
-      partijUuid: getPartijId(),
-      interneTaakId: taak.uuid,
-      interneNotitie: form.value.interneNotitie.trim() || undefined
-    });
+    await internetakenService.addNoteToInternetaak(taak.uuid, form.value.interneNotitie.trim());
+    toast.add({ text: "Notitie succesvol toegevoegd", type: "ok" });
+    resetForm();
+    emit("success");
+  } catch (err: unknown) {
+    handleError(err);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+async function saveContactmoment() {
+  if (!isValidForm()) return;
+  isLoading.value = true;
+  try {
+    await klantcontactService.createRelatedKlantcontact(getKlantcontactPayload());
     toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
     resetForm();
     emit("success");
@@ -168,16 +162,13 @@ async function saveOnly() {
   }
 }
 
-async function saveAndFinish() {
+async function finishContactmoment() {
+  if (!isValidForm()) return;
   isLoading.value = true;
   try {
-    await klantcontactService.createRelatedKlantcontactAndCloseInterneTaak({
-      klantcontactRequest: buildKlantcontactModel(),
-      aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
-      partijUuid: getPartijId(),
-      interneTaakId: taak.uuid,
-      interneNotitie: form.value.interneNotitie.trim() || undefined
-    });
+    await klantcontactService.createRelatedKlantcontactAndCloseInterneTaak(
+      getKlantcontactPayload()
+    );
     toast.add({ text: "Contactmoment succesvol opgeslagen en afgerond", type: "ok" });
     router.push({ name: "dashboard" });
   } catch (err: unknown) {
@@ -186,7 +177,15 @@ async function saveAndFinish() {
     isLoading.value = false;
   }
 }
-
+function getKlantcontactPayload() {
+  return {
+    klantcontactRequest: buildKlantcontactModel(),
+    aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
+    partijUuid: getPartijId(),
+    interneTaakId: taak.uuid,
+    interneNotitie: form.value.interneNotitie
+  };
+}
 function getAanleidinggevendKlantcontactId() {
   return taak.aanleidinggevendKlantcontact?.uuid;
 }
@@ -205,19 +204,6 @@ function getPartijId() {
 }
 
 function buildKlantcontactModel(): CreateKlantcontactRequest {
-  if (isInterneNotitie.value) {
-    // Voor interne notitie: geen klantcontact aanmaken, alleen logboek entry
-    return {
-      kanaal: "", // Leeg voor interne notitie
-      onderwerp: "Interne notitie",
-      inhoud: "", // Leeg voor interne notitie
-      indicatieContactGelukt: undefined, // Niet van toepassing voor interne notitie
-      taal: "nld",
-      vertrouwelijk: false,
-      plaatsgevondenOp: new Date().toISOString()
-    };
-  }
-
   return {
     kanaal: form.value.kanaal,
     onderwerp: taak.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
@@ -231,6 +217,7 @@ function buildKlantcontactModel(): CreateKlantcontactRequest {
 
 function resetForm() {
   form.value = {
+    handeling: HANDLINGS.contactmoment,
     resultaat: RESULTS.contactGelukt,
     kanaal: "",
     informatieBurger: "",
