@@ -17,9 +17,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
         [ProducesResponseType(typeof(List<InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models.Internetaak>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("assigned-to-me")]
-        public async Task<IActionResult> GetInternetaken()
+        public async Task<IActionResult> GetInternetaken([FromQuery] bool? afgerond   )
         {
-            var result = await _userService.GetInterneTakenByAssignedUser(user);
+            var result = await _userService.GetInterneTakenByAssignedUser(user, afgerond);
 
             Console.WriteLine($"Found {result.Count} internetaken for user {user.Email}");
             foreach (var item in result)

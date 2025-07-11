@@ -17,7 +17,7 @@ public interface IOpenKlantApiClient
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
-    Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
+    Task<List<Internetaak>> GetInternetakenByToegewezenAanActor(string uuid, bool? afgerond);
     Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
@@ -244,7 +244,7 @@ public partial class OpenKlantApiClient(
         _logger.LogInformation("API Response: {JsonString}", jsonString);
 
 
-       
+
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
 
         _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
@@ -258,23 +258,27 @@ public partial class OpenKlantApiClient(
         return klantcontact;
     }
 
-    public async Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid)
+    public async Task<List<Internetaak>> GetInternetakenByToegewezenAanActor(string uuid, bool? afgerond)
     {
+        var status = (afgerond.HasValue && afgerond.Value) ? "verwerkt" : "te_verwerken";
         List<Internetaak> content = [];
-        var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status=te_verwerken";
-        while (!string.IsNullOrEmpty(page))
-        {
-            var response = await _httpClient.GetAsync(page);
-            response.EnsureSuccessStatusCode();
-            var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
+        var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status={status}";
 
-            await Task.WhenAll(currentContent?.Results?.Select(async x =>
-            {
-                x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
-            }) ?? []);
-            content.AddRange(currentContent?.Results ?? []);
-            page = currentContent?.Next?.Replace(_httpClient.BaseAddress?.AbsoluteUri ?? string.Empty, string.Empty);
-        }
+        //note, we won't loop through all pages.
+        //if it's for getting new items, we assume there will only be a few
+        //if its for all old items this can become extremely heavy,
+        //for now we limit it to the first 100 records (default pagesize)
+
+        var response = await _httpClient.GetAsync(page);
+        response.EnsureSuccessStatusCode();
+        var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
+
+        await Task.WhenAll(currentContent?.Results?.Select(async x =>
+        {
+            x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
+        }) ?? []);
+        content.AddRange(currentContent?.Results ?? []);
+
 
         return content?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];
     }
