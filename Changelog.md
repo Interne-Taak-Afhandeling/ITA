@@ -3,6 +3,7 @@
 ### New features
 
 - Create logboek object and handle action logging & extraction #163
+- Handle action logging & extraction for remaining actions #164
 
 ### Warnings and deployment notes
 
