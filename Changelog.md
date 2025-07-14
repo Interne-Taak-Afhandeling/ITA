@@ -8,5 +8,7 @@
 ### Warnings and deployment notes
 
 ### Bugfixes
+- helm: make sure the website restarts when config or secret changes
 
 ### Maintenance
+- Upgrade Vue
