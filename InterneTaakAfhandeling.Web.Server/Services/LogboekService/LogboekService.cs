@@ -50,8 +50,9 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                             activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
                             activiteit.Tekst = contactmoment.Inhoud;
                             activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
-                            activiteit.UitgevoerdDoor = GetName(item);
-
+                            activiteit.UitgevoerdDoor = GetName( item);
+                            activiteit.Notitie = item.Notitie;
+ 
                             activiteit.Titel = contactmoment.IndicatieContactGelukt.HasValue && contactmoment.IndicatieContactGelukt.Value
                                 ? "Contact gelukt"
                                 : "Contact niet gelukt";
@@ -186,4 +187,5 @@ public class Activiteit
     public bool? ContactGelukt { get; set; }
     public string? Id { get; set; }
     public string? UitgevoerdDoor { get; set; }
+    public string? Notitie { get; set; }
 }
