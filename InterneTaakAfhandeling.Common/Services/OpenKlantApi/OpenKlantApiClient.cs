@@ -16,9 +16,7 @@ public interface IOpenKlantApiClient
     Task<Actor> GetActorAsync(string? uuid);
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
-    Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
-    Task<List<Internetaak>> GetInternetakenByToegewezenAanActor(string uuid, bool? afgerond);
-    Task<Actor?> QueryActorAsync(ActorQuery query);
+    Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);    Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
@@ -258,31 +256,7 @@ public partial class OpenKlantApiClient(
         return klantcontact;
     }
 
-    public async Task<List<Internetaak>> GetInternetakenByToegewezenAanActor(string uuid, bool? afgerond)
-    {
-        var status = (afgerond.HasValue && afgerond.Value) ? "verwerkt" : "te_verwerken";
-        List<Internetaak> content = [];
-        var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status={status}";
-
-        //note, we won't loop through all pages.
-        //if it's for getting new items, we assume there will only be a few
-        //if its for all old items this can become extremely heavy,
-        //for now we limit it to the first 100 records (default pagesize)
-
-        var response = await _httpClient.GetAsync(page);
-        response.EnsureSuccessStatusCode();
-        var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
-
-        await Task.WhenAll(currentContent?.Results?.Select(async x =>
-        {
-            x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
-        }) ?? []);
-        content.AddRange(currentContent?.Results ?? []);
-
-
-        return content?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];
-    }
-
+  
     public async Task<Actor?> QueryActorAsync(ActorQuery query)
     {
         var queryDictionary = HttpUtility.ParseQueryString(string.Empty);
@@ -307,12 +281,8 @@ public partial class OpenKlantApiClient(
 
     public async Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters)
     {
-        var queryString = string.Join("&",
-            interneTaakQueryParameters.GetType().GetProperties()
-                .Where(prop => prop.GetValue(interneTaakQueryParameters) != null)
-                .Select(prop => $"{HttpUtility.UrlEncode(prop.Name.ToLower())}={HttpUtility.UrlEncode(prop.GetValue(interneTaakQueryParameters)?.ToString())}"));
-
-        var path = $"internetaken?{queryString}";
+        var queryParams = BuildQueryString(interneTaakQueryParameters);
+        var path = $"internetaken?{queryParams}";
         var response = await GetInternetakenAsync(path);
 
         if (response?.Results == null || response.Results.Count == 0)

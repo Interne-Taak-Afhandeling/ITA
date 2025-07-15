@@ -2,6 +2,7 @@
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 
 namespace InterneTaakAfhandeling.Web.Server.Services
 {
@@ -17,7 +18,16 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         public async Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user, bool? afgerond)
         {
             var actorIds = await GetActorIds(user);
-            var internetakenTasks = actorIds.Select(a => _openKlantApiClient.GetInternetakenByToegewezenAanActor(a, afgerond));
+
+            var internetakenTasks   = actorIds
+                .Where(id => Guid.TryParse(id, out _))
+                .Select(actorId => {
+                    var query = new InterneTaakQuery {
+                        ToegewezenAanActor__Uuid = Guid.Parse(actorId)
+                    };
+                    if (afgerond == true) query.Status = "verwerkt";
+                    return _openKlantApiClient.QueryInterneTakenAsync(query);
+                });
 
             var results = await Task.WhenAll(internetakenTasks);
 
