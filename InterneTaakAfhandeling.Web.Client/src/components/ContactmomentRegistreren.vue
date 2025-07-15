@@ -40,15 +40,7 @@
         <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
       </utrecht-form-field>
     </utrecht-fieldset>
-    <utrecht-form-field>
-      <utrecht-form-label for="interne-notitie-text">Interne notitie</utrecht-form-label>
-      <utrecht-textarea
-        id="interne-notitie-text"
-        v-model="form.interneNotitie"
-        :required="!isContactmoment"
-        placeholder="Voeg hier een interne notitie toe"
-      />
-    </utrecht-form-field>
+    <InterneToelichting mode="edit" v-model="form.interneNotitie" :required="!isContactmoment" />
 
     <utrecht-button-group>
       <utrecht-button
@@ -90,7 +82,7 @@ import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
 import { useRouter } from "vue-router";
 import { internetakenService } from "@/services/internetakenService";
-
+import InterneToelichting from "@/components/InterneToelichtingSection.vue";
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
 
@@ -234,5 +226,8 @@ function handleError(err: unknown) {
 <style lang="scss" scoped>
 .utrecht-form-label {
   display: block;
+}
+.utrecht-button-group {
+  margin-top: 12px;
 }
 </style>

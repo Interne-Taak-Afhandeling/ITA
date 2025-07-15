@@ -14,18 +14,11 @@
         <utrecht-paragraph v-if="logboekItem.tekst" class="preserve-newline">
           {{ logboekItem.tekst }}
         </utrecht-paragraph>
-
-        <UtrechtSpotlightSection
+        <InterneToelichting
           v-if="logboekItem.notitie"
-          class="ita-step-note-bleed ita-step-note-bluebar"
-        >
-          <utrecht-heading>
-            <strong><em>Interne toelichting</em></strong>
-          </utrecht-heading>
-          <utrecht-paragraph>
-            <em>{{ logboekItem.notitie }}</em>
-          </utrecht-paragraph>
-        </UtrechtSpotlightSection>
+          mode="view"
+          :model-value="logboekItem.notitie"
+        />
 
         <div class="ita-step-meta-list">
           <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
@@ -49,7 +42,7 @@ import {
 } from "@/components/denhaag-process-steps";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
-import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
+import InterneToelichting from "@/components/InterneToelichtingSection.vue";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { useLoader } from "@/composables/use-loader";
 import { klantcontactService } from "@/services/klantcontactService";
@@ -98,14 +91,5 @@ const {
 
 .denhaag-process-steps {
   --denhaag-process-steps-step-distance: var(--ita-step-distance);
-}
-.ita-step-note-bleed {
-  margin-left: calc(-1 * var(--ita-detail-section-header-padding-inline-start));
-  margin-right: calc(-1 * var(--ita-detail-section-header-padding-inline-end));
-  padding-bottom: 0;
-}
-.ita-step-note-bluebar {
-  border-left: var(--ita-step-note-border-width) var(--ita-step-note-border-style)
-    var(--ita-step-note-border-color);
 }
 </style>
