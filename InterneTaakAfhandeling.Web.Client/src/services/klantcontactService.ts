@@ -15,7 +15,7 @@ interface LogboekActiviteit {
   id: string;
   contactGelukt: string | undefined;
   uitgevoerdDoor: string | undefined;
-  notitie : string | undefined;
+  notitie: string | undefined;
 }
 
 export const klantcontactService = {
