@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
@@ -18,7 +19,7 @@ public class KnownContactAction
         return new KnownContactAction
         {
             Description = "afgerond",
-            Type = "verwerkt",
+            Type = ActiviteitTypes.Verwerkt,
             Actor = CreateActor(loggedByUser),
         };
     }
@@ -28,7 +29,7 @@ public class KnownContactAction
         return new KnownContactAction
         {
             Description = "zaak gekoppeld",
-            Type = "zaak-gekoppeld",
+            Type = ActiviteitTypes.ZaakGekoppeld,
             Actor = CreateActor(loggedByUser),
             HeeftBetrekkingOp = new ObjectIdentificator
             {
@@ -45,7 +46,7 @@ public class KnownContactAction
         return new KnownContactAction
         {
             Description = "zaak gewijzigd",
-            Type = "zaakkoppeling-gewijzigd",
+            Type = ActiviteitTypes.ZaakkoppelingGewijzigd,
             Actor = CreateActor(loggedByUser),
             HeeftBetrekkingOp = new ObjectIdentificator
             {
@@ -62,7 +63,7 @@ public class KnownContactAction
         return new KnownContactAction
         {
             Description = "opgepakt",
-            Type = "toegewezen",
+            Type = ActiviteitTypes.Toegewezen,
             Actor = CreateActor(loggedByUser),
             HeeftBetrekkingOp = new ObjectIdentificator
             {
@@ -83,7 +84,7 @@ public class KnownContactAction
         return new KnownContactAction
         {
             Description = description,
-            Type = "klantcontact",
+            Type = ActiviteitTypes.Klantcontact,
             Actor = CreateActor(loggedByUser),
             HeeftBetrekkingOp = new ObjectIdentificator
             {

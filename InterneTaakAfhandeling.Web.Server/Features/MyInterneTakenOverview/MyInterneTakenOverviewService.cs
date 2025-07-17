@@ -26,7 +26,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
                     {
                         ToegewezenAanActor__Uuid = Guid.Parse(actorId)
                     };
-                    if (afgerond == true) query.Status = "verwerkt";
+                    query.Status = (afgerond == true)  ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken;
                     return _openKlantApiClient.QueryInterneTakenAsync(query);
                 });
 
