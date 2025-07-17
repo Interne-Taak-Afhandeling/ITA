@@ -33,7 +33,9 @@
   --denhaag-contact-timeline-step-header-date-width: 15ch;
   --denhaag-contact-timeline-step-header-channel-width: 80px;
   --denhaag-contact-timeline-step-header-toggle-gap: 4px;
-  --denhaag-contact-timeline-step-marker-connector-desktop-margin-inline-start: calc( var(--denhaag-contact-timeline-step-header-date-width) + 16px );
+  --denhaag-contact-timeline-step-marker-connector-desktop-margin-inline-start: calc(
+    var(--denhaag-contact-timeline-step-header-date-width) + 16px
+  );
   --denhaag-contact-timeline-step-details-desktop-margin-inline-start: 295px;
   --denhaag-contact-timeline-step-details-mobile-margin-inline-start: 32px;
   --denhaag-contact-timeline-step-details-sender-margin-block-start: 16px;
