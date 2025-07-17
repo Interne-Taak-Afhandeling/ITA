@@ -40,7 +40,23 @@
         <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
       </utrecht-form-field>
     </utrecht-fieldset>
-    <InterneToelichting mode="edit" v-model="form.interneNotitie" :required="!isContactmoment" />
+    <interne-toelichting-section>
+      <utrecht-form-field>
+        <utrecht-form-label for="interne-toelichting-text">
+          Interne toelichting
+        </utrecht-form-label>
+        <utrecht-textarea
+          id="interne-toelichting-text"
+          v-model="form.interneNotitie"
+          placeholder="Optioneel"
+          :required="!isContactmoment"
+        />
+        <utrecht-paragraph small class="gray-text">
+          Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
+          bedrijf.
+        </utrecht-paragraph>
+      </utrecht-form-field>
+    </interne-toelichting-section>
 
     <utrecht-button-group>
       <utrecht-button
@@ -82,10 +98,10 @@ import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
 import { useRouter } from "vue-router";
 import { internetakenService } from "@/services/internetakenService";
-import InterneToelichting from "@/components/InterneToelichtingSection.vue";
+import InterneToelichtingSection from "./InterneToelichtingSection.vue";
+
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
-
 const router = useRouter();
 const HANDLINGS = {
   contactmoment: "Contactmoment",
@@ -228,6 +244,6 @@ function handleError(err: unknown) {
   display: block;
 }
 .utrecht-button-group {
-  margin-top: 12px;
+  margin-top: 1rem;
 }
 </style>
