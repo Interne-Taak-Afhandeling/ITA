@@ -285,11 +285,6 @@ public partial class OpenKlantApiClient(
         var path = $"internetaken?{queryParams}";
         var response = await GetInternetakenAsync(path);
 
-        if (response?.Results == null || response.Results.Count == 0)
-        {
-            throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
-        }
-
         foreach (var item in response.Results)
         {
             if (item.ToegewezenAanActoren != null)

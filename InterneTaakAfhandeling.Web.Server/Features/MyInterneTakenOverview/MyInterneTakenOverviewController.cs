@@ -1,5 +1,5 @@
 ﻿using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Web.Server.Services;
+using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,22 +20,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
         public async Task<IActionResult> GetInternetaken([FromQuery] bool? afgerond   )
         {
             var result = await _userService.GetInterneTakenByAssignedUser(user, afgerond);
-
-            Console.WriteLine($"Found {result.Count} internetaken for user {user.Email}");
-            foreach (var item in result)
-            {
-                Console.WriteLine($"Internetaak: {item.Uuid}, Status: {item.Status}, Onderwerp: {item.AanleidinggevendKlantcontact?.Onderwerp}");
-            }
-
-            var json = System.Text.Json.JsonSerializer.Serialize(result, new System.Text.Json.JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve
-            });
-
             return Ok(result);
-        }
- 
+        } 
       
     }
 }
