@@ -3,13 +3,13 @@ using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakNote.AddNoteToInternetaak;
+namespace InterneTaakAfhandeling.Web.Server.Features.AddNotitieToInternetaak;
 
 [Route("api/internetaken")]
 [ApiController]
 [Authorize]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-public class AddNoteToInternetaakController(
+public class AddNotitieToInternetaakController(
     ITAUser user,
     ILogboekService logboekService) : Controller
 {
@@ -22,16 +22,16 @@ public class AddNoteToInternetaakController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [HttpPost("{internetaakId}/notitie")]
-    public async Task<IActionResult> AddNote([FromRoute] Guid internetaakId, [FromBody] AddNoteRequest request)
+    public async Task<IActionResult> AddNote([FromRoute] Guid internetaakId, [FromBody] AddNotitieRequest request)
     {
-        var noteAction = KnownContactAction.Note(request.Note, _user);
-        await _logboekService.LogContactRequestAction(noteAction, internetaakId);
+        var notitieAction = KnownContactAction.Note(request.Notitie, _user);
+        await _logboekService.LogContactRequestAction(notitieAction, internetaakId);
 
         return Ok(new { Message = "Notitie succesvol toegevoegd" });
     }
 }
 
-public class AddNoteRequest
+public class AddNotitieRequest
 {
-    public required string Note { get; set; }
+    public required string Notitie { get; set; }
 }

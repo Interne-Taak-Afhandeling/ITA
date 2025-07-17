@@ -105,7 +105,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                 case ActiviteitTypes.InterneNotitie:
                     {
                         activiteit.UitgevoerdDoor = GetName(item);
-                        activiteit.Tekst = item.Notitie;
+                        activiteit.Notitie = item.Notitie;
                         break;
                     }
             }

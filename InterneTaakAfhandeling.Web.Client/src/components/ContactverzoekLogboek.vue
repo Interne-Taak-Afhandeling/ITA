@@ -11,20 +11,22 @@
         <StepHeading>{{ logboekItem.titel }}</StepHeading>
       </StepHeader>
       <StepBody>
-        <utrecht-paragraph v-if="logboekItem.tekst" class="preserve-newline">
-          {{ logboekItem.tekst }}
-        </utrecht-paragraph>
-        <InterneToelichting
-          v-if="logboekItem.notitie"
-          mode="view"
-          :model-value="logboekItem.notitie"
-        />
+        <article>
+          <utrecht-paragraph v-if="logboekItem.tekst" class="preserve-newline">
+            {{ logboekItem.tekst }}
+          </utrecht-paragraph>
+          <InterneToelichting
+            v-if="logboekItem.notitie"
+            mode="view"
+            :model-value="logboekItem.notitie"
+          />
 
-        <div class="ita-step-meta-list">
-          <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
-          <StepMeta v-if="logboekItem.uitgevoerdDoor">{{ logboekItem.uitgevoerdDoor }}</StepMeta>
-          <StepMeta v-if="logboekItem.kanaal">Kanaal: {{ logboekItem.kanaal }}</StepMeta>
-        </div>
+          <div class="ita-step-meta-list">
+            <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
+            <StepMeta v-if="logboekItem.uitgevoerdDoor">{{ logboekItem.uitgevoerdDoor }}</StepMeta>
+            <StepMeta v-if="logboekItem.kanaal">Kanaal: {{ logboekItem.kanaal }}</StepMeta>
+          </div>
+        </article>
       </StepBody>
     </Step>
   </StepList>
@@ -60,6 +62,12 @@ const {
 </script>
 
 <style lang="scss" scoped>
+article {
+  display: flex;
+  row-gap: var(--ita-step-meta-list-column-gap);
+  flex-direction: column;
+}
+
 .ita-step {
   padding-block-end: var(--ita-step-padding-block-end);
   --utrecht-paragraph-margin-block-start: 0.5rem;

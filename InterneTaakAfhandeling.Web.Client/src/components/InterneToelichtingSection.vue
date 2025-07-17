@@ -1,5 +1,5 @@
 <template>
-  <UtrechtSpotlightSection class="container">
+  <UtrechtSpotlightSection>
     <template v-if="mode === 'view' && modelValue">
       <utrecht-heading>
         <strong><em>Interne toelichting</em></strong>
@@ -67,19 +67,7 @@ const localValue = computed({
 .utrecht-paragraph {
   margin-top: 5px;
 }
-.container {
-  margin-left: calc(-1 * var(--ita-detail-section-header-padding-inline-start));
-  margin-right: calc(-1 * var(--ita-detail-section-header-padding-inline-end));
-  border-left: var(--ita-step-note-border-width) var(--ita-step-note-border-style)
-    var(--ita-step-note-border-color);
-  :last-child {
-    margin-bottom: 0px;
-  }
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 8px 16px;
-}
+
 .gray-text {
   color: var(--utrecht-color-grey-40);
 }
