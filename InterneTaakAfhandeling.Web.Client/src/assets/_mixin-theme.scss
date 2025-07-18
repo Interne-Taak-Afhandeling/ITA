@@ -23,5 +23,7 @@
   --ita-step-distance: 1rem;
   --ita-interne-toelichting-section-border-inline-width: 4px;
   --ita-interne-toelichting-section-border-inline-style: solid;
-  --ita-interne-toelichting-section-border-inline-color: var(--utrecht-color-blue-40);
+  --ita-interne-toelichting-section-border-inline-color: var(
+    --utrecht-spotlight-section-border-color
+  );
 }

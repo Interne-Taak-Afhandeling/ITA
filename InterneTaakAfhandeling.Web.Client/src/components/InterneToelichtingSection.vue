@@ -15,5 +15,6 @@ import UtrechtSpotlightSection from "@/components/UtrechtSpotlightSection.vue";
     var(--ita-interne-toelichting-section-border-inline-color);
 
   margin-inline-start: calc(-1 * var(--current-padding-inline-start));
+  margin-inline-end: calc(-1 * var(--current-padding-inline-end));
 }
 </style>

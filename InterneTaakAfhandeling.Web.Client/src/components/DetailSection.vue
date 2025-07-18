@@ -75,5 +75,6 @@ const { level = 2 } = defineProps<{ title: string; level?: 2 | 3 | 4 }>();
   padding-inline-end: var(--ita-detail-section-body-padding-inline-end);
   padding-inline-start: var(--ita-detail-section-body-padding-inline-start);
   --current-padding-inline-start: var(--ita-detail-section-body-padding-inline-start);
+  --current-padding-inline-end: var(--ita-detail-section-body-padding-inline-end);
 }
 </style>
