@@ -16,9 +16,7 @@ public interface IOpenKlantApiClient
     Task<Actor> GetActorAsync(string? uuid);
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
-    Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
-    Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
-    Task<Actor?> QueryActorAsync(ActorQuery query);
+    Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);    Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
@@ -244,7 +242,7 @@ public partial class OpenKlantApiClient(
         _logger.LogInformation("API Response: {JsonString}", jsonString);
 
 
-       
+
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
 
         _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
@@ -258,27 +256,7 @@ public partial class OpenKlantApiClient(
         return klantcontact;
     }
 
-    public async Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid)
-    {
-        List<Internetaak> content = [];
-        var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status=te_verwerken";
-        while (!string.IsNullOrEmpty(page))
-        {
-            var response = await _httpClient.GetAsync(page);
-            response.EnsureSuccessStatusCode();
-            var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
-
-            await Task.WhenAll(currentContent?.Results?.Select(async x =>
-            {
-                x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
-            }) ?? []);
-            content.AddRange(currentContent?.Results ?? []);
-            page = currentContent?.Next?.Replace(_httpClient.BaseAddress?.AbsoluteUri ?? string.Empty, string.Empty);
-        }
-
-        return content?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];
-    }
-
+  
     public async Task<Actor?> QueryActorAsync(ActorQuery query)
     {
         var queryDictionary = HttpUtility.ParseQueryString(string.Empty);
@@ -303,18 +281,9 @@ public partial class OpenKlantApiClient(
 
     public async Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters)
     {
-        var queryString = string.Join("&",
-            interneTaakQueryParameters.GetType().GetProperties()
-                .Where(prop => prop.GetValue(interneTaakQueryParameters) != null)
-                .Select(prop => $"{HttpUtility.UrlEncode(prop.Name.ToLower())}={HttpUtility.UrlEncode(prop.GetValue(interneTaakQueryParameters)?.ToString())}"));
-
-        var path = $"internetaken?{queryString}";
+        var queryParams = BuildQueryString(interneTaakQueryParameters);
+        var path = $"internetaken?{queryParams}";
         var response = await GetInternetakenAsync(path);
-
-        if (response?.Results == null || response.Results.Count == 0)
-        {
-            throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
-        }
 
         foreach (var item in response.Results)
         {

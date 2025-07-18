@@ -1,9 +1,9 @@
 <template>
-  <utrecht-heading :level="1">Dashboard</utrecht-heading>
+  <utrecht-heading :level="1">Historie</utrecht-heading>
 
   <div class="ita-dashboard-tables">
     <section>
-      <utrecht-heading :level="2" id="h2-a">Aan mij toegewezen contacten</utrecht-heading>
+      <utrecht-heading :level="2" id="h2-a">Mijn afgeronde contactverzoeken</utrecht-heading>
       <simple-spinner v-if="isLoading" />
       <scroll-container v-else>
         <my-interne-taken-table :interne-taken="assignedInternetaken" aria-labelledby="h2-a" />
@@ -35,19 +35,16 @@ import ScrollContainer from "@/components/ScrollContainer.vue";
 import { userService } from "@/services/userService";
 import type { Internetaken } from "@/types/internetaken";
 
-//const userStore = useUserStore();
-//const { assignedInternetaken, isLoading } = storeToRefs(userStore);
-
 const assignedInternetaken = ref<Internetaken[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
-const fetchAssignedInternetaken = async () => {
+const fetchAssignedAndFinishedInternetaken = async () => {
   isLoading.value = true;
   error.value = null;
 
   try {
-    assignedInternetaken.value = await userService.getAssignedInternetaken();
+    assignedInternetaken.value = await userService.getAssignedAndFinishedInternetaken();
   } catch (err: unknown) {
     error.value =
       err instanceof Error && err.message
@@ -60,6 +57,6 @@ const fetchAssignedInternetaken = async () => {
 };
 
 onMounted(async () => {
-  await fetchAssignedInternetaken();
+  await fetchAssignedAndFinishedInternetaken();
 });
 </script>

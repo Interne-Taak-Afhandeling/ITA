@@ -70,7 +70,7 @@ public class CloseInterneTaakWithKlantContactController(
             //the field is marked 'experimental' 
             var internetakenUpdateRequest = new InternetakenPatchRequest
             {
-                Status = "verwerkt"
+                Status = KnownInternetaakStatussen.Verwerkt
             };
 
             await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
