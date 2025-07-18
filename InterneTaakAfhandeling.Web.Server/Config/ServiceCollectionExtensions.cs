@@ -42,7 +42,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
 
 
             services.AddITAApiClients(configuration);
-            services.AddScoped<IUserService, MyInterneTakenOverviewService>();
+            services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
             services.AddScoped<IInternetaakService, InternetaakDetailsService>();
             services.AddScoped<IContactmomentenService, ContactmomentenService>();

@@ -5,16 +5,16 @@ using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
 {
-    public interface IUserService
+    public interface IMyInterneTakenOverviewService
     {
-        Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user, bool? afgerond);
+        Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond);
     }
-    public class MyInterneTakenOverviewService(IOpenKlantApiClient openKlantApiClient) : IUserService
+    public class MyInterneTakenOverviewService(IOpenKlantApiClient openKlantApiClient) : IMyInterneTakenOverviewService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
 
 
-        public async Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user, bool? afgerond)
+        public async Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond)
         {
             var actorIds = await GetActorIds(user);
 
@@ -24,9 +24,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
                 {
                     var query = new InterneTaakQuery
                     {
-                        ToegewezenAanActor__Uuid = Guid.Parse(actorId)
+                        ToegewezenAanActor__Uuid = Guid.Parse(actorId),
+                        Status = (afgerond == true) ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken
                     };
-                    query.Status = (afgerond == true)  ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken;
                     return _openKlantApiClient.QueryInterneTakenAsync(query);
                 });
 

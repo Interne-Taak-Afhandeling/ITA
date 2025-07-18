@@ -9,15 +9,15 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class MyInterneTakenOverviewController(IUserService userService, ITAUser user) : Controller
+    public class MyInterneTakenOverviewController(IMyInterneTakenOverviewService userService, ITAUser user) : Controller
     {
-           private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+           private readonly IMyInterneTakenOverviewService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
 
         [ProducesResponseType(typeof(List<InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models.Internetaak>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("assigned-to-me")]
-        public async Task<IActionResult> GetInternetaken([FromQuery] bool? afgerond   )
+        public async Task<IActionResult> GetInternetaken([FromQuery] bool afgerond   )
         {
             var result = await _userService.GetInterneTakenByAssignedUser(user, afgerond);
             return Ok(result);
