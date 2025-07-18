@@ -32,16 +32,15 @@ public class MyInterneTakenResponse
 
 public class MyInterneTaakItem
 {
-    public string Uuid { get; set; } = string.Empty;                    // Internetaak.Uuid
-    public string Nummer { get; set; } = string.Empty;                  // Internetaak.Nummer
-    public string GevraagdeHandeling { get; set; } = string.Empty;      // Internetaak.GevraagdeHandeling
-    public string Status { get; set; } = string.Empty;                  // Internetaak.Status
-    public DateTimeOffset ToegewezenOp { get; set; }                    // Internetaak.ToegewezenOp
-    public DateTimeOffset? AfgehandeldOp { get; set; }                  // Internetaak.AfgehandeldOp
+    public string Uuid { get; set; } = string.Empty;                    
+    public string Nummer { get; set; } = string.Empty;                   
+    public string GevraagdeHandeling { get; set; } = string.Empty;       
+    public string Status { get; set; } = string.Empty;                 
+    public DateTimeOffset ToegewezenOp { get; set; }                 
+    public DateTimeOffset? AfgehandeldOp { get; set; }                 
 
-    public string? Onderwerp { get; set; }                             // Klantcontact.Onderwerp
-    public DateTimeOffset? ContactDatum { get; set; }                  // Klantcontact.PlaatsgevondenOp
-
+    public string? Onderwerp { get; set; }                            
+    public DateTimeOffset? ContactDatum { get; set; }                  
     public string? KlantNaam { get; set; }
 
     public string? AfdelingNaam { get; set; }
