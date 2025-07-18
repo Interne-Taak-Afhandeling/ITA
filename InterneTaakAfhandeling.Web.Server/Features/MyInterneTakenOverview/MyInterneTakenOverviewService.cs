@@ -9,8 +9,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 
 public interface IMyInterneTakenOverviewService
 {
-    Task<MyInterneTakenResponse> GetMyInterneTakenOverviewAsync(MyInterneTakenQueryParameters queryParameters);
-    Task<MedewerkerResponse?> GetGebruikerGroepenAndAfdelingen(ITAUser user);
+    Task<MyInterneTakenResponse> GetMyInterneTakenOverviewAsync(MyInterneTakenQueryParameters queryParameters); 
     Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user, bool afgerond);
 }
 
@@ -195,25 +194,7 @@ public class MyInterneTakenOverviewService : IMyInterneTakenOverviewService
             .FirstOrDefault(naam => !string.IsNullOrEmpty(naam));
     }
 
-    public async Task<MedewerkerResponse?> GetGebruikerGroepenAndAfdelingen(ITAUser user)
-    {
-        var actorIds = await GetCurrentActors(user);
-        var results = await Task.WhenAll(
-            actorIds.Select(a => _objectApiClient.GetObjectsByIdentificatie(a.Actoridentificator?.ObjectId)));
-        var res = results.SelectMany(x => x).ToList();
-        if (res.Count > 1)
-        {
-            throw new ConflictException("Groepen en afdelingen zijn niet juist geconfigureerd.");
-        }
-        return
-            new MedewerkerResponse()
-            {
-                Afdelingen = (res.First().Data.Afdelingen ?? []).Select(x => x.Afdelingnaam).ToList(),
-                Groepen = (res.First().Data.Groepen ?? []).Select(x => x.Groepsnaam).ToList()
-            };
-
-    }
-
+    
 
     private async Task<IReadOnlyList<Actor>> GetCurrentActors(ITAUser user)
     {

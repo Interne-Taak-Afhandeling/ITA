@@ -45,8 +45,3 @@ public class MyInterneTaakItem
     public string? AfdelingNaam { get; set; }
     public string? BehandelaarNaam { get; set; }
 }
-public class MedewerkerResponse
-{
-    public List<string>? Groepen { get; set; }
-    public List<string>? Afdelingen { get; set; }
-}

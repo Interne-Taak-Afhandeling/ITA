@@ -1,4 +1,3 @@
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,9 +16,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
         [ProducesResponseType(typeof(List<Common.Services.OpenKlantApi.Models.Internetaak>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("aan-mij-toegewezen")]
-        public async Task<IActionResult> GetInternetaken([FromQuery] bool afgerond   )
+        public async Task<IActionResult> GetInternetaken([FromQuery] bool afgerond)
         {
-            var result = await _myInterneTakenService.GetMyInterneTaken(user,afgerond);
+            var result = await _myInterneTakenService.GetMyInterneTaken(user, afgerond);
 
             Console.WriteLine($"Found {result.Count} internetaken for user {user.Email}");
             foreach (var item in result)
@@ -66,15 +65,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
                 throw;
             }
         }
-        [ProducesResponseType(typeof(MedewerkerResponse),
-            StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [HttpGet("gebruiker/groepen-and-afdelingen")]
-        public async Task<IActionResult> GetGebruikerGroepenAndAfdelingen()
-        {
-            var result = await _myInterneTakenService.GetGebruikerGroepenAndAfdelingen(user);
-            return Ok(result);
-        }
+
 
     }
 
