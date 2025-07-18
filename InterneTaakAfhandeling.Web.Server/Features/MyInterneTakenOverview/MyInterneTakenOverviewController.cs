@@ -16,7 +16,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
 
         [ProducesResponseType(typeof(List<Common.Services.OpenKlantApi.Models.Internetaak>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [HttpGet("assigned-to-me")]
+        [HttpGet("aan-mij-toegewezen")]
         public async Task<IActionResult> GetInternetaken([FromQuery] bool afgerond   )
         {
             var result = await _myInterneTakenService.GetMyInterneTaken(user,afgerond);
@@ -69,10 +69,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
         [ProducesResponseType(typeof(MedewerkerResponse),
             StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        [HttpGet("user/grop-Afdeling")]
-        public async Task<IActionResult> GetUserGropAndAfdeling()
+        [HttpGet("gebruiker/groepen-and-afdelingen")]
+        public async Task<IActionResult> GetGebruikerGroepenAndAfdelingen()
         {
-            var result = await _myInterneTakenService.GetUserGropAndAfdeling(user);
+            var result = await _myInterneTakenService.GetGebruikerGroepenAndAfdelingen(user);
             return Ok(result);
         }
 

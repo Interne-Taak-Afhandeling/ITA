@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
@@ -9,7 +10,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 public interface IMyInterneTakenOverviewService
 {
     Task<MyInterneTakenResponse> GetMyInterneTakenOverviewAsync(MyInterneTakenQueryParameters queryParameters);
-    Task<MedewerkerResponse?> GetUserGropAndAfdeling(ITAUser user);
+    Task<MedewerkerResponse?> GetGebruikerGroepenAndAfdelingen(ITAUser user);
     Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user, bool afgerond);
 }
 
@@ -194,12 +195,16 @@ public class MyInterneTakenOverviewService : IMyInterneTakenOverviewService
             .FirstOrDefault(naam => !string.IsNullOrEmpty(naam));
     }
 
-    public async Task<MedewerkerResponse?> GetUserGropAndAfdeling(ITAUser user)
+    public async Task<MedewerkerResponse?> GetGebruikerGroepenAndAfdelingen(ITAUser user)
     {
         var actorIds = await GetCurrentActors(user);
         var results = await Task.WhenAll(
             actorIds.Select(a => _objectApiClient.GetObjectsByIdentificatie(a.Actoridentificator?.ObjectId)));
         var res = results.SelectMany(x => x).ToList();
+        if (res.Count > 1)
+        {
+            throw new ConflictException("Groepen en afdelingen zijn niet juist geconfigureerd.");
+        }
         return
             new MedewerkerResponse()
             {
