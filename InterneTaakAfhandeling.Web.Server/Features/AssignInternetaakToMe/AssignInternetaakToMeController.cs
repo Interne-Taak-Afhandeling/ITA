@@ -21,7 +21,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         private readonly ILogboekService _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
         private readonly ILogger<AssignInternetaakToMeController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [HttpPost("{internetaakId}/assign-to-me")]
+        [HttpPost("{internetaakId}/aan-mij-toegewezen")]
         public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetaakId)
         {
             try

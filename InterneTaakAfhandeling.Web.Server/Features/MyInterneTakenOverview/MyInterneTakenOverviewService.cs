@@ -1,30 +1,104 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
+using InterneTaakAfhandeling.Web.Server.Services;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
+namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
+
+public interface IMyInterneTakenOverviewService
 {
-    public interface IMyInterneTakenOverviewService
+    Task<MyInterneTakenResponse> GetMyInterneTakenOverviewAsync(MyInterneTakenQueryParameters queryParameters); 
+    Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user, bool afgerond);
+}
+
+
+public class MyInterneTakenOverviewService : IMyInterneTakenOverviewService
+{
+    private readonly IOpenKlantApiClient _openKlantApiClient;
+    private readonly IObjectApiClient _objectApiClient;
+    private readonly ILogger<InterneTakenOverviewService> _logger;
+
+    public MyInterneTakenOverviewService(
+        IOpenKlantApiClient openKlantApiClient,
+        IObjectApiClient objectApiClient,
+        ILogger<InterneTakenOverviewService> logger)
     {
-        Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond);
+        _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+        _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
-    public class MyInterneTakenOverviewService(IOpenKlantApiClient openKlantApiClient) : IMyInterneTakenOverviewService
+
+    public async Task<MyInterneTakenResponse> GetMyInterneTakenOverviewAsync(
+        MyInterneTakenQueryParameters queryParameters)
     {
-        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
+        var page = queryParameters.GetValidatedPage();
+        var pageSize = queryParameters.GetValidatedPageSize();
 
-
-        public async Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond)
+        var query = new InterneTaakQuery
         {
-            var actorIds = await GetActorIds(user);
+            Page = page,
+            PageSize = pageSize
+        };
+        if (!string.IsNullOrEmpty(queryParameters.NaamActeur))
+        {
+            query.Actoren__Naam = queryParameters.NaamActeur;
+        }
+        query.Status = queryParameters.Status switch
+        {
+            IntertaakStatus.TeVerwerken => KnownInternetaakStatussen.TeVerwerken,
+            IntertaakStatus.Verwerkt => KnownInternetaakStatussen.Verwerkt,
+            _ => null
+        };
 
-            var internetakenTasks = actorIds
-                .Where(id => Guid.TryParse(id, out _))
-                .Select(actorId =>
+        var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(query);
+
+        var overviewItemTasks = internetakenResponse.Results
+            .Select(internetaak => MapInternetaakToOverviewItemAsync(internetaak))
+            .ToList();
+
+        var overviewItems = (await Task.WhenAll(overviewItemTasks))
+            .OrderByDescending(x => x.ToegewezenOp)
+            .ToList();
+
+        return new MyInterneTakenResponse()
+        {
+            Count = internetakenResponse.Count,
+            Next = internetakenResponse.Next,
+            Previous = internetakenResponse.Previous,
+            Results = overviewItems
+        };
+    }
+
+    private async Task<MyInterneTaakItem> MapInternetaakToOverviewItemAsync(Internetaak internetaak)
+    {
+        var item = new MyInterneTaakItem()
+        {
+            Uuid = internetaak.Uuid,
+            Nummer = internetaak.Nummer ?? string.Empty,
+            GevraagdeHandeling = internetaak.GevraagdeHandeling ?? string.Empty,
+            Status = internetaak.Status ?? string.Empty,
+            ToegewezenOp = internetaak.ToegewezenOp ?? DateTimeOffset.MinValue,
+            AfgehandeldOp = internetaak.AfgehandeldOp
+        };
+
+        await LoadKlantcontactInfoAsync(internetaak, item);
+        await LoadActorInfoAsync(internetaak, item);
+
+        return item;
+    }
+       public async Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user, bool afgerond)
+        {
+            var actors = await GetCurrentActors(user);
+
+            var internetakenTasks = actors
+                .Where(actor => Guid.TryParse(actor.Uuid, out _))
+                .Select(actor =>
                 {
                     var query = new InterneTaakQuery
                     {
-                        ToegewezenAanActor__Uuid = Guid.Parse(actorId),
+                        ToegewezenAanActor__Uuid = Guid.Parse(actor.Uuid),
                         Status = (afgerond == true) ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken
                     };
                     return _openKlantApiClient.QueryInterneTakenAsync(query);
@@ -34,64 +108,153 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
 
             return [.. results.SelectMany(x => x).OrderByDescending(x => x.ToegewezenOp)];
         }
+    private async Task LoadKlantcontactInfoAsync(Internetaak internetaak, MyInterneTaakItem item)
+    {
+        if (internetaak.AanleidinggevendKlantcontact == null)
+            return;
 
-        private async Task<IReadOnlyList<string>> GetActorIds(ITAUser user)
+        try
         {
-            var actorIds = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(user.Email))
+            var klantcontact = await GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+            if (klantcontact != null)
             {
-                var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
-                {
-                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
-                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
-                    IndicatieActief = true,
-                    SoortActor = SoortActor.medewerker,
-                    ActoridentificatorObjectId = user.Email
-                });
-
-                if (fromEntra != null)
-                {
-                    actorIds.Add(fromEntra.Uuid);
-                }
-
-                var fromHandmatig = await _openKlantApiClient.QueryActorAsync(new ActorQuery
-                {
-                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
-                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
-                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId,
-                    IndicatieActief = true,
-                    SoortActor = SoortActor.medewerker,
-                    ActoridentificatorObjectId = user.Email
-                });
-
-                if (fromHandmatig != null)
-                {
-                    actorIds.Add(fromHandmatig.Uuid);
-                }
+                item.Onderwerp = klantcontact.Onderwerp;
+                item.ContactDatum = klantcontact.PlaatsgevondenOp;
+                item.KlantNaam = ExtractKlantNaamFromKlantcontact(klantcontact);
             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Unexpected error loading klantcontact {KlantcontactUuid} for internetaak {InternetaakUuid}",
+                internetaak.AanleidinggevendKlantcontact.Uuid, internetaak.Uuid);
+        }
+    }
 
-            if (!string.IsNullOrWhiteSpace(user.ObjectregisterMedewerkerId))
-            {
-                var fromObjecten = await _openKlantApiClient.QueryActorAsync(new ActorQuery
-                {
-                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectregisterId.CodeObjecttype,
-                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister,
-                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId,
-                    IndicatieActief = true,
-                    SoortActor = SoortActor.medewerker,
-                    ActoridentificatorObjectId = user.ObjectregisterMedewerkerId
-                });
+    private async Task LoadActorInfoAsync(Internetaak internetaak, MyInterneTaakItem item)
+    {
+        if (internetaak.ToegewezenAanActoren?.Any() != true)
+            return;
 
-                if (fromObjecten != null)
-                {
-                    actorIds.Add(fromObjecten.Uuid);
-                }
-            }
+        var actorTasks = internetaak.ToegewezenAanActoren
+            .Where(actorRef => !string.IsNullOrEmpty(actorRef.Uuid))
+            .Select(actorRef => GetActorAsync(actorRef.Uuid));
 
-            return actorIds;
+        var actors = await Task.WhenAll(actorTasks);
+
+        var medewerkerActor = actors.FirstOrDefault(a => a?.SoortActor == SoortActor.medewerker);
+        if (medewerkerActor != null)
+        {
+            item.BehandelaarNaam = medewerkerActor.Naam;
         }
 
+        var afdelingActors = actors
+            .Where(a => a?.SoortActor != SoortActor.medewerker && !string.IsNullOrEmpty(a?.Naam))
+            .Select(a => a!.Naam)
+            .ToList();
+
+        if (afdelingActors.Any())
+        {
+            item.AfdelingNaam = string.Join(", ", afdelingActors);
+        }
     }
+
+    private async Task<Klantcontact?> GetKlantcontactAsync(string uuid)
+    {
+        try
+        {
+            _logger.LogInformation("Klantcontact {Uuid} fetched directly from API", uuid);
+            return await _openKlantApiClient.GetKlantcontactAsync(uuid);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch klantcontact {Uuid}", uuid);
+            return null;
+        }
+    }
+
+    private async Task<Actor?> GetActorAsync(string uuid)
+    {
+        try
+        {
+            _logger.LogInformation("Actor {Uuid} fetched directly from API", uuid);
+            return await _openKlantApiClient.GetActorAsync(uuid);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch actor {Uuid}", uuid);
+            return null;
+        }
+    }
+
+    private static string? ExtractKlantNaamFromKlantcontact(Klantcontact klantcontact)
+    {
+        return klantcontact.Expand?.HadBetrokkenen?
+            .Select(b => b.VolledigeNaam ?? b.Organisatienaam)
+            .FirstOrDefault(naam => !string.IsNullOrEmpty(naam));
+    }
+
+    
+
+    private async Task<IReadOnlyList<Actor>> GetCurrentActors(ITAUser user)
+    {
+        var actorIds = new List<Actor>();
+
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+            {
+                ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                ActoridentificatorCodeSoortObjectId =
+                    KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
+                IndicatieActief = true,
+                SoortActor = SoortActor.medewerker,
+                ActoridentificatorObjectId = user.Email
+            });
+
+            if (fromEntra != null)
+            {
+                actorIds.Add(fromEntra);
+            }
+
+            var fromHandmatig = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+            {
+                ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
+                ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
+                ActoridentificatorCodeSoortObjectId =
+                    KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId,
+                IndicatieActief = true,
+                SoortActor = SoortActor.medewerker,
+                ActoridentificatorObjectId = user.Email
+            });
+
+            if (fromHandmatig != null)
+            {
+                actorIds.Add(fromHandmatig);
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(user.ObjectregisterMedewerkerId)) return actorIds;
+        var fromObjecten = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+        {
+            ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectregisterId.CodeObjecttype,
+            ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister,
+            ActoridentificatorCodeSoortObjectId =
+                KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId,
+            IndicatieActief = true,
+            SoortActor = SoortActor.medewerker,
+            ActoridentificatorObjectId = user.ObjectregisterMedewerkerId
+        });
+
+        if (fromObjecten != null)
+        {
+            actorIds.Add(fromObjecten);
+        }
+
+        return actorIds;
+    }
+
+
+
 }

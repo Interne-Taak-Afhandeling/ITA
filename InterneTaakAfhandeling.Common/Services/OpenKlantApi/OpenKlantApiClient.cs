@@ -1,12 +1,9 @@
-using System;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Web;
 using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Web;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
@@ -281,8 +278,8 @@ public partial class OpenKlantApiClient(
 
     public async Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters)
     {
-        var queryParams = BuildQueryString(interneTaakQueryParameters);
-        var path = $"internetaken?{queryParams}";
+        var  queryString = interneTaakQueryParameters.BuildQueryString();
+        var path = $"internetaken?{queryString}";
         var response = await GetInternetakenAsync(path);
 
         foreach (var item in response.Results)
@@ -411,7 +408,7 @@ public partial class OpenKlantApiClient(
 
     public async Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query)
     {
-        var queryString = BuildQueryString(query);
+        var queryString =query.BuildQueryString();
         var response = await _httpClient.GetAsync($"/klantinteracties/api/v1/internetaken?{queryString}");
 
         if (response.IsSuccessStatusCode)
@@ -473,49 +470,7 @@ public partial class OpenKlantApiClient(
 
 
 
-    private string BuildQueryString(InterneTaakQuery query)
-    {
-        var parameters = new List<string>();
-
-        if (!string.IsNullOrEmpty(query.Status))
-            parameters.Add($"status={Uri.EscapeDataString(query.Status)}");
-
-        if (query.Page.HasValue)
-            parameters.Add($"page={query.Page.Value}");
-
-        if (query.PageSize.HasValue)
-            parameters.Add($"pageSize={query.PageSize.Value}");
-
-        if (!string.IsNullOrEmpty(query.Nummer))
-            parameters.Add($"nummer={Uri.EscapeDataString(query.Nummer)}");
-
-        if (!string.IsNullOrEmpty(query.AanleidinggevendKlantcontact_Url))
-            parameters.Add($"aanleidinggevendKlantcontact__url={Uri.EscapeDataString(query.AanleidinggevendKlantcontact_Url)}");
-
-        if (query.AanleidinggevendKlantcontact_Uuid.HasValue)
-            parameters.Add($"aanleidinggevendKlantcontact__uuid={query.AanleidinggevendKlantcontact_Uuid.Value}");
-
-        if (!string.IsNullOrEmpty(query.Actoren__Naam))
-            parameters.Add($"actoren__naam={Uri.EscapeDataString(query.Actoren__Naam)}");
-
-        if (!string.IsNullOrEmpty(query.Klantcontact__Nummer))
-            parameters.Add($"klantcontact__nummer={Uri.EscapeDataString(query.Klantcontact__Nummer)}");
-
-        if (query.Klantcontact__Uuid.HasValue)
-            parameters.Add($"klantcontact__uuid={query.Klantcontact__Uuid.Value}");
-
-        if (!string.IsNullOrEmpty(query.ToegewezenAanActor__Url))
-            parameters.Add($"toegewezenAanActor__url={Uri.EscapeDataString(query.ToegewezenAanActor__Url)}");
-
-        if (query.ToegewezenAanActor__Uuid.HasValue)
-            parameters.Add($"toegewezenAanActor__uuid={query.ToegewezenAanActor__Uuid.Value}");
-
-        if (query.ToegewezenOp.HasValue)
-            parameters.Add($"toegewezenOp={query.ToegewezenOp.Value:yyyy-MM-ddTHH:mm:ss.fffZ}");
-
-        return string.Join("&", parameters);
-    }
-
+   
     private class KlantcontactResponse
     {
         public int Count { get; set; }
