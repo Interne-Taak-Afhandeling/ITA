@@ -1,5 +1,7 @@
 <template>
-  <div :class="['utrecht-spotlight-section', appeareanceClass]"><slot /></div>
+  <div :class="['utrecht-spotlight-section', appeareanceClass]">
+    <slot />
+  </div>
 </template>
 
 <script setup lang="ts">

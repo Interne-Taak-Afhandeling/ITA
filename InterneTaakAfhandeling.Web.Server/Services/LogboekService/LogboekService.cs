@@ -50,8 +50,9 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                             activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
                             activiteit.Tekst = contactmoment.Inhoud;
                             activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
-                            activiteit.UitgevoerdDoor = GetName(item);
-
+                            activiteit.UitgevoerdDoor = GetName( item);
+                            activiteit.Notitie = item.Notitie;
+ 
                             activiteit.Titel = contactmoment.IndicatieContactGelukt.HasValue && contactmoment.IndicatieContactGelukt.Value
                                 ? "Contact gelukt"
                                 : "Contact niet gelukt";
@@ -101,6 +102,12 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
                         break;
                     }
+                case ActiviteitTypes.InterneNotitie:
+                    {
+                        activiteit.UitgevoerdDoor = GetName(item);
+                        activiteit.Notitie = item.Notitie;
+                        break;
+                    }
             }
 
             activiteiten.Add(activiteit);
@@ -126,6 +133,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         ActiviteitTypes.ZaakGekoppeld => "Zaak gekoppeld",
         ActiviteitTypes.ZaakkoppelingGewijzigd => "Zaak gewijzigd",
         ActiviteitTypes.Toegewezen => "Opgepakt",
+        ActiviteitTypes.InterneNotitie => "Interne notitie",
         _ => type ?? "Onbekende actie"
     };
 
@@ -148,6 +156,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         {
             Datum = DateTime.Now,
             Type = knownContactAction.Type,
+            Notitie = knownContactAction.Notitie ?? string.Empty,
             Omschrijving = knownContactAction.Description,
             Actor = knownContactAction.Actor,
             HeeftBetrekkingOp = knownContactAction.HeeftBetrekkingOp != null
@@ -178,4 +187,5 @@ public class Activiteit
     public bool? ContactGelukt { get; set; }
     public string? Id { get; set; }
     public string? UitgevoerdDoor { get; set; }
+    public string? Notitie { get; set; }
 }

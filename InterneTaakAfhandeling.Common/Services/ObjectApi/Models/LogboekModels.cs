@@ -29,6 +29,7 @@ public class ActiviteitData
     
     public ActiviteitActor? Actor { get; set; }
     public required List<ObjectIdentificator> HeeftBetrekkingOp { get; set; }
+    public string? Notitie { get; set; }
 }
 
 public class ActiviteitActor

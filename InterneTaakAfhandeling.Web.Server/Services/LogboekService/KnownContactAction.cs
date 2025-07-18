@@ -10,7 +10,7 @@ public class KnownContactAction
 {
     public required string Type { get; init; }
     public required string Description { get; init; }
-
+    public string? Notitie { get; set; }
     public required ActiviteitActor Actor { get; init; }
     public ObjectIdentificator? HeeftBetrekkingOp { get; private init; }
 
@@ -19,7 +19,7 @@ public class KnownContactAction
         return new KnownContactAction
         {
             Description = "afgerond",
-            Type = ActiviteitTypes.Verwerkt,
+            Type = ActiviteitTypes.Verwerkt, 
             Actor = CreateActor(loggedByUser),
         };
     }
@@ -75,7 +75,7 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction Klantcontact(RelatedKlantcontactResult relatedKlantcontactResult, ITAUser loggedByUser)
+    public static KnownContactAction Klantcontact(RelatedKlantcontactResult relatedKlantcontactResult, ITAUser loggedByUser, string? note)
     {
         var description = relatedKlantcontactResult.Klantcontact.IndicatieContactGelukt.HasValue && relatedKlantcontactResult.Klantcontact.IndicatieContactGelukt.Value
             ? "contact gehad"
@@ -86,6 +86,7 @@ public class KnownContactAction
             Description = description,
             Type = ActiviteitTypes.Klantcontact,
             Actor = CreateActor(loggedByUser),
+            Notitie = note,
             HeeftBetrekkingOp = new ObjectIdentificator
             {
                 CodeRegister = "openklant",
@@ -95,6 +96,19 @@ public class KnownContactAction
             }
         };
     }
+
+    public static KnownContactAction Note(string note, ITAUser loggedByUser)
+    {
+
+        return new KnownContactAction
+        {
+            Description = "interne notitie toegevoegd",
+            Type = ActiviteitTypes.InterneNotitie,
+            Actor = CreateActor(loggedByUser),
+            Notitie = note,
+        };
+    }
+
 
 
     private static ActiviteitActor CreateActor(ITAUser loggedByUser)
