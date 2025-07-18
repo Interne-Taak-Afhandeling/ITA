@@ -6,12 +6,9 @@
 .ita-theme {
   // use utrecht-theme as default for ita-theme
   @include utrecht.utrecht-theme;
-
   // overrides for ita-theme
   --utrecht-space-around: 1.5;
-
   --utrecht-surface-background-color: var(--utrecht-color-white);
-
   --utrecht-page-header-padding-block-start: 0.675rem;
   --utrecht-page-header-padding-block-end: 0.675rem;
   --utrecht-page-header-background-color: var(--utrecht-color-blue-35);
@@ -22,21 +19,16 @@
   --utrecht-logo-max-inline-size: 24rem;
   --utrecht-logo-min-block-size: 3rem;
   --utrecht-logo-min-inline-size: 18rem;
-
   --utrecht-page-max-inline-size: 94rem;
-
   --utrecht-link-color: var(--utrecht-color-green-30);
   --utrecht-link-focus-color: var(--utrecht-color-green-40);
-
   --utrecht-table-header-background-color: var(--utrecht-color-grey-90);
-
   --utrecht-unordered-list-marker-color: var(--utrecht-color-green-30);
-
   --utrecht-page-footer-background-color: var(--utrecht-color-green-30);
   --utrecht-page-footer-background-image: none;
-
   --utrecht-alert-margin-block-end: var(--utrecht-space-block-xs);
-
+  --utrecht-spotlight-section-background-color: var(--utrecht-color-grey-95);
+  --utrecht-spotlight-section-border-color: var(--utrecht-color-blue-40);
   // den haag
   --denhaag-contact-timeline-step-header-line-height: 27px;
   --denhaag-contact-timeline-step-header-date-width: 15ch;
@@ -54,18 +46,16 @@
   --denhaag-contact-timeline-step-meta-gap: 6px;
   --denhaag-contact-timeline-step-meta-marker-size: 4px;
   --denhaag-contact-timeline-step-padding-block-end: 32px;
-
   --denhaag-step-marker-size: 32px;
   --denhaag-step-marker-nested-size: 16px;
-
   --denhaag-step-marker-default-background-color: var(--utrecht-color-grey-90);
   --denhaag-step-marker-connector-outline-color: var(--utrecht-color-grey-90);
   --denhaag-step-marker-default-color: var(--utrecht-color-grey-90);
-
   --denhaag-process-steps-step-heading-not-checked-color: var(--utrecht-color-blue-40);
   --denhaag-process-steps-step-heading-checked-color: var(--utrecht-color-blue-40);
   --denhaag-process-steps-step-meta-color: rgba(0, 0, 0, 0.6);
   --denhaag-process-steps-step-meta-font-size: 0.875rem;
+
   // custom ita-theme tokens
   @include ita.ita-theme;
 }

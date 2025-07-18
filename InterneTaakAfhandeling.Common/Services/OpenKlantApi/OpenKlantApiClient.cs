@@ -13,9 +13,7 @@ public interface IOpenKlantApiClient
     Task<Actor> GetActorAsync(string? uuid);
     Task<Actor?> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
-    Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
-    Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid);
-    Task<Actor?> QueryActorAsync(ActorQuery query);
+    Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);    Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
@@ -255,27 +253,7 @@ public partial class OpenKlantApiClient(
         return klantcontact;
     }
 
-    public async Task<List<Internetaak>> GetOutstandingInternetakenByToegewezenAanActor(string uuid)
-    {
-        List<Internetaak> content = [];
-        var page = $"internetaken?toegewezenAanActor__uuid={uuid}&status=te_verwerken";
-        while (!string.IsNullOrEmpty(page))
-        {
-            var response = await _httpClient.GetAsync(page);
-            response.EnsureSuccessStatusCode();
-            var currentContent = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
-
-            await Task.WhenAll(currentContent?.Results?.Select(async x =>
-            {
-                x.AanleidinggevendKlantcontact = await GetKlantcontactAsync(x.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
-            }) ?? []);
-            content.AddRange(currentContent?.Results ?? []);
-            page = currentContent?.Next?.Replace(_httpClient.BaseAddress?.AbsoluteUri ?? string.Empty, string.Empty);
-        }
-
-        return content?.OrderBy(x => x.ToegewezenOp).ToList() ?? [];
-    }
-
+  
     public async Task<Actor?> QueryActorAsync(ActorQuery query)
     {
         var queryDictionary = HttpUtility.ParseQueryString(string.Empty);
@@ -303,11 +281,6 @@ public partial class OpenKlantApiClient(
         var  queryString = interneTaakQueryParameters.BuildQueryString();
         var path = $"internetaken?{queryString}";
         var response = await GetInternetakenAsync(path);
-
-        if (response?.Results == null || response.Results.Count == 0)
-        {
-            throw new InvalidOperationException($"No internetaken found with the provided query parameters.");
-        }
 
         foreach (var item in response.Results)
         {

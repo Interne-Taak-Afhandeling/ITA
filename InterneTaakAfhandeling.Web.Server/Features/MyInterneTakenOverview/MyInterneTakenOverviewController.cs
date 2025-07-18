@@ -1,4 +1,4 @@
-﻿using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,9 +17,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
         [ProducesResponseType(typeof(List<Common.Services.OpenKlantApi.Models.Internetaak>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("assigned-to-me")]
-        public async Task<IActionResult> GetInternetaken()
+        public async Task<IActionResult> GetInternetaken([FromQuery] bool afgerond   )
         {
-            var result = await _myInterneTakenService.GetMyInterneTaken(user);
+            var result = await _myInterneTakenService.GetMyInterneTaken(user,afgerond);
 
             Console.WriteLine($"Found {result.Count} internetaken for user {user.Email}");
             foreach (var item in result)

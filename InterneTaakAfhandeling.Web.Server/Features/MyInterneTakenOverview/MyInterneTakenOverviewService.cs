@@ -10,7 +10,7 @@ public interface IMyInterneTakenOverviewService
 {
     Task<MyInterneTakenResponse> GetMyInterneTakenOverviewAsync(MyInterneTakenQueryParameters queryParameters);
     Task<MedewerkerResponse?> GetUserGropAndAfdeling(ITAUser user);
-    Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user);
+    Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user, bool afgerond);
 }
 
 
@@ -47,8 +47,8 @@ public class MyInterneTakenOverviewService : IMyInterneTakenOverviewService
         }
         query.Status = queryParameters.Status switch
         {
-            Status.TeVerwerken => InterneTaakStatus.TeVerwerken,
-            Status.Verwerkt => InterneTaakStatus.Verwerkt,
+            Status.TeVerwerken => KnownInternetaakStatussen.TeVerwerken,
+            Status.Verwerkt => KnownInternetaakStatussen.Verwerkt,
             _ => null
         };
 
@@ -88,16 +88,26 @@ public class MyInterneTakenOverviewService : IMyInterneTakenOverviewService
 
         return item;
     }
-    public async Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user)
-    {
-        var actors = await GetCurrentActors(user);
-        var internetakenTasks = actors.Select(a => _openKlantApiClient.GetOutstandingInternetakenByToegewezenAanActor(a.Uuid));
+       public async Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user, bool afgerond)
+        {
+            var actors = await GetCurrentActors(user);
 
-        var results = await Task.WhenAll(internetakenTasks);
+            var internetakenTasks = actors
+                .Where(actor => Guid.TryParse(actor.Uuid, out _))
+                .Select(actor =>
+                {
+                    var query = new InterneTaakQuery
+                    {
+                        ToegewezenAanActor__Uuid = Guid.Parse(actor.Uuid),
+                        Status = (afgerond == true) ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken
+                    };
+                    return _openKlantApiClient.QueryInterneTakenAsync(query);
+                });
 
-        return [.. results.SelectMany(x => x).OrderByDescending(x => x.ToegewezenOp)];
-    }
+            var results = await Task.WhenAll(internetakenTasks);
 
+            return [.. results.SelectMany(x => x).OrderByDescending(x => x.ToegewezenOp)];
+        }
     private async Task LoadKlantcontactInfoAsync(Internetaak internetaak, MyInterneTaakItem item)
     {
         if (internetaak.AanleidinggevendKlantcontact == null)

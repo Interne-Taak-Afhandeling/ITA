@@ -9,6 +9,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
+using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 
 
 namespace InterneTaakAfhandeling.Web.Server.Config
@@ -41,7 +42,8 @@ namespace InterneTaakAfhandeling.Web.Server.Config
           });
 
 
-            services.AddITAApiClients(configuration); 
+            services.AddITAApiClients(configuration);
+            services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
             services.AddScoped<IInternetaakService, InternetaakDetailsService>();
             services.AddScoped<IContactmomentenService, ContactmomentenService>();

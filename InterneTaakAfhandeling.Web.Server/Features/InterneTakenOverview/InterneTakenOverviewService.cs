@@ -31,7 +31,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)
             var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(new InterneTaakQuery
             {
-                Status = InterneTaakStatus.TeVerwerken,
+                Status = KnownInternetaakStatussen.TeVerwerken,
                 Page = page,
                 PageSize = pageSize
             });

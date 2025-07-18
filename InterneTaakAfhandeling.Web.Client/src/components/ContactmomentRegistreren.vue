@@ -1,45 +1,70 @@
 <template>
   <form ref="formRef" @submit.prevent="showConfirmation">
     <utrecht-fieldset>
-      <utrecht-legend>Resultaat</utrecht-legend>
-      <utrecht-form-field type="radio">
+      <utrecht-legend>Kies een handeling</utrecht-legend>
+      <utrecht-form-field v-for="(label, key) in HANDLINGS" :key="key" type="radio">
         <utrecht-radiobutton
-          name="contact-gelukt"
-          id="contact-gelukt"
-          :value="RESULTS.contactGelukt"
-          v-model="form.resultaat"
+          name="handeling"
+          :id="key"
+          :value="label"
+          v-model="form.handeling"
           required
         />
-        <utrecht-form-label for="contact-gelukt" type="radio">
-          {{ RESULTS.contactGelukt }}
-        </utrecht-form-label>
-      </utrecht-form-field>
-      <utrecht-form-field type="radio">
-        <utrecht-radiobutton
-          name="contact-gelukt"
-          id="geen-gehoor"
-          :value="RESULTS.geenGehoor"
-          v-model="form.resultaat"
-          required
-        />
-        <utrecht-form-label for="geen-gehoor" type="radio">
-          {{ RESULTS.geenGehoor }}
-        </utrecht-form-label>
+        <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
       </utrecht-form-field>
     </utrecht-fieldset>
-    <utrecht-form-field>
-      <utrecht-form-label for="kanalen">Kanaal</utrecht-form-label>
-      <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
-    </utrecht-form-field>
-    <utrecht-form-field>
-      <utrecht-form-label for="informatie-burger"
-        >Informatie voor burger / bedrijf</utrecht-form-label
-      >
-      <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
-    </utrecht-form-field>
+
+    <utrecht-fieldset v-if="isContactmoment">
+      <utrecht-fieldset>
+        <utrecht-legend>Resultaat</utrecht-legend>
+        <utrecht-form-field v-for="(label, key) in RESULTS" :key="key" type="radio">
+          <utrecht-radiobutton
+            name="resultaat"
+            :id="key"
+            :value="label"
+            v-model="form.resultaat"
+            required
+          />
+          <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
+        </utrecht-form-field>
+      </utrecht-fieldset>
+
+      <utrecht-form-field>
+        <utrecht-form-label for="kanalen">Kanaal</utrecht-form-label>
+        <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
+      </utrecht-form-field>
+      <utrecht-form-field>
+        <utrecht-form-label for="informatie-burger"
+          >Informatie voor burger / bedrijf</utrecht-form-label
+        >
+        <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
+      </utrecht-form-field>
+    </utrecht-fieldset>
+    <interne-toelichting-section>
+      <utrecht-form-field>
+        <utrecht-form-label for="interne-toelichting-text">
+          Interne toelichting
+        </utrecht-form-label>
+        <utrecht-textarea
+          id="interne-toelichting-text"
+          v-model="form.interneNotitie"
+          placeholder="Optioneel"
+          :required="!isContactmoment"
+        />
+        <utrecht-paragraph small class="gray-text">
+          Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
+          bedrijf.
+        </utrecht-paragraph>
+      </utrecht-form-field>
+    </interne-toelichting-section>
 
     <utrecht-button-group>
-      <utrecht-button type="submit" appearance="primary-action-button" :disabled="isLoading">
+      <utrecht-button
+        type="submit"
+        appearance="primary-action-button"
+        :disabled="isLoading"
+        v-if="isContactmoment"
+      >
         <span v-if="isLoading">Bezig met opslaan...</span>
         <span v-else>Opslaan & afronden</span>
       </utrecht-button>
@@ -47,7 +72,7 @@
         type="button"
         appearance="secondary-action-button"
         :disabled="isLoading"
-        @click="saveOnly"
+        @click="isContactmoment ? saveContactmoment() : saveNote()"
       >
         <span v-if="isLoading">Bezig met opslaan...</span>
         <span v-else>Alleen opslaan</span>
@@ -61,22 +86,27 @@
     message="Weet je zeker dat je het contactverzoek wilt opslaan en afronden?"
     confirm-text="Opslaan & afronden"
     cancel-text="Annuleren"
-    @confirm="saveAndFinish"
+    @confirm="finishContactmoment()"
   />
 </template>
 
 <script setup lang="ts">
 import { klantcontactService } from "@/services/klantcontactService";
 import type { CreateKlantcontactRequest, Internetaken } from "@/types/internetaken";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
 import { useRouter } from "vue-router";
+import { internetakenService } from "@/services/internetakenService";
+import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
-
 const router = useRouter();
+const HANDLINGS = {
+  contactmoment: "Contactmoment",
+  interneToelichting: "Interne toelichting"
+} as const;
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
@@ -93,30 +123,43 @@ const bevestigingsModalRef = ref<InstanceType<typeof BevestigingsModal>>();
 const formRef = ref<HTMLFormElement>();
 
 const form = ref({
+  handeling: HANDLINGS.contactmoment as (typeof HANDLINGS)[keyof typeof HANDLINGS],
   resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
   kanaal: "",
-  informatieBurger: ""
+  informatieBurger: "",
+  interneNotitie: ""
 });
-
+const isContactmoment = computed(() => form.value.handeling === HANDLINGS.contactmoment);
 function showConfirmation() {
   bevestigingsModalRef.value?.show();
 }
-
-async function saveOnly() {
-  //HTML5 form validatie
+function isValidForm() {
   if (!formRef.value?.checkValidity()) {
     formRef.value?.reportValidity();
-    return;
+    return false;
   }
-
+  return true;
+}
+async function saveNote() {
+  if (!isValidForm()) return;
   isLoading.value = true;
   try {
-    await klantcontactService.createRelatedKlantcontact({
-      klantcontactRequest: buildKlantcontactModel(),
-      aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
-      partijUuid: getPartijId(),
-      interneTaakId: taak.uuid
-    });
+    await internetakenService.addNoteToInternetaak(taak.uuid, form.value.interneNotitie.trim());
+    toast.add({ text: "Notitie succesvol toegevoegd", type: "ok" });
+    resetForm();
+    emit("success");
+  } catch (err: unknown) {
+    handleError(err);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+async function saveContactmoment() {
+  if (!isValidForm()) return;
+  isLoading.value = true;
+  try {
+    await klantcontactService.createRelatedKlantcontact(getKlantcontactPayload());
     toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
     resetForm();
     emit("success");
@@ -127,15 +170,13 @@ async function saveOnly() {
   }
 }
 
-async function saveAndFinish() {
+async function finishContactmoment() {
+  if (!isValidForm()) return;
   isLoading.value = true;
   try {
-    await klantcontactService.createRelatedKlantcontactAndCloseInterneTaak({
-      klantcontactRequest: buildKlantcontactModel(),
-      aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
-      partijUuid: getPartijId(),
-      interneTaakId: taak.uuid
-    });
+    await klantcontactService.createRelatedKlantcontactAndCloseInterneTaak(
+      getKlantcontactPayload()
+    );
     toast.add({ text: "Contactmoment succesvol opgeslagen en afgerond", type: "ok" });
     router.push({ name: "dashboard" });
   } catch (err: unknown) {
@@ -144,7 +185,15 @@ async function saveAndFinish() {
     isLoading.value = false;
   }
 }
-
+function getKlantcontactPayload() {
+  return {
+    klantcontactRequest: buildKlantcontactModel(),
+    aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
+    partijUuid: getPartijId(),
+    interneTaakId: taak.uuid,
+    interneNotitie: form.value.interneNotitie
+  };
+}
 function getAanleidinggevendKlantcontactId() {
   return taak.aanleidinggevendKlantcontact?.uuid;
 }
@@ -176,9 +225,11 @@ function buildKlantcontactModel(): CreateKlantcontactRequest {
 
 function resetForm() {
   form.value = {
+    handeling: HANDLINGS.contactmoment,
     resultaat: RESULTS.contactGelukt,
     kanaal: "",
-    informatieBurger: ""
+    informatieBurger: "",
+    interneNotitie: ""
   };
 }
 
@@ -191,5 +242,8 @@ function handleError(err: unknown) {
 <style lang="scss" scoped>
 .utrecht-form-label {
   display: block;
+}
+.utrecht-button-group {
+  margin-top: 1rem;
 }
 </style>

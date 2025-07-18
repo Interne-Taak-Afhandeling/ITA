@@ -14,7 +14,7 @@
         public int? Page { get; set; }
         public int? PageSize { get; set; }
 
-        public InterneTaakStatus? Status { get; set; }
+        public string? Status { get; set; }
 
         public string? ToegewezenAanActor__Url { get; set; }
         public Guid? ToegewezenAanActor__Uuid { get; set; }
@@ -25,33 +25,17 @@
 
 
 
-    public enum InterneTaakStatus
-    {
-        TeVerwerken,
-        Verwerkt
-    }
+   
 
     public static class InterneTaakExtensions
     {
-        public static string ToApiString(this InterneTaakStatus status)
-        {
-            return status switch
-            {
-                InterneTaakStatus.TeVerwerken => "te_verwerken",
-                InterneTaakStatus.Verwerkt => "verwerkt",
-                _ => status.ToString().ToLower()
-            };
-        }
+    
         public static string BuildQueryString(this InterneTaakQuery query)
         {
             var parameters = new List<string>();
 
-            if (query.Status.HasValue)
-            {
-                string statusString = query.Status.Value.ToApiString();
-                parameters.Add($"status={Uri.EscapeDataString(statusString)}");
-            }
-
+            if (query.Status != null) parameters.Add($"status={Uri.EscapeDataString(query.Status)}");
+            
             if (query.Page.HasValue)
                 parameters.Add($"page={query.Page.Value}");
 

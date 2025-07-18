@@ -10,10 +10,22 @@
       <StepHeader>
         <StepHeading>{{ logboekItem.titel }}</StepHeading>
       </StepHeader>
-      <StepBody>
+      <StepBody class="ita-step-body">
         <utrecht-paragraph v-if="logboekItem.tekst" class="preserve-newline">
           {{ logboekItem.tekst }}
         </utrecht-paragraph>
+
+        <utrecht-data-list v-if="logboekItem.notitie">
+          <interne-toelichting-section>
+            <utrecht-data-list-item>
+              <utrecht-data-list-key>Interne toelichting</utrecht-data-list-key>
+              <utrecht-data-list-value :value="logboekItem.notitie" multiline>
+                {{ logboekItem.notitie }}
+              </utrecht-data-list-value>
+            </utrecht-data-list-item>
+          </interne-toelichting-section>
+        </utrecht-data-list>
+
         <div class="ita-step-meta-list">
           <StepMeta date><date-time-or-nvt :date="logboekItem.datum" /></StepMeta>
           <StepMeta v-if="logboekItem.uitgevoerdDoor">{{ logboekItem.uitgevoerdDoor }}</StepMeta>
@@ -36,6 +48,7 @@ import {
 } from "@/components/denhaag-process-steps";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { useLoader } from "@/composables/use-loader";
 import { klantcontactService } from "@/services/klantcontactService";
@@ -53,6 +66,17 @@ const {
 </script>
 
 <style lang="scss" scoped>
+.ita-step-body {
+  display: flex;
+  row-gap: var(--ita-step-body-row-gap);
+  margin-block-start: var(--ita-step-body-row-gap);
+  flex-direction: column;
+
+  > * {
+    margin: 0;
+  }
+}
+
 .ita-step {
   padding-block-end: var(--ita-step-padding-block-end);
   --utrecht-paragraph-margin-block-start: 0.5rem;
