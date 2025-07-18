@@ -42,14 +42,14 @@ public class MyInterneTakenOverviewService : IMyInterneTakenOverviewService
             Page = page,
             PageSize = pageSize
         };
-        if (!string.IsNullOrEmpty(queryParameters.Naam))
+        if (!string.IsNullOrEmpty(queryParameters.NaamActeur))
         {
-            query.Actoren__Naam = queryParameters.Naam;
+            query.Actoren__Naam = queryParameters.NaamActeur;
         }
         query.Status = queryParameters.Status switch
         {
-            Status.TeVerwerken => KnownInternetaakStatussen.TeVerwerken,
-            Status.Verwerkt => KnownInternetaakStatussen.Verwerkt,
+            IntertaakStatus.TeVerwerken => KnownInternetaakStatussen.TeVerwerken,
+            IntertaakStatus.Verwerkt => KnownInternetaakStatussen.Verwerkt,
             _ => null
         };
 

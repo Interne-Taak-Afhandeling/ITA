@@ -3,9 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 
 
-public enum Status
-{
-    All,
+public enum IntertaakStatus
+{ 
     TeVerwerken,
     Verwerkt
 }
@@ -14,9 +13,9 @@ public class MyInterneTakenQueryParameters
 {
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
-    public string? Naam { get; set; }
-    [EnumDataType(typeof(Status))]
-    public Status? Status { get; set; }
+    public string? NaamActeur { get; set; }
+    [EnumDataType(typeof(IntertaakStatus))]
+    public IntertaakStatus? Status { get; set; }
     public int GetValidatedPage() => Math.Max(1, Page);
     public int GetValidatedPageSize() => Math.Min(Math.Max(1, PageSize), 50);
 }
