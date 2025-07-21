@@ -101,7 +101,7 @@ public class MyInterneTakenOverviewService(
         }
     private async Task LoadKlantcontactInfoAsync(Internetaak internetaak, MyInterneTaakItem item)
     {
-        if (internetaak.AanleidinggevendKlantcontact != null)
+        if (internetaak.AanleidinggevendKlantcontact == null)
             return;
 
         try 
