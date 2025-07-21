@@ -1,5 +1,4 @@
-using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
+ 
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
@@ -10,25 +9,17 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 public interface IMyInterneTakenOverviewService
 {
     Task<MyInterneTakenResponse> GetMyInterneTakenOverviewAsync(MyInterneTakenQueryParameters queryParameters); 
-    Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user, bool afgerond);
+    Task<IReadOnlyList<Internetaak>> GetMyInterneTakenAsync(ITAUser user, bool afgerond);
 }
 
 
-public class MyInterneTakenOverviewService : IMyInterneTakenOverviewService
+public class MyInterneTakenOverviewService(
+    IOpenKlantApiClient openKlantApiClient, 
+    ILogger<InterneTakenOverviewService> logger)
+    : IMyInterneTakenOverviewService
 {
-    private readonly IOpenKlantApiClient _openKlantApiClient;
-    private readonly IObjectApiClient _objectApiClient;
-    private readonly ILogger<InterneTakenOverviewService> _logger;
-
-    public MyInterneTakenOverviewService(
-        IOpenKlantApiClient openKlantApiClient,
-        IObjectApiClient objectApiClient,
-        ILogger<InterneTakenOverviewService> logger)
-    {
-        _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
-        _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+     private readonly ILogger<InterneTakenOverviewService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<MyInterneTakenResponse> GetMyInterneTakenOverviewAsync(
         MyInterneTakenQueryParameters queryParameters)
@@ -88,7 +79,7 @@ public class MyInterneTakenOverviewService : IMyInterneTakenOverviewService
 
         return item;
     }
-       public async Task<IReadOnlyList<Internetaak>> GetMyInterneTaken(ITAUser user, bool afgerond)
+       public async Task<IReadOnlyList<Internetaak>> GetMyInterneTakenAsync(ITAUser user, bool afgerond)
         {
             var actors = await GetCurrentActors(user);
 
@@ -110,52 +101,57 @@ public class MyInterneTakenOverviewService : IMyInterneTakenOverviewService
         }
     private async Task LoadKlantcontactInfoAsync(Internetaak internetaak, MyInterneTaakItem item)
     {
-        if (internetaak.AanleidinggevendKlantcontact == null)
+        if (internetaak.AanleidinggevendKlantcontact != null)
             return;
 
-        try
+        try 
         {
-            var klantcontact = await GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
-            if (klantcontact != null)
-            {
-                item.Onderwerp = klantcontact.Onderwerp;
-                item.ContactDatum = klantcontact.PlaatsgevondenOp;
-                item.KlantNaam = ExtractKlantNaamFromKlantcontact(klantcontact);
-            }
+             
+                var klantcontact = await GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+                if (klantcontact != null)
+                {
+                    item.Onderwerp = klantcontact.Onderwerp;
+                    item.ContactDatum = klantcontact.PlaatsgevondenOp;
+                    item.KlantNaam = ExtractKlantNaamFromKlantcontact(klantcontact);
+                }
+            
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
                 "Unexpected error loading klantcontact {KlantcontactUuid} for internetaak {InternetaakUuid}",
-                internetaak.AanleidinggevendKlantcontact.Uuid, internetaak.Uuid);
+                internetaak.AanleidinggevendKlantcontact?.Uuid, internetaak.Uuid);
         }
     }
 
     private async Task LoadActorInfoAsync(Internetaak internetaak, MyInterneTaakItem item)
     {
-        if (internetaak.ToegewezenAanActoren?.Any() != true)
+        if (internetaak.ToegewezenAanActoren?.Count == 0)
             return;
 
-        var actorTasks = internetaak.ToegewezenAanActoren
-            .Where(actorRef => !string.IsNullOrEmpty(actorRef.Uuid))
-            .Select(actorRef => GetActorAsync(actorRef.Uuid));
-
-        var actors = await Task.WhenAll(actorTasks);
-
-        var medewerkerActor = actors.FirstOrDefault(a => a?.SoortActor == SoortActor.medewerker);
-        if (medewerkerActor != null)
+        if (internetaak.ToegewezenAanActoren != null)
         {
-            item.BehandelaarNaam = medewerkerActor.Naam;
-        }
+            var actorTasks = internetaak.ToegewezenAanActoren
+                .Where(actorRef => !string.IsNullOrEmpty(actorRef.Uuid))
+                .Select(actorRef => GetActorAsync(actorRef.Uuid));
 
-        var afdelingActors = actors
-            .Where(a => a?.SoortActor != SoortActor.medewerker && !string.IsNullOrEmpty(a?.Naam))
-            .Select(a => a!.Naam)
-            .ToList();
+            var actors = await Task.WhenAll(actorTasks);
 
-        if (afdelingActors.Any())
-        {
-            item.AfdelingNaam = string.Join(", ", afdelingActors);
+            var medewerkerActor = actors.FirstOrDefault(a => a?.SoortActor == SoortActor.medewerker);
+            if (medewerkerActor != null)
+            {
+                item.BehandelaarNaam = medewerkerActor.Naam;
+            }
+
+            var afdelingActors = actors
+                .Where(a => a?.SoortActor != SoortActor.medewerker && !string.IsNullOrEmpty(a?.Naam))
+                .Select(a => a!.Naam)
+                .ToList();
+
+            if (afdelingActors.Any())
+            {
+                item.AfdelingNaam = string.Join(", ", afdelingActors);
+            }
         }
     }
 

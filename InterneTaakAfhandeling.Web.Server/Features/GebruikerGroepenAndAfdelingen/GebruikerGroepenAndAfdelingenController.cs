@@ -10,23 +10,20 @@ namespace InterneTaakAfhandeling.Web.Server.Features.GebruikerGroepenAndAfdeling
     [ApiController]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public class GebruikerGroepenAndAfdelingenController(ILogger<GebruikerGroepenAndAfdelingenController> logger, ITAUser user, IObjectApiClient objectApiClient) : Controller
+    public class GebruikerGroepenAndAfdelingenController(ITAUser user, IObjectApiClient objectApiClient) : Controller
     {
-        private readonly ILogger<GebruikerGroepenAndAfdelingenController> _logger = logger;
-        private readonly IObjectApiClient _objectApiClient = objectApiClient;
-
         [ProducesResponseType(typeof(MedewerkerResponse),
             StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet()]
         public async Task<IActionResult> GetGebruikerGroepenAndAfdelingen()
         {
-            var result = await GetGebruikerGroepenAndAfdelingen(user);
+            var result = await GetGebruikerGroepenAndAfdelingenAsync();
             return Ok(result);
         }
-        private async Task<MedewerkerResponse?> GetGebruikerGroepenAndAfdelingen(ITAUser user)
+        private async Task<MedewerkerResponse?> GetGebruikerGroepenAndAfdelingenAsync()
         {
-            var results = await _objectApiClient.GetObjectsByIdentificatie(user.ObjectregisterMedewerkerId);
+            var results = await objectApiClient.GetObjectsByIdentificatie(user.ObjectregisterMedewerkerId);
             if (results.Count > 1)
             {
                 throw new ConflictException($"Meerdere medewerkers gevonden met dezelfde identificatie {MaskString(user.ObjectregisterMedewerkerId)}");
