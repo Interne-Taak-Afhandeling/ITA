@@ -1,7 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview;
-using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 
 namespace InterneTaakAfhandeling.Web.Server.Services
 {
@@ -41,7 +40,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             {
                 IntertaakStatus.TeVerwerken => KnownInternetaakStatussen.TeVerwerken,
                 IntertaakStatus.Verwerkt => KnownInternetaakStatussen.Verwerkt,
-                _ => null
+                _ => throw new NotImplementedException()
             };
 
             //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)

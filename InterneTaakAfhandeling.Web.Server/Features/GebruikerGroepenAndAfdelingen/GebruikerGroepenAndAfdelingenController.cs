@@ -27,7 +27,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.GebruikerGroepenAndAfdeling
             var results = await objectApiClient.GetObjectsByIdentificatie(user.ObjectregisterMedewerkerId);
             if (results.Count > 1)
             {
-                throw new ConflictException($"Meerdere medewerkers gevonden met dezelfde identificatie {SecureLogging.SanitizeForLogging(user.ObjectregisterMedewerkerId)}");
+                throw new ConflictException($"Meerdere medewerkers gevonden met dezelfde identificatie {SecureLogging.SanitizeAndTruncate(user.ObjectregisterMedewerkerId,5)}");
             }
             return
                 new MedewerkerResponse
@@ -38,7 +38,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.GebruikerGroepenAndAfdeling
 
         }
 
-       }
+    }
 
     public class MedewerkerResponse
     {

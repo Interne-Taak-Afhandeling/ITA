@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using InterneTaakAfhandeling.Web.Server.Authentication;
+﻿using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview
 {
@@ -45,7 +45,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview
         }
     }
     public enum IntertaakStatus
-    { 
+    {
         TeVerwerken,
         Verwerkt
     }
@@ -54,7 +54,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 20;
-        
+
         public string? NaamActeur { get; set; }
         [EnumDataType(typeof(IntertaakStatus))]
         public IntertaakStatus? Status { get; set; }
