@@ -19,7 +19,7 @@ public class MyInterneTakenOverviewController(
 
     [ProducesResponseType(typeof(List<Internetaak>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    [HttpGet("aan-mij-toegewezen")]
+    [HttpGet(" ")]
     public async Task<IActionResult> GetMyInternetaken([FromQuery] bool afgerond)
     {
         var result = await _myInterneTakenService.GetMyInterneTakenAsync(user, afgerond);
