@@ -50,6 +50,10 @@ interface InterneTakenOverviewResponse {
   previous?: string;
   results: InterneTaakOverviewItem[];
 }
+  enum InterneTakenStatus {
+    TeVerwerken = 0,
+    Verwerkt = 1, 
+  }
 
 const fetchInterneTaken = async (
   page: number,
@@ -57,7 +61,8 @@ const fetchInterneTaken = async (
 ): Promise<InterneTakenOverviewResponse> => {
   return await get<InterneTakenOverviewResponse>("/api/internetaken-overview", {
     page,
-    pageSize
+    pageSize,
+    status: InterneTakenStatus.TeVerwerken
   });
 };
 

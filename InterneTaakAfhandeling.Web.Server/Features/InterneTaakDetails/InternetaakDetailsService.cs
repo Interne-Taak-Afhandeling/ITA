@@ -1,7 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
-using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 {
