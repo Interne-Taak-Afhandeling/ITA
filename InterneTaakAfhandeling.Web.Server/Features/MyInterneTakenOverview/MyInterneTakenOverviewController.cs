@@ -1,56 +1,27 @@
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
-
-[Route("api/internetaken")]
-[ApiController]
-[Authorize]
-[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-public class MyInterneTakenOverviewController(
-    IMyInterneTakenOverviewService myInterneTakenService,
-    ILogger<MyInterneTakenOverviewController> logger,
-    ITAUser user) : Controller
+namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTaken
 {
-    private readonly IMyInterneTakenOverviewService _myInterneTakenService =
-        myInterneTakenService ?? throw new ArgumentNullException(nameof(myInterneTakenService));
-
-    [ProducesResponseType(typeof(List<Internetaak>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    [HttpGet(" ")]
-    public async Task<IActionResult> GetMyInternetaken([FromQuery] bool afgerond)
+    [Route("api/internetaken")]
+    [ApiController]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public class MyInterneTakenOverviewController(IMyInterneTakenOverviewService userService, ITAUser user) : Controller
     {
-        var result = await _myInterneTakenService.GetMyInterneTakenAsync(user, afgerond);
-
-        return Ok(result);
-    }
+        private readonly IMyInterneTakenOverviewService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
 
-    [ProducesResponseType(typeof(MyInterneTakenResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [HttpGet]
-    public async Task<IActionResult> GetInterneTaken([FromQuery] MyInterneTakenQueryParameters queryParameters)
-    {
-        try
+        [ProducesResponseType(typeof(List<InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models.Internetaak>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        [HttpGet("aan-mij-toegewezen")]
+        public async Task<IActionResult> GetInternetaken([FromQuery] bool afgerond   )
         {
-            logger.LogInformation("Fetching interne taken  with page {Page}, pageSize {PageSize}",
-                queryParameters.Page, queryParameters.PageSize);
-
-
-            var result = await _myInterneTakenService.GetMyInterneTakenOverviewAsync(queryParameters);
-
-            logger.LogInformation("Successfully fetched {Count} interne taken out of {Total} total",
-                result.Results.Count, result.Count);
-
+            var result = await _userService.GetInterneTakenByAssignedUser(user, afgerond);
             return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error fetching interne taken  with page {Page}, pageSize {PageSize}",
-                queryParameters.Page, queryParameters.PageSize);
-            throw;
-        }
+        } 
+      
     }
 }

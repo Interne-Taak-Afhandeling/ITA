@@ -28,13 +28,24 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             var page = queryParameters.GetValidatedPage();
             var pageSize = queryParameters.GetValidatedPageSize();
 
-            //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)
-            var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(new InterneTaakQuery
+            var query = new InterneTaakQuery
             {
-                Status = KnownInternetaakStatussen.TeVerwerken,
                 Page = page,
                 PageSize = pageSize
-            });
+            };
+            if (!string.IsNullOrEmpty(queryParameters.NaamActeur))
+            {
+                query.Actoren__Naam = queryParameters.NaamActeur;
+            }
+            query.Status = queryParameters.Status switch
+            {
+                IntertaakStatus.TeVerwerken => KnownInternetaakStatussen.TeVerwerken,
+                IntertaakStatus.Verwerkt => KnownInternetaakStatussen.Verwerkt,
+                _ => null
+            };
+
+            //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)
+            var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(query);
 
             var overviewItemTasks = internetakenResponse.Results
                 .Select(internetaak => MapInternetaakToOverviewItemAsync(internetaak))

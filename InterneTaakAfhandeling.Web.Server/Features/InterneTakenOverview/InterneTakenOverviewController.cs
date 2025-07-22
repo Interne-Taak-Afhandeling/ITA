@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Web.Server.Authentication;
+﻿using System.ComponentModel.DataAnnotations;
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,18 +11,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview
     [Authorize(Policy = ITAPolicy.Name)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public class InterneTakenOverviewController : Controller
+    public class InterneTakenOverviewController(
+        IInterneTakenOverviewService interneTakenOverviewService,
+        ILogger<InterneTakenOverviewController> logger)
+        : Controller
     {
-        private readonly IInterneTakenOverviewService _interneTakenOverviewService;
-        private readonly ILogger<InterneTakenOverviewController> _logger;
-
-        public InterneTakenOverviewController(
-            IInterneTakenOverviewService interneTakenOverviewService,
-            ILogger<InterneTakenOverviewController> logger)
-        {
-            _interneTakenOverviewService = interneTakenOverviewService ?? throw new ArgumentNullException(nameof(interneTakenOverviewService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly IInterneTakenOverviewService _interneTakenOverviewService = interneTakenOverviewService ?? throw new ArgumentNullException(nameof(interneTakenOverviewService));
+        private readonly ILogger<InterneTakenOverviewController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         [ProducesResponseType(typeof(InterneTakenOverviewResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -48,11 +44,20 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview
             }
         }
     }
+    public enum IntertaakStatus
+    { 
+        TeVerwerken,
+        Verwerkt
+    }
 
     public class InterneTakenOverviewQueryParameters
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 20;
+        
+        public string? NaamActeur { get; set; }
+        [EnumDataType(typeof(IntertaakStatus))]
+        public IntertaakStatus? Status { get; set; }
         public int GetValidatedPage() => Math.Max(1, Page);
         public int GetValidatedPageSize() => Math.Min(Math.Max(1, PageSize), 50);
     }
