@@ -3,13 +3,7 @@
     <utrecht-fieldset>
       <utrecht-legend>Kies een handeling</utrecht-legend>
       <utrecht-form-field v-for="(label, key) in HANDLINGS" :key="key" type="radio">
-        <utrecht-radiobutton
-          name="handeling"
-          :id="key"
-          :value="label"
-          v-model="form.handeling"
-          required
-        />
+        <utrecht-radiobutton name="handeling" :id="key" :value="label" v-model="form.handeling" required />
         <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
       </utrecht-form-field>
     </utrecht-fieldset>
@@ -18,13 +12,7 @@
       <utrecht-fieldset>
         <utrecht-legend>Resultaat</utrecht-legend>
         <utrecht-form-field v-for="(label, key) in RESULTS" :key="key" type="radio">
-          <utrecht-radiobutton
-            name="resultaat"
-            :id="key"
-            :value="label"
-            v-model="form.resultaat"
-            required
-          />
+          <utrecht-radiobutton name="resultaat" :id="key" :value="label" v-model="form.resultaat" required />
           <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
         </utrecht-form-field>
       </utrecht-fieldset>
@@ -34,9 +22,7 @@
         <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
       </utrecht-form-field>
       <utrecht-form-field>
-        <utrecht-form-label for="informatie-burger"
-          >Informatie voor burger / bedrijf</utrecht-form-label
-        >
+        <utrecht-form-label for="informatie-burger">Informatie voor burger / bedrijf</utrecht-form-label>
         <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
       </utrecht-form-field>
     </utrecht-fieldset>
@@ -45,13 +31,9 @@
         <utrecht-form-label for="interne-toelichting-text">
           Interne toelichting
         </utrecht-form-label>
-        <utrecht-textarea
-          id="interne-toelichting-text"
-          v-model="form.interneNotitie"
-          placeholder="Optioneel"
-          :required="!isContactmoment"
-        />
-        <utrecht-paragraph small class="gray-text">
+        <utrecht-textarea id="interne-toelichting-text" v-model="form.interneNotitie" placeholder="Optioneel"
+          :required="!isContactmoment" />
+        <utrecht-paragraph small>
           Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
           bedrijf.
         </utrecht-paragraph>
@@ -59,35 +41,21 @@
     </interne-toelichting-section>
 
     <utrecht-button-group>
-      <utrecht-button
-        type="submit"
-        appearance="primary-action-button"
-        :disabled="isLoading"
-        v-if="isContactmoment"
-      >
+      <utrecht-button type="submit" appearance="primary-action-button" :disabled="isLoading" v-if="isContactmoment">
         <span v-if="isLoading">Bezig met opslaan...</span>
         <span v-else>Opslaan & afronden</span>
       </utrecht-button>
-      <utrecht-button
-        type="button"
-        appearance="secondary-action-button"
-        :disabled="isLoading"
-        @click="isContactmoment ? saveContactmoment() : saveNote()"
-      >
+      <utrecht-button type="button" appearance="secondary-action-button" :disabled="isLoading"
+        @click="isContactmoment ? saveContactmoment() : saveNote()">
         <span v-if="isLoading">Bezig met opslaan...</span>
         <span v-else>Alleen opslaan</span>
       </utrecht-button>
     </utrecht-button-group>
   </form>
 
-  <bevestigings-modal
-    ref="bevestigingsModalRef"
-    title="Contactverzoek afronden"
-    message="Weet je zeker dat je het contactverzoek wilt opslaan en afronden?"
-    confirm-text="Opslaan & afronden"
-    cancel-text="Annuleren"
-    @confirm="finishContactmoment()"
-  />
+  <bevestigings-modal ref="bevestigingsModalRef" title="Contactverzoek afronden"
+    message="Weet je zeker dat je het contactverzoek wilt opslaan en afronden?" confirm-text="Opslaan & afronden"
+    cancel-text="Annuleren" @confirm="finishContactmoment()" />
 </template>
 
 <script setup lang="ts">
@@ -243,7 +211,20 @@ function handleError(err: unknown) {
 .utrecht-form-label {
   display: block;
 }
+
 .utrecht-button-group {
   margin-top: 1rem;
+}
+
+.ita-interne-toelichting-section {
+
+  .utrecht-form-field {
+    margin-bottom: 0px;
+  }
+
+  .utrecht-paragraph--small {
+    color: var(--ita-interne-toelichting-section-small-text-color);
+    margin: 0px;
+  }
 }
 </style>
