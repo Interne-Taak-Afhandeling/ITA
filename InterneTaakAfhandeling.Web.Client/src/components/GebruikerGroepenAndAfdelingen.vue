@@ -2,27 +2,24 @@
   <div class="filter-container">
     <label for="filter-dropdown">Filter </label>
     <div>
-      <select 
-        id="filter-dropdown" 
-        v-model="selectedValue" 
-      >
-      <optgroup v-if="props.data?.afdelingen?.length" label="Afdelingen">
-        <option v-for="afdeling in props.data.afdelingen" :key="afdeling" :value="afdeling">
-          {{ afdeling }}
-        </option>
-      </optgroup>
-      <optgroup v-if="props.data?.groepen?.length" label="Groepen">
-        <option v-for="groep in props.data.groepen" :key="groep" :value="groep">
-          {{ groep }}
-        </option>
-      </optgroup>
+      <select id="filter-dropdown" v-model="selectedValue">
+        <optgroup v-if="props.data?.afdelingen?.length" label="Afdelingen">
+          <option v-for="afdeling in props.data.afdelingen" :key="afdeling" :value="afdeling">
+            {{ afdeling }}
+          </option>
+        </optgroup>
+        <optgroup v-if="props.data?.groepen?.length" label="Groepen">
+          <option v-for="groep in props.data.groepen" :key="groep" :value="groep">
+            {{ groep }}
+          </option>
+        </optgroup>
       </select>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"; 
+import { computed } from "vue";
 
 interface MedewerkerData {
   groepen?: string[];
@@ -49,13 +46,13 @@ const selectedValue = computed({
 <style lang="scss" scoped>
 .filter-container {
   margin-bottom: 0.75rem;
-  
+
   label {
     display: block;
     font-weight: bold;
     margin-bottom: 0.25rem;
   }
-  
+
   select {
     padding: 0.5rem;
     border-radius: 4px;

@@ -63,7 +63,7 @@ const fetchInterneTaken = async (
   page: number,
   pageSize: number
 ): Promise<MyInterneTakenResponse> => {
-  const params: Record<string, any> = {
+  const params: Record<string, string | number> = {
     page,
     pageSize,
     naamActeur: selectedFilter.value,
