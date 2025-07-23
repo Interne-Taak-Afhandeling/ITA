@@ -10,10 +10,18 @@
   </utrecht-alert>
 
   <section v-else>
-    <div>
-      <gebruiker-groepen-and-afdelingen v-model="selectedFilter" @update:modelValue="handleFilterChange"
-        :data="gebruikerData" />
-    </div>
+
+    <label>Filter</label>
+
+    <UtrechtSelect v-model="naamActeur" :options="[
+      { value: '', label: 'Afdelingen', disabled: true },
+      ...(gebruikerData.afdelingen?.map(afd => ({ value: afd, label: afd })) || []),
+      { value: '', label: 'Groepen', disabled: true },
+      ...(gebruikerData.groepen?.map(grp => ({ value: grp, label: grp })) || [])
+    ]">
+    </UtrechtSelect>
+
+
 
     <scroll-container>
       <afdelings-interne-taken-table :interneTaken="results">
@@ -31,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
@@ -40,9 +48,7 @@ import type { InterneTaakOverviewItem } from "@/components/interne-taken-tables/
 import AfdelingsInterneTakenTable from "@/components/interne-taken-tables/AfdelingsInterneTakenTable.vue";
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
-import GebruikerGroepenAndAfdelingen from "@/components/GebruikerGroepenAndAfdelingen.vue";
 import { InterneTaakStatus } from "@/types/internetaken";
-
 
 interface MyInterneTakenResponse {
   count: number;
@@ -55,22 +61,25 @@ interface GebruikerData {
   groepen?: string[];
   afdelingen?: string[];
 }
-
-const selectedFilter = ref("");
 const gebruikerData = ref<GebruikerData>({ groepen: [], afdelingen: [] });
 
+const naamActeur = ref("");
+ 
+watch(naamActeur, () => {
+  reset();
+  fetchData();
+});
 const fetchInterneTaken = async (
   page: number,
   pageSize: number
 ): Promise<MyInterneTakenResponse> => {
-  const params: Record<string, string | number> = {
+
+  return await get<MyInterneTakenResponse>("/api/internetaken-overview", {
     page,
     pageSize,
-    naamActeur: selectedFilter.value,
+    naamActeur: naamActeur.value,
     status: InterneTaakStatus.TeVerwerken
-  };
-
-  return await get<MyInterneTakenResponse>("/api/internetaken-overview", params);
+  });
 };
 
 const {
@@ -97,10 +106,6 @@ const {
 
 
 
-const handleFilterChange = () => {
-  reset();
-  fetchData();
-};
 
 const fetchGebruikerData = async () => {
   try {
@@ -122,5 +127,16 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   min-height: 200px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  font-size: 1rem;
+}
+ 
+.utrecht-select {
+  max-width: 200px;
+  height: 40px;
 }
 </style>
