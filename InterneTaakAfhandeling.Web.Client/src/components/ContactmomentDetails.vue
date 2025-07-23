@@ -2,42 +2,41 @@
   <utrecht-data-list>
     <utrecht-data-list-item>
       <utrecht-data-list-key>Klantnaam</utrecht-data-list-key>
-      <utrecht-data-list-value v-title-on-overflow :value="klantNaam">
+      <utrecht-data-list-value :value="klantNaam">
         {{ klantNaam }}
       </utrecht-data-list-value>
     </utrecht-data-list-item>
-    <utrecht-data-list-item v-if="organisatienaam" class="ita-break-before-avoid">
+
+    <utrecht-data-list-item v-if="organisatienaam">
       <utrecht-data-list-key>Organisatie</utrecht-data-list-key>
-      <utrecht-data-list-value v-title-on-overflow :value="organisatienaam">
+      <utrecht-data-list-value :value="organisatienaam">
         {{ organisatienaam }}
       </utrecht-data-list-value>
     </utrecht-data-list-item>
+
     <utrecht-data-list-item>
-      <utrecht-data-list-key>
-        {{ phoneNumber1?.omschrijving || "Telefoonnummer" }}
-      </utrecht-data-list-key>
-      <utrecht-data-list-value :value="phoneNumber1?.adres">
-        {{ phoneNumber1?.adres }}
-      </utrecht-data-list-value>
-    </utrecht-data-list-item>
-    <utrecht-data-list-item class="ita-break-before-avoid" v-if="phoneNumber2?.adres">
-      <utrecht-data-list-key>{{ phoneNumber2.omschrijving }}</utrecht-data-list-key>
-      <utrecht-data-list-value :value="phoneNumber2.adres">
-        {{ phoneNumber2.adres }}
-      </utrecht-data-list-value>
-    </utrecht-data-list-item>
-    <utrecht-data-list-item class="ita-break-before-avoid">
       <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
       <utrecht-data-list-value :value="email" v-title-on-overflow>
         {{ email }}
       </utrecht-data-list-value>
     </utrecht-data-list-item>
+
     <utrecht-data-list-item>
-      <utrecht-data-list-key>Gekoppelde zaak</utrecht-data-list-key>
-      <utrecht-data-list-value v-title-on-overflow :value="zaak?.identificatie">
-        {{ zaak?.identificatie }}
+      <utrecht-data-list-key>Telefoonnummer</utrecht-data-list-key>
+      <utrecht-data-list-value :value="phoneNumber1?.adres">
+        {{ phoneNumber1?.adres }}
       </utrecht-data-list-value>
     </utrecht-data-list-item>
+
+    <utrecht-data-list-item v-if="phoneNumber2?.adres">
+      <utrecht-data-list-key>{{ phoneNumber2.omschrijving }}</utrecht-data-list-key>
+      <utrecht-data-list-value :value="phoneNumber2.adres">
+        {{ phoneNumber2.adres }}
+      </utrecht-data-list-value>
+    </utrecht-data-list-item>
+  </utrecht-data-list>
+
+  <utrecht-data-list>
     <utrecht-data-list-item>
       <utrecht-data-list-key>Datum aangemaakt</utrecht-data-list-key>
       <utrecht-data-list-value
@@ -46,35 +45,39 @@
         <date-time-or-nvt :date="contactmoment.plaatsgevondenOp" />
       </utrecht-data-list-value>
     </utrecht-data-list-item>
+
     <utrecht-data-list-item>
-      <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
-      <utrecht-data-list-value :value="contactmoment.kanaal" v-title-on-overflow>{{
-        contactmoment.kanaal
-      }}</utrecht-data-list-value>
+      <utrecht-data-list-key>Aangemaakt door</utrecht-data-list-key>
+      <utrecht-data-list-value :value="aangemaaktDoor">
+        {{ aangemaaktDoor }}
+      </utrecht-data-list-value>
     </utrecht-data-list-item>
+
     <utrecht-data-list-item>
       <utrecht-data-list-key>Behandelaar</utrecht-data-list-key>
-      <utrecht-data-list-value v-title-on-overflow :value="behandelaar">
+      <utrecht-data-list-value :value="behandelaar">
         {{ behandelaar }}
       </utrecht-data-list-value>
     </utrecht-data-list-item>
+
     <utrecht-data-list-item>
       <utrecht-data-list-key>Status</utrecht-data-list-key>
       <utrecht-data-list-value :value="status">
         {{ status }}
       </utrecht-data-list-value>
     </utrecht-data-list-item>
+
     <utrecht-data-list-item>
-      <utrecht-data-list-key>Aangemaakt door</utrecht-data-list-key>
-      <utrecht-data-list-value v-title-on-overflow :value="aangemaaktDoor">
-        {{ aangemaaktDoor }}
-      </utrecht-data-list-value>
+      <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
+      <utrecht-data-list-value :value="contactmoment.kanaal">{{
+        contactmoment.kanaal
+      }}</utrecht-data-list-value>
     </utrecht-data-list-item>
   </utrecht-data-list>
 </template>
 
 <script setup lang="ts">
-import type { Actor, Klantcontact, Zaak } from "@/types/internetaken";
+import type { Actor, Klantcontact } from "@/types/internetaken";
 import { computed } from "vue";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
@@ -82,9 +85,9 @@ import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 const { contactmoment, actoren } = defineProps<{
   contactmoment: Klantcontact;
   actoren: Actor[];
-  zaak: Zaak | undefined;
   status: string;
 }>();
+
 const pascalCase = (s: string | undefined) =>
   !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
 const phoneNumbers = computed(
@@ -100,7 +103,6 @@ const phoneNumbers = computed(
         omschrijving: pascalCase(omschrijving) || `Telefoonnummer ${i + 1}`
       })) || []
 );
-
 const phoneNumber1 = computed(() =>
   phoneNumbers.value.length > 0 ? phoneNumbers.value[0] : undefined
 );
@@ -140,29 +142,25 @@ const organisatienaam = computed(() =>
 </script>
 
 <style lang="scss" scoped>
-.utrecht-data-list {
-  gap: 2rem;
-  max-width: fit-content;
-
-  @container (min-width: 32rem) {
-    columns: 2;
-  }
-
-  @container (min-width: 38rem) {
-    columns: 3;
-  }
+.utrecht-data-list + .utrecht-data-list {
+  padding-block-start: calc(
+    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-start, 0)
+  );
+  border-top: 1px solid var(--ita-detail-section-border-color);
 }
 
 .utrecht-data-list__item {
-  break-inside: avoid;
-  display: block;
+  grid-template-columns: var(--utrecht-data-list-rows-column-min-inline-size) 1fr;
 }
 
 .utrecht-data-list__item-key {
-  inline-size: max-content;
+  grid-column: 1;
 }
 
 .utrecht-data-list__item-value {
+  --utrecht-data-list-rows-item-value-margin-block-start: 0;
+
+  grid-column: 2;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;

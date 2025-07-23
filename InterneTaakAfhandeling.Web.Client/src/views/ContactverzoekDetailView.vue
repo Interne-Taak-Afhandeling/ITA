@@ -6,13 +6,6 @@
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
       <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
-      <KoppelZaakModal
-        v-if="taak?.aanleidinggevendKlantcontact?.uuid"
-        :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
-        :zaakIdentificatie="taak?.zaak?.identificatie"
-        :internetaak-id="taak.uuid"
-        @zaak-gekoppeld="handleZaakGekoppeld"
-      />
     </utrecht-button-group>
   </div>
 
@@ -24,7 +17,11 @@
 
   <div v-else-if="taak" class="ita-cv-detail-sections">
     <detail-section title="Onderwerp / vraag">
-      <contactverzoek-details :taak="taak" />
+      <contactverzoek-details
+        :taak="taak"
+        :zaak="taak.zaak"
+        @zaak-gekoppeld="handleZaakGekoppeld"
+      />
     </detail-section>
 
     <detail-section
@@ -34,7 +31,6 @@
     >
       <contactmoment-details
         :contactmoment="taak.aanleidinggevendKlantcontact"
-        :zaak="taak.zaak"
         :status="taak.status"
         :actoren="taak.toegewezenAanActoren || []"
       />
@@ -65,7 +61,6 @@ import ContactverzoekLogboek from "@/components/ContactverzoekLogboek.vue";
 import type { Internetaken } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
-import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
 import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
 import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
 import ContactmomentRegistreren from "@/components/ContactmomentRegistreren.vue";

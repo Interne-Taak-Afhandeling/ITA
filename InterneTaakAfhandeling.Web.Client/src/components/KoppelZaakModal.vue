@@ -1,7 +1,6 @@
 <template>
-  <utrecht-button type="button" appearance="secondary-action-button" @click="show">
-    {{ isZaakGekoppeld ? "Zaakkoppeling wijzigen" : "Koppelen aan zaak" }}
-  </utrecht-button>
+  <button type="button" @click="show">I</button>
+  
   <utrecht-alert-dialog ref="zaakKoppelenAlertRef">
     <form method="dialog" @submit.prevent="koppelZaak">
       <utrecht-heading :level="2">{{
