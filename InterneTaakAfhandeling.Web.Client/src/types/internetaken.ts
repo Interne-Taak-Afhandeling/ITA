@@ -294,8 +294,13 @@ export type InterneTaakQueryParameters = {
   Nummer?: string;
   Page?: number;
   PageSize?: number;
-  Status?: string;
+  Status?: InterneTaakStatus;
   ToegewezenAanActor_Url?: string;
   ToegewezenAanActor_Uuid?: string;
   ToegewezenOp?: Date;
 };
+
+export enum InterneTaakStatus {
+  TeVerwerken = 0,
+  Verwerkt = 1
+}
