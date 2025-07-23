@@ -4,8 +4,8 @@ import AllContactverzoekenView from "@/views/AllContactverzoekenView.vue";
 import LoginView from "@/views/LoginView.vue";
 import ForbiddenView from "@/views/ForbiddenView.vue";
 import ContactverzoekDetailView from "@/views/ContactverzoekDetailView.vue";
-import HistorieView from "@/views/HistorieView.vue";
-
+import HistorieView from "@/views/HistorieView.vue"; 
+import AfdelingsContactenView from "@/views/AfdelingsContactenView.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -60,6 +60,15 @@ const router = createRouter({
       component: ContactverzoekDetailView,
       meta: {
         title: "Contactverzoek",
+        requiresITAAccess: true
+      }
+    },
+    {
+      path: "/afdelings-contacten",
+      name: "afdelingsContacten",
+      component: AfdelingsContactenView,
+      meta: {
+        title: "Afdelings Contacten",
         requiresITAAccess: true
       }
     }

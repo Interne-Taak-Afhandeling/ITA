@@ -1,5 +1,5 @@
 <template>
-  <utrecht-table aria-labelledby="h2-alle-contactverzoeken">
+  <utrecht-table aria-labelledby="h2-afdelings-interne-taken">
     <utrecht-table-caption v-if="$slots.caption">
       <slot name="caption"></slot>
     </utrecht-table-caption>

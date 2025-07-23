@@ -1,6 +1,6 @@
 <template>
   <div class="filter-container">
-    <label for="filter-dropdown">Filter :</label>
+    <label for="filter-dropdown">Filter </label>
     <div>
       <select 
         id="filter-dropdown" 
