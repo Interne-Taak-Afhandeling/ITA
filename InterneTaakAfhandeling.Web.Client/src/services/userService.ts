@@ -6,7 +6,7 @@ export const userService = {
     return get<Internetaken[]>("/api/internetaken/aan-mij-toegewezen?afgerond=false");
   },
   assignInternetakenToSelf: (id: string): Promise<boolean> => {
-    return post<boolean>(`/api/internetaken/${id}/aan-mij-toegewezen`, {});
+    return post<boolean>(`/api/internetaken/${id}/aan-mij-toewijzen`, {});
   },
   getAssignedAndFinishedInternetaken: (): Promise<Internetaken[]> => {
     return get<Internetaken[]>("/api/internetaken/aan-mij-toegewezen?afgerond=true");
