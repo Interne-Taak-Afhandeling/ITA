@@ -146,7 +146,7 @@ const organisatienaam = computed(() =>
   padding-block-start: calc(
     var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-start, 0)
   );
-  border-top: 1px solid var(--ita-detail-section-border-color);
+  border-block-start: 1px solid var(--ita-detail-section-border-color);
 }
 
 .utrecht-data-list__item {

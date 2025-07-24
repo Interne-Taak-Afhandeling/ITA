@@ -36,14 +36,12 @@
       />
     </detail-section>
 
-    <detail-section title="Acties">
-      <div class="same-margin-as-datalist">
-        <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
-      </div>
+    <detail-section title="Acties" class="same-margin-block-end-as-datalist">
+      <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
     </detail-section>
 
     <detail-section title="Logboek contactverzoek">
-      <div class="same-margin-as-datalist">
+      <div class="same-margin-block-as-datalist">
         <contactverzoek-logboek v-if="taak" :taak="taak" />
       </div>
     </detail-section>
@@ -132,12 +130,18 @@ const fetchInternetaken = async () => {
   container-type: inline-size;
 }
 
-.same-margin-as-datalist {
+.same-margin-block-as-datalist {
   margin-block-end: calc(
     var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-end, 0)
   );
   margin-block-start: calc(
     var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-start, 0)
+  );
+}
+
+.same-margin-block-end-as-datalist {
+  padding-block-end: calc(
+    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-end, 0)
   );
 }
 
