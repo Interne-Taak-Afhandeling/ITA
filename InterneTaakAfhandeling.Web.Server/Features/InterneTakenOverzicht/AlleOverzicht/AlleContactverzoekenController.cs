@@ -54,9 +54,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.AlleO
             }
         }
     }
-}
 
-public class AlleOverzichtQuery : InterneTakenOverzichtQueryParameters
-{
 
+    public class AlleOverzichtQuery : InterneTakenOverzichtQueryParameters
+    {
+
+    }
 }
