@@ -12,13 +12,12 @@
   <section v-else>
     <label>Filter</label>
 
-    <UtrechtSelect
-      v-model="naamActor"
-      :options="[{ value: '', label: 'Afdelingen', disabled: true }, ...gebruikerData]"
-    >
+    <UtrechtSelect v-model="naamActor" :busy="isgebruikerDataLoading" :options="gebruikerData">
     </UtrechtSelect>
-
-    <scroll-container>
+    <utrecht-alert v-if="errorMessage" type="error">
+      {{ errorMessage }}
+    </utrecht-alert>
+    <scroll-container> 
       <afdelings-interne-taken-table :interneTaken="results">
         <template #caption v-if="itemRange">
           {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} internetaken
@@ -62,10 +61,13 @@ interface MyInterneTakenResponse {
 interface GebruikerData {
   label?: string;
   value?: string;
+  disabled?: boolean;
 }
 const gebruikerData = ref<GebruikerData[]>([]);
 
-const naamActor = ref("");
+const naamActor = ref<string>("");
+const errorMessage = ref<string | null>(null);
+const isgebruikerDataLoading = ref<boolean>(false);
 
 watch(naamActor, () => {
   reset();
@@ -106,10 +108,25 @@ const {
 
 const fetchGebruikerData = async () => {
   try {
+    isgebruikerDataLoading.value = true;
+    gebruikerData.value = [{ value: '', label: 'Laden...', disabled: true }];
     gebruikerData.value = await get<GebruikerData[]>("/api/gebruiker-groepen-and-afdelingen");
+    if (gebruikerData.value.length === 0) {
+      gebruikerData.value = [
+        { label: "Geen groepen of afdelingen gevonden", value: "", disabled: true }
+      ];
+    } else {
+      gebruikerData.value.unshift({
+        label: "Kies een Afdeling / Groep",
+        value: "",
+        disabled: true
+      });
+    }
   } catch (err) {
-    gebruikerData.value = [{ label: "Fout bij het laden van groep en afdeling", value: "" }];
-    console.error("Fout bij het laden van groep en afdeling:", err);
+    errorMessage.value = "Er is een fout opgetreden. Herlaad de pagina. Als het probleem blijft bestaan, neem contact op met functioneel beheer.";
+    console.error("Error loading gebruiker data:", err);
+  } finally {
+    isgebruikerDataLoading.value = false;
   }
 };
 
