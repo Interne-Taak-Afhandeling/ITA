@@ -1,7 +1,7 @@
 <template>
   <form ref="formRef" @submit.prevent="showConfirmation">
-    <utrecht-fieldset>
-      <utrecht-legend>Kies een handeling</utrecht-legend>
+    <utrecht-fieldset class="ita-form-fieldset--radio-tabs">
+      <utrecht-legend class="visually-hidden">Kies een handeling</utrecht-legend>
       <utrecht-form-field v-for="(label, key) in HANDLINGS" :key="key" type="radio">
         <utrecht-radiobutton
           name="handeling"
@@ -105,8 +105,8 @@ const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
 const router = useRouter();
 const HANDLINGS = {
-  contactmoment: "Contactmoment",
-  interneToelichting: "Interne toelichting"
+  contactmoment: "Contactmoment registreren",
+  interneToelichting: "Alleen toelichting"
 } as const;
 
 const RESULTS = {
@@ -245,6 +245,7 @@ function handleError(err: unknown) {
 .utrecht-form-label {
   display: block;
 }
+
 .utrecht-button-group {
   margin-top: 1rem;
 }
@@ -257,5 +258,40 @@ textarea,
 input,
 select {
   max-width: 100%;
+}
+
+.ita-form-fieldset--radio-tabs {
+  :deep(fieldset) {
+    display: flex;
+
+    .utrecht-form-field--radio {
+      grid-template-areas: "label";
+      grid-template-columns: 1fr;
+    }
+
+    input {
+      position: absolute;
+      opacity: 0;
+    }
+
+    label {
+      padding-block: 0.5rem;
+      padding-inline: 1rem;
+    }
+
+    input:checked {
+      + label {
+        font-weight: 600;
+        background-color: var(--ita-detail-section-header-background-color);
+      }
+
+      &:focus-visible + label {
+        outline-color: var(--utrecht-focus-outline-color);
+        outline-offset: var(--utrecht-focus-outline-offset);
+        outline-style: var(--utrecht-focus-outline-style);
+        outline-width: var(--utrecht-focus-outline-width);
+      }
+    }
+  }
 }
 </style>
