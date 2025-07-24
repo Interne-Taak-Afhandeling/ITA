@@ -32,9 +32,9 @@ namespace InterneTaakAfhandeling.Web.Server.Services
                 Page = page,
                 PageSize = pageSize
             };
-            if (!string.IsNullOrEmpty(queryParameters.NaamActeur))
+            if (!string.IsNullOrEmpty(queryParameters.NaamActor))
             {
-                query.Actoren__Naam = queryParameters.NaamActeur;
+                query.Actoren__Naam = queryParameters.NaamActor;
             }
             query.Status = queryParameters.Status switch
             {

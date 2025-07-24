@@ -13,7 +13,7 @@
     <label>Filter</label>
 
     <UtrechtSelect
-      v-model="naamActeur"
+      v-model="naamActor"
       :options="[
         { value: '', label: 'Afdelingen', disabled: true },
         ...(gebruikerData.afdelingen?.map((afd) => ({ value: afd, label: afd })) || []),
@@ -71,9 +71,9 @@ interface GebruikerData {
 }
 const gebruikerData = ref<GebruikerData>({ groepen: [], afdelingen: [] });
 
-const naamActeur = ref("");
+const naamActor = ref("");
 
-watch(naamActeur, () => {
+watch(naamActor, () => {
   reset();
   fetchData();
 });
@@ -84,7 +84,7 @@ const fetchInterneTaken = async (
   return await get<MyInterneTakenResponse>("/api/internetaken-overview", {
     page,
     pageSize,
-    naamActeur: naamActeur.value,
+    naamActor: naamActor.value,
     status: InterneTaakStatus.TeVerwerken
   });
 };

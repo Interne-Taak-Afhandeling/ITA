@@ -55,7 +55,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 20;
 
-        public string? NaamActeur { get; set; }
+        public string? NaamActor { get; set; }
         [EnumDataType(typeof(IntertaakStatus))]
         public IntertaakStatus? Status { get; set; }
         public int GetValidatedPage() => Math.Max(1, Page);
