@@ -12,12 +12,12 @@
   <section v-else>
     <label>Filter</label>
 
-    <UtrechtSelect v-model="naamActor" :busy="isgebruikerDataLoading" :options="gebruikerData">
+    <UtrechtSelect v-model="naamActor" :busy="isGebruikerDataLoading" :options="gebruikerOptions">
     </UtrechtSelect>
     <utrecht-alert v-if="errorMessage" type="error">
       {{ errorMessage }}
     </utrecht-alert>
-    <scroll-container> 
+    <scroll-container>
       <afdelings-interne-taken-table :interneTaken="results">
         <template #caption v-if="itemRange">
           {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} internetaken
@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
@@ -63,11 +63,24 @@ interface GebruikerData {
   value?: string;
   disabled?: boolean;
 }
-const gebruikerData = ref<GebruikerData[]>([]);
+const gebruikerData = ref<GebruikerData[] | null>(null);
+const gebruikerOptions = computed(() => {
+  if (isGebruikerDataLoading.value) {
+    return [{ value: "", label: "Laden...", disabled: true }];
+  }
 
+  if (!gebruikerData.value || gebruikerData.value.length === 0) {
+    return [{ value: "", label: "Geen groepen of afdelingen gevonden", disabled: true }];
+  }
+
+  return [
+    { value: "", label: "Kies een Afdeling / Groep", disabled: true },
+    ...gebruikerData.value
+  ];
+});
 const naamActor = ref<string>("");
 const errorMessage = ref<string | null>(null);
-const isgebruikerDataLoading = ref<boolean>(false);
+const isGebruikerDataLoading = ref<boolean>(false);
 
 watch(naamActor, () => {
   reset();
@@ -107,26 +120,18 @@ const {
 });
 
 const fetchGebruikerData = async () => {
+  isGebruikerDataLoading.value = true;
+
   try {
-    isgebruikerDataLoading.value = true;
-    gebruikerData.value = [{ value: '', label: 'Laden...', disabled: true }];
-    gebruikerData.value = await get<GebruikerData[]>("/api/gebruiker-groepen-and-afdelingen");
-    if (gebruikerData.value.length === 0) {
-      gebruikerData.value = [
-        { label: "Geen groepen of afdelingen gevonden", value: "", disabled: true }
-      ];
-    } else {
-      gebruikerData.value.unshift({
-        label: "Kies een Afdeling / Groep",
-        value: "",
-        disabled: true
-      });
-    }
+    const result = await get<GebruikerData[]>("/api/gebruiker-groepen-and-afdelingen");
+    gebruikerData.value = result;
   } catch (err) {
-    errorMessage.value = "Er is een fout opgetreden. Herlaad de pagina. Als het probleem blijft bestaan, neem contact op met functioneel beheer.";
     console.error("Error loading gebruiker data:", err);
+    errorMessage.value =
+      "Er is een fout opgetreden. Herlaad de pagina. Als het probleem blijft bestaan, neem contact op met functioneel beheer.";
+    gebruikerData.value = null;
   } finally {
-    isgebruikerDataLoading.value = false;
+    isGebruikerDataLoading.value = false;
   }
 };
 
