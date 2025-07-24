@@ -1,18 +1,6 @@
 <template>
   <form ref="formRef" @submit.prevent="showConfirmation">
-    <utrecht-fieldset class="ita-form-fieldset--radio-tabs">
-      <utrecht-legend class="visually-hidden">Kies een handeling</utrecht-legend>
-      <utrecht-form-field v-for="(label, key) in HANDLINGS" :key="key" type="radio">
-        <utrecht-radiobutton
-          name="handeling"
-          :id="key"
-          :value="label"
-          v-model="form.handeling"
-          required
-        />
-        <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
-      </utrecht-form-field>
-    </utrecht-fieldset>
+    <ita-radio-tabs legend="Kies een handeling" :options="HANDLINGS" v-model="form.handeling" />
 
     <utrecht-fieldset v-if="isContactmoment">
       <utrecht-fieldset>
@@ -40,6 +28,7 @@
         <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
       </utrecht-form-field>
     </utrecht-fieldset>
+
     <interne-toelichting-section>
       <utrecht-form-field>
         <utrecht-form-label for="interne-toelichting-text">
@@ -100,10 +89,12 @@ import { useRouter } from "vue-router";
 import { internetakenService } from "@/services/internetakenService";
 import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 import { useBackNavigation } from "@/composables/use-back-navigation";
+import ItaRadioTabs from "./ItaRadioTabs.vue";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
 const router = useRouter();
+
 const HANDLINGS = {
   contactmoment: "Contactmoment registreren",
   interneToelichting: "Alleen toelichting"
@@ -260,38 +251,9 @@ select {
   max-width: 100%;
 }
 
-.ita-form-fieldset--radio-tabs {
-  :deep(fieldset) {
-    display: flex;
-
-    .utrecht-form-field--radio {
-      grid-template-areas: "label";
-      grid-template-columns: 1fr;
-    }
-
-    input {
-      position: absolute;
-      opacity: 0;
-    }
-
-    label {
-      padding-block: 0.5rem;
-      padding-inline: 1rem;
-    }
-
-    input:checked {
-      + label {
-        font-weight: 600;
-        background-color: var(--ita-detail-section-header-background-color);
-      }
-
-      &:focus-visible + label {
-        outline-color: var(--utrecht-focus-outline-color);
-        outline-offset: var(--utrecht-focus-outline-offset);
-        outline-style: var(--utrecht-focus-outline-style);
-        outline-width: var(--utrecht-focus-outline-width);
-      }
-    }
-  }
+.ita-radio-tabs {
+  margin-block-start: 0;
+  margin-inline-start: calc(-1 * var(--current-padding-inline-start));
+  margin-inline-end: calc(-1 * var(--current-padding-inline-end));
 }
 </style>
