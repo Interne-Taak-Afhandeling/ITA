@@ -150,21 +150,18 @@ const organisatienaam = computed(() =>
 }
 
 .utrecht-data-list__item {
-  grid-template-columns: var(--utrecht-data-list-rows-column-min-inline-size) 1fr;
-}
+  @container (max-width: 32rem) {
+    display: block;
+  }
 
-.utrecht-data-list__item-key {
-  grid-column: 1;
+  grid-template-columns: var(--utrecht-data-list-rows-column-min-inline-size) 1fr;
 }
 
 .utrecht-data-list__item-value {
   --utrecht-data-list-rows-item-value-margin-block-start: 0;
-
-  grid-column: 2;
+  
   text-overflow: ellipsis;
-  white-space: nowrap;
   overflow: hidden;
-
   &[title]:not([title=""]) {
     user-select: all;
   }

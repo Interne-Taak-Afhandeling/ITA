@@ -36,7 +36,7 @@
       />
     </detail-section>
 
-    <detail-section title="Handelingen">
+    <detail-section title="Acties">
       <div class="same-margin-as-datalist">
         <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
       </div>
