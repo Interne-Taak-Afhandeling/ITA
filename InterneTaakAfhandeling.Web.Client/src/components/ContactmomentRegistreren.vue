@@ -51,7 +51,7 @@
           placeholder="Optioneel"
           :required="!isContactmoment"
         />
-        <utrecht-paragraph small>
+        <utrecht-paragraph small class="ita-interne-toelichting-section__help-text">
           Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
           bedrijf.
         </utrecht-paragraph>
@@ -250,12 +250,11 @@ function handleError(err: unknown) {
 
 .ita-interne-toelichting-section {
   .utrecht-form-field {
-    margin-bottom: 0px;
-  }
-
-  .utrecht-paragraph--small {
-    color: var(--ita-interne-toelichting-section-small-text-color);
     margin: 0px;
   }
+}
+.ita-interne-toelichting-section__help-text {
+  color: var(--ita-interne-toelichting-section-small-text-color);
+  margin: 0px;
 }
 </style>
