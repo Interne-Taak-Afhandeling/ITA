@@ -50,10 +50,10 @@ interface InterneTakenOverviewResponse {
   previous?: string;
   results: InterneTaakOverviewItem[];
 }
-  enum InterneTakenStatus {
-    TeVerwerken = 0,
-    Verwerkt = 1, 
-  }
+enum InterneTakenStatus {
+  TeVerwerken = 0,
+  Verwerkt = 1
+}
 
 const fetchInterneTaken = async (
   page: number,
@@ -93,13 +93,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.spinner-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-}
-
 section {
   margin-top: 1rem;
   display: grid;

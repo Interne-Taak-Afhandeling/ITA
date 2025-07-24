@@ -125,12 +125,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.spinner-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-}
+
 
 label {
   display: block;
