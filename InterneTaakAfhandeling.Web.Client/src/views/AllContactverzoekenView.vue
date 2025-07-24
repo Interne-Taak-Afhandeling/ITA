@@ -59,10 +59,9 @@ const fetchInterneTaken = async (
   page: number,
   pageSize: number
 ): Promise<InterneTakenOverviewResponse> => {
-  return await get<InterneTakenOverviewResponse>("/api/internetaken-overview", {
+  return await get<InterneTakenOverviewResponse>("/api/internetaken/alle-overzicht", {
     page,
-    pageSize,
-    status: InterneTakenStatus.TeVerwerken
+    pageSize
   });
 };
 
