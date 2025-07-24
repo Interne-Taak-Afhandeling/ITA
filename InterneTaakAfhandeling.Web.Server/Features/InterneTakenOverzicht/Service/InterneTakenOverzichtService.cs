@@ -1,71 +1,53 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview;
+using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Model;
 
-namespace InterneTaakAfhandeling.Web.Server.Services
+namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Service
 {
-    public interface IInterneTakenOverviewService
+    public interface IInterneTakenOverzichtService
     {
-        Task<InterneTakenOverviewResponse> GetInterneTakenOverviewAsync(InterneTakenOverviewQueryParameters queryParameters);
+        Task<InterneTakenOverzichtResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTaakQuery);
     }
 
-    public class InterneTakenOverviewService : IInterneTakenOverviewService
+    public class InterneTakenOverzichtService : IInterneTakenOverzichtService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient;
-        private readonly ILogger<InterneTakenOverviewService> _logger;
+        private readonly ILogger<InterneTakenOverzichtService> _logger;
 
-        public InterneTakenOverviewService(
+        public InterneTakenOverzichtService(
             IOpenKlantApiClient openKlantApiClient,
-            ILogger<InterneTakenOverviewService> logger)
+            ILogger<InterneTakenOverzichtService> logger)
         {
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<InterneTakenOverviewResponse> GetInterneTakenOverviewAsync(InterneTakenOverviewQueryParameters queryParameters)
+        public async Task<InterneTakenOverzichtResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery)
         {
-            var page = queryParameters.GetValidatedPage();
-            var pageSize = queryParameters.GetValidatedPageSize();
-
-            var query = new InterneTaakQuery
-            {
-                Page = page,
-                PageSize = pageSize
-            };
-            if (!string.IsNullOrEmpty(queryParameters.NaamActor))
-            {
-                query.Actoren__Naam = queryParameters.NaamActor;
-            }
-            query.Status = queryParameters.Status switch
-            {
-                IntertaakStatus.TeVerwerken => KnownInternetaakStatussen.TeVerwerken,
-                IntertaakStatus.Verwerkt => KnownInternetaakStatussen.Verwerkt,
-                _ => throw new NotImplementedException()
-            };
 
             //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)
-            var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(query);
+            var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(interneTakenQuery);
 
-            var overviewItemTasks = internetakenResponse.Results
-                .Select(internetaak => MapInternetaakToOverviewItemAsync(internetaak))
+            var OverzichtItemTasks = internetakenResponse.Results
+                .Select(internetaak => MapInternetaakToOverzichtItemAsync(internetaak))
                 .ToList();
 
-            var overviewItems = (await Task.WhenAll(overviewItemTasks))
+            var OverzichtItems = (await Task.WhenAll(OverzichtItemTasks))
                .OrderByDescending(x => x.ToegewezenOp)
                .ToList();
 
-            return new InterneTakenOverviewResponse
+            return new InterneTakenOverzichtResponse
             {
                 Count = internetakenResponse.Count,
                 Next = internetakenResponse.Next,
                 Previous = internetakenResponse.Previous,
-                Results = overviewItems
+                Results = OverzichtItems
             };
         }
 
-        private async Task<InterneTaakOverviewItem> MapInternetaakToOverviewItemAsync(Internetaak internetaak)
+        private async Task<InterneTaakOverzichtItem> MapInternetaakToOverzichtItemAsync(Internetaak internetaak)
         {
-            var item = new InterneTaakOverviewItem
+            var item = new InterneTaakOverzichtItem
             {
                 Uuid = internetaak.Uuid,
                 Nummer = internetaak.Nummer ?? string.Empty,
@@ -81,7 +63,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             return item;
         }
 
-        private async Task LoadKlantcontactInfoAsync(Internetaak internetaak, InterneTaakOverviewItem item)
+        private async Task LoadKlantcontactInfoAsync(Internetaak internetaak, InterneTaakOverzichtItem item)
         {
             if (internetaak.AanleidinggevendKlantcontact == null)
                 return;
@@ -103,7 +85,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             }
         }
 
-        private async Task LoadActorInfoAsync(Internetaak internetaak, InterneTaakOverviewItem item)
+        private async Task LoadActorInfoAsync(Internetaak internetaak, InterneTaakOverzichtItem item)
         {
             if (internetaak.ToegewezenAanActoren?.Any() != true)
                 return;
