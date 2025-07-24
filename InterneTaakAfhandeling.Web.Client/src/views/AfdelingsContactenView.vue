@@ -14,12 +14,7 @@
 
     <UtrechtSelect
       v-model="naamActor"
-      :options="[
-        { value: '', label: 'Afdelingen', disabled: true },
-        ...(gebruikerData.afdelingen?.map((afd) => ({ value: afd, label: afd })) || []),
-        { value: '', label: 'Groepen', disabled: true },
-        ...(gebruikerData.groepen?.map((grp) => ({ value: grp, label: grp })) || [])
-      ]"
+      :options="[{ value: '', label: 'Afdelingen', disabled: true }, ...gebruikerData]"
     >
     </UtrechtSelect>
 
@@ -47,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
@@ -56,7 +51,6 @@ import type { InterneTaakOverviewItem } from "@/components/interne-taken-tables/
 import AfdelingsInterneTakenTable from "@/components/interne-taken-tables/AfdelingsInterneTakenTable.vue";
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
-import { InterneTaakStatus } from "@/types/internetaken";
 
 interface MyInterneTakenResponse {
   count: number;
@@ -66,10 +60,10 @@ interface MyInterneTakenResponse {
 }
 
 interface GebruikerData {
-  groepen?: string[];
-  afdelingen?: string[];
+  label?: string;
+  value?: string;
 }
-const gebruikerData = ref<GebruikerData>({ groepen: [], afdelingen: [] });
+const gebruikerData = ref<GebruikerData[]>([]);
 
 const naamActor = ref("");
 
@@ -81,11 +75,10 @@ const fetchInterneTaken = async (
   page: number,
   pageSize: number
 ): Promise<MyInterneTakenResponse> => {
-  return await get<MyInterneTakenResponse>("/api/internetaken-overview", {
+  return await get<MyInterneTakenResponse>("/api/internetaken/afdelingen-groepen-overzicht", {
     page,
     pageSize,
-    naamActor: naamActor.value,
-    status: InterneTaakStatus.TeVerwerken
+    naamActor: naamActor.value
   });
 };
 
@@ -113,9 +106,10 @@ const {
 
 const fetchGebruikerData = async () => {
   try {
-    gebruikerData.value = await get<GebruikerData>("/api/gebruiker-groepen-and-afdelingen");
+    gebruikerData.value = await get<GebruikerData[]>("/api/gebruiker-groepen-and-afdelingen");
   } catch (err) {
-    console.error("Error fetching gebruiker data:", err);
+    gebruikerData.value = [{ label: "Fout bij het laden van groep en afdeling", value: "" }];
+    console.error("Fout bij het laden van groep en afdeling:", err);
   }
 };
 
@@ -125,8 +119,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-
-
 label {
   display: block;
   font-weight: bold;
