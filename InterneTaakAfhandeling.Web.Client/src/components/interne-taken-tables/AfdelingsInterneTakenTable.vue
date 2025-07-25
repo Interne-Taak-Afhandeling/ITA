@@ -1,5 +1,6 @@
 <template>
-  <utrecht-table aria-labelledby="h2-afdelings-interne-taken">
+  <div>...</div>
+  <!-- <utrecht-table aria-labelledby="h2-afdelings-interne-taken">
     <utrecht-table-caption v-if="$slots.caption">
       <slot name="caption"></slot>
     </utrecht-table-caption>
@@ -40,34 +41,25 @@
  
       </utrecht-table-row>
     </utrecht-table-body>
-  </utrecht-table>
+  </utrecht-table> -->
 </template>
 
 <script setup lang="ts">
-import DateTimeOrNvt from "../DateTimeOrNvt.vue";
-defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
+// import DateTimeOrNvt from "../DateTimeOrNvt.vue";
+// defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
 
-export interface InterneTaakOverviewItem {
-  uuid: string;
-  nummer: string;
-  gevraagdeHandeling: string;
-  status: string;
-  toegewezenOp: string;
-  afgehandeldOp?: string;
-  onderwerp?: string;
-  klantNaam?: string;
-  contactDatum?: string;
-  afdelingNaam?: string;
-  behandelaarNaam?: string;
-  heeftBehandelaar: boolean;
-}
+// export interface InterneTaakOverviewItem {
+//   uuid: string;
+//   nummer: string;
+//   gevraagdeHandeling: string;
+//   status: string;
+//   toegewezenOp: string;
+//   afgehandeldOp?: string;
+//   onderwerp?: string;
+//   klantNaam?: string;
+//   contactDatum?: string;
+//   afdelingNaam?: string;
+//   behandelaarNaam?: string;
+//   heeftBehandelaar: boolean;
+// }
 </script>
-
-<style lang="scss" scoped>
-.text-truncate {
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-</style>

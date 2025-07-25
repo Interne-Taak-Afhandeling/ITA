@@ -39,23 +39,16 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
 import { get } from "@/utils/fetchWrapper";
-import type { InterneTaakOverviewItem } from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
 import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
-
-interface InterneTakenOverviewResponse {
-  count: number;
-  next?: string;
-  previous?: string;
-  results: InterneTaakOverviewItem[];
-}
+import type { InterneTakenPaginated } from "@/types/internetaken";
 
 const fetchInterneTaken = async (
   page: number,
   pageSize: number
-): Promise<InterneTakenOverviewResponse> => {
-  return await get<InterneTakenOverviewResponse>("/api/internetaken", {
+): Promise<InterneTakenPaginated> => {
+  return await get<InterneTakenPaginated>("/api/internetaken", {
     page,
     pageSize
   });

@@ -22,11 +22,11 @@
     </utrecht-form-field>
 
     <scroll-container>
-      <afdelings-interne-taken-table :interneTaken="results">
+      <all-interne-taken-table :interneTaken="results">
         <template #caption v-if="itemRange">
-          {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} internetaken
+          {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} contactverzoeken
         </template>
-      </afdelings-interne-taken-table>
+      </all-interne-taken-table>
     </scroll-container>
 
     <utrecht-pagination
@@ -50,17 +50,10 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
 import { get } from "@/utils/fetchWrapper";
-import type { InterneTaakOverviewItem } from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
-import AfdelingsInterneTakenTable from "@/components/interne-taken-tables/AfdelingsInterneTakenTable.vue";
+import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
-
-interface MyInterneTakenResponse {
-  count: number;
-  next?: string;
-  previous?: string;
-  results: InterneTaakOverviewItem[];
-}
+import type { InterneTakenPaginated } from "@/types/internetaken";
 
 const gebruikerData = ref<string[]>([]);
 const naamActor = ref<string>("");
@@ -79,8 +72,8 @@ watch(naamActor, () => {
 const fetchInterneTaken = async (
   page: number,
   pageSize: number
-): Promise<MyInterneTakenResponse> => {
-  return await get<MyInterneTakenResponse>("/api/internetaken/afdelingen-groepen", {
+): Promise<InterneTakenPaginated> => {
+  return await get<InterneTakenPaginated>("/api/internetaken/afdelingen-groepen", {
     page,
     pageSize,
     naamActor: naamActor.value

@@ -1,3 +1,5 @@
+import type { InterneTaakOverviewItem } from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
+
 // internetaken.ts
 export interface Internetaken {
   uuid: string;
@@ -300,3 +302,9 @@ export type InterneTaakQueryParameters = {
   ToegewezenOp?: Date;
 };
 
+export interface InterneTakenPaginated {
+  count: number;
+  next?: string;
+  previous?: string;
+  results: InterneTaakOverviewItem[];
+}
