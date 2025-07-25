@@ -51,10 +51,10 @@
           placeholder="Optioneel"
           :required="!isContactmoment"
         />
-        <utrecht-paragraph small class="gray-text">
+        <div class="small">
           Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
           bedrijf.
-        </utrecht-paragraph>
+        </div>
       </utrecht-form-field>
     </interne-toelichting-section>
 
@@ -247,5 +247,15 @@ function handleError(err: unknown) {
 }
 .utrecht-button-group {
   margin-top: 1rem;
+}
+.small {
+  font-size: var(--denhaag-process-steps-step-meta-font-size);
+  color: var(--denhaag-process-steps-step-meta-color);
+}
+
+textarea,
+input,
+select {
+  max-width: 100%;
 }
 </style>
