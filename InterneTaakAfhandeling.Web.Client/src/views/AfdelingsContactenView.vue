@@ -68,7 +68,7 @@ const errorGebruikerData = ref<boolean>(false);
 const isGebruikerDataLoading = ref<boolean>(false);
 
 const gebruikerOptions = computed(() => [
-  { label: "Selecteer", value: "", disabled: true },
+  { label: "-Selecteer-", value: "", disabled: true },
   ...gebruikerData.value.map((value) => ({ label: value, value }))
 ]);
 
