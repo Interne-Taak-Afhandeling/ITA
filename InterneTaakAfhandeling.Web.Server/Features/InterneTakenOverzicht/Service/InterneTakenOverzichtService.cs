@@ -1,6 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Model;
+using System;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Service
 {
@@ -28,13 +29,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Servi
             //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)
             var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(interneTakenQuery);
 
-            var OverzichtItemTasks = internetakenResponse.Results
-                .Select(internetaak => MapInternetaakToOverzichtItemAsync(internetaak))
-                .ToList();
-
-            var OverzichtItems = (await Task.WhenAll(OverzichtItemTasks))
-               .OrderByDescending(x => x.ToegewezenOp)
-               .ToList();
+            var OverzichtItems = (await Task.WhenAll(internetakenResponse.Results
+                .Select(ExtendAndMapInternetaakToOverzichtItemAsync))).ToList();
 
             return new InterneTakenOverzichtResponse
             {
@@ -45,32 +41,35 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Servi
             };
         }
 
-        private async Task<InterneTaakOverzichtItem> MapInternetaakToOverzichtItemAsync(Internetaak internetaak)
+        private async Task<InterneTaakOverzichtItem> ExtendAndMapInternetaakToOverzichtItemAsync(Internetaak internetaak)
         {
             var item = new InterneTaakOverzichtItem
             {
                 Uuid = internetaak.Uuid,
-                Nummer = internetaak.Nummer ?? string.Empty,
-                GevraagdeHandeling = internetaak.GevraagdeHandeling ?? string.Empty,
-                Status = internetaak.Status ?? string.Empty,
-                ToegewezenOp = internetaak.ToegewezenOp ?? DateTimeOffset.MinValue,
+                Nummer = internetaak.Nummer,
+                GevraagdeHandeling = internetaak.GevraagdeHandeling,
+                Status = internetaak.Status,
+                ToegewezenOp = internetaak.ToegewezenOp,
                 AfgehandeldOp = internetaak.AfgehandeldOp
             };
 
-            await LoadKlantcontactInfoAsync(internetaak, item);
+            //onderwerp en klantnaam toevoegen
+            await LoadKlantcontactInfoAsync(internetaak.AanleidinggevendKlantcontact.Uuid, item);
+
+            //behandelaar en afdelingnaam toevoegen 
             await LoadActorInfoAsync(internetaak, item);
 
             return item;
         }
 
-        private async Task LoadKlantcontactInfoAsync(Internetaak internetaak, InterneTaakOverzichtItem item)
+        private async Task LoadKlantcontactInfoAsync(string AanleidinggevendKlantcontactUuid, InterneTaakOverzichtItem item)
         {
-            if (internetaak.AanleidinggevendKlantcontact == null)
+            if (AanleidinggevendKlantcontactUuid == null)
                 return;
 
             try
             {
-                var klantcontact = await GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+                var klantcontact = await GetKlantcontactAsync(AanleidinggevendKlantcontactUuid);
                 if (klantcontact != null)
                 {
                     item.Onderwerp = klantcontact.Onderwerp;
@@ -80,8 +79,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Servi
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error loading klantcontact {KlantcontactUuid} for internetaak {InternetaakUuid}",
-                    internetaak.AanleidinggevendKlantcontact.Uuid, internetaak.Uuid);
+                _logger.LogError(ex, "Unexpected error loading klantcontact {KlantcontactUuid}",
+                    AanleidinggevendKlantcontactUuid);
             }
         }
 
@@ -107,7 +106,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Servi
                 .Select(a => a!.Naam)
                 .ToList();
 
-            if (afdelingActors.Any())
+            if (afdelingActors.Count != 0)
             {
                 item.AfdelingNaam = string.Join(", ", afdelingActors);
             }
@@ -117,7 +116,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Servi
         {
             try
             {
-                _logger.LogInformation("Klantcontact {Uuid} fetched directly from API", uuid);
                 return await _openKlantApiClient.GetKlantcontactAsync(uuid);
             }
             catch (Exception ex)
@@ -131,7 +129,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Servi
         {
             try
             {
-                _logger.LogInformation("Actor {Uuid} fetched directly from API", uuid);
                 return await _openKlantApiClient.GetActorAsync(uuid);
             }
             catch (Exception ex)

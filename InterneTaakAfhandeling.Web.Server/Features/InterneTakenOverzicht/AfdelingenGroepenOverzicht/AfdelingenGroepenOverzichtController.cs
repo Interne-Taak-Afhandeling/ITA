@@ -26,31 +26,26 @@ public class AfdelingenGroepenOverzichtController(
 
     [ProducesResponseType(typeof(InterneTakenOverzichtResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [HttpGet("afdelingen-groepen-overzicht")]
+    [HttpGet("afdelingen-groepen")]
     public async Task<IActionResult> GetAfdelingenGroepenOverzicht(
         [FromQuery] AfdelingenGroepenOverzichtQuery queryParameters)
     {
         try
         {
-            _logger.LogInformation("Fetching interne taken Overzicht with page {Page}, pageSize {PageSize}",
-                queryParameters.Page, queryParameters.PageSize);
             var query = new InterneTaakQuery
             {
-                Page = queryParameters.GetValidatedPage(),
-                PageSize = queryParameters.GetValidatedPageSize(),
+                Page = queryParameters.Page,
+                PageSize = queryParameters.PageSize,
                 Actoren__Naam = queryParameters.NaamActor,
                 Status = KnownInternetaakStatussen.TeVerwerken
             };
             var result = await _interneTakenOverzichtService.GetInterneTakenOverzichtAsync(query);
 
-            _logger.LogInformation("Successfully fetched {Count} interne taken out of {Total} total",
-                result.Results.Count, result.Count);
-
-            return Ok(result);
+           return Ok(result);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching interne taken Overzicht with page {Page}, pageSize {PageSize}",
+            _logger.LogError(ex, "Error fetching interne taken Overzicht for afdelingen en groepen with page {Page}, pageSize {PageSize}",
                 queryParameters.Page, queryParameters.PageSize);
             throw;
         }

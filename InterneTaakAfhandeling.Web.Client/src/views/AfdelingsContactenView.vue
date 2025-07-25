@@ -75,7 +75,7 @@ const fetchInterneTaken = async (
   page: number,
   pageSize: number
 ): Promise<MyInterneTakenResponse> => {
-  return await get<MyInterneTakenResponse>("/api/internetaken/afdelingen-groepen-overzicht", {
+  return await get<MyInterneTakenResponse>("/api/internetaken/afdelingen-groepen", {
     page,
     pageSize,
     naamActor: naamActor.value

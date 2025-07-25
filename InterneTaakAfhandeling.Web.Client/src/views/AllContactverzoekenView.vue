@@ -50,16 +50,12 @@ interface InterneTakenOverviewResponse {
   previous?: string;
   results: InterneTaakOverviewItem[];
 }
-enum InterneTakenStatus {
-  TeVerwerken = 0,
-  Verwerkt = 1
-}
 
 const fetchInterneTaken = async (
   page: number,
   pageSize: number
 ): Promise<InterneTakenOverviewResponse> => {
-  return await get<InterneTakenOverviewResponse>("/api/internetaken/alle-overzicht", {
+  return await get<InterneTakenOverviewResponse>("/api/internetaken", {
     page,
     pageSize
   });
@@ -92,6 +88,13 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
 section {
   margin-top: 1rem;
   display: grid;

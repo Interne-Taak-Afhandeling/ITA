@@ -23,26 +23,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.AlleO
 
         [ProducesResponseType(typeof(InterneTakenOverzichtResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [HttpGet("alle-overzicht")]
-        public async Task<IActionResult> GetAlleOverzicht([FromQuery] AlleOverzichtQuery queryParameters)
+        [HttpGet]
+        public async Task<IActionResult> GetAlleOverzicht([FromQuery] InterneTakenOverzichtQueryParameters queryParameters)
         {
             try
             {
-                _logger.LogInformation("Fetching interne taken Overzicht with page {Page}, pageSize {PageSize}",
-                    queryParameters.Page, queryParameters.PageSize);
-
                 var query = new InterneTaakQuery
                 {
-                    Page = queryParameters.GetValidatedPage(),
-                    PageSize = queryParameters.GetValidatedPageSize(),
+                    Page = queryParameters.Page,
+                    PageSize = queryParameters.PageSize,
                     Status = KnownInternetaakStatussen.TeVerwerken
                 };
 
-
                 var result = await _interneTakenOverzichtService.GetInterneTakenOverzichtAsync(query);
-
-                _logger.LogInformation("Successfully fetched {Count} interne taken out of {Total} total",
-                    result.Results.Count, result.Count);
 
                 return Ok(result);
             }
@@ -56,8 +49,5 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.AlleO
     }
 
 
-    public class AlleOverzichtQuery : InterneTakenOverzichtQueryParameters
-    {
-
-    }
+  
 }
