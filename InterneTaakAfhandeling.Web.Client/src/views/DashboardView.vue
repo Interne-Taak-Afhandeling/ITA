@@ -27,16 +27,11 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-//import { useUserStore } from "@/stores/user";
-//import { storeToRefs } from "pinia";
 import MyInterneTakenTable from "@/components/interne-taken-tables/MyInterneTakenTable.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import { userService } from "@/services/userService";
 import type { Internetaken } from "@/types/internetaken";
-
-//const userStore = useUserStore();
-//const { assignedInternetaken, isLoading } = storeToRefs(userStore);
 
 const assignedInternetaken = ref<Internetaken[]>([]);
 const isLoading = ref(false);

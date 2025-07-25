@@ -99,6 +99,7 @@ import BevestigingsModal from "./BevestigingsModal.vue";
 import { useRouter } from "vue-router";
 import { internetakenService } from "@/services/internetakenService";
 import InterneToelichtingSection from "./InterneToelichtingSection.vue";
+import { useBackNavigation } from "@/composables/use-back-navigation";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
@@ -178,7 +179,8 @@ async function finishContactmoment() {
       getKlantcontactPayload()
     );
     toast.add({ text: "Contactmoment succesvol opgeslagen en afgerond", type: "ok" });
-    router.push({ name: "dashboard" });
+    const backNavifation = useBackNavigation();
+    router.push(backNavifation.backButtonInfo.value.route);
   } catch (err: unknown) {
     handleError(err);
   } finally {
