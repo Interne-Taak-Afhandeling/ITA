@@ -12,12 +12,11 @@
   <section v-else>
     <label>Filter</label>
 
-    <UtrechtSelect
-      v-model="naamActor"
-      :options="[{ value: '', label: 'Afdelingen', disabled: true }, ...gebruikerData]"
-    >
+    <UtrechtSelect v-model="naamActor" :busy="isGebruikerDataLoading" :options="gebruikerOptions">
     </UtrechtSelect>
-
+    <utrecht-alert v-if="errorMessage" type="error">
+      {{ errorMessage }}
+    </utrecht-alert>
     <scroll-container>
       <afdelings-interne-taken-table :interneTaken="results">
         <template #caption v-if="itemRange">
@@ -42,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
@@ -62,10 +61,26 @@ interface MyInterneTakenResponse {
 interface GebruikerData {
   label?: string;
   value?: string;
+  disabled?: boolean;
 }
-const gebruikerData = ref<GebruikerData[]>([]);
+const gebruikerData = ref<GebruikerData[] | null>(null);
+const gebruikerOptions = computed(() => {
+  if (isGebruikerDataLoading.value) {
+    return [{ value: "", label: "Laden...", disabled: true }];
+  }
 
-const naamActor = ref("");
+  if (!gebruikerData.value || gebruikerData.value.length === 0) {
+    return [{ value: "", label: "Geen groepen of afdelingen gevonden", disabled: true }];
+  }
+
+  return [
+    { value: "", label: "Kies een Afdeling / Groep", disabled: true },
+    ...gebruikerData.value
+  ];
+});
+const naamActor = ref<string>("");
+const errorMessage = ref<string | null>(null);
+const isGebruikerDataLoading = ref<boolean>(false);
 
 watch(naamActor, () => {
   reset();
@@ -105,11 +120,18 @@ const {
 });
 
 const fetchGebruikerData = async () => {
+  isGebruikerDataLoading.value = true;
+
   try {
-    gebruikerData.value = await get<GebruikerData[]>("/api/gebruiker-groepen-and-afdelingen");
+    const result = await get<GebruikerData[]>("/api/gebruiker-groepen-and-afdelingen");
+    gebruikerData.value = result;
   } catch (err) {
-    gebruikerData.value = [{ label: "Fout bij het laden van groep en afdeling", value: "" }];
-    console.error("Fout bij het laden van groep en afdeling:", err);
+    console.error("Error loading gebruiker data:", err);
+    errorMessage.value =
+      "Er is een fout opgetreden. Herlaad de pagina. Als het probleem blijft bestaan, neem contact op met functioneel beheer.";
+    gebruikerData.value = null;
+  } finally {
+    isGebruikerDataLoading.value = false;
   }
 };
 
