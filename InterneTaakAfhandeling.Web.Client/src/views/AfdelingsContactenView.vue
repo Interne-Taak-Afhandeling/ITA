@@ -1,22 +1,26 @@
 <template>
   <utrecht-heading :level="1">Afdelingscontacten</utrecht-heading>
 
-  <div v-if="isLoading && !results.length" class="spinner-container">
+  <div v-if="isLoading || isGebruikerDataLoading" class="spinner-container">
     <simple-spinner />
   </div>
 
-  <utrecht-alert v-else-if="error" type="error">
-    {{ error }}
+  <utrecht-alert v-else-if="error || errorGebruikerData" type="error">
+    Er is een fout opgetreden. Herlaad de pagina. Als het probleem blijft bestaan, neem contact op
+    met functioneel beheer
   </utrecht-alert>
 
-  <section v-else>
-    <label>Filter</label>
+  <UtrechtAlert v-else-if="!isGebruikerDataLoading && !errorGebruikerData && !gebruikerData.length">
+    Geen afdelingen of groepen gevonden
+  </UtrechtAlert>
 
-    <UtrechtSelect v-model="naamActor" :busy="isGebruikerDataLoading" :options="gebruikerOptions">
-    </UtrechtSelect>
-    <utrecht-alert v-if="errorMessage" type="error">
-      {{ errorMessage }}
-    </utrecht-alert>
+  <section v-else>
+    <utrecht-form-field>
+      <utrecht-form-label for="afdelingOfgroep">Selecteer een afdeling of groep</utrecht-form-label>
+      <UtrechtSelect id="afdelingOfgroep" v-model="naamActor" :options="gebruikerOptions">
+      </UtrechtSelect>
+    </utrecht-form-field>
+
     <scroll-container>
       <afdelings-interne-taken-table :interneTaken="results">
         <template #caption v-if="itemRange">
@@ -58,29 +62,15 @@ interface MyInterneTakenResponse {
   results: InterneTaakOverviewItem[];
 }
 
-interface GebruikerData {
-  label?: string;
-  value?: string;
-  disabled?: boolean;
-}
-const gebruikerData = ref<GebruikerData[] | null>(null);
-const gebruikerOptions = computed(() => {
-  if (isGebruikerDataLoading.value) {
-    return [{ value: "", label: "Laden...", disabled: true }];
-  }
-
-  if (!gebruikerData.value || gebruikerData.value.length === 0) {
-    return [{ value: "", label: "Geen groepen of afdelingen gevonden", disabled: true }];
-  }
-
-  return [
-    { value: "", label: "Kies een Afdeling / Groep", disabled: true },
-    ...gebruikerData.value
-  ];
-});
+const gebruikerData = ref<string[]>([]);
 const naamActor = ref<string>("");
-const errorMessage = ref<string | null>(null);
+const errorGebruikerData = ref<boolean>(false);
 const isGebruikerDataLoading = ref<boolean>(false);
+
+const gebruikerOptions = computed(() => [
+  { label: "Selecteer", value: "", disabled: true },
+  ...gebruikerData.value.map((value) => ({ label: value, value }))
+]);
 
 watch(naamActor, () => {
   reset();
@@ -121,15 +111,12 @@ const {
 
 const fetchGebruikerData = async () => {
   isGebruikerDataLoading.value = true;
-
+  errorGebruikerData.value = false;
+  gebruikerData.value = [];
   try {
-    const result = await get<GebruikerData[]>("/api/gebruiker-groepen-and-afdelingen");
-    gebruikerData.value = result;
-  } catch (err) {
-    console.error("Error loading gebruiker data:", err);
-    errorMessage.value =
-      "Er is een fout opgetreden. Herlaad de pagina. Als het probleem blijft bestaan, neem contact op met functioneel beheer.";
-    gebruikerData.value = null;
+    gebruikerData.value = await get<string[]>("/api/gebruiker-groepen-and-afdelingen");
+  } catch {
+    errorGebruikerData.value = true;
   } finally {
     isGebruikerDataLoading.value = false;
   }
@@ -141,14 +128,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-label {
+.utrecht-form-label {
   display: block;
-  font-weight: bold;
-  font-size: 1rem;
-}
-
-.utrecht-select {
-  max-width: 200px;
-  height: 40px;
 }
 </style>

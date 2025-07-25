@@ -14,7 +14,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.GebruikerGroepenAndAfdeling
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public class GebruikerGroepenAndAfdelingenController(ITAUser user, IObjectApiClient objectApiClient) : Controller
     {
-        [ProducesResponseType(typeof(AfdelingenGroepenResponse),
+        [ProducesResponseType(typeof(List<string>),
             StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet()]
@@ -23,42 +23,24 @@ namespace InterneTaakAfhandeling.Web.Server.Features.GebruikerGroepenAndAfdeling
             var result = await GetGebruikerGroepenAndAfdelingenAsync();
             return Ok(result);
         }
-        private async Task<List<AfdelingenGroepenResponse>> GetGebruikerGroepenAndAfdelingenAsync()
+        private async Task<List<string>> GetGebruikerGroepenAndAfdelingenAsync()
         {
             var results = await objectApiClient.GetObjectsByIdentificatie(user.ObjectregisterMedewerkerId);
             if (results.Count > 1)
             {
                 throw new ConflictException($"Meerdere medewerkers gevonden met dezelfde identificatie {SecureLogging.SanitizeAndTruncate(user.ObjectregisterMedewerkerId, 5)}");
             }
+
             var result = results.Single().Data;
-
-            var response =
-                (result.Afdelingen ?? Enumerable.Empty<Afdeling>())
-                .Select(a => new AfdelingenGroepenResponse
-                {
-                    Label = a.Afdelingnaam,
-                    Value = a.Afdelingnaam
-                })
-                .Concat(
-                    (result.Groepen ?? Enumerable.Empty<Groep>())
-                    .Select(g => new AfdelingenGroepenResponse
-                    {
-                        Label = g.Groepsnaam,
-                        Value = g.Groepsnaam
-                    })
-                )
+            //return new List<string>();
+            return (result.Afdelingen ?? Enumerable.Empty<Afdeling>())
+                .Select(a => a.Afdelingnaam)
+                .Concat((result.Groepen ?? Enumerable.Empty<Groep>())
+                    .Select(g => g.Groepsnaam))
                 .ToList();
-            return response;
-
         }
-
     }
 
-    public class AfdelingenGroepenResponse
-    {
-        public string? Label { get; init; }
-        public string? Value { get; init; }
-    }
 
 
 }
