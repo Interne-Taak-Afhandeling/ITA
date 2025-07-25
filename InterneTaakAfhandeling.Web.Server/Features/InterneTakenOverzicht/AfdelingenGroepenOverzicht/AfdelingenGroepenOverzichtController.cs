@@ -1,8 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Model;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

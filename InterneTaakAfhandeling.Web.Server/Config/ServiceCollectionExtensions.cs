@@ -8,10 +8,8 @@ using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Service;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
-using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 
 
 namespace InterneTaakAfhandeling.Web.Server.Config

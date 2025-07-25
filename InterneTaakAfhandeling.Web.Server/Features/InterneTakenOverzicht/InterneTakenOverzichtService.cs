@@ -1,9 +1,8 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Model;
 using System;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Service
+namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
 {
     public interface IInterneTakenOverzichtService
     {

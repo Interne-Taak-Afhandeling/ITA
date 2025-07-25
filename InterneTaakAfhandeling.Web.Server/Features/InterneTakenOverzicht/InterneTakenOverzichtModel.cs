@@ -1,7 +1,6 @@
-
 using System.ComponentModel.DataAnnotations;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.Model;
+namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 
 
 
@@ -12,7 +11,7 @@ public class InterneTakenOverzichtQueryParameters
 
     [Range(1, 100)]
     public int PageSize { get; set; } = 20;
-  
+
 }
 
 public class InterneTakenOverzichtResponse
@@ -25,7 +24,7 @@ public class InterneTakenOverzichtResponse
 
 public class InterneTaakOverzichtItem
 {
- 
+
 
     public string Uuid { get; set; } = string.Empty;
     public string? Nummer { get; set; } = string.Empty;
