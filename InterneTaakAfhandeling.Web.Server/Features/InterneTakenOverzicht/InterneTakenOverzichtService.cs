@@ -1,84 +1,74 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverview;
-using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
+using System;
 
-namespace InterneTaakAfhandeling.Web.Server.Services
+namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
 {
-    public interface IInterneTakenOverviewService
+    public interface IInterneTakenOverzichtService
     {
-        Task<InterneTakenOverviewResponse> GetInterneTakenOverviewAsync(InterneTakenOverviewQueryParameters queryParameters);
+        Task<InterneTakenOverzichtResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTaakQuery);
     }
 
-    public class InterneTakenOverviewService : IInterneTakenOverviewService
+    public class InterneTakenOverzichtService : IInterneTakenOverzichtService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient;
-        private readonly ILogger<InterneTakenOverviewService> _logger;
+        private readonly ILogger<InterneTakenOverzichtService> _logger;
 
-        public InterneTakenOverviewService(
+        public InterneTakenOverzichtService(
             IOpenKlantApiClient openKlantApiClient,
-            ILogger<InterneTakenOverviewService> logger)
+            ILogger<InterneTakenOverzichtService> logger)
         {
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<InterneTakenOverviewResponse> GetInterneTakenOverviewAsync(InterneTakenOverviewQueryParameters queryParameters)
+        public async Task<InterneTakenOverzichtResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery)
         {
-            var page = queryParameters.GetValidatedPage();
-            var pageSize = queryParameters.GetValidatedPageSize();
 
             //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)
-            var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(new InterneTaakQuery
-            {
-                Status = KnownInternetaakStatussen.TeVerwerken,
-                Page = page,
-                PageSize = pageSize
-            });
+            var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(interneTakenQuery);
 
-            var overviewItemTasks = internetakenResponse.Results
-                .Select(internetaak => MapInternetaakToOverviewItemAsync(internetaak))
-                .ToList();
+            var OverzichtItems = (await Task.WhenAll(internetakenResponse.Results
+                .Select(ExtendAndMapInternetaakToOverzichtItemAsync))).ToList();
 
-            var overviewItems = (await Task.WhenAll(overviewItemTasks))
-               .OrderByDescending(x => x.ToegewezenOp)
-               .ToList();
-
-            return new InterneTakenOverviewResponse
+            return new InterneTakenOverzichtResponse
             {
                 Count = internetakenResponse.Count,
                 Next = internetakenResponse.Next,
                 Previous = internetakenResponse.Previous,
-                Results = overviewItems
+                Results = OverzichtItems
             };
         }
 
-        private async Task<InterneTaakOverviewItem> MapInternetaakToOverviewItemAsync(Internetaak internetaak)
+        private async Task<InterneTaakOverzichtItem> ExtendAndMapInternetaakToOverzichtItemAsync(Internetaak internetaak)
         {
-            var item = new InterneTaakOverviewItem
+            var item = new InterneTaakOverzichtItem
             {
                 Uuid = internetaak.Uuid,
-                Nummer = internetaak.Nummer ?? string.Empty,
-                GevraagdeHandeling = internetaak.GevraagdeHandeling ?? string.Empty,
-                Status = internetaak.Status ?? string.Empty,
-                ToegewezenOp = internetaak.ToegewezenOp ?? DateTimeOffset.MinValue,
+                Nummer = internetaak.Nummer,
+                GevraagdeHandeling = internetaak.GevraagdeHandeling,
+                Status = internetaak.Status,
+                ToegewezenOp = internetaak.ToegewezenOp,
                 AfgehandeldOp = internetaak.AfgehandeldOp
             };
 
-            await LoadKlantcontactInfoAsync(internetaak, item);
+            //onderwerp en klantnaam toevoegen
+            await LoadKlantcontactInfoAsync(internetaak.AanleidinggevendKlantcontact.Uuid, item);
+
+            //behandelaar en afdelingnaam toevoegen 
             await LoadActorInfoAsync(internetaak, item);
 
             return item;
         }
 
-        private async Task LoadKlantcontactInfoAsync(Internetaak internetaak, InterneTaakOverviewItem item)
+        private async Task LoadKlantcontactInfoAsync(string AanleidinggevendKlantcontactUuid, InterneTaakOverzichtItem item)
         {
-            if (internetaak.AanleidinggevendKlantcontact == null)
+            if (AanleidinggevendKlantcontactUuid == null)
                 return;
 
             try
             {
-                var klantcontact = await GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+                var klantcontact = await GetKlantcontactAsync(AanleidinggevendKlantcontactUuid);
                 if (klantcontact != null)
                 {
                     item.Onderwerp = klantcontact.Onderwerp;
@@ -88,12 +78,12 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error loading klantcontact {KlantcontactUuid} for internetaak {InternetaakUuid}",
-                    internetaak.AanleidinggevendKlantcontact.Uuid, internetaak.Uuid);
+                _logger.LogError(ex, "Unexpected error loading klantcontact {KlantcontactUuid}",
+                    AanleidinggevendKlantcontactUuid);
             }
         }
 
-        private async Task LoadActorInfoAsync(Internetaak internetaak, InterneTaakOverviewItem item)
+        private async Task LoadActorInfoAsync(Internetaak internetaak, InterneTaakOverzichtItem item)
         {
             if (internetaak.ToegewezenAanActoren?.Any() != true)
                 return;
@@ -115,7 +105,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
                 .Select(a => a!.Naam)
                 .ToList();
 
-            if (afdelingActors.Any())
+            if (afdelingActors.Count != 0)
             {
                 item.AfdelingNaam = string.Join(", ", afdelingActors);
             }
@@ -125,7 +115,6 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         {
             try
             {
-                _logger.LogInformation("Klantcontact {Uuid} fetched directly from API", uuid);
                 return await _openKlantApiClient.GetKlantcontactAsync(uuid);
             }
             catch (Exception ex)
@@ -139,7 +128,6 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         {
             try
             {
-                _logger.LogInformation("Actor {Uuid} fetched directly from API", uuid);
                 return await _openKlantApiClient.GetActorAsync(uuid);
             }
             catch (Exception ex)

@@ -26,8 +26,8 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
         public object? Geometry { get; set; }
         public required DateOnly StartAt { get; set; }
         public string? EndAt { get; set; }
-        public  string? RegistrationAt { get; set; }
-        public string? CorrectionFor { get; set; }
+        public string? RegistrationAt { get; set; }
+        public int? CorrectionFor { get; set; }
         public string? CorrectedBy { get; set; }
     }
 
@@ -43,19 +43,19 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 
     public class MedewerkerObjectData
     {
-        public  List<Emails>? Emails { get; set; }
+        public List<Emails>? Emails { get; set; }
         public string? Email { get; set; }
-        public  string? Skills { get; set; }
-        public  string? Functie { get; set; }
-        public  List<Groep>? Groepen { get; set; }
-        public  string? Voornaam { get; set; }
-        public  string? Achternaam { get; set; }
-        public  List<Afdeling>? Afdelingen { get; set; }
-        public  Vervanging? Vervanging { get; set; }
-        public  string? Identificatie { get; set; }
-        public  string? VolledigeNaam { get; set; }
-        public  List<Telefoonnummers>? Telefoonnummers { get; set; }
-        public  string? VoorvoegselAchternaam { get; set; }
+        public string? Skills { get; set; }
+        public string? Functie { get; set; }
+        public List<Groep>? Groepen { get; set; }
+        public string? Voornaam { get; set; }
+        public string? Achternaam { get; set; }
+        public List<Afdeling>? Afdelingen { get; set; }
+        public Vervanging? Vervanging { get; set; }
+        public string? Identificatie { get; set; }
+        public string? VolledigeNaam { get; set; }
+        public List<Telefoonnummers>? Telefoonnummers { get; set; }
+        public string? VoorvoegselAchternaam { get; set; }
 
         // Helper method to get all emails regardless of format
         [JsonIgnore]
@@ -88,7 +88,7 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 
     public class Vervanging
     {
-        public  string? Name { get; set; }
+        public string? Name { get; set; }
     }
 
     public class Telefoonnummers

@@ -3,12 +3,12 @@ import type { Internetaken } from "@/types/internetaken";
 
 export const userService = {
   getAssignedInternetaken: (): Promise<Internetaken[]> => {
-    return get<Internetaken[]>("/api/internetaken/assigned-to-me?afgerond=false");
+    return get<Internetaken[]>("/api/internetaken/aan-mij-toegewezen?afgerond=false");
   },
   assignInternetakenToSelf: (id: string): Promise<boolean> => {
-    return post<boolean>(`/api/internetaken/${id}/assign-to-me`, {});
+    return post<boolean>(`/api/internetaken/${id}/aan-mij-toewijzen`, {});
   },
   getAssignedAndFinishedInternetaken: (): Promise<Internetaken[]> => {
-    return get<Internetaken[]>("/api/internetaken/assigned-to-me?afgerond=true");
+    return get<Internetaken[]>("/api/internetaken/aan-mij-toegewezen?afgerond=true");
   }
 };
