@@ -6,6 +6,7 @@
 .ita-theme {
   // use utrecht-theme as default for ita-theme
   @include utrecht.utrecht-theme;
+
   // overrides for ita-theme
   --utrecht-space-around: 1.5;
   --utrecht-surface-background-color: var(--utrecht-color-white);
