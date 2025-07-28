@@ -41,7 +41,7 @@
     </detail-section>
 
     <detail-section title="Logboek contactverzoek">
-      <div class="same-margin-block-as-datalist">
+      <div class="same-margin-as-datalist">
         <contactverzoek-logboek v-if="taak" :taak="taak" />
       </div>
     </detail-section>
@@ -130,7 +130,7 @@ const fetchInternetaken = async () => {
   container-type: inline-size;
 }
 
-.same-margin-block-as-datalist {
+.same-margin-as-datalist {
   margin-block-end: calc(
     var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-end, 0)
   );

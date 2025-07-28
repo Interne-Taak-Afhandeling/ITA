@@ -282,6 +282,7 @@ function handleError(err: unknown) {
 .utrecht-button-group {
   margin-top: 1rem;
 }
+
 .small {
   font-size: var(--denhaag-process-steps-step-meta-font-size);
   color: var(--denhaag-process-steps-step-meta-color);

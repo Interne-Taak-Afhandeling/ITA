@@ -10,18 +10,21 @@
       <utrecht-radiobutton
         v-model="model"
         class="visually-hidden"
-        :id="key"
+        :id="`radio-${key}`"
         :value="label"
+        :aria-labelledby="`label-${key}`"
         :tabindex="model === label ? undefined : -1"
       />
-      <utrecht-form-label
-        type="radio"
-        role="radio"
-        :for="key"
-        :aria-checked="model === label"
+      <span
+        class="utrecht-form-label utrecht-form-label--radio"
+        :id="`label-${key}`"
+        :aria-label="label"
+        :role="model === label ? undefined : `radio`"
+        :aria-checked="model === label ? undefined : false"
         :tabindex="model === label ? undefined : 0"
         @keydown="handleKeydown($event, label)"
-        >{{ label }}</utrecht-form-label
+        @click="model = label"
+        >{{ label }}</span
       >
     </utrecht-form-field>
   </utrecht-fieldset>

@@ -1,5 +1,11 @@
 <template>
-  <button type="button" @click="show">I</button>
+  <utrecht-button
+    appearance="secondary-action-button"
+    class="modal-trigger"
+    :aria-labelledby="labelId"
+    @click="show"
+    >{{ isZaakGekoppeld ? "Wijzigen" : "Koppelen" }}</utrecht-button
+  >
 
   <utrecht-alert-dialog ref="zaakKoppelenAlertRef">
     <form method="dialog" @submit.prevent="koppelZaak">
@@ -52,6 +58,7 @@ const props = defineProps<{
   aanleidinggevendKlantcontactUuid: string;
   zaakIdentificatie?: string;
   internetaakId: string;
+  labelId: string;
 }>();
 
 const emit = defineEmits(["zaakGekoppeld"]);
@@ -127,3 +134,13 @@ const koppelZaak = async () => {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.modal-trigger {
+  --utrecht-button-min-block-size: 0;
+
+  padding: 0;
+  border-block-start: none;
+  border-inline: none;
+}
+</style>
