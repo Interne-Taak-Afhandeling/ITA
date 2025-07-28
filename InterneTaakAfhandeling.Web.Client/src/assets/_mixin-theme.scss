@@ -34,6 +34,8 @@
   --ita-radio-tabs-label-border-block-style: solid;
   --ita-radio-tabs-label-border-block-color: transparent;
   --ita-radio-tabs-label-checked-color: var(--utrecht-color-blue-40);
-  --ita-radio-tabs-label-checked-background-color: hsl(211 60% 95%); // TODO '--utrecht-color-blue-95' check
+  --ita-radio-tabs-label-checked-background-color: hsl(
+    211 60% 95%
+  ); // TODO '--utrecht-color-blue-95' check
   --ita-radio-tabs-label-checked-border-color: var(--utrecht-radio-button-checked-border-color);
 }

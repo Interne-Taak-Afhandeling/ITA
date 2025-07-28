@@ -31,7 +31,6 @@
           @zaak-gekoppeld="$emit(`zaakGekoppeld`)"
         />
       </dd>
-      
     </utrecht-data-list-item>
     <utrecht-data-list-item class="fullwidth">
       <interne-toelichting-section>

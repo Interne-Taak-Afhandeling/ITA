@@ -1,6 +1,6 @@
 <template>
   <button type="button" @click="show">I</button>
-  
+
   <utrecht-alert-dialog ref="zaakKoppelenAlertRef">
     <form method="dialog" @submit.prevent="koppelZaak">
       <utrecht-heading :level="2">{{

@@ -159,7 +159,7 @@ const organisatienaam = computed(() =>
 
 .utrecht-data-list__item-value {
   --utrecht-data-list-rows-item-value-margin-block-start: 0;
-  
+
   text-overflow: ellipsis;
   overflow: hidden;
   &[title]:not([title=""]) {
