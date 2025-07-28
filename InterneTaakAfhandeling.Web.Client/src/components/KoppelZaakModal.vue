@@ -1,11 +1,12 @@
 <template>
-  <utrecht-button
-    appearance="secondary-action-button"
-    class="modal-trigger"
+  <button
+    type="button"
+    class="utrecht-link-button utrecht-link-button--html-button utrecht-link-button--inline"
     :aria-labelledby="labelId"
     @click="show"
-    >{{ isZaakGekoppeld ? "Wijzigen" : "Koppelen" }}</utrecht-button
   >
+    {{ isZaakGekoppeld ? "Wijzigen" : "Koppelen" }}
+  </button>
 
   <utrecht-alert-dialog ref="zaakKoppelenAlertRef">
     <form method="dialog" @submit.prevent="koppelZaak">
@@ -134,13 +135,3 @@ const koppelZaak = async () => {
   }
 };
 </script>
-
-<style lang="scss" scoped>
-.modal-trigger {
-  --utrecht-button-min-block-size: 0;
-
-  padding: 0;
-  border-block-start: none;
-  border-inline: none;
-}
-</style>
