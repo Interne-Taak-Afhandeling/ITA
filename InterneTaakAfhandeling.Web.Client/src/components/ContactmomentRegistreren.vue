@@ -1,5 +1,10 @@
 <template>
   <form ref="formRef" @submit.prevent="showConfirmation">
+    <!--
+      Radio button group pattern which mimics tabs.
+      Not using semantic tabs here as these buttons control form configuration
+      rather than navigating between content panels.
+    -->
     <ita-radio-tabs legend="Kies een handeling" :options="HANDLINGS" v-model="form.handeling" />
 
     <utrecht-fieldset v-if="isContactmoment">
@@ -17,6 +22,20 @@
         </utrecht-form-field>
       </utrecht-fieldset>
 
+      <utrecht-fieldset>
+        <utrecht-legend>Wil je het contactmoment afsluiten?</utrecht-legend>
+        <utrecht-form-field v-for="(label, key) in AFSLUITEN" :key="key" type="radio">
+          <utrecht-radiobutton
+            name="afsluiten"
+            :id="key"
+            :value="label"
+            v-model="form.afsluiten"
+            required
+          />
+          <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
+        </utrecht-form-field>
+      </utrecht-fieldset>
+
       <utrecht-form-field>
         <utrecht-form-label for="kanalen">Kanaal</utrecht-form-label>
         <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
@@ -25,7 +44,11 @@
         <utrecht-form-label for="informatie-burger"
           >Informatie voor burger / bedrijf</utrecht-form-label
         >
-        <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
+        <utrecht-textarea
+          :required="isInformatieBurgerRequired"
+          id="informatie-burger"
+          v-model="form.informatieBurger"
+        />
       </utrecht-form-field>
     </utrecht-fieldset>
 
@@ -37,7 +60,7 @@
         <utrecht-textarea
           id="interne-toelichting-text"
           v-model="form.interneNotitie"
-          placeholder="Optioneel"
+          :placeholder="isContactmoment ? `Optioneel` : undefined"
           :required="!isContactmoment"
         />
         <div class="small">
@@ -49,22 +72,25 @@
 
     <utrecht-button-group>
       <utrecht-button
+        v-if="isContactmoment && form.afsluiten === AFSLUITEN.ja"
         type="submit"
         appearance="primary-action-button"
         :disabled="isLoading"
-        v-if="isContactmoment"
       >
         <span v-if="isLoading">Bezig met opslaan...</span>
-        <span v-else>Opslaan & afronden</span>
+        <span v-else>Contactmoment opslaan</span>
       </utrecht-button>
+
       <utrecht-button
+        v-else
         type="button"
-        appearance="secondary-action-button"
+        appearance="primary-action-button"
         :disabled="isLoading"
         @click="isContactmoment ? saveContactmoment() : saveNote()"
       >
         <span v-if="isLoading">Bezig met opslaan...</span>
-        <span v-else>Alleen opslaan</span>
+        <span v-else-if="isContactmoment">Contactmoment opslaan</span>
+        <span v-else>Opslaan</span>
       </utrecht-button>
     </utrecht-button-group>
   </form>
@@ -105,6 +131,11 @@ const RESULTS = {
   geenGehoor: "Contact opnemen niet gelukt"
 } as const;
 
+const AFSLUITEN = {
+  ja: "Ja",
+  nee: "Nee"
+} as const;
+
 const kanalen = [
   { label: "Selecteer een kanaal", value: "" },
   ...["Balie", "Telefoon"].map((value) => ({ label: value, value }))
@@ -117,14 +148,21 @@ const formRef = ref<HTMLFormElement>();
 const form = ref({
   handeling: HANDLINGS.contactmoment as (typeof HANDLINGS)[keyof typeof HANDLINGS],
   resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
+  afsluiten: undefined as (typeof AFSLUITEN)[keyof typeof AFSLUITEN] | undefined,
   kanaal: "",
   informatieBurger: "",
   interneNotitie: ""
 });
+
 const isContactmoment = computed(() => form.value.handeling === HANDLINGS.contactmoment);
+const isInformatieBurgerRequired = computed(
+  () => !(form.value.resultaat === RESULTS.geenGehoor && form.value.afsluiten === AFSLUITEN.nee)
+);
+
 function showConfirmation() {
   bevestigingsModalRef.value?.show();
 }
+
 function isValidForm() {
   if (!formRef.value?.checkValidity()) {
     formRef.value?.reportValidity();
@@ -132,6 +170,7 @@ function isValidForm() {
   }
   return true;
 }
+
 async function saveNote() {
   if (!isValidForm()) return;
   isLoading.value = true;
@@ -178,6 +217,7 @@ async function finishContactmoment() {
     isLoading.value = false;
   }
 }
+
 function getKlantcontactPayload() {
   return {
     klantcontactRequest: buildKlantcontactModel(),
@@ -187,6 +227,7 @@ function getKlantcontactPayload() {
     interneNotitie: form.value.interneNotitie
   };
 }
+
 function getAanleidinggevendKlantcontactId() {
   return taak.aanleidinggevendKlantcontact?.uuid;
 }
@@ -220,6 +261,7 @@ function resetForm() {
   form.value = {
     handeling: HANDLINGS.contactmoment,
     resultaat: RESULTS.contactGelukt,
+    afsluiten: undefined,
     kanaal: "",
     informatieBurger: "",
     interneNotitie: ""
@@ -255,5 +297,11 @@ select {
   margin-block-start: 0;
   margin-inline-start: calc(-1 * var(--current-padding-inline-start));
   margin-inline-end: calc(-1 * var(--current-padding-inline-end));
+}
+
+.utrecht-button-group {
+  margin-block-end: calc(
+    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-end, 0)
+  );
 }
 </style>

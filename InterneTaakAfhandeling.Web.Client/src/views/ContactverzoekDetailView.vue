@@ -36,7 +36,7 @@
       />
     </detail-section>
 
-    <detail-section title="Acties" class="same-margin-block-end-as-datalist">
+    <detail-section title="Acties">
       <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
     </detail-section>
 
@@ -136,12 +136,6 @@ const fetchInternetaken = async () => {
   );
   margin-block-start: calc(
     var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-start, 0)
-  );
-}
-
-.same-margin-block-end-as-datalist {
-  padding-block-end: calc(
-    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-end, 0)
   );
 }
 

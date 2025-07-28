@@ -1,29 +1,57 @@
 <template>
-  <utrecht-fieldset class="ita-radio-tabs">
+  <utrecht-fieldset class="ita-radio-tabs" role="radiogroup">
     <utrecht-legend class="visually-hidden">{{ legend }}</utrecht-legend>
-    <utrecht-form-field v-for="(value, key) in options" :key="key" type="radio">
-      <utrecht-radiobutton class="visually-hidden" :id="key" :value="value" v-model="model" />
+    <utrecht-form-field v-for="(label, key) in options" :key="key" type="radio">
+      <!--
+        Focus flow:
+        - non-selected labels are focusable
+        - checked radio is focusable for arrow keys
+      -->
+      <utrecht-radiobutton
+        v-model="model"
+        class="visually-hidden"
+        :id="key"
+        :value="label"
+        :tabindex="model === label ? undefined : -1"
+      />
       <utrecht-form-label
         type="radio"
+        role="radio"
         :for="key"
-        :tabindex="model === value ? undefined : 0"
-        @keydown="handleKeydown($event, value)"
-        >{{ value }}</utrecht-form-label
+        :aria-checked="model === label"
+        :tabindex="model === label ? undefined : 0"
+        @keydown="handleKeydown($event, label)"
+        >{{ label }}</utrecht-form-label
       >
     </utrecht-form-field>
   </utrecht-fieldset>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { watch } from "vue";
+
+const props = defineProps<{
   legend: string;
   options: Record<string, string>;
 }>();
 
-const model = defineModel<string>("modelValue", { required: true });
+const model = defineModel<string>("modelValue", { required: true }); // Store label value
+
+// When modelValue is not set, activate first tab by setting modelValue with first label
+watch(
+  () => props.options,
+  (options) => {
+    if (!model.value && Object.keys(options || {}).length > 0) {
+      model.value = Object.values(options)[0];
+    }
+  },
+  { immediate: true }
+);
 
 const handleKeydown = (event: KeyboardEvent, value: string) => {
   if (event.key === " " || event.key === "Enter") {
+    event.preventDefault();
+
     const label = event.target as HTMLLabelElement;
     (label.previousElementSibling as HTMLInputElement)?.focus();
 
@@ -45,6 +73,7 @@ const handleKeydown = (event: KeyboardEvent, value: string) => {
 
   :deep(.utrecht-form-fieldset__fieldset) {
     display: flex;
+    column-gap: var(--utrecht-focus-outline-width);
     padding-block: 0;
 
     .utrecht-form-field {
@@ -66,7 +95,7 @@ const handleKeydown = (event: KeyboardEvent, value: string) => {
     }
 
     .utrecht-radio-button:checked {
-      + .utrecht-form-label {
+      & + .utrecht-form-label {
         font-weight: 600;
         color: var(--ita-radio-tabs-label-checked-color);
         background-color: var(--ita-radio-tabs-label-checked-background-color);
