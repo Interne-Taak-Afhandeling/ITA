@@ -26,26 +26,13 @@
               >
             </li>
 
-            <li class="utrecht-nav-list__item">
+            <li class="utrecht-nav-list__item" v-for="item in navItems" :key="item.name">
               <router-link
-                :to="{ name: 'alleContactverzoeken' }"
+                :to="{ name: item.route }"
                 class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-                >Alle contactverzoeken</router-link
               >
-            </li>
-            <li class="utrecht-nav-list__item">
-              <router-link
-                :to="{ name: 'afdelingsContacten' }"
-                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-                >Afdelingscontacten</router-link
-              >
-            </li>
-            <li class="utrecht-nav-list__item">
-              <router-link
-                :to="{ name: 'historie' }"
-                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-                >Historie</router-link
-              >
+                {{ item.name }}
+              </router-link>
             </li>
             <li
               class="user-name utrecht-nav-list__item utrecht-link utrecht-link--html-a utrecht-nav-list__link"
@@ -71,11 +58,27 @@
 import { computed } from "vue";
 import { injectResources } from "@/resources";
 import { useAuthStore } from "@/stores/auth";
+import { useRoute } from "vue-router";
 
+const route = useRoute();
 const resources = injectResources();
 const authStore = useAuthStore();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.user);
+
+const isBeheer = computed(() => route.path.startsWith("/beheer"));
+const navItems = computed(() => {
+  if (isBeheer.value) {
+    return [{ name: "Kanalen", route: "kanalen" }];
+  } else {
+    return [
+      { name: "Alle contactverzoeken", route: "alleContactverzoeken" },
+      { name: "Afdelingscontacten", route: "afdelingsContacten" },
+      { name: "Historie", route: "historie" },
+      { name: "Beheer", route: "beheer" }
+    ];
+  }
+});
 
 const svg = computed(() => {
   if (!resources?.logoUrl?.endsWith(".svg")) return;
