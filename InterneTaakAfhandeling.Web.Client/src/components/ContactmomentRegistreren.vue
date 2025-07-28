@@ -1,18 +1,11 @@
 <template>
   <form ref="formRef" @submit.prevent="showConfirmation">
-    <utrecht-fieldset>
-      <utrecht-legend>Kies een handeling</utrecht-legend>
-      <utrecht-form-field v-for="(label, key) in HANDLINGS" :key="key" type="radio">
-        <utrecht-radiobutton
-          name="handeling"
-          :id="key"
-          :value="label"
-          v-model="form.handeling"
-          required
-        />
-        <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
-      </utrecht-form-field>
-    </utrecht-fieldset>
+    <!--
+      Radio button group pattern which mimics tabs.
+      Not using semantic tabs here as these buttons control form configuration
+      rather than navigating between content panels.
+    -->
+    <ita-radio-tabs legend="Kies een handeling" :options="HANDLINGS" v-model="form.handeling" />
 
     <utrecht-fieldset v-if="isContactmoment">
       <utrecht-fieldset>
@@ -29,6 +22,20 @@
         </utrecht-form-field>
       </utrecht-fieldset>
 
+      <utrecht-fieldset>
+        <utrecht-legend>Wil je het contactmoment afsluiten?</utrecht-legend>
+        <utrecht-form-field v-for="(label, key) in AFSLUITEN" :key="key" type="radio">
+          <utrecht-radiobutton
+            name="afsluiten"
+            :id="key"
+            :value="label"
+            v-model="form.afsluiten"
+            required
+          />
+          <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
+        </utrecht-form-field>
+      </utrecht-fieldset>
+
       <utrecht-form-field>
         <utrecht-form-label for="kanalen">Kanaal</utrecht-form-label>
         <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
@@ -37,9 +44,14 @@
         <utrecht-form-label for="informatie-burger"
           >Informatie voor burger / bedrijf</utrecht-form-label
         >
-        <utrecht-textarea required id="informatie-burger" v-model="form.informatieBurger" />
+        <utrecht-textarea
+          :required="isInformatieBurgerRequired"
+          id="informatie-burger"
+          v-model="form.informatieBurger"
+        />
       </utrecht-form-field>
     </utrecht-fieldset>
+
     <interne-toelichting-section>
       <utrecht-form-field>
         <utrecht-form-label for="interne-toelichting-text">
@@ -48,7 +60,7 @@
         <utrecht-textarea
           id="interne-toelichting-text"
           v-model="form.interneNotitie"
-          placeholder="Optioneel"
+          :placeholder="isContactmoment ? `Optioneel` : undefined"
           :required="!isContactmoment"
         />
         <div class="small">
@@ -60,22 +72,25 @@
 
     <utrecht-button-group>
       <utrecht-button
+        v-if="isContactmoment && form.afsluiten === AFSLUITEN.ja"
         type="submit"
         appearance="primary-action-button"
         :disabled="isLoading"
-        v-if="isContactmoment"
       >
         <span v-if="isLoading">Bezig met opslaan...</span>
-        <span v-else>Opslaan & afronden</span>
+        <span v-else>Contactmoment opslaan</span>
       </utrecht-button>
+
       <utrecht-button
+        v-else
         type="button"
-        appearance="secondary-action-button"
+        appearance="primary-action-button"
         :disabled="isLoading"
         @click="isContactmoment ? saveContactmoment() : saveNote()"
       >
         <span v-if="isLoading">Bezig met opslaan...</span>
-        <span v-else>Alleen opslaan</span>
+        <span v-else-if="isContactmoment">Contactmoment opslaan</span>
+        <span v-else>Opslaan</span>
       </utrecht-button>
     </utrecht-button-group>
   </form>
@@ -100,18 +115,25 @@ import { useRouter } from "vue-router";
 import { internetakenService } from "@/services/internetakenService";
 import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 import { useBackNavigation } from "@/composables/use-back-navigation";
+import ItaRadioTabs from "./ItaRadioTabs.vue";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
 const router = useRouter();
+
 const HANDLINGS = {
-  contactmoment: "Contactmoment",
-  interneToelichting: "Interne toelichting"
+  contactmoment: "Contactmoment registreren",
+  interneToelichting: "Alleen toelichting"
 } as const;
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
   geenGehoor: "Contact opnemen niet gelukt"
+} as const;
+
+const AFSLUITEN = {
+  ja: "Ja",
+  nee: "Nee"
 } as const;
 
 const kanalen = [
@@ -126,14 +148,21 @@ const formRef = ref<HTMLFormElement>();
 const form = ref({
   handeling: HANDLINGS.contactmoment as (typeof HANDLINGS)[keyof typeof HANDLINGS],
   resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
+  afsluiten: undefined as (typeof AFSLUITEN)[keyof typeof AFSLUITEN] | undefined,
   kanaal: "",
   informatieBurger: "",
   interneNotitie: ""
 });
+
 const isContactmoment = computed(() => form.value.handeling === HANDLINGS.contactmoment);
+const isInformatieBurgerRequired = computed(
+  () => !(form.value.resultaat === RESULTS.geenGehoor && form.value.afsluiten === AFSLUITEN.nee)
+);
+
 function showConfirmation() {
   bevestigingsModalRef.value?.show();
 }
+
 function isValidForm() {
   if (!formRef.value?.checkValidity()) {
     formRef.value?.reportValidity();
@@ -141,6 +170,7 @@ function isValidForm() {
   }
   return true;
 }
+
 async function saveNote() {
   if (!isValidForm()) return;
   isLoading.value = true;
@@ -187,6 +217,7 @@ async function finishContactmoment() {
     isLoading.value = false;
   }
 }
+
 function getKlantcontactPayload() {
   return {
     klantcontactRequest: buildKlantcontactModel(),
@@ -196,6 +227,7 @@ function getKlantcontactPayload() {
     interneNotitie: form.value.interneNotitie
   };
 }
+
 function getAanleidinggevendKlantcontactId() {
   return taak.aanleidinggevendKlantcontact?.uuid;
 }
@@ -229,6 +261,7 @@ function resetForm() {
   form.value = {
     handeling: HANDLINGS.contactmoment,
     resultaat: RESULTS.contactGelukt,
+    afsluiten: undefined,
     kanaal: "",
     informatieBurger: "",
     interneNotitie: ""
@@ -245,9 +278,11 @@ function handleError(err: unknown) {
 .utrecht-form-label {
   display: block;
 }
+
 .utrecht-button-group {
   margin-top: 1rem;
 }
+
 .small {
   font-size: var(--denhaag-process-steps-step-meta-font-size);
   color: var(--denhaag-process-steps-step-meta-color);
@@ -257,5 +292,17 @@ textarea,
 input,
 select {
   max-width: 100%;
+}
+
+.ita-radio-tabs {
+  margin-block-start: 0;
+  margin-inline-start: calc(-1 * var(--current-padding-inline-start));
+  margin-inline-end: calc(-1 * var(--current-padding-inline-end));
+}
+
+.utrecht-button-group {
+  margin-block-end: calc(
+    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-end, 0)
+  );
 }
 </style>
