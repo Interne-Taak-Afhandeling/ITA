@@ -1,5 +1,6 @@
 <template>
   <form ref="formRef" @submit.prevent="showConfirmation">
+    <simple-spinner v-if="isLoading" />
     <utrecht-fieldset>
       <utrecht-legend>Kies een handeling</utrecht-legend>
       <utrecht-form-field v-for="(label, key) in HANDLINGS" :key="key" type="radio">
@@ -100,6 +101,8 @@ import { useRouter } from "vue-router";
 import { internetakenService } from "@/services/internetakenService";
 import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 import { useBackNavigation } from "@/composables/use-back-navigation";
+
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
