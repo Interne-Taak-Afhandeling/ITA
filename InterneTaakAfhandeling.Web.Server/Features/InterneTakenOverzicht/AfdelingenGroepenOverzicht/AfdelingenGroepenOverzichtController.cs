@@ -35,7 +35,7 @@ public class AfdelingenGroepenOverzichtController(
                 Page = queryParameters.Page,
                 PageSize = queryParameters.PageSize,
                 Actoren__Naam = queryParameters.NaamActor,
-                Status = KnownInternetaakStatussen.TeVerwerken
+                Status = queryParameters.Afgerond ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken
             };
             var result = await _interneTakenOverzichtService.GetInterneTakenOverzichtAsync(query);
 
@@ -53,4 +53,5 @@ public class AfdelingenGroepenOverzichtController(
 public class AfdelingenGroepenOverzichtQuery : InterneTakenOverzichtQueryParameters
 {
     public required string NaamActor { get; set; }
+    public bool Afgerond { get; set; }
 }

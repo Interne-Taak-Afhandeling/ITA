@@ -1,6 +1,6 @@
 <template>
-  <utrecht-heading :level="1">Afdelingscontacten</utrecht-heading>
-  <AfdelingenEnGroepenSelectieEnOverzicht :afgerond="false" />
+  <utrecht-heading :level="1">Afegronde afdelingscontacten</utrecht-heading>
+  <AfdelingenEnGroepenSelectieEnOverzicht :afgerond="true" />
 </template>
 
 <script setup lang="ts">
