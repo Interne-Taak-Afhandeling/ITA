@@ -40,7 +40,7 @@
       <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
     </detail-section>
 
-    <detail-section title="Logboek contactverzoek">
+    <detail-section title="Logboek contactverzoek" class="ita-detail-section--compact">
       <div class="same-margin-as-datalist">
         <contactverzoek-logboek v-if="taak" :taak="taak" />
       </div>
@@ -104,14 +104,18 @@ const fetchInternetaken = async () => {
 
 .ita-cv-detail-sections {
   --_column-size: 42rem;
+
   display: grid;
   column-gap: var(--ita-cv-details-sections-column-gap);
   row-gap: var(--ita-cv-details-sections-row-gap);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_column-size)), 1fr));
-  align-items: start;
 
   > * {
     min-height: 22rem;
+  }
+
+  .ita-detail-section--compact {
+    align-self: start;
   }
 }
 
