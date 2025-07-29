@@ -5,7 +5,9 @@
     :aria-labelledby="labelId"
     @click="show"
   >
-    {{ isZaakGekoppeld ? "Wijzigen" : "Koppelen" }}
+    <span class="visually-hidden">{{ isZaakGekoppeld ? "Wijzigen" : "Koppelen" }}</span>
+
+    <utrecht-icon icon="pen" />
   </button>
 
   <utrecht-alert-dialog ref="zaakKoppelenAlertRef">
@@ -53,6 +55,7 @@
 import { ref, computed } from "vue";
 import { toast } from "@/components/toast/toast";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import UtrechtIcon from "@/components/UtrechtIcon.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 
 const props = defineProps<{
@@ -135,3 +138,11 @@ const koppelZaak = async () => {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+button {
+  --utrecht-link-color: var(--utrecht-surface-color);
+
+  margin-inline-start: var(--utrecht-space-inline-xs);
+}
+</style>
