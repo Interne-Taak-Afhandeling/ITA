@@ -45,9 +45,10 @@
           >Informatie voor burger / bedrijf</utrecht-form-label
         >
         <utrecht-textarea
-          :required="isInformatieBurgerRequired"
           id="informatie-burger"
           v-model="form.informatieBurger"
+          :placeholder="!isInformatieBurgerRequired ? `Optioneel` : undefined"
+          :required="isInformatieBurgerRequired"
         />
       </utrecht-form-field>
     </utrecht-fieldset>
