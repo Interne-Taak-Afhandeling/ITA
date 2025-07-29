@@ -1,5 +1,6 @@
 <template>
-  <form ref="formRef" @submit.prevent="showConfirmation">
+  <SimpleSpinner v-if="isLoading" />
+  <form v-else ref="formRef" @submit.prevent="showConfirmation">
     <!--
       Radio button group pattern which mimics tabs.
       Not using semantic tabs here as these buttons control form configuration
@@ -116,6 +117,7 @@ import { internetakenService } from "@/services/internetakenService";
 import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 import { useBackNavigation } from "@/composables/use-back-navigation";
 import ItaRadioTabs from "./ItaRadioTabs.vue";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
