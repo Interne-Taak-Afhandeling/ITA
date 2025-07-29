@@ -1,6 +1,6 @@
 <template>
-  <form ref="formRef" @submit.prevent="showConfirmation">
-    <SimpleSpinner v-if="isLoading" />
+  <SimpleSpinner v-if="isLoading" />
+  <form v-else ref="formRef" @submit.prevent="showConfirmation">
     <!--
       Radio button group pattern which mimics tabs.
       Not using semantic tabs here as these buttons control form configuration
