@@ -1,10 +1,12 @@
 <template>
-  <utrecht-heading :level="1">Afdelingscontacten</utrecht-heading>
+  <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
   <AfdelingenEnGroepenSelectieEnOverzicht :afgerond="false" />
 </template>
 
 <script setup lang="ts">
 import AfdelingenEnGroepenSelectieEnOverzicht from "@/components/AfdelingenEnGroepenSelectieEnOverzicht.vue";
+import { useRoute } from "vue-router";
+const route = useRoute();
 </script>
 
 <style lang="scss" scoped></style>

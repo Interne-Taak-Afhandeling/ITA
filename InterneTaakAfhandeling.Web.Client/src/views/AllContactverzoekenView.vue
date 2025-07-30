@@ -1,5 +1,5 @@
 <template>
-  <utrecht-heading :level="1">Alle contactverzoeken</utrecht-heading>
+  <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
 
   <div v-if="isLoading" class="spinner-container">
     <simple-spinner />
@@ -43,6 +43,9 @@ import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTa
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import type { InterneTakenPaginated } from "@/types/internetaken";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
 
 const fetchInterneTaken = async (
   page: number,

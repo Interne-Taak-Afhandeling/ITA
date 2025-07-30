@@ -15,7 +15,7 @@ const router = createRouter({
       name: "dashboard",
       component: DashboardView,
       meta: {
-        title: "Dashboard",
+        title: "Mijn werkvoorraad",
         requiresITAAccess: true
       }
     },
@@ -34,7 +34,7 @@ const router = createRouter({
       name: "historie",
       component: HistorieView,
       meta: {
-        title: "historie",
+        title: "Mijn historie",
         requiresITAAccess: true
       }
     },
@@ -69,7 +69,7 @@ const router = createRouter({
       name: "afdelingsContacten",
       component: AfdelingsContactenView,
       meta: {
-        title: "Afdelings Contacten",
+        title: "Afdelingswerkvoorraad",
         requiresITAAccess: true
       }
     },
@@ -78,7 +78,7 @@ const router = createRouter({
       name: "afdelingsContactenHistorie",
       component: AfdelingsContactenHistorieView,
       meta: {
-        title: "Afdelings Contacten Historie",
+        title: "Afdelingshistorie",
         requiresITAAccess: true
       }
     }
