@@ -17,12 +17,9 @@
       </utrecht-data-list-value>
     </utrecht-data-list-item>
     <utrecht-data-list-item>
-      <utrecht-data-list-key :id="labelId">Gekoppelde zaak</utrecht-data-list-key>
-      <utrecht-data-list-value :value="zaak?.identificatie">
-        {{ zaak?.identificatie }}
-      </utrecht-data-list-value>
+      <utrecht-data-list-key :id="labelId">
+        Gekoppelde zaak
 
-      <dd class="utrecht-data-list__actions utrecht-data-list__actions--html-dd">
         <koppel-zaak-modal
           v-if="taak?.aanleidinggevendKlantcontact?.uuid"
           :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
@@ -31,7 +28,10 @@
           :label-id="labelId"
           @zaak-gekoppeld="$emit(`zaakGekoppeld`)"
         />
-      </dd>
+      </utrecht-data-list-key>
+      <utrecht-data-list-value :value="zaak?.identificatie">
+        {{ zaak?.identificatie }}
+      </utrecht-data-list-value>
     </utrecht-data-list-item>
     <utrecht-data-list-item class="fullwidth">
       <interne-toelichting-section>
