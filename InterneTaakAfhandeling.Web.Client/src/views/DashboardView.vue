@@ -1,5 +1,5 @@
 <template>
-  <utrecht-heading :level="1">Dashboard</utrecht-heading>
+  <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
 
   <div class="ita-dashboard-tables">
     <section>
@@ -32,6 +32,9 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import { userService } from "@/services/userService";
 import type { Internetaken } from "@/types/internetaken";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
 
 const assignedInternetaken = ref<Internetaken[]>([]);
 const isLoading = ref(false);

@@ -7,6 +7,7 @@
 - Add a note to a contact request #14
 - View completed contact requests from employee #18
 - Overview of contact requests for department or group #19
+- View completed contact requests for department or group #54
 
 ### Warnings and deployment notes
 

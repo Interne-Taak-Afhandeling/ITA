@@ -22,29 +22,37 @@
               <router-link
                 :to="{ name: 'dashboard' }"
                 class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-                >Dashboard</router-link
+                >Mijn werkvoorraad</router-link
               >
             </li>
 
             <li class="utrecht-nav-list__item">
               <router-link
-                :to="{ name: 'alleContactverzoeken' }"
-                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-                >Alle contactverzoeken</router-link
-              >
-            </li>
-            <li class="utrecht-nav-list__item">
-              <router-link
                 :to="{ name: 'afdelingsContacten' }"
                 class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-                >Afdelingscontacten</router-link
+                >Afdelingswerkvoorraad</router-link
               >
             </li>
+
             <li class="utrecht-nav-list__item">
               <router-link
                 :to="{ name: 'historie' }"
                 class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-                >Historie</router-link
+                >Mijn historie</router-link
+              >
+            </li>
+            <li class="utrecht-nav-list__item">
+              <router-link
+                :to="{ name: 'afdelingsContactenHistorie' }"
+                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+                >Afdelingshistorie</router-link
+              >
+            </li>
+            <li class="utrecht-nav-list__item">
+              <router-link
+                :to="{ name: 'alleContactverzoeken' }"
+                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+                >Alle contactverzoeken</router-link
               >
             </li>
             <li

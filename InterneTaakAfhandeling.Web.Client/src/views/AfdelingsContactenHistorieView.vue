@@ -1,6 +1,6 @@
 <template>
   <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
-  <AfdelingenEnGroepenSelectieEnOverzicht :afgerond="false" />
+  <AfdelingenEnGroepenSelectieEnOverzicht :afgerond="true" />
 </template>
 
 <script setup lang="ts">
