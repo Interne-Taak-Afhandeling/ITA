@@ -13,9 +13,16 @@ export interface PaginationOptions {
   maxVisiblePages?: number;
 }
 
+interface cacheItems {
+  [key: string]: number | undefined;
+}
+
+const cache: cacheItems = {};
+
 export function usePagination<T = unknown>(
   fetchFunction: (page: number, pageSize: number) => Promise<PaginationResponse<T>>,
-  options: PaginationOptions = {}
+  options: PaginationOptions = {},
+  cacheKey: string
 ) {
   const { initialPage = 1, initialPageSize = 20, maxVisiblePages = 5 } = options;
 
@@ -23,7 +30,13 @@ export function usePagination<T = unknown>(
   const error = ref<string | null>(null);
   const results = ref<T[]>([]);
   const totalCount = ref(0);
-  const currentPage = ref(initialPage);
+
+  const currentPage = ref<number>(cache[cacheKey] ?? initialPage);
+
+  if (!cache[cacheKey]) {
+    cache[cacheKey] = initialPage;
+  }
+
   const pageSize = ref(initialPageSize);
   const hasNextPage = ref(false);
   const hasPreviousPage = ref(false);
@@ -32,7 +45,7 @@ export function usePagination<T = unknown>(
 
   const visiblePages = computed(() => {
     const total = totalPages.value;
-    const current = currentPage.value;
+    const current = currentPage.value ?? initialPage;
     const maxVisible = maxVisiblePages;
     const pages: number[] = [];
 
@@ -78,7 +91,15 @@ export function usePagination<T = unknown>(
 
       results.value = response.results;
       totalCount.value = response.count;
-      currentPage.value = page;
+
+      //bit of a hack. If the requested page no longer exists,
+      //the server falls back to page 1
+      const actualReturnedPage = response.previous ? page : 1;
+
+      cache[cacheKey] = actualReturnedPage;
+
+      currentPage.value = actualReturnedPage;
+
       hasNextPage.value = !!response.next;
       hasPreviousPage.value = !!response.previous;
     } catch (err: unknown) {
