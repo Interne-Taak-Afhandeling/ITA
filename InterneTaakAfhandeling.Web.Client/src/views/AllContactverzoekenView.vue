@@ -72,11 +72,15 @@ const {
   goToPage,
   goToNextPage,
   goToPreviousPage
-} = usePagination(fetchInterneTaken, {
-  initialPage: 1,
-  initialPageSize: 20,
-  maxVisiblePages: 5
-});
+} = usePagination(
+  fetchInterneTaken,
+  {
+    initialPage: 1,
+    initialPageSize: 20,
+    maxVisiblePages: 5
+  },
+  "alleContactverzoeken"
+);
 
 onMounted(() => {
   fetchData();
