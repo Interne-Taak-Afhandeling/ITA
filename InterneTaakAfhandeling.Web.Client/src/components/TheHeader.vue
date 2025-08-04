@@ -18,14 +18,6 @@
       <nav class="utrecht-nav-bar" aria-label="Hoofdmenu">
         <div class="utrecht-nav-bar__content">
           <ul role="list" class="utrecht-nav-list" id="menu">
-            <li class="utrecht-nav-list__item">
-              <router-link
-                :to="{ name: 'dashboard' }"
-                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
-                >Dashboard</router-link
-              >
-            </li>
-
             <li class="utrecht-nav-list__item" v-for="item in navItems" :key="item.name">
               <router-link
                 :to="{ name: item.route }"
@@ -67,17 +59,19 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.user);
 
 const isBeheer = computed(() => route.path.startsWith("/beheer"));
+const baseNavItems = [
+  { name: "Dashboard", route: "dashboard" },
+  { name: "Afdelingswerkvoorraad", route: "afdelingsContacten" },
+  { name: "Mijn historie", route: "historie" },
+  { name: "Afdelingshistorie", route: "afdelingsContactenHistorie" },
+  { name: "Alle contactverzoeken", route: "alleContactverzoeken" },
+  { name: "Beheer", route: "beheer" }
+];
+
+const beheerNavItem = { name: "Kanalen", route: "kanalen" };
+
 const navItems = computed(() => {
-  if (isBeheer.value) {
-    return [{ name: "Kanalen", route: "kanalen" }];
-  } else {
-    return [
-      { name: "Alle contactverzoeken", route: "alleContactverzoeken" },
-      { name: "Afdelingscontacten", route: "afdelingsContacten" },
-      { name: "Historie", route: "historie" },
-      { name: "Beheer", route: "beheer" }
-    ];
-  }
+  return isBeheer.value ? [...baseNavItems, beheerNavItem] : baseNavItems;
 });
 
 const svg = computed(() => {
