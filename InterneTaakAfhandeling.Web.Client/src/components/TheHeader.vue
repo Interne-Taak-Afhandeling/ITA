@@ -60,7 +60,7 @@ const user = computed(() => authStore.user);
 
 const isBeheer = computed(() => route.path.startsWith("/beheer"));
 const baseNavItems = [
-  { name: "Dashboard", route: "dashboard" },
+  { name: "Mijn werkvoorraad", route: "dashboard" },
   { name: "Afdelingswerkvoorraad", route: "afdelingsContacten" },
   { name: "Mijn historie", route: "historie" },
   { name: "Afdelingshistorie", route: "afdelingsContactenHistorie" },
