@@ -49,5 +49,8 @@ export default defineConfig({
   server: {
     proxy: Object.fromEntries(proxyEntries),
     port: 56175
+  },
+  build: {
+    assetsInlineLimit: 0
   }
 });

@@ -1,7 +1,15 @@
 <template>
-  <utrecht-button type="button" appearance="secondary-action-button" @click="show">
-    {{ isZaakGekoppeld ? "Zaakkoppeling wijzigen" : "Koppelen aan zaak" }}
-  </utrecht-button>
+  <button
+    type="button"
+    class="utrecht-link-button utrecht-link-button--html-button utrecht-link-button--inline"
+    :aria-labelledby="labelId"
+    @click="show"
+  >
+    <span class="visually-hidden">{{ isZaakGekoppeld ? "Wijzigen" : "Koppelen" }}</span>
+
+    <utrecht-icon icon="pen" />
+  </button>
+
   <utrecht-alert-dialog ref="zaakKoppelenAlertRef">
     <form method="dialog" @submit.prevent="koppelZaak">
       <utrecht-heading :level="2">{{
@@ -47,12 +55,14 @@
 import { ref, computed } from "vue";
 import { toast } from "@/components/toast/toast";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import UtrechtIcon from "@/components/UtrechtIcon.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 
 const props = defineProps<{
   aanleidinggevendKlantcontactUuid: string;
   zaakIdentificatie?: string;
   internetaakId: string;
+  labelId: string;
 }>();
 
 const emit = defineEmits(["zaakGekoppeld"]);
@@ -128,3 +138,11 @@ const koppelZaak = async () => {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+button {
+  --utrecht-link-color: var(--utrecht-surface-color);
+
+  margin-inline-start: var(--utrecht-space-inline-xs);
+}
+</style>

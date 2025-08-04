@@ -1,4 +1,5 @@
 @mixin ita-theme {
+  --ita-border-color: #afafaf;
   --ita-header-heading-margin-inline: var(--utrecht-space-inline-md);
   --ita-footer-link-list-column-gap: 4vw;
   --ita-dashboard-tables-column-gap: 4vw;
@@ -6,7 +7,7 @@
   --ita-cv-details-sections-column-gap: 1rem;
   --ita-cv-details-sections-row-gap: 1rem;
   --ita-detail-section-border-width: 1px;
-  --ita-detail-section-border-color: #afafaf;
+  --ita-detail-section-border-color: var(--ita-border-color);
   --ita-detail-section-body-padding-inline-start: 1rem;
   --ita-detail-section-body-padding-inline-end: 1rem;
   --ita-detail-section-header-padding-inline-start: 1rem;
@@ -26,4 +27,13 @@
   --ita-interne-toelichting-section-border-inline-color: var(
     --utrecht-spotlight-section-border-color
   );
+  --ita-radio-tabs-border-block-end: 1px solid var(--ita-border-color);
+  --ita-radio-tabs-label-padding-block: 1rem;
+  --ita-radio-tabs-label-padding-inline: 1rem;
+  --ita-radio-tabs-label-border-block-width: 4px;
+  --ita-radio-tabs-label-border-block-style: solid;
+  --ita-radio-tabs-label-border-block-color: transparent;
+  --ita-radio-tabs-label-checked-border-color: var(--utrecht-radio-button-checked-border-color);
+  --ita-radio-tabs-label-checked-color: var(--ita-radio-tabs-label-checked-border-color);
+  --ita-radio-tabs-label-checked-background-color: #ebf8ff;
 }

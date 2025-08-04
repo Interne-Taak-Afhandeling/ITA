@@ -1,15 +1,24 @@
 <template>
-  <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
-
-  <div v-if="isLoading" class="spinner-container">
+  <div v-if="isLoading || isGebruikerDataLoading" class="spinner-container">
     <simple-spinner />
   </div>
 
-  <utrecht-alert v-else-if="error" type="error">
-    {{ error }}
+  <utrecht-alert v-else-if="error || errorGebruikerData" type="error">
+    Er is een fout opgetreden. Herlaad de pagina. Als het probleem blijft bestaan, neem contact op
+    met functioneel beheer
   </utrecht-alert>
 
+  <UtrechtAlert v-else-if="!isGebruikerDataLoading && !errorGebruikerData && !gebruikerData.length">
+    Geen afdelingen of groepen gevonden
+  </UtrechtAlert>
+
   <section v-else>
+    <utrecht-form-field>
+      <utrecht-form-label for="afdelingOfgroep">Selecteer een afdeling of groep</utrecht-form-label>
+      <UtrechtSelect id="afdelingOfgroep" v-model="naamActor" :options="gebruikerOptions">
+      </UtrechtSelect>
+    </utrecht-form-field>
+
     <scroll-container>
       <all-interne-taken-table :interneTaken="results">
         <template #caption v-if="itemRange">
@@ -34,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
@@ -43,17 +52,32 @@ import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTa
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import type { InterneTakenPaginated } from "@/types/internetaken";
-import { useRoute } from "vue-router";
 
-const route = useRoute();
+const props = defineProps<{ afgerond: boolean }>();
 
+const gebruikerData = ref<string[]>([]);
+const naamActor = ref<string>("");
+const errorGebruikerData = ref<boolean>(false);
+const isGebruikerDataLoading = ref<boolean>(false);
+
+const gebruikerOptions = computed(() => [
+  { label: "-Selecteer-", value: "", disabled: true },
+  ...gebruikerData.value.map((value) => ({ label: value, value }))
+]);
+
+watch(naamActor, () => {
+  reset();
+  fetchData();
+});
 const fetchInterneTaken = async (
   page: number,
   pageSize: number
 ): Promise<InterneTakenPaginated> => {
-  return await get<InterneTakenPaginated>("/api/internetaken", {
+  return await get<InterneTakenPaginated>("/api/internetaken/afdelingen-groepen", {
     page,
-    pageSize
+    pageSize,
+    naamActor: naamActor.value,
+    afgerond: props.afgerond
   });
 };
 
@@ -71,30 +95,34 @@ const {
   fetchData,
   goToPage,
   goToNextPage,
-  goToPreviousPage
+  goToPreviousPage,
+  reset
 } = usePagination(fetchInterneTaken, {
   initialPage: 1,
   initialPageSize: 20,
   maxVisiblePages: 5
 });
 
+const fetchGebruikerData = async () => {
+  isGebruikerDataLoading.value = true;
+  errorGebruikerData.value = false;
+  gebruikerData.value = [];
+  try {
+    gebruikerData.value = await get<string[]>("/api/gebruiker-groepen-and-afdelingen");
+  } catch {
+    errorGebruikerData.value = true;
+  } finally {
+    isGebruikerDataLoading.value = false;
+  }
+};
+
 onMounted(() => {
-  fetchData();
+  fetchGebruikerData();
 });
 </script>
 
 <style lang="scss" scoped>
-.spinner-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-}
-
-section {
-  margin-top: 1rem;
-  display: grid;
-  justify-items: center;
-  gap: 1rem;
+.utrecht-form-label {
+  display: block;
 }
 </style>

@@ -6,6 +6,7 @@
 .ita-theme {
   // use utrecht-theme as default for ita-theme
   @include utrecht.utrecht-theme;
+
   // overrides for ita-theme
   --utrecht-space-around: 1.5;
   --utrecht-surface-background-color: var(--utrecht-color-white);
@@ -29,6 +30,9 @@
   --utrecht-alert-margin-block-end: var(--utrecht-space-block-xs);
   --utrecht-spotlight-section-background-color: var(--utrecht-color-grey-95);
   --utrecht-spotlight-section-border-color: var(--utrecht-color-blue-40);
+  --utrecht-spotlight-section-padding-block-start: var(--utrecht-space-block-xs);
+  --utrecht-spotlight-section-padding-block-end: var(--utrecht-space-block-xs);
+
   // den haag
   --denhaag-contact-timeline-step-header-line-height: 27px;
   --denhaag-contact-timeline-step-header-date-width: 15ch;

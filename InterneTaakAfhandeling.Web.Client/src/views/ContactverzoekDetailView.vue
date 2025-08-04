@@ -6,13 +6,6 @@
     <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
     <utrecht-button-group v-if="taak?.uuid">
       <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
-      <KoppelZaakModal
-        v-if="taak?.aanleidinggevendKlantcontact?.uuid"
-        :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
-        :zaakIdentificatie="taak?.zaak?.identificatie"
-        :internetaak-id="taak.uuid"
-        @zaak-gekoppeld="handleZaakGekoppeld"
-      />
     </utrecht-button-group>
   </div>
 
@@ -24,7 +17,11 @@
 
   <div v-else-if="taak" class="ita-cv-detail-sections">
     <detail-section title="Onderwerp / vraag">
-      <contactverzoek-details :taak="taak" />
+      <contactverzoek-details
+        :taak="taak"
+        :zaak="taak.zaak"
+        @zaak-gekoppeld="handleZaakGekoppeld"
+      />
     </detail-section>
 
     <detail-section
@@ -34,19 +31,16 @@
     >
       <contactmoment-details
         :contactmoment="taak.aanleidinggevendKlantcontact"
-        :zaak="taak.zaak"
         :status="taak.status"
         :actoren="taak.toegewezenAanActoren || []"
       />
     </detail-section>
 
-    <detail-section title="Handelingen">
-      <div class="same-margin-as-datalist">
-        <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
-      </div>
+    <detail-section title="Acties">
+      <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
     </detail-section>
 
-    <detail-section title="Logboek contactverzoek">
+    <detail-section title="Logboek contactverzoek" class="ita-detail-section--compact">
       <div class="same-margin-as-datalist">
         <contactverzoek-logboek v-if="taak" :taak="taak" />
       </div>
@@ -65,7 +59,6 @@ import ContactverzoekLogboek from "@/components/ContactverzoekLogboek.vue";
 import type { Internetaken } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
-import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
 import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
 import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
 import ContactmomentRegistreren from "@/components/ContactmomentRegistreren.vue";
@@ -111,14 +104,18 @@ const fetchInternetaken = async () => {
 
 .ita-cv-detail-sections {
   --_column-size: 42rem;
+
   display: grid;
   column-gap: var(--ita-cv-details-sections-column-gap);
   row-gap: var(--ita-cv-details-sections-row-gap);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_column-size)), 1fr));
-  align-items: start;
 
   > * {
     min-height: 22rem;
+  }
+
+  .ita-detail-section--compact {
+    align-self: start;
   }
 }
 
