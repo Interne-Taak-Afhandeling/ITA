@@ -35,7 +35,7 @@ export function usePagination<T = unknown>(
 
   const visiblePages = computed(() => {
     const total = totalPages.value;
-    const current = currentPage.value ?? initialPage;
+    const current = currentPage.value;
     const maxVisible = maxVisiblePages;
     const pages: number[] = [];
 
