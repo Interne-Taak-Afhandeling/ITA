@@ -6,19 +6,25 @@ namespace InterneTaakAfhandeling.Web.Server.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
     
-    public override int SaveChanges()
-    {
-        SetAuditFields();
-        return base.SaveChanges();
-    }  
-
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        SetAuditFields();
-        return await base.SaveChangesAsync(cancellationToken);
-    }
+   
    public DbSet<KanalenEntity> Kanalen { get; set; }
 
+
+   #region Override Methods
+
+   public override int SaveChanges()
+   {
+       SetAuditFields();
+       return base.SaveChanges();
+   }  
+
+   public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+   {
+       SetAuditFields();
+       return await base.SaveChangesAsync(cancellationToken);
+   }
+
+   #endregion
    #region Helpers
 
    private void SetAuditFields()
