@@ -15,11 +15,7 @@
   <section v-else>
     <utrecht-form-field>
       <utrecht-form-label for="afdelingOfgroep">Selecteer een afdeling of groep</utrecht-form-label>
-      <UtrechtSelect
-        id="afdelingOfgroep"
-        v-model="actorFilterState.filterValue.value"
-        :options="gebruikerOptions"
-      >
+      <UtrechtSelect id="afdelingOfgroep" v-model="actorFilterState" :options="gebruikerOptions">
       </UtrechtSelect>
     </utrecht-form-field>
 
@@ -71,7 +67,7 @@ const gebruikerOptions = computed(() => [
 
 const actorFilterState = useState<string>(props.cacheKey, "actorFilter");
 
-watch(actorFilterState.filterValue, () => {
+watch(actorFilterState, () => {
   fetchData();
 });
 
@@ -82,7 +78,7 @@ const fetchInterneTaken = async (
   return await get<InterneTakenPaginated>("/api/internetaken/afdelingen-groepen", {
     page,
     pageSize,
-    naamActor: actorFilterState.filterValue.value,
+    naamActor: actorFilterState.value,
     afgerond: props.afgerond
   });
 };
@@ -105,12 +101,12 @@ const {
   goToNextPage,
   goToPreviousPage
 } = usePagination(fetchInterneTaken, {
-  initialPage: pagnrState.filterValue.value ?? 1,
+  initialPage: pagnrState.value ?? 1,
   initialPageSize: 20,
   maxVisiblePages: 5
 });
 
-watch(currentPage, () => (pagnrState.filterValue.value = currentPage.value));
+watch(currentPage, () => (pagnrState.value = currentPage.value));
 
 const fetchGebruikerData = async () => {
   isGebruikerDataLoading.value = true;
@@ -127,7 +123,7 @@ const fetchGebruikerData = async () => {
 
 onMounted(() => {
   fetchGebruikerData();
-  if (actorFilterState.filterValue.value) {
+  if (actorFilterState.value) {
     fetchData();
   }
 });

@@ -13,7 +13,5 @@ export function useState<T>(contextKey: string, itemKey: string) {
     cache[fullCacheKey] = ref<T | undefined>(undefined);
   }
 
-  return {
-    filterValue: cache[fullCacheKey] as Ref<T | undefined>
-  };
+  return cache[fullCacheKey] as Ref<T | undefined>;
 }

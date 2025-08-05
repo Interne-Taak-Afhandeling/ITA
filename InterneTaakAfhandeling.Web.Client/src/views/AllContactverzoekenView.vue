@@ -76,12 +76,12 @@ const {
   goToNextPage,
   goToPreviousPage
 } = usePagination(fetchInterneTaken, {
-  initialPage: pagnrCache.filterValue.value ?? 1,
+  initialPage: pagnrCache.value ?? 1,
   initialPageSize: 20,
   maxVisiblePages: 5
 });
 
-watch(currentPage, () => (pagnrCache.filterValue.value = currentPage.value));
+watch(currentPage, () => (pagnrCache.value = currentPage.value));
 
 onMounted(() => {
   fetchData();
