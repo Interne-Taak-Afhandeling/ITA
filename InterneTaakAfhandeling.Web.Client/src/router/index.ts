@@ -6,8 +6,8 @@ import ForbiddenView from "@/views/ForbiddenView.vue";
 import ContactverzoekDetailView from "@/views/ContactverzoekDetailView.vue";
 import HistorieView from "@/views/HistorieView.vue";
 import AfdelingsContactenView from "@/views/AfdelingsContactenView.vue";
-import BeheerView from "@/views/beheer/BeheerView.vue";
-import KanalenView from "@/views/beheer/KanalenView.vue";
+import BeheerView from "@/views/beheer/BeheerLayout.vue";
+import KanalenView from "@/views/beheer/Kanalen/KanalenView.vue";
 import AfdelingsContactenHistorieView from "@/views/AfdelingsContactenHistorieView.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
