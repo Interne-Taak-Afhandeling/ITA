@@ -34,16 +34,17 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
-import { get } from "@/utils/fetchWrapper";
+import { get, knownErrorMessages } from "@/utils/fetchWrapper";
 import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import type { InterneTakenPaginated } from "@/types/internetaken";
 import { useRoute } from "vue-router";
+import { useState } from "@/composables/use-state";
 
 const route = useRoute();
 
@@ -56,6 +57,8 @@ const fetchInterneTaken = async (
     pageSize
   });
 };
+
+const pagnrCache = useState<number>("allcontactverzoekenView", "pagenr");
 
 const {
   isLoading,
@@ -72,15 +75,13 @@ const {
   goToPage,
   goToNextPage,
   goToPreviousPage
-} = usePagination(
-  fetchInterneTaken,
-  {
-    initialPage: 1,
-    initialPageSize: 20,
-    maxVisiblePages: 5
-  },
-  "alleContactverzoeken"
-);
+} = usePagination(fetchInterneTaken, {
+  initialPage: (pagnrCache.filterValue.value as number) ?? 1,
+  initialPageSize: 20,
+  maxVisiblePages: 5
+});
+
+watch(currentPage, () => (pagnrCache.filterValue.value = currentPage.value));
 
 onMounted(() => {
   fetchData();

@@ -4,6 +4,10 @@ interface FetchOptions extends RequestInit {
   skipAuthCheck?: boolean;
 }
 
+export const knownErrorMessages = {
+  notFound: "404"
+};
+
 export async function fetchWrapper<T = unknown>(
   url: string,
   options: FetchOptions = {}
@@ -31,8 +35,13 @@ export async function fetchWrapper<T = unknown>(
       const authStore = useAuthStore();
       if (authStore) {
         await authStore.login();
+
         return Promise.reject(new Error("Authentication required"));
       }
+    }
+
+    if (response.status === 404) {
+      throw new Error(knownErrorMessages.notFound);
     }
 
     let errorMessage = `Request failed with status ${response.status}`;
@@ -48,6 +57,7 @@ export async function fetchWrapper<T = unknown>(
     throw error;
   }
 }
+
 function toQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
 

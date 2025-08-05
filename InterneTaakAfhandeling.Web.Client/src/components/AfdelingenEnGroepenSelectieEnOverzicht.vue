@@ -17,7 +17,7 @@
       <utrecht-form-label for="afdelingOfgroep">Selecteer een afdeling of groep</utrecht-form-label>
       <UtrechtSelect
         id="afdelingOfgroep"
-        v-model="actorFilter.filterValue.value"
+        v-model="actorFilterState.filterValue.value as number"
         :options="gebruikerOptions"
       >
       </UtrechtSelect>
@@ -56,7 +56,7 @@ import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTa
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import type { InterneTakenPaginated } from "@/types/internetaken";
-import { useActorFilter } from "@/composables/use-actorfilter";
+import { useState } from "@/composables/use-state";
 
 const props = defineProps<{ afgerond: boolean; cacheKey: string }>();
 
@@ -69,9 +69,9 @@ const gebruikerOptions = computed(() => [
   ...gebruikerData.value.map((value) => ({ label: value, value }))
 ]);
 
-const actorFilter = useActorFilter(props.cacheKey);
+const actorFilterState = useState<string>(props.cacheKey, "actorFilter");
 
-watch(actorFilter.filterValue, () => {
+watch(actorFilterState.filterValue, () => {
   fetchData();
 });
 
@@ -82,10 +82,12 @@ const fetchInterneTaken = async (
   return await get<InterneTakenPaginated>("/api/internetaken/afdelingen-groepen", {
     page,
     pageSize,
-    naamActor: actorFilter.filterValue.value,
+    naamActor: actorFilterState.filterValue.value,
     afgerond: props.afgerond
   });
 };
+
+const pagnrState = useState<number>(props.cacheKey, "pagenr");
 
 const {
   isLoading,
@@ -102,15 +104,13 @@ const {
   goToPage,
   goToNextPage,
   goToPreviousPage
-} = usePagination(
-  fetchInterneTaken,
-  {
-    initialPage: 1,
-    initialPageSize: 20,
-    maxVisiblePages: 5
-  },
-  props.cacheKey
-);
+} = usePagination(fetchInterneTaken, {
+  initialPage: (pagnrState.filterValue.value as number) ?? 1,
+  initialPageSize: 20,
+  maxVisiblePages: 5
+});
+
+watch(currentPage, () => (pagnrState.filterValue.value = currentPage.value));
 
 const fetchGebruikerData = async () => {
   isGebruikerDataLoading.value = true;
@@ -127,7 +127,7 @@ const fetchGebruikerData = async () => {
 
 onMounted(() => {
   fetchGebruikerData();
-  if (actorFilter.filterValue.value) {
+  if (actorFilterState.filterValue.value) {
     fetchData();
   }
 });

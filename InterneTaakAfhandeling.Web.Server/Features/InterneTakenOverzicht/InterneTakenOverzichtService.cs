@@ -23,35 +23,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
         }
 
         public async Task<InterneTakenOverzichtResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery)
-        {
-
-            //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)
-            try
-            {
-                return await GetInterneTakenOverzichtInnerAsync(interneTakenQuery);
-            }
-            catch (HttpRequestException ex)
-            {
-                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound && interneTakenQuery.Page.HasValue && interneTakenQuery.Page.Value > 1)
-                {
-                    // it is possible that a page no longer exists when requested.
-                    // therefor if a specific page other than the first is requested and the result is a 404, 
-                    // we will fetch the first page
-
-                    interneTakenQuery.Page = 1;
-                    return await GetInterneTakenOverzichtInnerAsync(interneTakenQuery);
-                } 
-                
-                throw;
-            }
-            catch  
-            {
-                throw;
-            }
-        }
-
-        private async Task<InterneTakenOverzichtResponse> GetInterneTakenOverzichtInnerAsync(InterneTaakQuery interneTakenQuery)
-        {
+        {                   
             var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(interneTakenQuery);
 
             var OverzichtItems = (await Task.WhenAll(internetakenResponse.Results

@@ -1,3 +1,4 @@
+import { knownErrorMessages } from "@/utils/fetchWrapper";
 import { ref, computed } from "vue";
 
 export interface PaginationResponse<T = unknown> {
@@ -13,16 +14,9 @@ export interface PaginationOptions {
   maxVisiblePages?: number;
 }
 
-interface cacheItems {
-  [key: string]: number | undefined;
-}
-
-const cache: cacheItems = {};
-
 export function usePagination<T = unknown>(
   fetchFunction: (page: number, pageSize: number) => Promise<PaginationResponse<T>>,
-  options: PaginationOptions = {},
-  cacheKey: string
+  options: PaginationOptions = {}
 ) {
   const { initialPage = 1, initialPageSize = 20, maxVisiblePages = 5 } = options;
 
@@ -31,11 +25,7 @@ export function usePagination<T = unknown>(
   const results = ref<T[]>([]);
   const totalCount = ref(0);
 
-  const currentPage = ref<number>(cache[cacheKey] ?? initialPage);
-
-  if (!cache[cacheKey]) {
-    cache[cacheKey] = initialPage;
-  }
+  const currentPage = ref<number>(initialPage);
 
   const pageSize = ref(initialPageSize);
   const hasNextPage = ref(false);
@@ -91,24 +81,23 @@ export function usePagination<T = unknown>(
 
       results.value = response.results;
       totalCount.value = response.count;
-
-      //bit of a hack. If the requested page no longer exists,
-      //the server falls back to page 1
-      const actualReturnedPage = response.previous ? page : 1;
-
-      cache[cacheKey] = actualReturnedPage;
-
-      currentPage.value = actualReturnedPage;
-
+      currentPage.value = response.previous ? page : 1;
       hasNextPage.value = !!response.next;
       hasPreviousPage.value = !!response.previous;
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Er is een fout opgetreden bij het ophalen van gegevens";
-      error.value = message;
-      console.error("Pagination fetch error:", err);
+      //fallback to the first page in case of a notfound on a higer pagenr
+      if ((err as { message: string }).message == knownErrorMessages.notFound && page > 1) {
+        isLoading.value = false;
+        currentPage.value = 1;
+        await fetchData(currentPage.value);
+      } else {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Er is een fout opgetreden bij het ophalen van gegevens";
+        error.value = message;
+        console.error("Pagination fetch error:", err);
+      }
     } finally {
       isLoading.value = false;
     }
