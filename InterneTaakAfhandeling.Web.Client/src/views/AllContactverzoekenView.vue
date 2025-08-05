@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
@@ -44,6 +44,7 @@ import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import type { InterneTakenPaginated } from "@/types/internetaken";
 import { useRoute } from "vue-router";
+import { useState } from "@/composables/use-state";
 
 const route = useRoute();
 
@@ -56,6 +57,8 @@ const fetchInterneTaken = async (
     pageSize
   });
 };
+
+const pagnrCache = useState<number>("allcontactverzoekenView", "pagenr");
 
 const {
   isLoading,
@@ -73,10 +76,12 @@ const {
   goToNextPage,
   goToPreviousPage
 } = usePagination(fetchInterneTaken, {
-  initialPage: 1,
+  initialPage: pagnrCache.value ?? 1,
   initialPageSize: 20,
   maxVisiblePages: 5
 });
+
+watch(currentPage, () => (pagnrCache.value = currentPage.value));
 
 onMounted(() => {
   fetchData();

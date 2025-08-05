@@ -37,6 +37,15 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.AlleO
 
                 return Ok(result);
             }
+            catch (HttpRequestException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching interne taken Overzicht with page {Page}, pageSize {PageSize}",

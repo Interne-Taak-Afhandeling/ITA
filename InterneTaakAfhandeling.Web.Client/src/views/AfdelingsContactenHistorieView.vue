@@ -1,6 +1,9 @@
 <template>
   <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
-  <AfdelingenEnGroepenSelectieEnOverzicht :afgerond="true" />
+  <AfdelingenEnGroepenSelectieEnOverzicht
+    :afgerond="true"
+    cacheKey="AfdelingenEnGroepenHistorieView"
+  />
 </template>
 
 <script setup lang="ts">
