@@ -76,7 +76,7 @@ const {
   goToNextPage,
   goToPreviousPage
 } = usePagination(fetchInterneTaken, {
-  initialPage: (pagnrCache.filterValue.value as number) ?? 1,
+  initialPage: pagnrCache.filterValue.value ?? 1,
   initialPageSize: 20,
   maxVisiblePages: 5
 });

@@ -17,7 +17,7 @@
       <utrecht-form-label for="afdelingOfgroep">Selecteer een afdeling of groep</utrecht-form-label>
       <UtrechtSelect
         id="afdelingOfgroep"
-        v-model="actorFilterState.filterValue.value as number"
+        v-model="actorFilterState.filterValue.value"
         :options="gebruikerOptions"
       >
       </UtrechtSelect>
@@ -105,7 +105,7 @@ const {
   goToNextPage,
   goToPreviousPage
 } = usePagination(fetchInterneTaken, {
-  initialPage: (pagnrState.filterValue.value as number) ?? 1,
+  initialPage: pagnrState.filterValue.value ?? 1,
   initialPageSize: 20,
   maxVisiblePages: 5
 });
