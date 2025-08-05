@@ -38,7 +38,7 @@ import { onMounted, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
-import { get, knownErrorMessages } from "@/utils/fetchWrapper";
+import { get } from "@/utils/fetchWrapper";
 import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
