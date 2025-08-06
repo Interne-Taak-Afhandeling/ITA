@@ -37,7 +37,7 @@
     </detail-section>
 
     <detail-section title="Acties">
-      <contactmoment-registreren :taak="taak" @success="fetchInternetaken" />
+      <contactverzoek-acties :taak="taak" @success="fetchInternetaken" />
     </detail-section>
 
     <detail-section title="Logboek contactverzoek" class="ita-detail-section--compact">
@@ -61,7 +61,7 @@ import { internetakenService } from "@/services/internetakenService";
 import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
 import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
 import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
-import ContactmomentRegistreren from "@/components/ContactmomentRegistreren.vue";
+import ContactverzoekActies from "@/components/ContactverzoekActies.vue";
 import DetailSection from "@/components/DetailSection.vue";
 
 const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
