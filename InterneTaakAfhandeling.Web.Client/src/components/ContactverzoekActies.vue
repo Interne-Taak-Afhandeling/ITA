@@ -6,9 +6,9 @@
       Not using semantic tabs here as these buttons control form configuration
       rather than navigating between content panels.
     -->
-    <ita-radio-tabs legend="Kies een handeling" :options="HANDLINGS" v-model="form.handeling" />
+    <ita-radio-tabs legend="Kies een handeling" :options="HANDLINGS" v-model="handeling" />
 
-    <utrecht-fieldset v-if="isContactmoment">
+    <utrecht-fieldset v-if="isRegisterContactmoment">
       <utrecht-fieldset>
         <utrecht-legend>Resultaat</utrecht-legend>
         <utrecht-form-field v-for="(label, key) in RESULTS" :key="key" type="radio">
@@ -16,7 +16,7 @@
             name="resultaat"
             :id="key"
             :value="label"
-            v-model="form.resultaat"
+            v-model="registerContactmomentForm.resultaat"
             required
           />
           <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
@@ -30,7 +30,7 @@
             name="afsluiten"
             :id="key"
             :value="label"
-            v-model="form.afsluiten"
+            v-model="registerContactmomentForm.afsluiten"
             required
           />
           <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
@@ -39,7 +39,12 @@
 
       <utrecht-form-field>
         <utrecht-form-label for="kanalen">Kanaal</utrecht-form-label>
-        <utrecht-select required id="kanalen" v-model="form.kanaal" :options="kanalen" />
+        <utrecht-select
+          required
+          id="kanalen"
+          v-model="registerContactmomentForm.kanaal"
+          :options="kanalen"
+        />
       </utrecht-form-field>
       <utrecht-form-field>
         <utrecht-form-label for="informatie-burger"
@@ -47,23 +52,23 @@
         >
         <utrecht-textarea
           id="informatie-burger"
-          v-model="form.informatieBurger"
+          v-model="registerContactmomentForm.informatieBurger"
           :placeholder="!isInformatieBurgerRequired ? `Optioneel` : undefined"
           :required="isInformatieBurgerRequired"
         />
       </utrecht-form-field>
     </utrecht-fieldset>
 
-    <interne-toelichting-section>
+    <interne-toelichting-section v-if="isInterneToelichting">
       <utrecht-form-field>
         <utrecht-form-label for="interne-toelichting-text">
           Interne toelichting
         </utrecht-form-label>
         <utrecht-textarea
           id="interne-toelichting-text"
-          v-model="form.interneNotitie"
-          :placeholder="isContactmoment ? `Optioneel` : undefined"
-          :required="!isContactmoment"
+          v-model="interneToelichtingForm.interneNotitie"
+          :placeholder="undefined"
+          :required="true"
         />
         <div class="small">
           Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
@@ -72,9 +77,72 @@
       </utrecht-form-field>
     </interne-toelichting-section>
 
+    <utrecht-fieldset v-if="isForwardContactmoment">
+      <utrecht-fieldset>
+        <utrecht-legend>Contactmoment doorzetten naar</utrecht-legend>
+        <utrecht-form-field v-for="(label, key) in FORWARD_OPTIONS" :key="key" type="radio">
+          <utrecht-radiobutton
+            name="forwardTo"
+            :id="key"
+            :value="label"
+            v-model="forwardContactmomentForm.forwardTo"
+            required
+          />
+          <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
+        </utrecht-form-field>
+      </utrecht-fieldset>
+
+      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo == FORWARD_OPTIONS.afdeling">
+        <utrecht-form-label for="forwardTo">Afdeling</utrecht-form-label>
+        <utrecht-select
+          required
+          id="forwardTo"
+          v-model="forwardContactmomentForm.afdeling"
+          :options="afdelingen"
+        />
+      </utrecht-form-field>
+
+      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo == FORWARD_OPTIONS.groep">
+        <utrecht-form-label for="forwardTo">Groep</utrecht-form-label>
+        <utrecht-select
+          required
+          id="forwardTo"
+          v-model="forwardContactmomentForm.groep"
+          :options="groepen"
+        />
+      </utrecht-form-field>
+
+      <utrecht-form-field>
+        <utrecht-form-label for="medewerker">Medewerker</utrecht-form-label>
+        <utrecht-select
+          :required="forwardContactmomentForm.forwardTo == FORWARD_OPTIONS.medewerker"
+          id="medewerker"
+          v-model="forwardContactmomentForm.medewerker"
+          :options="medewerkers"
+        />
+      </utrecht-form-field>
+
+      <interne-toelichting-section>
+        <utrecht-form-field>
+          <utrecht-form-label for="interne-toelichting-text">
+            Interne toelichting
+          </utrecht-form-label>
+          <utrecht-textarea
+            id="interne-toelichting-text"
+            v-model="forwardContactmomentForm.interneNotitie"
+            :placeholder="'Optioneel'"
+          />
+          <div class="small">
+            Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
+            bedrijf.
+          </div>
+        </utrecht-form-field>
+      </interne-toelichting-section>
+    </utrecht-fieldset>
+
     <utrecht-button-group>
       <utrecht-button
-        v-if="isContactmoment && form.afsluiten === AFSLUITEN.ja"
+        v-if="isRegisterContactmoment && registerContactmomentForm.afsluiten === AFSLUITEN.ja"
         type="submit"
         appearance="primary-action-button"
         :disabled="isLoading"
@@ -88,10 +156,10 @@
         type="button"
         appearance="primary-action-button"
         :disabled="isLoading"
-        @click="isContactmoment ? saveContactmoment() : saveNote()"
+        @click="isRegisterContactmoment ? saveContactmoment() : saveNote()"
       >
         <span v-if="isLoading">Bezig met opslaan...</span>
-        <span v-else-if="isContactmoment">Contactmoment opslaan</span>
+        <span v-else-if="isRegisterContactmoment">Contactmoment opslaan</span>
         <span v-else>Opslaan</span>
       </utrecht-button>
     </utrecht-button-group>
@@ -126,12 +194,19 @@ const router = useRouter();
 
 const HANDLINGS = {
   contactmoment: "Contactmoment registreren",
+  contactmomentDoorsturen: "Doorsturen",
   interneToelichting: "Alleen toelichting"
 } as const;
 
 const RESULTS = {
   contactGelukt: "Contact opnemen gelukt",
   geenGehoor: "Contact opnemen niet gelukt"
+} as const;
+
+const FORWARD_OPTIONS = {
+  afdeling: "Afdeling",
+  groep: "Groep",
+  medewerker: "Medewerker"
 } as const;
 
 const AFSLUITEN = {
@@ -144,22 +219,58 @@ const kanalen = [
   ...["Balie", "Telefoon"].map((value) => ({ label: value, value }))
 ];
 
+const medewerkers = [
+  { label: "Selecteer een medewerker", value: "" },
+  ...["Example 1", "Example 2"].map((value) => ({ label: value, value }))
+];
+
+const afdelingen = [
+  { label: "Selecteer een afdeling", value: "" },
+  ...["Example 1", "Example 2"].map((value) => ({ label: value, value }))
+];
+
+const groepen = [
+  { label: "Selecteer een groep", value: "" },
+  ...["Example 1", "Example 2"].map((value) => ({ label: value, value }))
+];
+
 const isLoading = ref(false);
 const bevestigingsModalRef = ref<InstanceType<typeof BevestigingsModal>>();
 const formRef = ref<HTMLFormElement>();
 
-const form = ref({
-  handeling: HANDLINGS.contactmoment as (typeof HANDLINGS)[keyof typeof HANDLINGS],
+const handeling = ref(HANDLINGS.contactmoment as (typeof HANDLINGS)[keyof typeof HANDLINGS]);
+
+const registerContactmomentForm = ref({
   resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
   afsluiten: undefined as (typeof AFSLUITEN)[keyof typeof AFSLUITEN] | undefined,
   kanaal: "",
-  informatieBurger: "",
+  informatieBurger: ""
+});
+
+const interneToelichtingForm = ref({
   interneNotitie: ""
 });
 
-const isContactmoment = computed(() => form.value.handeling === HANDLINGS.contactmoment);
+const forwardContactmomentForm = ref({
+  forwardTo: FORWARD_OPTIONS.afdeling as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
+  medewerker: "",
+  groep: "",
+  afdeling: "",
+  interneNotitie: ""
+});
+
+const isRegisterContactmoment = computed(() => handeling.value === HANDLINGS.contactmoment);
+const isInterneToelichting = computed(() => handeling.value === HANDLINGS.interneToelichting);
+const isForwardContactmoment = computed(
+  () => handeling.value === HANDLINGS.contactmomentDoorsturen
+);
+
 const isInformatieBurgerRequired = computed(
-  () => !(form.value.resultaat === RESULTS.geenGehoor && form.value.afsluiten === AFSLUITEN.nee)
+  () =>
+    !(
+      registerContactmomentForm.value.resultaat === RESULTS.geenGehoor &&
+      registerContactmomentForm.value.afsluiten === AFSLUITEN.nee
+    )
 );
 
 function showConfirmation() {
@@ -178,7 +289,10 @@ async function saveNote() {
   if (!isValidForm()) return;
   isLoading.value = true;
   try {
-    await internetakenService.addNoteToInternetaak(taak.uuid, form.value.interneNotitie.trim());
+    await internetakenService.addNoteToInternetaak(
+      taak.uuid,
+      interneToelichtingForm.value.interneNotitie.trim()
+    );
     toast.add({ text: "Notitie succesvol toegevoegd", type: "ok" });
     resetForm();
     emit("success");
@@ -227,7 +341,7 @@ function getKlantcontactPayload() {
     aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
     partijUuid: getPartijId(),
     interneTaakId: taak.uuid,
-    interneNotitie: form.value.interneNotitie
+    interneNotitie: interneToelichtingForm.value.interneNotitie
   };
 }
 
@@ -250,10 +364,10 @@ function getPartijId() {
 
 function buildKlantcontactModel(): CreateKlantcontactRequest {
   return {
-    kanaal: form.value.kanaal,
+    kanaal: registerContactmomentForm.value.kanaal,
     onderwerp: taak.aanleidinggevendKlantcontact?.onderwerp || "Opvolging contactverzoek",
-    inhoud: form.value.informatieBurger,
-    indicatieContactGelukt: form.value.resultaat === RESULTS.contactGelukt,
+    inhoud: registerContactmomentForm.value.informatieBurger,
+    indicatieContactGelukt: registerContactmomentForm.value.resultaat === RESULTS.contactGelukt,
     taal: "nld", // ISO 639-2/B formaat
     vertrouwelijk: false,
     plaatsgevondenOp: new Date().toISOString()
@@ -261,12 +375,20 @@ function buildKlantcontactModel(): CreateKlantcontactRequest {
 }
 
 function resetForm() {
-  form.value = {
-    handeling: HANDLINGS.contactmoment,
+  registerContactmomentForm.value = {
     resultaat: RESULTS.contactGelukt,
     afsluiten: undefined,
     kanaal: "",
-    informatieBurger: "",
+    informatieBurger: ""
+  };
+  interneToelichtingForm.value = {
+    interneNotitie: ""
+  };
+  forwardContactmomentForm.value = {
+    forwardTo: FORWARD_OPTIONS.afdeling as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
+    medewerker: "",
+    groep: "",
+    afdeling: "",
     interneNotitie: ""
   };
 }
