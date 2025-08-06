@@ -17,13 +17,44 @@ public class KanalenController(IKanalenService kanalenService) : Controller
         return Ok(await kanalenService.GetKanalen());
     }
 
-    [HttpPost] 
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(KanalenEntity), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> GetKanalenById(string id)
+    {
+        return Ok(await kanalenService.GetKanalenById(id));
+    }
+
+    [HttpPost]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(KanalenEntity), StatusCodes.Status201Created)]
-
-    public async Task<IActionResult> CreateKanalen([FromBody] CreateKanalenModel request)
+    public async Task<IActionResult> CreateKanalen([FromBody] KanalenModel request)
     {
-        return !ModelState.IsValid ? ValidationProblem(ModelState) : StatusCode(201,await kanalenService.CreateKanalen(request.Naam));
+        return !ModelState.IsValid
+            ? ValidationProblem(ModelState)
+            : StatusCode(201, await kanalenService.CreateKanalen(request.Naam));
+    }
+
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(KanalenEntity), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> EditKanalen(string id, [FromBody] KanalenModel request)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
+        var updated = await kanalenService.EditKanalen(id, request.Naam);
+        return Ok(updated);
+    }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteKanalen(string id)
+    {
+        await kanalenService.DeleteKanalen(id);
+        return NoContent();
     }
 }
