@@ -33,7 +33,7 @@ const item = ref<Kanaal>({
   naam: ""
 });
 
-const handleSuccess = (result: Kanaal) => {
+const handleSuccess = () => {
   return router.push({ name: "kanalen" });
 };
 
@@ -46,8 +46,8 @@ const submit = async () => {
 };
 
 async function create() {
-  const result = await kanalenService.createKanaal(item.value.naam);
-  return handleSuccess(result);
+  await kanalenService.createKanaal(item.value.naam);
+  return handleSuccess();
 }
 </script>
 
