@@ -18,14 +18,14 @@ public class KanalenService(ApplicationDbContext dbContext) : IKanalenService
         return await dbContext.Kanalen.ToListAsync();
     }
 
-    public async Task<KanalenEntity> CreateKanalen(string name)
+    public async Task<KanalenEntity> CreateKanalen(string naam)
     {
-        if ((await dbContext.Kanalen.AnyAsync(x=> x.Name == name)))
+        if ((await dbContext.Kanalen.AnyAsync(x=> x.Naam == naam)))
         {
-            throw new ConflictException($"Er bestaat al een kanaal met de naam {name}.");
+            throw new ConflictException($"Er bestaat al een kanaal met de naam {naam}.");
         }
         
-        var kanalen = new KanalenEntity { Name = name };
+        var kanalen = new KanalenEntity { Naam = naam };
         dbContext.Add(kanalen);
         await dbContext.SaveChangesAsync();
         return kanalen;

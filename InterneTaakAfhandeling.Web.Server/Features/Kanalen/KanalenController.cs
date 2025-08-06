@@ -24,6 +24,6 @@ public class KanalenController(IKanalenService kanalenService) : Controller
 
     public async Task<IActionResult> CreateKanalen([FromBody] CreateKanalenModel request)
     {
-        return !ModelState.IsValid ? ValidationProblem(ModelState) : StatusCode(201,await kanalenService.CreateKanalen(request.Name));
+        return !ModelState.IsValid ? ValidationProblem(ModelState) : StatusCode(201,await kanalenService.CreateKanalen(request.Naam));
     }
 }

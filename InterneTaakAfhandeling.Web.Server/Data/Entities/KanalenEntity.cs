@@ -6,5 +6,5 @@ public class KanalenEntity : BaseEntity
 { 
     [Required] 
     [StringLength(255)] 
-    public string Name { get; init; } = string.Empty; 
+    public string Naam { get; init; } = string.Empty; 
 }
