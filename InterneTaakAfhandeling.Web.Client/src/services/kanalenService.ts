@@ -1,7 +1,7 @@
-import { get, post } from "@/utils/fetchWrapper";
+import { get, post, put, del } from "@/utils/fetchWrapper";
 
 export interface Kanaal {
-  id: number;
+  id: string;
   naam: string;
 }
 
@@ -9,7 +9,16 @@ export const kanalenService = {
   getKanalen: (): Promise<Kanaal[]> => {
     return get<Kanaal[]>("/api/kanalen");
   },
+  getKanaalById: (id: string): Promise<Kanaal> => {
+    return get<Kanaal>(`/api/kanalen/${id}`);
+  },
   createKanaal: (naam: string): Promise<Kanaal> => {
     return post<Kanaal>("/api/kanalen", { naam });
+  },
+  editKanaal: (id: string, naam: string): Promise<Kanaal> => {
+    return put<Kanaal>(`/api/kanalen/${id}`, { naam });
+  },
+  deleteKanaal: (id: string): Promise<void> => {
+    return del<void>(`/api/kanalen/${id}`);
   }
 };

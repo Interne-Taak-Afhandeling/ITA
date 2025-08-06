@@ -21,27 +21,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
 import { kanalenService, type Kanaal } from "@/services/kanalenService";
 
 const router = useRouter();
+const route = useRoute();
 
 const item = ref<Kanaal>({
-  id: 0,
+  id: "",
   naam: ""
 });
+
+const isEditing = ref(false);
 
 const handleSuccess = () => {
   return router.push({ name: "kanalen" });
 };
 
+const fetchKanaal = async (id: string) => {
+  try {
+    const kanaal = await kanalenService.getKanaalById(id);
+    item.value = kanaal;
+  } catch (error) {
+    console.error("Failed to fetch kanaal:", error);
+  }
+};
+
 const submit = async () => {
   try {
-    await create();
-  } catch {
-    console.error("Failed to create kanaal");
+    if (isEditing.value) {
+      await edit();
+    } else {
+      await create();
+    }
+  } catch (error) {
+    console.error("Failed to save kanaal:", error);
   }
 };
 
@@ -49,6 +65,19 @@ async function create() {
   await kanalenService.createKanaal(item.value.naam);
   return handleSuccess();
 }
+
+async function edit() {
+  await kanalenService.editKanaal(item.value.id, item.value.naam);
+  return handleSuccess();
+}
+
+onMounted(() => {
+  const id = route.params.id as string;
+  if (id) {
+    isEditing.value = true;
+    fetchKanaal(id);
+  }
+});
 </script>
 
 <style lang="scss" scoped>
