@@ -9,6 +9,8 @@ import AfdelingsContactenView from "@/views/AfdelingsContactenView.vue";
 import BeheerView from "@/views/beheer/BeheerLayout.vue";
 import KanalenView from "@/views/beheer/Kanalen/KanalenView.vue";
 import AfdelingsContactenHistorieView from "@/views/AfdelingsContactenHistorieView.vue";
+import KanaalView from "@/views/beheer/Kanalen/kanaalView.vue";
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -106,6 +108,15 @@ const router = createRouter({
           component: KanalenView,
           meta: {
             title: "Kanalen",
+            requiresITAAccess: true
+          }
+        },
+        {
+          path: "kanaal/:id?",
+          name: "kanaal",
+          component: KanaalView,
+          meta: {
+            title: "Kanaal",
             requiresITAAccess: true
           }
         }
