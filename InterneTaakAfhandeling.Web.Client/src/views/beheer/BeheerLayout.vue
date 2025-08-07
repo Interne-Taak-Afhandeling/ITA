@@ -1,7 +1,16 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link>
-    <router-link to="/beheer/kanalen">Kanalen</router-link>
+  <nav class="utrecht-nav-bar" aria-label="Beheermenu">
+    <div class="utrecht-nav-bar__content">
+      <ul data-v-6c285e9a="" role="list" class="utrecht-nav-list" id="menu">
+        <li data-v-6c285e9a="" class="utrecht-nav-list__item">
+          <router-link
+            to="/beheer/kanalen"
+            class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+            >Kanalen</router-link
+          >
+        </li>
+      </ul>
+    </div>
   </nav>
 
   <main>

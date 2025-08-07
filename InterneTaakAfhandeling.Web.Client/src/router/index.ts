@@ -18,8 +18,7 @@ const router = createRouter({
       component: DashboardView,
       meta: {
         title: "Mijn werkvoorraad",
-        requiresITAAccess: true,
-        showNav: true
+        requiresITAAccess: true
       }
     },
     {
@@ -28,8 +27,7 @@ const router = createRouter({
       component: AllContactverzoekenView,
       meta: {
         title: "Alle contactverzoeken",
-        requiresITAAccess: true,
-        showNav: true
+        requiresITAAccess: true
       }
     },
     //Historie
@@ -39,8 +37,7 @@ const router = createRouter({
       component: HistorieView,
       meta: {
         title: "Mijn historie",
-        requiresITAAccess: true,
-        showNav: true
+        requiresITAAccess: true
       }
     },
     {
@@ -66,8 +63,7 @@ const router = createRouter({
       component: ContactverzoekDetailView,
       meta: {
         title: "Contactverzoek",
-        requiresITAAccess: true,
-        showNav: true
+        requiresITAAccess: true
       }
     },
     {
@@ -76,8 +72,7 @@ const router = createRouter({
       component: AfdelingsContactenView,
       meta: {
         title: "Afdelingswerkvoorraad",
-        requiresITAAccess: true,
-        showNav: true
+        requiresITAAccess: true
       }
     },
     {
@@ -86,8 +81,7 @@ const router = createRouter({
       component: AfdelingsContactenHistorieView,
       meta: {
         title: "Afdelingshistorie",
-        requiresITAAccess: true,
-        showNav: true
+        requiresITAAccess: true
       }
     },
     {
@@ -96,8 +90,7 @@ const router = createRouter({
       component: BeheerView,
       meta: {
         title: "Beheer",
-        requiresITAAccess: true,
-        showNav: false
+        requiresITAAccess: true
       },
       children: [
         {
