@@ -12,7 +12,7 @@ using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.EntityFrameworkCore;
 using InterneTaakAfhandeling.Web.Server.Data;
-using InterneTaakAfhandeling.Web.Server.Features.Kanalen;
+
 
 
 namespace InterneTaakAfhandeling.Web.Server.Config
@@ -55,7 +55,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IAssignInternetaakToMeService, AssignInternetaakToMeService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
-            services.AddScoped<IKanalenService, KanalenService>();
+
             
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));

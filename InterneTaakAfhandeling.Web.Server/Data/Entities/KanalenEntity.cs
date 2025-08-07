@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace InterneTaakAfhandeling.Web.Server.Data.Entities;
 
+[Index(nameof(Naam), IsUnique = true)]
 public class KanalenEntity : BaseEntity
-{ 
-    [Required] 
-    [StringLength(255)] 
-    public string Naam { get; init; } = string.Empty; 
+{  
+    [StringLength(255, MinimumLength = 3)]
+    public required string Naam { get; init; }  
 }
