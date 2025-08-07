@@ -10,6 +10,6 @@ export const kanalenService = {
     return get<Kanaal[]>("/api/kanalen");
   },
   createKanaal: (naam: string): Promise<Kanaal> => {
-    return post<Kanaal>("/api/kanalen", { naam });
+    return post<Kanaal>("/api/kanaal", { naam });
   }
 };
