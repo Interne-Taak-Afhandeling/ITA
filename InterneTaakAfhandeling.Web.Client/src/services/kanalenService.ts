@@ -10,15 +10,15 @@ export const kanalenService = {
     return get<Kanaal[]>("/api/kanalen");
   },
   getKanaalById: (id: string): Promise<Kanaal> => {
-    return get<Kanaal>(`/api/kanalen/${id}`);
+    return get<Kanaal>(`/api/kanaal/${id}`);
   },
   createKanaal: (naam: string): Promise<Kanaal> => {
-    return post<Kanaal>("/api/kanalen", { naam });
+    return post<Kanaal>("/api/kanaal", { naam });
   },
   editKanaal: (id: string, naam: string): Promise<Kanaal> => {
-    return put<Kanaal>(`/api/kanalen/${id}`, { naam });
+    return put<Kanaal>(`/api/kanaal/${id}`, { naam });
   },
   deleteKanaal: (id: string): Promise<void> => {
-    return del<void>(`/api/kanalen/${id}`);
+    return del<void>(`/api/kanaal/${id}`);
   }
 };
