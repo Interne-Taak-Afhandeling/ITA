@@ -21,10 +21,10 @@
   </utrecht-unordered-list>
   <router-link
     :to="{ name: 'kanaal' }"
-    title="toevoegen"
+    title="Kanaal toevoegen"
     class="utrecht-button utrecht-button--primary-action add-button"
   >
-    <span class="plus-icon">+</span>
+    <span class="plus-icon" aria-hidden="true">+</span>
   </router-link>
 </template>
 
