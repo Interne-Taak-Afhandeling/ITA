@@ -53,9 +53,12 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | postgresql.auth.postgresPassword | string | `""` |  |
 | postgresql.auth.username | string | `""` |  |
 | postgresql.enabled | bool | `true` |  |
+| postgresql.image.repository | string | `"bitnamilegacy/postgresql"` |  |
 | postgresql.metrics.enabled | bool | `false` |  |
+| postgresql.metrics.image.repository | string | `"bitnamilegacy/postgres-exporter"` |  |
 | postgresql.primary.persistence.enabled | bool | `true` |  |
 | postgresql.primary.persistence.size | string | `"8Gi"` |  |
+| postgresql.volumePermissions.image.repository | string | `"bitnamilegacy/os-shell"` |  |
 | web.appsettings.setting1 | string | `""` |  |
 | web.appsettings.setting2 | string | `""` |  |
 | web.image.pullPolicy | string | `"Always"` |  |
