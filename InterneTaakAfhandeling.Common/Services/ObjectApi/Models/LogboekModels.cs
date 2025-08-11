@@ -64,3 +64,18 @@ public class LogboekOptions
 
     public required string TypeVersion { get; init; }
 }
+
+
+public class AfdelingOptions
+{
+    public required string Type { get; init; }
+
+    public required string TypeVersion { get; init; }
+}
+
+public class GroepOptions
+{
+    public required string Type { get; init; }
+
+    public required string TypeVersion { get; init; }
+}

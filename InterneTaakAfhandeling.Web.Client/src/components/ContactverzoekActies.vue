@@ -1,5 +1,10 @@
 <template>
   <SimpleSpinner v-if="isLoading" />
+
+  <utrecht-alert v-else-if="error" type="error">
+    {{ error }}
+  </utrecht-alert>
+
   <form v-else ref="formRef" @submit.prevent="showConfirmation">
     <!--
       Radio button group pattern which mimics tabs.
@@ -178,7 +183,7 @@
 <script setup lang="ts">
 import { klantcontactService } from "@/services/klantcontactService";
 import type { CreateKlantcontactRequest, Internetaken } from "@/types/internetaken";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
 import { useRouter } from "vue-router";
@@ -187,6 +192,8 @@ import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 import { useBackNavigation } from "@/composables/use-back-navigation";
 import ItaRadioTabs from "./ItaRadioTabs.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import { get } from "@/utils/fetchWrapper";
+import UtrechtAlert from "@/components/UtrechtAlert.vue";
 
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
@@ -224,17 +231,16 @@ const medewerkers = [
   ...["Example 1", "Example 2"].map((value) => ({ label: value, value }))
 ];
 
-const afdelingen = [
-  { label: "Selecteer een afdeling", value: "" },
-  ...["Example 1", "Example 2"].map((value) => ({ label: value, value }))
-];
+const afdelingen = ref<{ label: string; value: string }[]>([
+  { label: "Selecteer een afdeling", value: "" }
+]);
 
-const groepen = [
-  { label: "Selecteer een groep", value: "" },
-  ...["Example 1", "Example 2"].map((value) => ({ label: value, value }))
-];
+const groepen = ref<{ label: string; value: string }[]>([
+  { label: "Selecteer een groep", value: "" }
+]);
 
-const isLoading = ref(false);
+const isLoading = ref(true);
+const error = ref<string | null>(null);
 const bevestigingsModalRef = ref<InstanceType<typeof BevestigingsModal>>();
 const formRef = ref<HTMLFormElement>();
 
@@ -297,7 +303,7 @@ async function saveNote() {
     resetForm();
     emit("success");
   } catch (err: unknown) {
-    handleError(err);
+    handleSubmitError(err);
   } finally {
     isLoading.value = false;
   }
@@ -312,7 +318,7 @@ async function saveContactmoment() {
     resetForm();
     emit("success");
   } catch (err: unknown) {
-    handleError(err);
+    handleSubmitError(err);
   } finally {
     isLoading.value = false;
   }
@@ -329,7 +335,7 @@ async function finishContactmoment() {
     const backNavifation = useBackNavigation();
     router.push(backNavifation.backButtonInfo.value.route);
   } catch (err: unknown) {
-    handleError(err);
+    handleSubmitError(err);
   } finally {
     isLoading.value = false;
   }
@@ -393,10 +399,46 @@ function resetForm() {
   };
 }
 
-function handleError(err: unknown) {
+function handleSubmitError(err: unknown) {
   const message = err instanceof Error && err.message ? err.message : "Er is een fout opgetreden.";
   toast.add({ text: message, type: "error" });
 }
+
+function handleLoadingError(err: unknown) {
+  const message =
+    err instanceof Error && err.message
+      ? err.message
+      : "Er is een fout opgetreden. Herlaad de pagina. Als het probleem blijft bestaan, neem contact op met functioneel beheer";
+  error.value = message;
+}
+
+const fetchAfdelingen = async () => {
+  afdelingen.value = [];
+
+  afdelingen.value = [
+    ...(await get<string[]>("/api/afdelingen")).map((value) => ({ label: value, value }))
+  ];
+};
+
+const fetchGroepen = async () => {
+  afdelingen.value = [];
+
+  groepen.value = [
+    ...(await get<string[]>("/api/groepen")).map((value) => ({ label: value, value }))
+  ];
+};
+
+onMounted(async () => {
+  try {
+    isLoading.value = true;
+    error.value = null;
+    await Promise.all([fetchAfdelingen(), fetchGroepen()]);
+  } catch (err: unknown) {
+    handleLoadingError(err);
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 
 <style lang="scss" scoped>
