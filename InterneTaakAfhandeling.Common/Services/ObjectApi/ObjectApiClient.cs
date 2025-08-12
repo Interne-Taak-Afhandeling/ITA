@@ -203,7 +203,7 @@ public class ObjectApiClient(
         catch (HttpRequestException ex)
         {
             var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
-            _logger.LogError(ex, "Error retrieving afdelingen from overigeobjecten. Error response {errorResponse}", errorResponse);
+            _logger.LogError(ex, "Error retrieving afdelingen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
             throw;
         }
     }
@@ -222,7 +222,7 @@ public class ObjectApiClient(
         catch (HttpRequestException ex)
         {
             var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
-            _logger.LogError(ex, "Error retrieving groepen from overigeobjecten. Error response {errorResponse}", errorResponse);
+            _logger.LogError(ex, "Error retrieving groepen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
             throw;
         }
     }
