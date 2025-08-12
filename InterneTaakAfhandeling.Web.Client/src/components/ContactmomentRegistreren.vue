@@ -1,5 +1,12 @@
 <template>
   <SimpleSpinner v-if="isLoading" />
+
+  <utrecht-paragraph v-else-if="!isKanalenExist">
+    Er zijn nog geen kanalen ingeregeld. Zonder deze kanalen kun je geen contactverzoeken
+    afhandelen. Zorg dat er, onder Beheer, minimaal één kanaal is aangemaakt. Neem eventueel contact
+    op met Functioneel Beheer.
+  </utrecht-paragraph>
+
   <form v-else ref="formRef" @submit.prevent="showConfirmation">
     <!--
       Radio button group pattern which mimics tabs.
@@ -109,8 +116,9 @@
 
 <script setup lang="ts">
 import { klantcontactService } from "@/services/klantcontactService";
+import { kanalenService, type Kanaal } from "@/services/kanalenService";
 import type { CreateKlantcontactRequest, Internetaken } from "@/types/internetaken";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
 import { useRouter } from "vue-router";
@@ -139,10 +147,23 @@ const AFSLUITEN = {
   nee: "Nee"
 } as const;
 
-const kanalen = [
-  { label: "Selecteer een kanaal", value: "" },
-  ...["Balie", "Telefoon"].map((value) => ({ label: value, value }))
-];
+const kanalen = ref([{ label: "Selecteer een kanaal", value: "" }]);
+
+const fetchKanalen = async () => {
+  try {
+    const response = await kanalenService.getKanalen();
+    kanalen.value = [
+      ...kanalen.value,
+      ...(response?.map((kanaal: Kanaal) => ({ label: kanaal.naam, value: kanaal.naam })) ?? [])
+    ];
+  } catch (error) {
+    console.error("Failed to fetch kanalen:", error);
+  }
+};
+
+onMounted(() => {
+  fetchKanalen();
+});
 
 const isLoading = ref(false);
 const bevestigingsModalRef = ref<InstanceType<typeof BevestigingsModal>>();
@@ -157,6 +178,7 @@ const form = ref({
   interneNotitie: ""
 });
 
+const isKanalenExist = computed(() => !isLoading.value && kanalen.value.length > 1);
 const isContactmoment = computed(() => form.value.handeling === HANDLINGS.contactmoment);
 const isInformatieBurgerRequired = computed(
   () => !(form.value.resultaat === RESULTS.geenGehoor && form.value.afsluiten === AFSLUITEN.nee)
