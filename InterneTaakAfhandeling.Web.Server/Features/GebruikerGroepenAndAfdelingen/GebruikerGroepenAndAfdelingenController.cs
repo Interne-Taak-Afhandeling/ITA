@@ -33,9 +33,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.GebruikerGroepenAndAfdeling
 
             var result = results.Single().Data;
             //return new List<string>();
-            return (result.Afdelingen ?? Enumerable.Empty<Afdeling>())
+            return (result.Afdelingen ?? Enumerable.Empty<MedewerkerAfdeling>())
                 .Select(a => a.Afdelingnaam)
-                .Concat((result.Groepen ?? Enumerable.Empty<Groep>())
+                .Concat((result.Groepen ?? Enumerable.Empty<MedewerkerGroep>())
                     .Select(g => g.Groepsnaam))
                 .ToList();
         }

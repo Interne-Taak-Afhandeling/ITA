@@ -22,30 +22,23 @@ import ContactverzoekInterneNotitie from "./ContactverzoekInterneNotitie.vue";
 import ContactverzoekDoorsturen from "./ContactverzoekDoorsturen.vue";
 import ContactverzoekRegisteren from "./ContactverzoekRegistreren.vue";
 import type { Internetaken } from "@/types/internetaken";
-
 import ItaRadioTabs from "./ItaRadioTabs.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
-
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
-
 const HANDLINGS = {
   contactmoment: "Contactmoment registreren",
   contactmomentDoorsturen: "Doorsturen",
   interneToelichting: "Alleen toelichting"
 } as const;
-
 const isLoading = ref(false);
 const formRef = ref<HTMLFormElement>();
-
 const handeling = ref(HANDLINGS.contactmoment as (typeof HANDLINGS)[keyof typeof HANDLINGS]);
-
 const isRegisterContactmoment = computed(() => handeling.value === HANDLINGS.contactmoment);
 const isInterneToelichting = computed(() => handeling.value === HANDLINGS.interneToelichting);
 const isForwardContactmoment = computed(
   () => handeling.value === HANDLINGS.contactmomentDoorsturen
 );
-
 function succes() {
   emit("success");
 }
