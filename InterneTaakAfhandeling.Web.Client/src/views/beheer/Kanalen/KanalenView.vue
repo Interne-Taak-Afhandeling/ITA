@@ -32,8 +32,7 @@
     class="utrecht-button utrecht-button--primary-action round-button"
   >
     <utrecht-icon icon="add-plus" aria-hidden="true" />
-  </router-link> 
-   
+  </router-link>
 </template>
 
 <script lang="ts" setup>
@@ -110,7 +109,6 @@ onMounted(() => {
   width: 100%;
 }
 
- 
 .round-button {
   display: inline-flex;
   align-items: center;
@@ -123,8 +121,6 @@ onMounted(() => {
   width: 1.25rem;
   height: 1.25rem;
 }
-
-
 
 .empty-state {
   margin: 2rem;
