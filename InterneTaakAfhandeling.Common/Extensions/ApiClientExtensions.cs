@@ -54,6 +54,18 @@ namespace InterneTaakAfhandeling.Common.Extensions
                 .Bind(configuration.GetSection("LogBoekOptions"))
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
+
+            services.AddOptions<AfdelingOptions>()
+              .Bind(configuration.GetSection("AfdelingOptions"))
+              .ValidateDataAnnotations()
+              .ValidateOnStart();
+
+            services.AddOptions<GroepOptions>()
+             .Bind(configuration.GetSection("GroepOptions"))
+             .ValidateDataAnnotations()
+             .ValidateOnStart();
+
+
             return services;
         } 
  
