@@ -3,7 +3,7 @@
   <utrecht-alert v-else-if="error" type="error">
     {{ error }}
   </utrecht-alert>
-  <form v-else ref="formRef">
+  <form v-else @submit.prevent="forwardContactverzoek">
     <utrecht-fieldset>
       <utrecht-fieldset>
         <utrecht-legend>Contactmoment doorzetten naar</utrecht-legend>
@@ -49,50 +49,22 @@
         />
       </utrecht-form-field>
 
-      <interne-toelichting-section>
-        <utrecht-form-field>
-          <utrecht-form-label for="interne-toelichting-text">
-            Interne toelichting
-          </utrecht-form-label>
-          <utrecht-textarea
-            id="interne-toelichting-text"
-            v-model="forwardContactmomentForm.interneNotitie"
-            :placeholder="'Optioneel'"
-          />
-          <div class="small">
-            Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
-            bedrijf.
-          </div>
-        </utrecht-form-field>
-      </interne-toelichting-section>
+      <interne-toelichting-field
+        v-model="forwardContactmomentForm.interneNotitie"
+        placeholder="Optioneel"
+      />
     </utrecht-fieldset>
 
-    <utrecht-button
-      type="button"
-      appearance="primary-action-button"
-      :disabled="isLoading"
-      @click="forwardContactverzoek()"
+    <utrecht-button type="submit" appearance="primary-action-button"
+      >Contactverzoek doorsturen</utrecht-button
     >
-      <span v-if="isLoading">Bezig met opslaan...</span>
-      <span v-else>Contactverzoek doorsturen</span>
-    </utrecht-button>
   </form>
-
-  <bevestigings-modal
-    ref="bevestigingsModalRef"
-    title="Contactverzoek afronden"
-    message="Weet je zeker dat je het contactverzoek wilt opslaan en afronden?"
-    confirm-text="Opslaan & afronden"
-    cancel-text="Annuleren"
-    @confirm="forwardContactverzoek()"
-  />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { toast } from "./toast/toast";
-import BevestigingsModal from "./BevestigingsModal.vue";
-import InterneToelichtingSection from "./InterneToelichtingSection.vue";
+import InterneToelichtingField from "./InterneToelichtingField.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { get } from "@/utils/fetchWrapper";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
@@ -114,12 +86,10 @@ const afdelingen = ref<{ label: string; value: string }[]>([]);
 
 const groepen = ref<{ label: string; value: string }[]>([]);
 
-const isLoading = ref(true);
+const isLoading = ref(false);
 const error = ref<string | null>(null);
-const bevestigingsModalRef = ref<InstanceType<typeof BevestigingsModal>>();
-const formRef = ref<HTMLFormElement>();
 
-const forwardContactmomentForm = ref({
+const createForm = () => ({
   forwardTo: FORWARD_OPTIONS.afdeling as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
   medewerker: "",
   groep: "",
@@ -127,26 +97,13 @@ const forwardContactmomentForm = ref({
   interneNotitie: ""
 });
 
-function isValidForm() {
-  if (!formRef.value?.checkValidity()) {
-    formRef.value?.reportValidity();
-    return false;
-  }
-  return true;
-}
+const forwardContactmomentForm = ref(createForm());
 
 function resetForm() {
-  forwardContactmomentForm.value = {
-    forwardTo: FORWARD_OPTIONS.afdeling as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
-    medewerker: "",
-    groep: "",
-    afdeling: "",
-    interneNotitie: ""
-  };
+  forwardContactmomentForm.value = createForm();
 }
 
 async function forwardContactverzoek() {
-  if (!isValidForm()) return;
   isLoading.value = true;
   try {
     // TODO api call
@@ -201,24 +158,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style lang="scss" scoped>
-.utrecht-form-label {
-  display: block;
-}
-
-.utrecht-button-group {
-  margin-top: 1rem;
-}
-
-.small {
-  font-size: var(--denhaag-process-steps-step-meta-font-size);
-  color: var(--denhaag-process-steps-step-meta-color);
-}
-
-textarea,
-input,
-select {
-  max-width: 100%;
-}
-</style>

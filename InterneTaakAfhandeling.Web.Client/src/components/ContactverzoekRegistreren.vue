@@ -1,6 +1,6 @@
 <template>
   <SimpleSpinner v-if="isLoading" />
-  <form v-else ref="formRef" @submit.prevent="showConfirmation">
+  <form v-else @submit.prevent="submit">
     <utrecht-fieldset>
       <utrecht-fieldset>
         <utrecht-legend>Resultaat</utrecht-legend>
@@ -50,29 +50,17 @@
           :required="isInformatieBurgerRequired"
         />
       </utrecht-form-field>
+
+      <interne-toelichting-field
+        v-model="registerContactmomentForm.interneNotitie"
+        placeholder="Optioneel"
+      />
     </utrecht-fieldset>
 
     <utrecht-button-group>
-      <utrecht-button
-        v-if="registerContactmomentForm.afsluiten === AFSLUITEN.ja"
-        type="submit"
-        appearance="primary-action-button"
-        :disabled="isLoading"
+      <utrecht-button type="submit" appearance="primary-action-button"
+        >Contactmoment opslaan</utrecht-button
       >
-        <span v-if="isLoading">Bezig met opslaan...</span>
-        <span v-else>Contactmoment opslaan</span>
-      </utrecht-button>
-
-      <utrecht-button
-        v-else
-        type="button"
-        appearance="primary-action-button"
-        :disabled="isLoading"
-        @click="saveContactmoment()"
-      >
-        <span v-if="isLoading">Bezig met opslaan...</span>
-        <span v-else>Contactmoment opslaan</span>
-      </utrecht-button>
     </utrecht-button-group>
   </form>
 
@@ -82,7 +70,7 @@
     message="Weet je zeker dat je het contactverzoek wilt opslaan en afronden?"
     confirm-text="Opslaan & afronden"
     cancel-text="Annuleren"
-    @confirm="finishContactmoment()"
+    @confirm="finishContactmoment"
   />
 </template>
 
@@ -94,7 +82,7 @@ import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
 import { useRouter } from "vue-router";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
-import { useBackNavigation } from "@/composables/use-back-navigation";
+import InterneToelichtingField from "./InterneToelichtingField.vue";
 
 const router = useRouter();
 const emit = defineEmits<{ success: [] }>();
@@ -117,14 +105,16 @@ const kanalen = [
 
 const isLoading = ref(false);
 const bevestigingsModalRef = ref<InstanceType<typeof BevestigingsModal>>();
-const formRef = ref<HTMLFormElement>();
 
-const registerContactmomentForm = ref({
+const createForm = () => ({
   resultaat: RESULTS.contactGelukt as (typeof RESULTS)[keyof typeof RESULTS],
   afsluiten: undefined as (typeof AFSLUITEN)[keyof typeof AFSLUITEN] | undefined,
   kanaal: "",
-  informatieBurger: ""
+  informatieBurger: "",
+  interneNotitie: ""
 });
+
+const registerContactmomentForm = ref(createForm());
 
 const isInformatieBurgerRequired = computed(
   () =>
@@ -133,21 +123,12 @@ const isInformatieBurgerRequired = computed(
       registerContactmomentForm.value.afsluiten === AFSLUITEN.nee
     )
 );
-
-function showConfirmation() {
-  bevestigingsModalRef.value?.show();
-}
-
-function isValidForm() {
-  if (!formRef.value?.checkValidity()) {
-    formRef.value?.reportValidity();
-    return false;
-  }
-  return true;
-}
+const submit = () =>
+  registerContactmomentForm.value.afsluiten === AFSLUITEN.ja
+    ? bevestigingsModalRef.value?.show()
+    : saveContactmoment();
 
 async function saveContactmoment() {
-  if (!isValidForm()) return;
   isLoading.value = true;
   try {
     await klantcontactService.createRelatedKlantcontact(getKlantcontactPayload());
@@ -162,15 +143,13 @@ async function saveContactmoment() {
 }
 
 async function finishContactmoment() {
-  if (!isValidForm()) return;
   isLoading.value = true;
   try {
     await klantcontactService.createRelatedKlantcontactAndCloseInterneTaak(
       getKlantcontactPayload()
     );
     toast.add({ text: "Contactmoment succesvol opgeslagen en afgerond", type: "ok" });
-    const backNavifation = useBackNavigation();
-    router.push(backNavifation.backButtonInfo.value.route);
+    router.back();
   } catch (err: unknown) {
     handleError(err);
   } finally {
@@ -217,12 +196,7 @@ function buildKlantcontactModel(): CreateKlantcontactRequest {
 }
 
 function resetForm() {
-  registerContactmomentForm.value = {
-    resultaat: RESULTS.contactGelukt,
-    afsluiten: undefined,
-    kanaal: "",
-    informatieBurger: ""
-  };
+  registerContactmomentForm.value = createForm();
 }
 
 function handleError(err: unknown) {
@@ -230,30 +204,3 @@ function handleError(err: unknown) {
   toast.add({ text: message, type: "error" });
 }
 </script>
-
-<style lang="scss" scoped>
-.utrecht-form-label {
-  display: block;
-}
-
-.utrecht-button-group {
-  margin-top: 1rem;
-}
-
-.small {
-  font-size: var(--denhaag-process-steps-step-meta-font-size);
-  color: var(--denhaag-process-steps-step-meta-color);
-}
-
-textarea,
-input,
-select {
-  max-width: 100%;
-}
-
-.utrecht-button-group {
-  margin-block-end: calc(
-    var(--utrecht-space-around, 0) * var(--utrecht-data-list-margin-block-end, 0)
-  );
-}
-</style>
