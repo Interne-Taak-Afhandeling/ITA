@@ -231,13 +231,9 @@ const medewerkers = [
   ...["Example 1", "Example 2"].map((value) => ({ label: value, value }))
 ];
 
-const afdelingen = ref<{ label: string; value: string }[]>([
-  { label: "Selecteer een afdeling", value: "" }
-]);
+const afdelingen = ref<{ label: string; value: string }[]>([]);
 
-const groepen = ref<{ label: string; value: string }[]>([
-  { label: "Selecteer een groep", value: "" }
-]);
+const groepen = ref<{ label: string; value: string }[]>([]);
 
 const isLoading = ref(true);
 const error = ref<string | null>(null);
@@ -416,6 +412,7 @@ const fetchAfdelingen = async () => {
   afdelingen.value = [];
 
   afdelingen.value = [
+    { label: "Selecteer een afdeling", value: "" },
     ...(await get<string[]>("/api/afdelingen")).map((value) => ({ label: value, value }))
   ];
 };
@@ -424,6 +421,7 @@ const fetchGroepen = async () => {
   afdelingen.value = [];
 
   groepen.value = [
+    { label: "Selecteer een groep", value: "" },
     ...(await get<string[]>("/api/groepen")).map((value) => ({ label: value, value }))
   ];
 };
