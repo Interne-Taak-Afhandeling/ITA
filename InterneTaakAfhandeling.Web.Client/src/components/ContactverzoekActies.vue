@@ -8,20 +8,19 @@
     -->
     <ita-radio-tabs legend="Kies een handeling" :options="HANDLINGS" v-model="handeling" />
 
-    <ContactverzoekRegister :taak="taak" @success="succes()" v-if="isRegisterContactmoment" />
+    <ContactverzoekRegisteren :taak="taak" @success="succes()" v-if="isRegisterContactmoment" />
 
     <ContactverzoekInterneNotitie :taak="taak" @success="succes()" v-if="isInterneToelichting" />
 
-    <ContactverzoekForward :taak="taak" @success="succes()" v-if="isForwardContactmoment" />
+    <ContactverzoekDoorsturen :taak="taak" @success="succes()" v-if="isForwardContactmoment" />
   </form>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import BevestigingsModal from "./BevestigingsModal.vue";
 import ContactverzoekInterneNotitie from "./ContactverzoekInterneNotitie.vue";
-import ContactverzoekForward from "./ContactverzoekForward.vue";
-import ContactverzoekRegister from "./ContactverzoekRegister.vue";
+import ContactverzoekDoorsturen from "./ContactverzoekDoorsturen.vue";
+import ContactverzoekRegisteren from "./ContactverzoekRegistreren.vue";
 import type { Internetaken } from "@/types/internetaken";
 
 import ItaRadioTabs from "./ItaRadioTabs.vue";
