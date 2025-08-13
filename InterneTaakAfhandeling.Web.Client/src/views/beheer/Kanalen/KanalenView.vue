@@ -1,7 +1,9 @@
 <template>
   <utrecht-heading :level="2">Kanalen</utrecht-heading>
 
-  <utrecht-unordered-list v-if="kanalen.data.length" class="kanalen-list">
+  <SimpleSpinner v-if="isLoading" />
+
+  <utrecht-unordered-list v-else-if="kanalen.data.length" class="kanalen-list">
     <utrecht-unordered-list-item v-for="{ id, naam } in kanalen.data" :key="id" class="kanaal-item">
       <div class="kanaal-content">
         <router-link :to="{ name: 'kanaal', params: { id } }" class="kanaal-link">{{
@@ -9,28 +11,37 @@
         }}</router-link>
         <button
           @click="confirmDelete(id, naam)"
-          class="delete-button"
+          class="utrecht-button utrecht-button--primary-action round-button"
           :aria-label="`Verwijder kanaal ${naam}`"
           title="Verwijderen"
+          :disabled="isLoading"
         >
-          <!-- TODO integrate UtrechtIcon at the final stage of this story -->
-          <span>x</span>
+          <UtrechtIcon icon="trash-can" />
         </button>
       </div>
     </utrecht-unordered-list-item>
   </utrecht-unordered-list>
+
+  <div v-else-if="!isLoading" class="empty-state">
+    <p>Geen kanalen gevonden.</p>
+  </div>
+
   <router-link
     :to="{ name: 'kanaal' }"
     title="Kanaal toevoegen"
-    class="utrecht-button utrecht-button--primary-action add-button"
+    class="utrecht-button utrecht-button--primary-action round-button"
   >
-    <span class="plus-icon" aria-hidden="true">+</span>
-  </router-link>
+    <utrecht-icon icon="add-plus" aria-hidden="true" />
+  </router-link> 
+   
 </template>
 
 <script lang="ts" setup>
 import { kanalenService, type Kanaal } from "@/services/kanalenService";
 import { ref, onMounted } from "vue";
+import UtrechtIcon from "@/components/UtrechtIcon.vue";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import { toast } from "@/components/toast/toast";
 
 const kanalen = ref<{
   data: Kanaal[];
@@ -38,9 +49,19 @@ const kanalen = ref<{
   data: []
 });
 
+const isLoading = ref(false);
+
 const fetchKanalen = async () => {
-  const data = await kanalenService.getKanalen();
-  kanalen.value.data = data;
+  try {
+    isLoading.value = true;
+    const data = await kanalenService.getKanalen();
+    kanalen.value.data = data;
+  } catch (error: unknown) {
+    console.error("Error fetching kanalen:", error);
+    toast.add({ text: error instanceof Error ? error?.message : "", type: "error" });
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const confirmDelete = (id: string, naam: string) => {
@@ -51,10 +72,15 @@ const confirmDelete = (id: string, naam: string) => {
 
 const deleteKanaal = async (id: string) => {
   try {
+    isLoading.value = true;
     await kanalenService.deleteKanaal(id);
-    fetchKanalen();
-  } catch (err) {
-    console.error("Error deleting kanaal:", err);
+    await fetchKanalen();
+    toast.add({ text: "Kanaal succesvol verwijderd.", type: "ok" });
+  } catch (error: unknown) {
+    console.error("Error deleting kanaal:", error);
+    toast.add({ text: error instanceof Error ? error?.message : "", type: "error" });
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -84,20 +110,25 @@ onMounted(() => {
   width: 100%;
 }
 
-.add-button {
-  margin: 2rem;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  display: flex;
+ 
+.round-button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none;
+  padding: 0.375rem;
+  border-radius: 50%;
 }
 
-.plus-icon {
-  font-size: 1rem;
-  font-weight: bold;
-  color: var(--utrecht-color-white);
+.round-button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+
+
+.empty-state {
+  margin: 2rem;
+  text-align: center;
+  color: var(--utrecht-color-grey-60);
 }
 </style>
