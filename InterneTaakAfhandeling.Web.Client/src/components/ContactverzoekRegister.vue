@@ -183,8 +183,7 @@ function getKlantcontactPayload() {
     klantcontactRequest: buildKlantcontactModel(),
     aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
     partijUuid: getPartijId(),
-    interneTaakId: taak.uuid,
-    interneNotitie: "" // TODO: This was always null before refactor?
+    interneTaakId: taak.uuid
   };
 }
 
