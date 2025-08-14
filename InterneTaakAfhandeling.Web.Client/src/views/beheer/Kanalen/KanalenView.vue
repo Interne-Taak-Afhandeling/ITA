@@ -1,8 +1,8 @@
 <template>
   <utrecht-heading :level="2">Kanalen</utrecht-heading>
   <nav class="utrecht-nav-bar" aria-label="Beheer submenu">
-    <ul data-v-8dd1502a="" data-v-6c285e9a="" role="list" class="utrecht-nav-list" id="menu">
-      <li data-v-8dd1502a="" data-v-6c285e9a="" class="utrecht-nav-list__item">
+    <ul class="utrecht-nav-list">
+      <li class="utrecht-nav-list__item">
         <a
           class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
           href="https://ita.readthedocs.io/nl/latest/manual"
