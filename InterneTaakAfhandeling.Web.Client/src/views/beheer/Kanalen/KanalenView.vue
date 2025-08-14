@@ -101,9 +101,9 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-  nav {
-    background-color: var(--ita-background-color-secondary);
-  }
+nav {
+  background-color: var(--ita-background-color-secondary);
+}
 
 nav ul {
   padding-inline: calc(var(--utrecht-space-around, 0) * 1rem);
@@ -114,14 +114,14 @@ nav,
   width: 60%;
 }
 
-  .kanaal-item {
-    display: block;
-    padding-inline: 0rem;
-    padding-block: 1rem;
-    border-bottom: 0.1rem solid var(--ita-background-color-primary);
-    color: var(--ita-background-color-primary0);
-    font-size: 1rem;
-  }
+.kanaal-item {
+  display: block;
+  padding-inline: 0rem;
+  padding-block: 1rem;
+  border-bottom: 0.1rem solid var(--ita-background-color-primary);
+  color: var(--ita-background-color-primary0);
+  font-size: 1rem;
+}
 
 .kanaal-content {
   display: flex;
