@@ -16,7 +16,7 @@
   --ita-detail-section-header-padding-inline-end: 1rem;
   --ita-detail-section-header-padding-block-start: 0.5rem;
   --ita-detail-section-header-padding-block-end: 0.5rem;
-  --ita-detail-section-header-background-color: var( --ita-background-color-secondary);
+  --ita-detail-section-header-background-color: var(--ita-background-color-secondary);
   --ita-step-padding-block-end: 0.8rem;
   --ita-step-border-bottom-width: 1px;
   --ita-step-border-bottom-color: rgba(0, 0, 0, 0.6);
@@ -26,7 +26,9 @@
   --ita-step-distance: 1rem;
   --ita-interne-toelichting-section-border-inline-width: 4px;
   --ita-interne-toelichting-section-border-inline-style: solid;
-  --ita-interne-toelichting-section-border-inline-color: var( --utrecht-spotlight-section-border-color );
+  --ita-interne-toelichting-section-border-inline-color: var(
+    --utrecht-spotlight-section-border-color
+  );
   --ita-radio-tabs-border-block-end: 1px solid var(--ita-border-color);
   --ita-radio-tabs-label-padding-block: 1rem;
   --ita-radio-tabs-label-padding-inline: 1rem;
