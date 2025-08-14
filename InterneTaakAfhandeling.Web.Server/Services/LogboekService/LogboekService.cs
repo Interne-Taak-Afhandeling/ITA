@@ -108,6 +108,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                         activiteit.Notitie = item.Notitie;
                         break;
                     }
+                        // TODO -> medewerker email + afdeling or group
             }
 
             activiteiten.Add(activiteit);
