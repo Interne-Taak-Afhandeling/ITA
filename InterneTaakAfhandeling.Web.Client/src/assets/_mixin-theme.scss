@@ -1,7 +1,7 @@
 @mixin ita-theme {
   --ita-border-color: #afafaf;
-  --ita-background-color-primary: var(--utrecht-color-blue-40);
-  --ita-background-color-secondary: rgba(36, 87, 143, 0.2);
+  --ita-color-primary: var(--utrecht-color-blue-40);
+  --ita-color-secondary: rgba(36, 87, 143, 0.2);
   --ita-header-heading-margin-inline: var(--utrecht-space-inline-md);
   --ita-footer-link-list-column-gap: 4vw;
   --ita-dashboard-tables-column-gap: 4vw;

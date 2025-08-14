@@ -102,7 +102,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 nav {
-  background-color: var(--ita-background-color-secondary);
+  background-color: var(--ita-color-secondary);
 }
 
 nav ul {
@@ -118,8 +118,7 @@ nav,
   display: block;
   padding-inline: 0rem;
   padding-block: 1rem;
-  border-bottom: 0.1rem solid var(--ita-background-color-primary);
-  color: var(--ita-background-color-primary0);
+  border-bottom: 0.1rem solid var(--ita-color-primary);
   font-size: 1rem;
 }
 
