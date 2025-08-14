@@ -97,6 +97,28 @@ public class KnownContactAction
         };
     }
 
+    public static KnownContactAction ForwardKlantContact(string objectUuid, ITAUser loggedByUser, string? note)
+    {
+
+        // TODO -> define actor type so we can later know if the object is an afdeling or group
+        var description = "Doorgestuurd";
+
+        return new KnownContactAction
+        {
+            Description = description,
+            Type = ActiviteitTypes.Doorsturen,
+            Actor = CreateActor(loggedByUser),
+            Notitie = note,
+            HeeftBetrekkingOp = new ObjectIdentificator
+            {
+                CodeRegister = "objecten",
+                CodeObjecttype = "object",
+                CodeSoortObjectId = "uuid",
+                ObjectId = objectUuid
+            }
+        };
+    }
+
     public static KnownContactAction Note(string note, ITAUser loggedByUser)
     {
 

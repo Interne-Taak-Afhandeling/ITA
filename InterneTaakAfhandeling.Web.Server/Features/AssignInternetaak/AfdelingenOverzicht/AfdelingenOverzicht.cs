@@ -32,7 +32,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.Afdelinge
             try
             {
                 var afdelingen = await GetAfdelingenRecursive(1);
-                return Ok(afdelingen);
+                var result = afdelingen.Select(x => new { Naam = x.Item1, Uuid = x.Item2 }).ToList();
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -41,9 +42,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.Afdelinge
             }
         }
 
-        private async Task<IEnumerable<string>> GetAfdelingenRecursive(int page)
+        private async Task<IEnumerable<Tuple<string, Guid>>> GetAfdelingenRecursive(int page)
         {
-            var afdelingen = new List<string>();
+            // declare afdeling in tuple format <name afdeling, uuid of afdeling in the objecten register>
+            var afdelingen = new List<Tuple<string, Guid>>();
 
             var result = await objectApiClient.GetAfdelingen(page);
 
@@ -52,8 +54,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.Afdelinge
                 return [];
             }
 
-            afdelingen =  result.Results.Select(x => x.Record.Data).Select(x=> x.Naam ).ToList();
-
+            afdelingen = [.. result.Results.Select(x => new Tuple<string, Guid>(x.Record.Data.Naam, x.Uuid))];
 
             if (result.Next != null)
             {

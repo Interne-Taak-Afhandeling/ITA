@@ -31,7 +31,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOv
         {
             try
             {
-                var result = await GetGroepenRecursive(1);  
+                var groepen = await GetGroepenRecursive(1); 
+                var result = groepen.Select(x => new { Naam = x.Item1, Uuid = x.Item2 }).ToList();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -42,9 +43,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOv
         }
 
 
-        private async Task<IEnumerable<string>> GetGroepenRecursive(int page)
+        private async Task<IEnumerable<Tuple<string, Guid>>> GetGroepenRecursive(int page)
         {
-            var groepen = new List<string>();
+            var groepen = new List<Tuple<string, Guid>>();
 
             var result = await objectApiClient.GetGroepen(page);
 
@@ -53,8 +54,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOv
                 return [];
             }
 
-            groepen = result.Results.Select(x => x.Record.Data).Select(x => x.Naam).ToList();
-
+            groepen = [.. result.Results.Select(x => new Tuple<string, Guid>(x.Record.Data.Naam, x.Uuid))];
 
             if (result.Next != null)
             {
@@ -67,7 +67,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOv
             }
 
             return groepen;
-
         }
 
     }

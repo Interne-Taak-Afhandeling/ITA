@@ -108,7 +108,23 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                         activiteit.Notitie = item.Notitie;
                         break;
                     }
-                        // TODO -> medewerker email + afdeling or group
+
+                case ActiviteitTypes.Doorsturen:
+                    {
+                      
+                        activiteit.UitgevoerdDoor = GetName(item);
+                        // TODO -> fill in afdeling or groep, with medewerker email
+                        // TODO -> show different tekst message based on if adeling/groep or medewerker
+                        activiteit.Tekst = $"Contactverzoek doogestuurd aan <afdeing> and medewerker <email>";
+
+                        if (!string.IsNullOrEmpty(item.Notitie))
+                        {
+                            activiteit.Notitie = item.Notitie;
+                        }
+
+
+                        break;
+                    }
             }
 
             activiteiten.Add(activiteit);
