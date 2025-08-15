@@ -67,6 +67,8 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
     public class InternetakenPatchRequest
     {
         public  string? Status { get; set; }
+        public  List<UuidObject>? ToegewezenAanActoren { get; set; }
+
     }
 
     public class UuidObject

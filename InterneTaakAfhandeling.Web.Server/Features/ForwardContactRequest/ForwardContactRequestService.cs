@@ -18,25 +18,16 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
         var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId) ??
                           throw new ArgumentException($"Internetaak with ID {internetaakId} not found.");
 
-
-        if (internetaak.Status == null || internetaak.Nummer == null || internetaak.Status == null ||
-            internetaak.GevraagdeHandeling == null) return null;
-        var internetakenUpdateRequest = new InternetakenUpdateRequest
-        {
-            Nummer = internetaak.Nummer,
-            GevraagdeHandeling = internetaak.GevraagdeHandeling,
-            AanleidinggevendKlantcontact = new UuidObject
-            { Uuid = Guid.Parse(internetaak.AanleidinggevendKlantcontact.Uuid) },
-            ToegewezenAanActoren = actors
-                .Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })
-                .ToList(),
-            Toelichting = internetaak.Toelichting ?? string.Empty,
-            Status = internetaak.Status
+         
+        var internetakenUpdateRequest = new InternetakenPatchRequest
+        { 
+            ToegewezenAanActoren = [.. actors.Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })],
+            Status= internetaak.Status
         };
 
 
         var updatedInternetaak =
-            await openKlantApiClient.PutInternetaakAsync(internetakenUpdateRequest, internetaak.Uuid) ??
+            await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, internetaak.Uuid) ??
             throw new InvalidOperationException(
                 $"Unable to update Internetaak with ID {internetaakId}.");
 
@@ -105,8 +96,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
                     CodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
                     CodeSoortObjectId = KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId,
                     ObjectId = identifier
-                },
-                IndicatieActief = true
+                }
             };
             return await openKlantApiClient.CreateActorAsync(actorRequest);
         }
@@ -139,8 +129,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
                     CodeRegister = KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister,
                     CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId,
                     ObjectId = identifier
-                },
-                IndicatieActief = true
+                }
             };
             return await openKlantApiClient.CreateActorAsync(actorRequest);
         }
@@ -173,8 +162,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
                     CodeRegister = KnownGroepIdentificators.ObjectregisterId.CodeRegister,
                     CodeSoortObjectId = KnownGroepIdentificators.ObjectregisterId.CodeSoortObjectId,
                     ObjectId = identifier
-                },
-                IndicatieActief = true
+                }
             };
             return await openKlantApiClient.CreateActorAsync(actorRequest);
         }

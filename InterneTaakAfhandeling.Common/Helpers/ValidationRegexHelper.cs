@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 
 namespace InterneTaakAfhandeling.Common.Helpers
 {
     public static partial class ValidationRegexHelper
     {
         [GeneratedRegex(
-            @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled,
-            "en-US")]
+    @"^([-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*)@((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z0-9-]{2,63}(?<!-)))$",
+    RegexOptions.IgnoreCase | RegexOptions.Compiled)]
         public static partial Regex EmailValidator();
     }
 }

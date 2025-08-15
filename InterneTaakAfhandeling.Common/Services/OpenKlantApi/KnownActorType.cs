@@ -9,17 +9,7 @@ public enum KnownActorType
 
 public static class KnownActorTypeExtensions
 {
-    public static string ToLowerString(this KnownActorType actorType)
-    {
-        return actorType switch
-        {
-            KnownActorType.Medewerker => "medewerker",
-            KnownActorType.Afdeling => "afdeling",
-            KnownActorType.Groep => "groep",
-            _ => throw new ArgumentOutOfRangeException(nameof(actorType), actorType, null)
-        };
-    }
-     
+  
     public static KnownActorType ParseActorType(string actorTypeString)
     {
         return actorTypeString?.ToLower() switch
