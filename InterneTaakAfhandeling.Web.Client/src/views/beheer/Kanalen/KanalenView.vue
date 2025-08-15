@@ -1,14 +1,26 @@
 <template>
   <utrecht-heading :level="2">Kanalen</utrecht-heading>
+  <nav class="utrecht-nav-bar" aria-label="Beheer submenu">
+    <ul class="utrecht-nav-list">
+      <li class="utrecht-nav-list__item">
+        <a
+          class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+          href="https://ita.readthedocs.io/nl/latest/manual"
+          target="_blank"
+          >Handleiding</a
+        >
+      </li>
+    </ul>
+  </nav>
 
   <SimpleSpinner v-if="isLoading" />
 
   <utrecht-unordered-list v-else-if="kanalen.data.length" class="kanalen-list">
     <utrecht-unordered-list-item v-for="{ id, naam } in kanalen.data" :key="id" class="kanaal-item">
       <div class="kanaal-content">
-        <router-link :to="{ name: 'kanaal', params: { id } }" class="kanaal-link">{{
-          naam
-        }}</router-link>
+        <router-link :to="{ name: 'kanaal', params: { id } }" class="kanaal-link">
+          {{ naam }}
+        </router-link>
         <button
           @click="confirmDelete(id, naam)"
           class="utrecht-button utrecht-button--primary-action round-button"
@@ -89,16 +101,24 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+nav {
+  background-color: var(--ita-color-secondary);
+}
+
+nav ul {
+  padding-inline: calc(var(--utrecht-space-around, 0) * 1rem);
+}
+
+nav,
 .kanalen-list {
-  margin: 1rem;
-  max-width: 60%;
+  width: 60%;
 }
 
 .kanaal-item {
   display: block;
-  padding: 1rem;
-  border-bottom: 0.1rem solid var(--utrecht-color-blue-40);
-  color: var(--utrecht-color-blue-40);
+  padding-inline: 0rem;
+  padding-block: 1rem;
+  border-bottom: 0.1rem solid var(--ita-color-primary);
   font-size: 1rem;
 }
 

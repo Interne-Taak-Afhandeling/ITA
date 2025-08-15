@@ -35,6 +35,11 @@
   --utrecht-link-color: var(--utrecht-color-blue-40);
   --utrecht-link-hover-color: var(--utrecht-color-blue-40);
   --utrecht-link-focus-color: var(--utrecht-color-blue-40);
+  --utrecht-unordered-list-margin-block-start: 0px;
+  --utrecht-unordered-list-padding-inline-start: 0px;
+  --utrecht-paragraph-margin-block-start: 0px;
+  --utrecht-nav-bar-link-padding-inline-start: 0px;
+  --utrecht-unordered-list-margin-block-end: calc(var(--utrecht-space-around) * 1rem);
 
   // den haag
   --denhaag-contact-timeline-step-header-line-height: 27px;

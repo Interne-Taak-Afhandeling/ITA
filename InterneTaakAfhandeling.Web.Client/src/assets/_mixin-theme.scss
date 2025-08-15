@@ -1,5 +1,7 @@
 @mixin ita-theme {
   --ita-border-color: #afafaf;
+  --ita-color-primary: var(--utrecht-color-blue-40);
+  --ita-color-secondary: rgba(36, 87, 143, 0.2);
   --ita-header-heading-margin-inline: var(--utrecht-space-inline-md);
   --ita-footer-link-list-column-gap: 4vw;
   --ita-dashboard-tables-column-gap: 4vw;
@@ -14,7 +16,7 @@
   --ita-detail-section-header-padding-inline-end: 1rem;
   --ita-detail-section-header-padding-block-start: 0.5rem;
   --ita-detail-section-header-padding-block-end: 0.5rem;
-  --ita-detail-section-header-background-color: rgba(36, 87, 143, 0.2);
+  --ita-detail-section-header-background-color: var(--ita-background-color-secondary);
   --ita-step-padding-block-end: 0.8rem;
   --ita-step-border-bottom-width: 1px;
   --ita-step-border-bottom-color: rgba(0, 0, 0, 0.6);
