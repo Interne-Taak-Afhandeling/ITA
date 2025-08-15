@@ -12,19 +12,11 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
 {
     public async Task<Internetaak?> ForwardAsync(Guid internetaakId, ForwardContactRequestModel request)
     {
-        if (string.IsNullOrEmpty(request.ActorIdentifier))
-            throw new ArgumentException(
-                "Actor identifier must not be empty.");
-        var targetActor = await GetTargetActor(request) ??
-                          throw new ArgumentException(
-                              $"Actor with identifier {request.ActorIdentifier} of type {request.ActorType} not found.");
+
+        var actors = await GetTargetActors(request);
 
         var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId) ??
                           throw new ArgumentException($"Internetaak with ID {internetaakId} not found.");
-
-        var actors = await GetAssignedOrganisationalUnitActors(internetaak);
-
-        actors.Add(targetActor);
 
 
         if (internetaak.Status == null || internetaak.Nummer == null || internetaak.Status == null ||
@@ -34,7 +26,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             Nummer = internetaak.Nummer,
             GevraagdeHandeling = internetaak.GevraagdeHandeling,
             AanleidinggevendKlantcontact = new UuidObject
-                { Uuid = Guid.Parse(internetaak.AanleidinggevendKlantcontact.Uuid) },
+            { Uuid = Guid.Parse(internetaak.AanleidinggevendKlantcontact.Uuid) },
             ToegewezenAanActoren = actors
                 .Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })
                 .ToList(),
@@ -51,36 +43,77 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
         return updatedInternetaak;
     }
 
-    private async Task<Actor?> GetTargetActor(ForwardContactRequestModel request)
+    private async Task<List<Actor>> GetTargetActors(ForwardContactRequestModel request)
     {
-        return request.ActorType.ToLower() switch
+        var actors = new List<Actor>();
+
+        if (!KnownActorTypeExtensions.TryParseActorType(request.ActorType, out var parsedActorType))
         {
-            "medewerker" => await GetMedewerkerActor(request.ActorIdentifier),
-            "afdeling" => await GetAfdelingActor(request.ActorIdentifier),
-            "groep" => await GetGroepActor(request.ActorIdentifier),
+            throw new ArgumentException($"Invalid actor type: {request.ActorType}");
+        }
+
+        var primaryActor = parsedActorType switch
+        {
+            KnownActorType.Medewerker => await GetOrCreateMedewerkerActor(request.ActorIdentifier),
+            KnownActorType.Afdeling => await GetOrCreateAfdelingActor(request.ActorIdentifier),
+            KnownActorType.Groep => await GetOrCreateGroepActor(request.ActorIdentifier),
             _ => throw new ArgumentException($"Invalid actor type: {request.ActorType}")
         };
+
+        if (primaryActor != null)
+        {
+            actors.Add(primaryActor);
+        }
+
+
+        if ((parsedActorType == KnownActorType.Afdeling || parsedActorType == KnownActorType.Groep) &&
+            !string.IsNullOrWhiteSpace(request.MedewerkerEmail))
+        {
+            var medewerkerActor = await GetOrCreateMedewerkerActor(request.MedewerkerEmail);
+            if (medewerkerActor != null)
+            {
+                actors.Add(medewerkerActor);
+            }
+        }
+
+        return actors;
     }
 
-    private async Task<Actor?> GetMedewerkerActor(string email)
+    private async Task<Actor?> GetOrCreateMedewerkerActor(string identifier)
     {
-        if (string.IsNullOrWhiteSpace(email))
+        if (string.IsNullOrWhiteSpace(identifier))
             return null;
 
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
-            ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
-            ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
-            ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
+            ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
+            ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
+            ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId,
             IndicatieActief = true,
             SoortActor = SoortActor.medewerker,
-            ActoridentificatorObjectId = email
+            ActoridentificatorObjectId = identifier
         });
-
+        if (actor == null)
+        {
+            var actorRequest = new ActorRequest
+            {
+                SoortActor = SoortActor.medewerker,
+                Naam = identifier,
+                Actoridentificator = new Actoridentificator
+                {
+                    CodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
+                    CodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
+                    CodeSoortObjectId = KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId,
+                    ObjectId = identifier
+                },
+                IndicatieActief = true
+            };
+            return await openKlantApiClient.CreateActorAsync(actorRequest);
+        }
         return actor;
     }
 
-    private async Task<Actor?> GetAfdelingActor(string identifier)
+    private async Task<Actor?> GetOrCreateAfdelingActor(string identifier)
     {
         if (string.IsNullOrWhiteSpace(identifier))
             return null;
@@ -94,11 +127,27 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             ActoridentificatorCodeRegister = KnownAfdelingIdentificators.ObjectregisterId.CodeRegister,
             ActoridentificatorCodeSoortObjectId = KnownAfdelingIdentificators.ObjectregisterId.CodeSoortObjectId
         });
-
+        if (actor == null)
+        {
+            var actorRequest = new ActorRequest
+            {
+                SoortActor = SoortActor.organisatorische_eenheid,
+                Naam = identifier,
+                Actoridentificator = new Actoridentificator
+                {
+                    CodeObjecttype = KnownMedewerkerIdentificators.ObjectregisterId.CodeObjecttype,
+                    CodeRegister = KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister,
+                    CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId,
+                    ObjectId = identifier
+                },
+                IndicatieActief = true
+            };
+            return await openKlantApiClient.CreateActorAsync(actorRequest);
+        }
         return actor;
     }
 
-    private async Task<Actor?> GetGroepActor(string identifier)
+    private async Task<Actor?> GetOrCreateGroepActor(string identifier)
     {
         if (string.IsNullOrWhiteSpace(identifier))
             return null;
@@ -112,16 +161,24 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             ActoridentificatorCodeRegister = KnownGroepIdentificators.ObjectregisterId.CodeRegister,
             ActoridentificatorCodeSoortObjectId = KnownGroepIdentificators.ObjectregisterId.CodeSoortObjectId
         });
-
+        if (actor == null)
+        {
+            var actorRequest = new ActorRequest
+            {
+                SoortActor = SoortActor.organisatorische_eenheid,
+                Naam = identifier,
+                Actoridentificator = new Actoridentificator
+                {
+                    CodeObjecttype = KnownGroepIdentificators.ObjectregisterId.CodeObjecttype,
+                    CodeRegister = KnownGroepIdentificators.ObjectregisterId.CodeRegister,
+                    CodeSoortObjectId = KnownGroepIdentificators.ObjectregisterId.CodeSoortObjectId,
+                    ObjectId = identifier
+                },
+                IndicatieActief = true
+            };
+            return await openKlantApiClient.CreateActorAsync(actorRequest);
+        }
         return actor;
     }
 
-    private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Internetaak internetaak)
-    {
-        var internetaakActorTasks =
-            internetaak.ToegewezenAanActoren?.Select(x => openKlantApiClient.GetActorAsync(x.Uuid)) ?? [];
-        var notMedewerkerActors = (await Task.WhenAll(internetaakActorTasks))
-            .Where(x => x.SoortActor != SoortActor.medewerker).ToList() ?? [];
-        return notMedewerkerActors;
-    }
 }
