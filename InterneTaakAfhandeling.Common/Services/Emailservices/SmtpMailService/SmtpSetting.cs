@@ -1,4 +1,4 @@
-namespace InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService
+namespace InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService
 {
     public class SmtpSettings
     {
