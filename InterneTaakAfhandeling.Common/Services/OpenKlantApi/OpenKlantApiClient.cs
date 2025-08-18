@@ -21,8 +21,7 @@ public interface IOpenKlantApiClient
 
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, KlantcontactOnderwerpobjectRequest request);
-    Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid);
-    Task<Internetaak> PutInternetaakAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid); 
+    Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid); 
     Task<Internetaak> PatchInternetaakStatusAsync(InternetakenPatchStatusRequest internetakenUpdateRequest, string uuid);
     Task<Internetaak> PatchInternetaakActorAsync(InternetakenPatchActorsRequest internetakenUpdateRequest, string uuid);
 
@@ -434,23 +433,7 @@ public partial class OpenKlantApiClient(
 
 
 
-
-    public async Task<Internetaak> PutInternetaakAsync(InternetakenUpdateRequest internetakenUpdateRequest, string uuid)
-    {
-        try
-        {
-            var response = await _httpClient.PutAsync($"internetaken/{uuid}", JsonContent.Create(internetakenUpdateRequest));
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadFromJsonAsync<Internetaak>();
-
-            return content ?? throw new InvalidOperationException("Failed to update Internetaken. The response content is null.");
-        }
-        catch (Exception e)
-        {
-            throw new InvalidOperationException($"Failed to update Internetaken: {e}");
-        }
-    }
+ 
 
 
     public async Task<Internetaak> PatchInterneTaak(JsonContent request, string uuid)
