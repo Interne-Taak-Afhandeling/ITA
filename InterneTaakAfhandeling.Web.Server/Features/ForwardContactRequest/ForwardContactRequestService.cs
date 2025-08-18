@@ -12,15 +12,14 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
 {
     public async Task<Internetaak?> ForwardAsync(Guid internetaakId, ForwardContactRequestModel request)
     {
-
         var actors = await GetTargetActors(request);
 
         var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId) ??
                           throw new ArgumentException($"Internetaak with ID {internetaakId} not found.");
 
-         
-        var internetakenUpdateRequest = new InternetakenPatchActorsRequest()
-        { 
+
+        var internetakenUpdateRequest = new InternetakenPatchActorsRequest
+        {
             ToegewezenAanActoren = [.. actors.Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })]
         };
 
@@ -37,12 +36,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
     {
         var actors = new List<Actor>();
 
-        if (!KnownActorTypeExtensions.TryParseActorType(request.ActorType, out var parsedActorType))
-        {
-            throw new ArgumentException($"Invalid actor type: {request.ActorType}");
-        }
-
-        var primaryActor = parsedActorType switch
+        var primaryActor = request.ActorType switch
         {
             KnownActorType.Medewerker => await GetOrCreateMedewerkerActor(request.ActorIdentifier),
             KnownActorType.Afdeling => await GetOrCreateAfdelingActor(request.ActorIdentifier),
@@ -50,19 +44,13 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             _ => throw new ArgumentException($"Invalid actor type: {request.ActorType}")
         };
 
-        if (primaryActor != null)
-        {
-            actors.Add(primaryActor);
-        }
+        if (primaryActor != null) actors.Add(primaryActor);
 
 
-        if((parsedActorType != KnownActorType.Afdeling && parsedActorType != KnownActorType.Groep) ||
+        if ((request.ActorType != KnownActorType.Afdeling && request.ActorType != KnownActorType.Groep) ||
             string.IsNullOrWhiteSpace(request.MedewerkerEmail)) return actors;
         var medewerkerActor = await GetOrCreateMedewerkerActor(request.MedewerkerEmail);
-        if (medewerkerActor != null)
-        {
-            actors.Add(medewerkerActor);
-        }
+        if (medewerkerActor != null) actors.Add(medewerkerActor);
 
         return actors;
     }
@@ -97,6 +85,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             };
             return await openKlantApiClient.CreateActorAsync(actorRequest);
         }
+
         return actor;
     }
 
@@ -130,6 +119,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             };
             return await openKlantApiClient.CreateActorAsync(actorRequest);
         }
+
         return actor;
     }
 
@@ -163,7 +153,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             };
             return await openKlantApiClient.CreateActorAsync(actorRequest);
         }
+
         return actor;
     }
-
 }
