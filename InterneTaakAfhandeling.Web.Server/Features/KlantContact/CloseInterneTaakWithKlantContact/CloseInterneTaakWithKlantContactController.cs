@@ -68,12 +68,12 @@ public class CloseInterneTaakWithKlantContactController(
             //note: the 'afgehandeldOp' datetime is set automatically by OpenKlant
             //that behaviour is not documented in the API specs
             //the field is marked 'experimental' 
-            var internetakenUpdateRequest = new InternetakenPatchRequest
+            var internetakenUpdateRequest = new InternetakenPatchStatusRequest()
             {
                 Status = KnownInternetaakStatussen.Verwerkt
             };
 
-            await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
+            await openKlantApiClient.PatchInternetaakStatusAsync(internetakenUpdateRequest, request.InterneTaakId.ToString());
 
             // logging klantcontact
             await _logboekService.LogContactRequestAction(KnownContactAction.Klantcontact(result, _user, request.InterneNotitie), request.InterneTaakId);

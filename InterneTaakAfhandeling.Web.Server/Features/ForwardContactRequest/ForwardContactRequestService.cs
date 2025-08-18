@@ -19,15 +19,14 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
                           throw new ArgumentException($"Internetaak with ID {internetaakId} not found.");
 
          
-        var internetakenUpdateRequest = new InternetakenPatchRequest
+        var internetakenUpdateRequest = new InternetakenPatchActorsRequest()
         { 
-            ToegewezenAanActoren = [.. actors.Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })],
-            Status= internetaak.Status
+            ToegewezenAanActoren = [.. actors.Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })]
         };
 
 
         var updatedInternetaak =
-            await openKlantApiClient.PatchInternetaakAsync(internetakenUpdateRequest, internetaak.Uuid) ??
+            await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid) ??
             throw new InvalidOperationException(
                 $"Unable to update Internetaak with ID {internetaakId}.");
 
@@ -57,14 +56,12 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
         }
 
 
-        if ((parsedActorType == KnownActorType.Afdeling || parsedActorType == KnownActorType.Groep) &&
-            !string.IsNullOrWhiteSpace(request.MedewerkerEmail))
+        if((parsedActorType != KnownActorType.Afdeling && parsedActorType != KnownActorType.Groep) ||
+            string.IsNullOrWhiteSpace(request.MedewerkerEmail)) return actors;
+        var medewerkerActor = await GetOrCreateMedewerkerActor(request.MedewerkerEmail);
+        if (medewerkerActor != null)
         {
-            var medewerkerActor = await GetOrCreateMedewerkerActor(request.MedewerkerEmail);
-            if (medewerkerActor != null)
-            {
-                actors.Add(medewerkerActor);
-            }
+            actors.Add(medewerkerActor);
         }
 
         return actors;
