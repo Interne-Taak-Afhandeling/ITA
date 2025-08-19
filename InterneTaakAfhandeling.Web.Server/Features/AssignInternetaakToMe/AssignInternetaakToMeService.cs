@@ -25,19 +25,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
 
             actors.Add(currentUserActor);
 
-            var internetakenUpdateRequest = new InternetakenUpdateRequest
-            {
-                Nummer = internetaak.Nummer,
-                GevraagdeHandeling = internetaak.GevraagdeHandeling,
-                AanleidinggevendKlantcontact = new UuidObject { Uuid = Guid.Parse(internetaak.AanleidinggevendKlantcontact.Uuid) },
+            var internetakenUpdateRequest = new InternetakenPatchActorsRequest
+            {  
                 ToegewezenAanActoren = actors
                     .Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })
-                    .ToList(),
-                Toelichting = internetaak.Toelichting ?? string.Empty,
-                Status = internetaak.Status
+                    .ToList() 
             };
 
-            var updatedInternetaak = await _openKlantApiClient.PutInternetaakAsync(internetakenUpdateRequest, internetaak.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetaakId}.");
+            var updatedInternetaak = await _openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid) ?? throw new Exception($"Unable to update Internetaken with ID {internetaakId}.");
 
             return (updatedInternetaak, currentUserActor);
         }
