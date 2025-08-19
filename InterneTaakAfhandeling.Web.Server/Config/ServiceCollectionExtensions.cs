@@ -1,4 +1,5 @@
 using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features;
 using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe;
@@ -54,7 +55,8 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
-         
+            services.AddScoped<IEmailService, EmailService>();
+
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 
             services.AddProblemDetails();
