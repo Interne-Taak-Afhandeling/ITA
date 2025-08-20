@@ -12,6 +12,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 public class ForwardContactRequestController(
     IForwardContactRequestService forwardContactRequestService, ILogboekService logboekService, ITAUser user) : Controller {
 
+    private readonly ITAUser _user = user ?? throw new ArgumentNullException(nameof(user));
 
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -21,7 +22,7 @@ public class ForwardContactRequestController(
         [FromBody] ForwardContactRequestModel request)
     {
         await forwardContactRequestService.ForwardAsync(id, request);
-        await logboekService.LogContactRequestAction(KnownContactAction.ForwardKlantContact(request.ActorIdentifier, user, request.InterneNotitie), id);
+        await logboekService.LogContactRequestAction(KnownContactAction.ForwardKlantContact(request, _user), id);
 
         return Ok();
     }

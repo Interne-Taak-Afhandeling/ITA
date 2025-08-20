@@ -111,18 +111,14 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
                 case ActiviteitTypes.Doorsturen:
                     {
-                      
+                        activiteit.Tekst = await CreateDoorsturenText(item);
+
                         activiteit.UitgevoerdDoor = GetName(item);
-                        // TODO -> fill in afdeling or groep, with medewerker email
-                        // TODO -> show different tekst message based on if adeling/groep or medewerker
-                        activiteit.Tekst = $"Contactverzoek doogestuurd aan <afdeing> and medewerker <email>";
 
                         if (!string.IsNullOrEmpty(item.Notitie))
                         {
                             activiteit.Notitie = item.Notitie;
                         }
-
-
                         break;
                     }
             }
@@ -133,6 +129,55 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         return activiteiten;
     }
 
+    private async Task<string> CreateDoorsturenText(ActiviteitData item)
+    {
+        if (item.HeeftBetrekkingOp == null || item.HeeftBetrekkingOp.Count == 0)
+        {
+            throw new ArgumentException("Geen objectreferenties gevonden in activiteit.");
+        }
+
+        var actorInfo = await GetActorDescription(item.HeeftBetrekkingOp.First());
+        var baseText = $"Contactverzoek doorgestuurd aan {actorInfo}";
+
+        if (item.HeeftBetrekkingOp.Count == 2) // assuming the second activiteit will be the extra email adress 'afdeling/group + email'
+        {
+            var medewerkerRef = item.HeeftBetrekkingOp[1];
+            baseText += $" and medewerker \"{medewerkerRef.ObjectId}\"";
+        }
+
+        return baseText;
+    }
+
+    private async Task<string> GetActorDescription(ObjectIdentificator objectIdentificator)
+    {
+        return objectIdentificator.CodeObjecttype switch
+        {
+            "afd" => await GetAfdelingDescription(objectIdentificator.ObjectId),
+            "grp" => await GetGroepDescription(objectIdentificator.ObjectId),
+            "mdw" => $"{KnownActorType.Medewerker.ToLower()} \"{objectIdentificator.ObjectId}\"",
+            _ => throw new InvalidOperationException($"Onbekend objecttype: {objectIdentificator.CodeObjecttype}")
+        };
+    }
+
+    private async Task<string> GetAfdelingDescription(string objectId)
+    {
+        var afdeling = await _objectenApiClient.GetAfdeling(objectId);
+        if (afdeling == null)
+        {
+            throw new InvalidOperationException($"Afdeling {objectId} is not known in objecten register");
+        }
+        return $"{KnownActorType.Afdeling.ToLower()} \"{afdeling.Record.Data.Naam}\"";
+    }
+
+    private async Task<string> GetGroepDescription(string objectId)
+    {
+        var groep = await _objectenApiClient.GetGroep(objectId);
+        if (groep == null)
+        {
+            throw new InvalidOperationException($"Groep {objectId} is not known in objecten register");
+        }
+        return $"{KnownActorType.Groep.ToLower()} \"{groep.Record.Data.Naam}\"";
+    }
 
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
@@ -151,6 +196,8 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         ActiviteitTypes.ZaakkoppelingGewijzigd => "Zaak gewijzigd",
         ActiviteitTypes.Toegewezen => "Opgepakt",
         ActiviteitTypes.InterneNotitie => "Interne notitie",
+        ActiviteitTypes.Doorsturen => "Doorgestuurd",
+
         _ => type ?? "Onbekende actie"
     };
 
@@ -176,12 +223,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
             Notitie = knownContactAction.Notitie ?? string.Empty,
             Omschrijving = knownContactAction.Description,
             Actor = knownContactAction.Actor,
-            HeeftBetrekkingOp = knownContactAction.HeeftBetrekkingOp != null
-                ?
-                [
-                    knownContactAction.HeeftBetrekkingOp
-                ]
-                : []
+            HeeftBetrekkingOp = knownContactAction.HeeftBetrekkingOp ?? []
         });
         return logBoekPatch;
     }

@@ -13,7 +13,11 @@ public interface IObjectApiClient
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
     Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, Guid logboekDataUuid);
     Task<ObjectModels<Afdeling>?> GetAfdelingen(int page);
+    Task<ObjectResult<Afdeling>?> GetAfdeling(string uuid);
+
     Task<ObjectModels<Groep>?> GetGroepen(int page);
+    Task<ObjectResult<Groep>?> GetGroep(string uuid);
+
 }
 
 public class ObjectApiClient(
@@ -208,6 +212,12 @@ public class ObjectApiClient(
         }
     }
 
+
+    public async Task<ObjectResult<Afdeling>?> GetAfdeling(string uuid)
+    {
+        return await GetObject<Afdeling>(uuid);
+    }
+
     public async Task<ObjectModels<Groep>?> GetGroepen(int page)
     {
         HttpResponseMessage? response = null;
@@ -223,6 +233,30 @@ public class ObjectApiClient(
         {
             var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
             _logger.LogError(ex, "Error retrieving groepen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
+            throw;
+        }
+    }
+
+    public async Task<ObjectResult<Groep>?> GetGroep(string uuid)
+    {
+        return await GetObject<Groep>(uuid);
+    }
+
+    public async Task<ObjectResult<T>?> GetObject<T>(string uuid)
+    {
+        HttpResponseMessage? response = null;
+
+        try
+        {
+            response = await _httpClient.GetAsync($"objects/{uuid}");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<ObjectResult<T>>();
+            return result;
+        }
+        catch (HttpRequestException ex)
+        {
+            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
+            _logger.LogError(ex, "Error retrieving {ObjectName} from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", typeof(T).Name, response?.StatusCode, errorResponse);
             throw;
         }
     }

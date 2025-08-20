@@ -1,6 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Common.Services;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
 {

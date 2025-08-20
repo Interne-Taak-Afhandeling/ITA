@@ -1,7 +1,11 @@
+using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 
 namespace InterneTaakAfhandeling.Web.Server.Services.LogboekService;
@@ -12,7 +16,7 @@ public class KnownContactAction
     public required string Description { get; init; }
     public string? Notitie { get; set; }
     public required ActiviteitActor Actor { get; init; }
-    public ObjectIdentificator? HeeftBetrekkingOp { get; private init; }
+    public List<ObjectIdentificator>? HeeftBetrekkingOp { get; private init; }
 
     public static KnownContactAction Completed(ITAUser loggedByUser)
     {
@@ -31,13 +35,16 @@ public class KnownContactAction
             Description = "zaak gekoppeld",
             Type = ActiviteitTypes.ZaakGekoppeld,
             Actor = CreateActor(loggedByUser),
-            HeeftBetrekkingOp = new ObjectIdentificator
-            {
-                CodeObjecttype = "zgw-Zaak",
-                CodeRegister = "openzaak",
-                CodeSoortObjectId = "uuid",
-                ObjectId = zaakId.ToString()
-            }
+            HeeftBetrekkingOp =
+            [
+                new ObjectIdentificator
+                {
+                    CodeRegister = "openzaak",
+                    CodeObjecttype = "zgw-Zaak",
+                    CodeSoortObjectId = "uuid",
+                    ObjectId = zaakId.ToString()
+                }
+            ]
         };
     }
 
@@ -48,13 +55,16 @@ public class KnownContactAction
             Description = "zaak gewijzigd",
             Type = ActiviteitTypes.ZaakkoppelingGewijzigd,
             Actor = CreateActor(loggedByUser),
-            HeeftBetrekkingOp = new ObjectIdentificator
-            {
-                CodeRegister = "openzaak",
-                CodeObjecttype = "zgw-Zaak",
-                CodeSoortObjectId = "uuid",
-                ObjectId = zaakId.ToString()
-            }
+            HeeftBetrekkingOp =
+            [
+                new ObjectIdentificator
+                {
+                    CodeRegister = "openzaak",
+                    CodeObjecttype = "zgw-Zaak",
+                    CodeSoortObjectId = "uuid",
+                    ObjectId = zaakId.ToString()
+                }
+            ]
         };
     }
 
@@ -65,13 +75,17 @@ public class KnownContactAction
             Description = "opgepakt",
             Type = ActiviteitTypes.Toegewezen,
             Actor = CreateActor(loggedByUser),
-            HeeftBetrekkingOp = new ObjectIdentificator
-            {
-                CodeRegister = "openklant",
-                CodeObjecttype = "actor",
-                CodeSoortObjectId = "uuid",
-                ObjectId = actorId
-            }
+            HeeftBetrekkingOp =
+            [
+                new ObjectIdentificator
+                {
+                    CodeRegister = "openklant",
+                    CodeObjecttype = "zgw-actor",
+                    CodeSoortObjectId = "uuid",
+                    ObjectId = actorId
+
+                }
+            ]
         };
     }
 
@@ -87,35 +101,51 @@ public class KnownContactAction
             Type = ActiviteitTypes.Klantcontact,
             Actor = CreateActor(loggedByUser),
             Notitie = note,
-            HeeftBetrekkingOp = new ObjectIdentificator
-            {
-                CodeRegister = "openklant",
-                CodeObjecttype = "klantcontact",
-                CodeSoortObjectId = "uuid",
-                ObjectId = relatedKlantcontactResult.Klantcontact.Uuid.ToString()
-            }
+            HeeftBetrekkingOp =
+            [
+                new ObjectIdentificator
+                {
+                    CodeRegister = "openklant",
+                    CodeObjecttype = "zgw-klantcontact",
+                    CodeSoortObjectId = "uuid",
+                    ObjectId = relatedKlantcontactResult.Klantcontact.Uuid.ToString()
+                }
+            ]
         };
     }
 
-    public static KnownContactAction ForwardKlantContact(string objectUuid, ITAUser loggedByUser, string? note)
+    public static KnownContactAction ForwardKlantContact(ForwardContactRequestModel request, ITAUser loggedByUser)
     {
+        var description = "doorgestuurd";
 
-        // TODO -> define actor type so we can later know if the object is an afdeling or group
-        var description = "Doorgestuurd";
+        List<ObjectIdentificator> objectIdentificators = [];
+
+        ObjectIdentificator objectIdentificator = request.ActorType switch
+        {
+            KnownActorType.Afdeling => CreateIdentificator(KnownAfdelingIdentificators.ObjectRegisterId, request.ActorIdentifier),
+            KnownActorType.Groep => CreateIdentificator(KnownGroepIdentificators.ObjectRegisterId, request.ActorIdentifier),
+            KnownActorType.Medewerker => CreateIdentificator(KnownMedewerkerIdentificators.EmailHandmatig, request.ActorIdentifier),
+            _ => throw new InvalidOperationException($"Unknown ActorType: {request.ActorType}")
+        };
+
+        objectIdentificators.Add(objectIdentificator);
+
+        // Create extra email identificator only if groep / afdeling is selected and extra MedewerkerEmail is provided
+        bool shouldCreateEmailIdentificator =
+            request.ActorType != KnownActorType.Medewerker &&
+            !string.IsNullOrWhiteSpace(request.MedewerkerEmail);
+
+        if (shouldCreateEmailIdentificator) {
+            objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.EmailHandmatig, request.MedewerkerEmail));
+        }
 
         return new KnownContactAction
         {
             Description = description,
             Type = ActiviteitTypes.Doorsturen,
             Actor = CreateActor(loggedByUser),
-            Notitie = note,
-            HeeftBetrekkingOp = new ObjectIdentificator
-            {
-                CodeRegister = "objecten",
-                CodeObjecttype = "object",
-                CodeSoortObjectId = "uuid",
-                ObjectId = objectUuid
-            }
+            Notitie = request.InterneNotitie,
+            HeeftBetrekkingOp = objectIdentificators
         };
     }
 
@@ -145,6 +175,17 @@ public class KnownContactAction
                 CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
                 ObjectId = loggedByUser.Email,
             }
+        };
+    }
+
+    private static ObjectIdentificator CreateIdentificator(IObjectRegisterId id, string actorIdentifier)
+    {
+        return new ObjectIdentificator
+        {
+            CodeRegister = id.CodeRegister,
+            CodeObjecttype = id.CodeObjecttype,
+            CodeSoortObjectId = id.CodeSoortObjectId,
+            ObjectId = actorIdentifier
         };
     }
 

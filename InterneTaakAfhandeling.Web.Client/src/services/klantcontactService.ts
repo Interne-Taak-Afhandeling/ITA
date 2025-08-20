@@ -2,7 +2,8 @@ import type {
   CreateKlantcontactRequest,
   RelatedKlantcontactResult,
   CreateRelatedKlantcontactRequest,
-  Contactmoment
+  Contactmoment,
+  ForwardKlantcontactRequest
 } from "@/types/internetaken";
 import { get, post } from "@/utils/fetchWrapper";
 
@@ -29,6 +30,10 @@ export const klantcontactService = {
     request: CreateRelatedKlantcontactRequest
   ): Promise<RelatedKlantcontactResult> => {
     return post<RelatedKlantcontactResult>("/api/internetaken/close-with-klantcontact", request);
+  },
+
+  forwardKlantContact: (internetaakId: string, request: ForwardKlantcontactRequest) => {
+    return post(`/api/internetaken/${internetaakId}/forward`, request);
   },
 
   getLogboek: (internetaakId: string, signal?: AbortSignal): Promise<LogboekActiviteit[]> =>

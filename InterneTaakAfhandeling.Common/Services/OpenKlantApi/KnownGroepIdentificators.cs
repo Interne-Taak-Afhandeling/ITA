@@ -1,8 +1,8 @@
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
-public class KnownGroepIdentificators
+public class KnownGroepIdentificators : IObjectRegisterId
 {
-    public static readonly KnownGroepIdentificators ObjectregisterId = new()
+    public static readonly KnownGroepIdentificators ObjectRegisterId = new()
     {
         CodeObjecttype = "grp",
         CodeRegister = "obj",
