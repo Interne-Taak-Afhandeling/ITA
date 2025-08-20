@@ -2,23 +2,26 @@
 {
     public class KnownMedewerkerIdentificators : IObjectRegisterId
     {
+
+        public const string CodeObjecttypeMedewerker = "mdw";
+
         public static readonly KnownMedewerkerIdentificators EmailFromEntraId = new()
         {
-            CodeObjecttype = "mdw",
+            CodeObjecttype = CodeObjecttypeMedewerker,
             CodeRegister = "msei",
             CodeSoortObjectId = "email"
         };
 
         public static readonly KnownMedewerkerIdentificators EmailHandmatig = new()
         {
-            CodeObjecttype = "mdw",
+            CodeObjecttype = CodeObjecttypeMedewerker,
             CodeRegister = "handmatig",
             CodeSoortObjectId = "email"
         };
 
         public static readonly KnownMedewerkerIdentificators ObjectRegisterId = new()
         {
-            CodeObjecttype = "mdw",
+            CodeObjecttype = CodeObjecttypeMedewerker,
             CodeRegister = "obj",
             CodeSoortObjectId = "idf"
         };

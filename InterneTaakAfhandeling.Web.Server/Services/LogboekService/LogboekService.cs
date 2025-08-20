@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
+﻿using InterneTaakAfhandeling.Common.Services;
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -152,9 +153,9 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
     {
         return objectIdentificator.CodeObjecttype switch
         {
-            "afd" => await GetAfdelingDescription(objectIdentificator.ObjectId),
-            "grp" => await GetGroepDescription(objectIdentificator.ObjectId),
-            "mdw" => $"{KnownActorType.Medewerker.ToLower()} \"{objectIdentificator.ObjectId}\"",
+            KnownAfdelingIdentificators.CodeObjecttypeAfdeling => await GetAfdelingDescription(objectIdentificator.ObjectId),
+            KnownGroepIdentificators.CodeObjecttypeGroep => await GetGroepDescription(objectIdentificator.ObjectId),
+            KnownMedewerkerIdentificators.CodeObjecttypeMedewerker => $"{KnownActorType.Medewerker.ToLower()} \"{objectIdentificator.ObjectId}\"",
             _ => throw new InvalidOperationException($"Onbekend objecttype: {objectIdentificator.CodeObjecttype}")
         };
     }
