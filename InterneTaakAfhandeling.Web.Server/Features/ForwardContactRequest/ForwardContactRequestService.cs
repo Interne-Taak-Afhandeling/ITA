@@ -76,8 +76,8 @@ public class ForwardContactRequestService(
             }
             else
             {
-                throw new Exception($"No actor emails found for internetaken: {internetaken.Nummer}"
-                );
+                logger.LogInformation("No actor emails found for internetaken: {Number}, skipping",
+                    internetaken.Nummer);
             }
         }
         catch (Exception ex)
@@ -90,7 +90,10 @@ public class ForwardContactRequestService(
     private async Task<List<string>> ResolveActorsEmailAsync(Internetaak internetaken)
     {
         if (internetaken.ToegewezenAanActoren == null)
-            throw new Exception($"No actor assigned to internetaak {internetaken.Nummer}");
+        {
+            logger.LogWarning("No actor assigned to internetaak {Nummer}", internetaken.Nummer);
+            return [];
+        }
 
         var emailAddresses = new List<string>();
 
@@ -98,7 +101,12 @@ public class ForwardContactRequestService(
         {
             var actor = await openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
 
-            var validCodeObjectTypes = new List<string> { "mdw", "afd", "grp" };
+            var validCodeObjectTypes = new List<string>
+            {
+                KnownMedewerkerIdentificators.ObjectregisterId.CodeObjecttype,
+                KnownAfdelingIdentificators.ObjectregisterId.CodeObjecttype,
+                KnownGroepIdentificators.ObjectregisterId.CodeObjecttype
+            };
 
             if (actor.Actoridentificator == null ||
                 !validCodeObjectTypes.Contains(actor.Actoridentificator.CodeObjecttype))
@@ -114,24 +122,29 @@ public class ForwardContactRequestService(
                 emailAddresses.Add(objectId);
             }
 
-            else if (actorIdentificator is { CodeSoortObjectId: "idf", CodeRegister: "obj" })
+            else if (actorIdentificator.CodeSoortObjectId ==
+                     KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId &&
+                     actorIdentificator.CodeRegister == KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister)
             {
                 var objectRecords = await objectApiClient.GetObjectsByIdentificatie(objectId);
                 switch (objectRecords.Count)
                 {
                     case 0:
-                        throw new Exception(
-                            $"No medewerker found in overigeobjecten for actorIdentificator {objectId}");
+                        logger.LogWarning("No medewerker found in overigeobjecten for actorIdentificator {ObjectId}",
+                            objectId);
+                        continue;
                     case > 1:
-                        throw new Exception(
-                            $"Multiple objects found in overigeobjecten for actorIdentificator {objectId}. Expected exactly one match.");
+                        logger.LogWarning(
+                            "Multiple objects found in overigeobjecten for actorIdentificator {ObjectId}. Expected exactly one match.",
+                            objectId);
+                        continue;
                     default:
                         objectRecords.First().Data.EmailAddresses.ForEach(x =>
                         {
                             if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
                                 emailAddresses.Add(x);
                             else
-                                throw new Exception($"Invalid email address found for object {objectId}");
+                                logger.LogWarning("Invalid email address found for object {ObjectId}", objectId);
                         });
                         break;
                 }
