@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
@@ -19,8 +20,7 @@ public class ForwardContactRequestService(
     IEmailService emailService,
     IEmailContentService emailContentService,
     IZakenApiClient zakenApiClient,
-    IContactmomentenService contactmomentenService,
-    ILogger<ForwardContactRequestService> logger) : IForwardContactRequestService
+    IContactmomentenService contactmomentenService) : IForwardContactRequestService
 {
     public async Task<Internetaak?> ForwardAsync(Guid internetaakId, ForwardContactRequestModel request)
     {
@@ -76,13 +76,13 @@ public class ForwardContactRequestService(
             }
             else
             {
-                throw new Exception($"No actor emails found for internetaken: {internetaken.Nummer}"
+                throw new KeyNotFoundException($"No actor emails found for internetaken: {internetaken.Nummer}"
                 );
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error processing internetaken {Number}", internetaken.Nummer);
+            throw new ConflictException($"Error notifying actors for internetaken {ex}");
         }
     }
 
@@ -120,10 +120,10 @@ public class ForwardContactRequestService(
                 switch (objectRecords.Count)
                 {
                     case 0:
-                        throw new Exception(
-                            $"No medewerker found in overigeobjecten for actorIdentificator {objectId}");
+                        throw new KeyNotFoundException(
+                            $"No Object found in overigeobjecten for actorIdentificator {objectId}");
                     case > 1:
-                        throw new Exception(
+                        throw new ConflictException(
                             $"Multiple objects found in overigeobjecten for actorIdentificator {objectId}. Expected exactly one match.");
                     default:
                         objectRecords.First().Data.EmailAddresses.ForEach(x =>
@@ -131,7 +131,7 @@ public class ForwardContactRequestService(
                             if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
                                 emailAddresses.Add(x);
                             else
-                                throw new Exception($"Invalid email address found for object {objectId}");
+                                throw new ConflictException($"Invalid email address found for object {objectId}");
                         });
                         break;
                 }

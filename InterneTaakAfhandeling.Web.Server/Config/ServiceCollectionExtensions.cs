@@ -12,6 +12,7 @@ using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 
 
 namespace InterneTaakAfhandeling.Web.Server.Config
@@ -56,7 +57,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
             services.AddScoped<IEmailService, EmailService>();
-
+            services.AddScoped<IEmailContentService, EmailContentService>();
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 
             services.AddProblemDetails();
