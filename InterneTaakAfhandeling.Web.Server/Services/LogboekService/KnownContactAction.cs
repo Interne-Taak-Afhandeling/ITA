@@ -106,7 +106,7 @@ public class KnownContactAction
                 new ObjectIdentificator
                 {
                     CodeRegister = "openklant",
-                    CodeObjecttype = "zgw-klantcontact",
+                    CodeObjecttype = "klantcontact",
                     CodeSoortObjectId = "uuid",
                     ObjectId = relatedKlantcontactResult.Klantcontact.Uuid.ToString()
                 }
