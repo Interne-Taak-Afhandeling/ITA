@@ -62,7 +62,21 @@ apiConnections:
     key: ""
 
 logboek:
+  # -- De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie
   type: ""
+  # -- De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
+  typeVersion: 1
+
+afdeling:
+  # -- De url van het afdeling objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie
+  type: ""
+  # -- De versie van het afdeling objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
+  typeVersion: 1
+
+groep:
+  # -- De url van het groep objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie
+  type: ""
+  # -- De versie van het groep objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
   typeVersion: 1
 
 # Web Application Configuration

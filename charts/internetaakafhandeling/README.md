@@ -14,6 +14,8 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| afdeling.type | string | `""` | De url van het afdeling objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie |
+| afdeling.typeVersion | int | `1` | De versie van het afdeling objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | apiConnections.object.apiKey | string | `""` |  |
 | apiConnections.object.baseUrl | string | `""` |  |
 | apiConnections.openKlant.apiKey | string | `""` |  |
@@ -26,13 +28,15 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | database.password | string | `""` |  |
 | database.port | string | `"5432"` |  |
 | database.username | string | `""` |  |
+| groep.type | string | `""` | De url van het groep objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie |
+| groep.typeVersion | int | `1` | De versie van het groep objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `""` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hosts | list | `[]` | ingress hosts |
 | ingress.tls | list | `[]` |  |
-| logboek.type | string | `""` |  |
-| logboek.typeVersion | int | `1` |  |
+| logboek.type | string | `""` | De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie |
+| logboek.typeVersion | int | `1` | De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | poller.image.pullPolicy | string | `"Always"` |  |
 | poller.image.repository | string | `"ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"` |  |
 | poller.image.tag | string | `"latest"` |  |
