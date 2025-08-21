@@ -14,6 +14,8 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| afdeling.type | string | `""` |  |
+| afdeling.typeVersion | int | `1` |  |
 | apiConnections.object.apiKey | string | `""` |  |
 | apiConnections.object.baseUrl | string | `""` |  |
 | apiConnections.openKlant.apiKey | string | `""` |  |
@@ -26,6 +28,8 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | database.password | string | `""` |  |
 | database.port | string | `"5432"` |  |
 | database.username | string | `""` |  |
+| groep.type | string | `""` |  |
+| groep.typeVersion | int | `1` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `""` |  |
 | ingress.enabled | bool | `false` |  |

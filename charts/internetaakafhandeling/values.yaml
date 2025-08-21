@@ -65,6 +65,14 @@ logboek:
   type: ""
   typeVersion: 1
 
+afdeling:
+  type: ""
+  typeVersion: 1
+
+groep:
+  type: ""
+  typeVersion: 1
+
 # Web Application Configuration
 web:
   image:

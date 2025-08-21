@@ -46,3 +46,9 @@ data:
   
   LogBoekOptions__Type: {{ .Values.logboek.type | quote }}
   LogBoekOptions__TypeVersion: {{ .Values.logboek.typeVersion | toString | quote }}
+
+  AfdelingOptions__Type: {{ .Values.afdeling.type | quote }}
+  AfdelingOptions__TypeVersion: {{ .Values.afdeling.typeVersion | toString | quote }}
+
+  GroepOptions__Type: {{ .Values.groep.type | quote }}
+  GroepOptions__TypeVersion: {{ .Values.groep.typeVersion | toString | quote }}
