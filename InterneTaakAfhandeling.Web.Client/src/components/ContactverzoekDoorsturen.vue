@@ -64,7 +64,7 @@
 import { ref, onMounted } from "vue";
 import { toast } from "./toast/toast";
 import InterneToelichtingField from "./InterneToelichtingField.vue";
-import type { ForwardKlantcontactRequest, Internetaken } from "@/types/internetaken";
+import type { Internetaken } from "@/types/internetaken";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { get } from "@/utils/fetchWrapper";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";

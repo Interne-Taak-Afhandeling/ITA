@@ -137,7 +137,6 @@ const createForm = () => ({
 const registerContactmomentForm = ref(createForm());
 
 const isKanalenExist = computed(() => !isLoading.value && kanalen.value.length > 1);
-const isContactmoment = computed(() => form.value.handeling === HANDLINGS.contactmoment);
 const isInformatieBurgerRequired = computed(
   () =>
     !(
