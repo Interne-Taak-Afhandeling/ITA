@@ -41,11 +41,10 @@
 
       <utrecht-form-field>
         <utrecht-form-label for="medewerker">Medewerker</utrecht-form-label>
-        <utrecht-select
+        <utrecht-textbox
           :required="forwardContactmomentForm.forwardTo == FORWARD_OPTIONS.medewerker"
           id="medewerker"
           v-model="forwardContactmomentForm.medewerker"
-          :options="medewerkers"
         />
       </utrecht-form-field>
 
@@ -65,22 +64,20 @@
 import { ref, onMounted } from "vue";
 import { toast } from "./toast/toast";
 import InterneToelichtingField from "./InterneToelichtingField.vue";
+import type { ForwardKlantcontactRequest, Internetaken } from "@/types/internetaken";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { get } from "@/utils/fetchWrapper";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import { klantcontactService } from "@/services/klantcontactService";
 
 const emit = defineEmits<{ success: [] }>();
+const { taak } = defineProps<{ taak: Internetaken }>();
 
 const FORWARD_OPTIONS = {
   afdeling: "Afdeling",
   groep: "Groep",
   medewerker: "Medewerker"
 } as const;
-
-const medewerkers = [
-  { label: "Selecteer een medewerker", value: "" },
-  ...["Example 1", "Example 2"].map((value) => ({ label: value, value }))
-];
 
 const afdelingen = ref<{ label: string; value: string }[]>([]);
 
@@ -106,7 +103,7 @@ function resetForm() {
 async function forwardContactverzoek() {
   isLoading.value = true;
   try {
-    // TODO api call
+    await klantcontactService.forwardKlantContact(taak.uuid, getForwardContactVerzoekPayload());
     toast.add({ text: "Contactmoment is doorgestuurd", type: "ok" });
     resetForm();
     emit("success");
@@ -114,6 +111,33 @@ async function forwardContactverzoek() {
     handleSubmitError(err);
   } finally {
     isLoading.value = false;
+  }
+}
+
+function getForwardContactVerzoekPayload() {
+  const payload = {
+    actorType: forwardContactmomentForm.value.forwardTo,
+    actorIdentifier: getActorIdentifier(),
+    interneNotitie: forwardContactmomentForm.value.interneNotitie,
+    medewerkerEmail: ""
+  };
+
+  if (forwardContactmomentForm.value.forwardTo != FORWARD_OPTIONS.medewerker) {
+    payload.medewerkerEmail = forwardContactmomentForm.value.medewerker;
+  }
+
+  return payload;
+}
+
+function getActorIdentifier() {
+  if (forwardContactmomentForm.value.forwardTo == FORWARD_OPTIONS.afdeling) {
+    return forwardContactmomentForm.value.afdeling;
+  } else if (forwardContactmomentForm.value.forwardTo == FORWARD_OPTIONS.groep) {
+    return forwardContactmomentForm.value.groep;
+  } else if (forwardContactmomentForm.value.forwardTo == FORWARD_OPTIONS.medewerker) {
+    return forwardContactmomentForm.value.medewerker;
+  } else {
+    return "";
   }
 }
 
@@ -132,17 +156,26 @@ function handleLoadingError(err: unknown) {
 
 const fetchAfdelingen = async () => {
   afdelingen.value = [];
+  const response = await get<{ naam: string; uuid: string }[]>("/api/afdelingen");
+
   afdelingen.value = [
     { label: "Selecteer een afdeling", value: "" },
-    ...(await get<string[]>("/api/afdelingen")).map((value) => ({ label: value, value }))
+    ...response.map((afdeling) => ({
+      label: afdeling.naam,
+      value: afdeling.uuid
+    }))
   ];
 };
-
 const fetchGroepen = async () => {
-  afdelingen.value = [];
+  groepen.value = [];
+  const response = await get<{ naam: string; uuid: string }[]>("/api/groepen");
+
   groepen.value = [
     { label: "Selecteer een groep", value: "" },
-    ...(await get<string[]>("/api/groepen")).map((value) => ({ label: value, value }))
+    ...response.map((groep) => ({
+      label: groep.naam,
+      value: groep.uuid
+    }))
   ];
 };
 

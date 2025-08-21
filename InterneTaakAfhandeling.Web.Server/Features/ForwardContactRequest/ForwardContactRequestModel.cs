@@ -15,6 +15,8 @@ public class ForwardContactRequestModel : IValidatableObject
 
     public string? MedewerkerEmail { get; set; } // Optional medewerker email when ActorType is afdeling/groep
 
+    public string? InterneNotitie { get; set; } // Optional note to add to the contact request
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (ActorType is not (KnownActorType.Afdeling or KnownActorType.Medewerker or KnownActorType.Groep))

@@ -1,5 +1,6 @@
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
@@ -99,9 +100,9 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             IndicatieActief = true,
             SoortActor = SoortActor.organisatorische_eenheid,
             ActoridentificatorObjectId = identifier,
-            ActoridentificatorCodeObjecttype = KnownAfdelingIdentificators.ObjectregisterId.CodeObjecttype,
-            ActoridentificatorCodeRegister = KnownAfdelingIdentificators.ObjectregisterId.CodeRegister,
-            ActoridentificatorCodeSoortObjectId = KnownAfdelingIdentificators.ObjectregisterId.CodeSoortObjectId
+            ActoridentificatorCodeObjecttype = KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
+            ActoridentificatorCodeRegister = KnownAfdelingIdentificators.ObjectRegisterId.CodeRegister,
+            ActoridentificatorCodeSoortObjectId = KnownAfdelingIdentificators.ObjectRegisterId.CodeSoortObjectId
         });
         if (actor == null)
         {
@@ -111,9 +112,9 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
                 Naam = identifier,
                 Actoridentificator = new Actoridentificator
                 {
-                    CodeObjecttype = KnownMedewerkerIdentificators.ObjectregisterId.CodeObjecttype,
-                    CodeRegister = KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister,
-                    CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId,
+                    CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
+                    CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
+                    CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId,
                     ObjectId = identifier
                 }
             };
@@ -133,9 +134,9 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             IndicatieActief = true,
             SoortActor = SoortActor.organisatorische_eenheid,
             ActoridentificatorObjectId = identifier,
-            ActoridentificatorCodeObjecttype = KnownGroepIdentificators.ObjectregisterId.CodeObjecttype,
-            ActoridentificatorCodeRegister = KnownGroepIdentificators.ObjectregisterId.CodeRegister,
-            ActoridentificatorCodeSoortObjectId = KnownGroepIdentificators.ObjectregisterId.CodeSoortObjectId
+            ActoridentificatorCodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+            ActoridentificatorCodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+            ActoridentificatorCodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId
         });
         if (actor == null)
         {
@@ -145,9 +146,9 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
                 Naam = identifier,
                 Actoridentificator = new Actoridentificator
                 {
-                    CodeObjecttype = KnownGroepIdentificators.ObjectregisterId.CodeObjecttype,
-                    CodeRegister = KnownGroepIdentificators.ObjectregisterId.CodeRegister,
-                    CodeSoortObjectId = KnownGroepIdentificators.ObjectregisterId.CodeSoortObjectId,
+                    CodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+                    CodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+                    CodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId,
                     ObjectId = identifier
                 }
             };

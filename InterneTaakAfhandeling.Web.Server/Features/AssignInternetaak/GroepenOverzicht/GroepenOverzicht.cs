@@ -1,12 +1,13 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using Microsoft.Extensions.Options;
+using System;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOverzicht
 {
@@ -31,7 +32,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOv
         {
             try
             {
-                var result = await GetGroepenRecursive(1);  
+                var groepen = await GetGroepenRecursive(1); 
+                var result = groepen.Select(x => new { x.Naam, x.Uuid }).ToList();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -42,9 +44,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOv
         }
 
 
-        private async Task<IEnumerable<string>> GetGroepenRecursive(int page)
+        private async Task<IEnumerable<(string Naam, Guid Uuid)>> GetGroepenRecursive(int page)
         {
-            var groepen = new List<string>();
+            var groepen = new List<(string Naam, Guid Uuid)>();
 
             var result = await objectApiClient.GetGroepen(page);
 
@@ -53,8 +55,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOv
                 return [];
             }
 
-            groepen = result.Results.Select(x => x.Record.Data).Select(x => x.Naam).ToList();
-
+            groepen = [.. result.Results.Select(x => (x.Record.Data.Naam, x.Uuid))];
 
             if (result.Next != null)
             {
@@ -67,7 +68,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOv
             }
 
             return groepen;
-
         }
 
     }
