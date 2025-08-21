@@ -12,17 +12,28 @@ public interface IObjectApiClient
     Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId);
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
     Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, Guid logboekDataUuid);
+    Task<ObjectModels<Afdeling>?> GetAfdelingen(int page);
+    Task<ObjectResult<Afdeling>?> GetAfdeling(string uuid);
+
+    Task<ObjectModels<Groep>?> GetGroepen(int page);
+    Task<ObjectResult<Groep>?> GetGroep(string uuid);
+
 }
 
 public class ObjectApiClient(
     HttpClient httpClient,
     ILogger<ObjectApiClient> logger,
-    IOptions<LogboekOptions> logboekOptions) : IObjectApiClient
+    IOptions<LogboekOptions> logboekOptions,
+    IOptions<AfdelingOptions> afdelingOptions,
+    IOptions<GroepOptions> groepOptions
+    ) : IObjectApiClient
 {
     private const int TruncatedLength = 3;
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly LogboekOptions _logboekOptions = logboekOptions.Value;
     private readonly ILogger<ObjectApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IOptions<AfdelingOptions> afdelingOptions = afdelingOptions ?? throw new ArgumentNullException(nameof(afdelingOptions));
+    private readonly IOptions<GroepOptions> groepOptions = groepOptions ?? throw new ArgumentNullException(nameof(groepOptions));
 
     public async Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie)
     {
@@ -182,6 +193,73 @@ public class ObjectApiClient(
         }
     }
 
+    public async Task<ObjectModels<Afdeling>?> GetAfdelingen(int page)
+    {
+        HttpResponseMessage? response = null;
+
+        try
+        {
+            response = await _httpClient.GetAsync($"objects?type={afdelingOptions.Value.Type}&typeVersion={afdelingOptions.Value.TypeVersion}&page={page}");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<ObjectModels<Afdeling>>();            
+            return result;
+        }
+        catch (HttpRequestException ex)
+        {
+            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
+            _logger.LogError(ex, "Error retrieving afdelingen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
+            throw;
+        }
+    }
+
+
+    public async Task<ObjectResult<Afdeling>?> GetAfdeling(string uuid)
+    {
+        return await GetObject<Afdeling>(uuid);
+    }
+
+    public async Task<ObjectModels<Groep>?> GetGroepen(int page)
+    {
+        HttpResponseMessage? response = null;
+
+        try
+        {
+            response = await _httpClient.GetAsync($"objects?type={groepOptions.Value.Type}&typeVersion={groepOptions.Value.TypeVersion}&page={page}");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<ObjectModels<Groep>>();
+            return result;
+        }
+        catch (HttpRequestException ex)
+        {
+            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
+            _logger.LogError(ex, "Error retrieving groepen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
+            throw;
+        }
+    }
+
+    public async Task<ObjectResult<Groep>?> GetGroep(string uuid)
+    {
+        return await GetObject<Groep>(uuid);
+    }
+
+    public async Task<ObjectResult<T>?> GetObject<T>(string uuid)
+    {
+        HttpResponseMessage? response = null;
+
+        try
+        {
+            response = await _httpClient.GetAsync($"objects/{uuid}");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<ObjectResult<T>>();
+            return result;
+        }
+        catch (HttpRequestException ex)
+        {
+            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
+            _logger.LogError(ex, "Error retrieving {ObjectName} from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", typeof(T).Name, response?.StatusCode, errorResponse);
+            throw;
+        }
+    }
 
     private static string TruncateId(string id)
     {
@@ -189,4 +267,6 @@ public class ObjectApiClient(
             ? "***"
             : $"{id.AsSpan()[..TruncatedLength]}***";
     }
+
+  
 }

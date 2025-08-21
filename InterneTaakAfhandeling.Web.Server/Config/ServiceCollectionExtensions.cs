@@ -2,6 +2,7 @@ using InterneTaakAfhandeling.Common.Extensions;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features;
 using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe;
+using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
@@ -29,7 +30,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
                 options.LowercaseQueryStrings = true;
             });
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(); 
             services.AddHealthChecks();
             services.AddSingleton<ResourcesConfig>();
             services.AddAuth(options =>
@@ -53,6 +54,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IInterneTakenOverzichtService, InterneTakenOverzichtService>();
             services.AddScoped<IKlantcontactService, KlantcontactService>();     
             services.AddScoped<IAssignInternetaakToMeService, AssignInternetaakToMeService>();
+            services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
 

@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
@@ -164,7 +165,11 @@ public class InternetakenNotifier : IInternetakenProcessor
         {
             var actor = await _openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
 
-            List<string> validCodeObjectTypes = new List<string> { "mdw", "afd", "grp" };
+            List<string> validCodeObjectTypes = [
+                KnownMedewerkerIdentificators.CodeObjecttypeMedewerker, 
+                KnownAfdelingIdentificators.CodeObjecttypeAfdeling, 
+                KnownGroepIdentificators.CodeObjecttypeGroep
+                ];
 
             if (actor?.Actoridentificator == null ||
                 !validCodeObjectTypes.Contains(actor.Actoridentificator.CodeObjecttype))

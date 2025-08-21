@@ -47,10 +47,10 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
         public string? Email { get; set; }
         public string? Skills { get; set; }
         public string? Functie { get; set; }
-        public List<Groep>? Groepen { get; set; }
+        public List<MedewerkerGroep>? Groepen { get; set; }
         public string? Voornaam { get; set; }
         public string? Achternaam { get; set; }
-        public List<Afdeling>? Afdelingen { get; set; }
+        public List<MedewerkerAfdeling>? Afdelingen { get; set; }
         public Vervanging? Vervanging { get; set; }
         public string? Identificatie { get; set; }
         public string? VolledigeNaam { get; set; }
@@ -76,14 +76,24 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
         public required string Email { get; set; }
     }
 
-    public class Groep
+    public class MedewerkerGroep
     {
         public required string Groepsnaam { get; set; }
     }
 
-    public class Afdeling
+    public class MedewerkerAfdeling
     {
         public required string Afdelingnaam { get; set; }
+    }
+
+    public class Groep
+    {
+        public required string Naam { get; set; }
+    }
+
+    public class Afdeling
+    {
+        public required string Naam { get; set; }
     }
 
     public class Vervanging
