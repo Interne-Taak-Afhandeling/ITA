@@ -1,6 +1,8 @@
 # Global PostgreSQL configuration
 postgresql:
   enabled: true
+  image:
+    repository: bitnamilegacy/postgresql
   auth:
     username: ""
     password: ""
@@ -12,20 +14,29 @@ postgresql:
       size: 8Gi
   metrics:
     enabled: false
-
-# Certificate configuration
-certificates:
-  enabled: true
-  installClusterIssuer: true
-  issuerName: "letsencrypt-prod" 
-  commonName: ""
-  email: ""
+    image:
+      repository: bitnamilegacy/postgres-exporter
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/os-shell
 
 # Ingress Configuration
 ingress:
-  enabled: true
-  host: ""
-  port: 80
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  className: ""
+  # -- ingress hosts
+  hosts: []
+  #  - host: ita.gemeente.nl
+  #    paths:
+  #      - path: /
+  #        pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: ita-tls
+  #    hosts:
+  #      - ita.gemeente.nl
 
 # Database Configuration
 database:

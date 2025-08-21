@@ -11,6 +11,9 @@ using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
+using Microsoft.EntityFrameworkCore;
+using InterneTaakAfhandeling.Web.Server.Data;
+
 
 
 namespace InterneTaakAfhandeling.Web.Server.Config
@@ -54,6 +57,10 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
+
+            
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
          
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 

@@ -425,9 +425,9 @@ public partial class OpenKlantApiClient(
 
             return JsonSerializer.Deserialize<InternetakenResponse>(content, options)
                 ?? new InternetakenResponse { Results = new List<Internetaak>(), Count = 0 };
-        }
+        }              
 
-        throw new HttpRequestException($"Failed to fetch internetaken: {response.StatusCode} - {response.ReasonPhrase}");
+         throw new HttpRequestException($"Failed to fetch internetaken: {response.ReasonPhrase}", null, response.StatusCode);
     }
 
 

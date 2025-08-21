@@ -21,19 +21,16 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | apiConnections.zaakSysteem.baseUrl | string | `""` |  |
 | apiConnections.zaakSysteem.clientId | string | `""` |  |
 | apiConnections.zaakSysteem.key | string | `""` |  |
-| certificates.commonName | string | `""` |  |
-| certificates.email | string | `""` |  |
-| certificates.enabled | bool | `true` |  |
-| certificates.installClusterIssuer | bool | `true` |  |
-| certificates.issuerName | string | `"letsencrypt-prod"` |  |
 | database.host | string | `""` |  |
 | database.name | string | `"interneTaakAfhandeling"` |  |
 | database.password | string | `""` |  |
 | database.port | string | `"5432"` |  |
 | database.username | string | `""` |  |
-| ingress.enabled | bool | `true` |  |
-| ingress.host | string | `""` |  |
-| ingress.port | int | `80` |  |
+| ingress.annotations | object | `{}` |  |
+| ingress.className | string | `""` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.hosts | list | `[]` | ingress hosts |
+| ingress.tls | list | `[]` |  |
 | logboek.type | string | `""` |  |
 | logboek.typeVersion | int | `1` |  |
 | poller.image.pullPolicy | string | `"Always"` |  |
@@ -53,9 +50,12 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | postgresql.auth.postgresPassword | string | `""` |  |
 | postgresql.auth.username | string | `""` |  |
 | postgresql.enabled | bool | `true` |  |
+| postgresql.image.repository | string | `"bitnamilegacy/postgresql"` |  |
 | postgresql.metrics.enabled | bool | `false` |  |
+| postgresql.metrics.image.repository | string | `"bitnamilegacy/postgres-exporter"` |  |
 | postgresql.primary.persistence.enabled | bool | `true` |  |
 | postgresql.primary.persistence.size | string | `"8Gi"` |  |
+| postgresql.volumePermissions.image.repository | string | `"bitnamilegacy/os-shell"` |  |
 | web.appsettings.setting1 | string | `""` |  |
 | web.appsettings.setting2 | string | `""` |  |
 | web.image.pullPolicy | string | `"Always"` |  |

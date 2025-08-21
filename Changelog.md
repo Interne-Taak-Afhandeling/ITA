@@ -8,6 +8,7 @@
 - View completed contact requests from employee #18
 - Overview of contact requests for department or group #19
 - View completed contact requests for department or group #54
+- Manage the list of "Kanalen" #174
 
 ### Warnings and deployment notes
 
