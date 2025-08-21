@@ -1,12 +1,12 @@
 <template>
   <SimpleSpinner v-if="isLoading" />
-   <utrecht-paragraph v-else-if="!isKanalenExist">
+  <utrecht-paragraph v-else-if="!isKanalenExist">
     Er zijn nog geen kanalen ingeregeld. Zonder deze kanalen kun je geen contactverzoeken
     afhandelen. Zorg dat er, onder Beheer, minimaal één kanaal is aangemaakt. Neem eventueel contact
     op met Functioneel Beheer.
-   </utrecht-paragraph>
-    
-    <form v-else @submit.prevent="submit">
+  </utrecht-paragraph>
+
+  <form v-else @submit.prevent="submit">
     <utrecht-fieldset>
       <utrecht-fieldset>
         <utrecht-legend>Resultaat</utrecht-legend>
