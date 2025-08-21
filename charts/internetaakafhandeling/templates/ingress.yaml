@@ -36,7 +36,7 @@ spec:
               service:
                 name: {{ include "internetaakafhandeling.web.name" . }}-svc
                 port:
-                  number: {{ $.Values.service.port }}
+                  number: {{ $.Values.web.service.port }}
           {{- end }}
     {{- end }}
 {{- end }}
