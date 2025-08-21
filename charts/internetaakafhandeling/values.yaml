@@ -20,19 +20,23 @@ postgresql:
     image:
       repository: bitnamilegacy/os-shell
 
-# Certificate configuration
-certificates:
-  enabled: true
-  installClusterIssuer: true
-  issuerName: "letsencrypt-prod" 
-  commonName: ""
-  email: ""
-
 # Ingress Configuration
 ingress:
-  enabled: true
-  host: ""
-  port: 80
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  className: ""
+  # -- ingress hosts
+  hosts: []
+  #  - host: ita.gemeente.nl
+  #    paths:
+  #      - path: /
+  #        pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: ita-tls
+  #    hosts:
+  #      - ita.gemeente.nl
 
 # Database Configuration
 database:
