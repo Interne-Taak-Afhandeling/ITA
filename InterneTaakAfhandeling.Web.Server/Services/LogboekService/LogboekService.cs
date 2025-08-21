@@ -137,27 +137,21 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
             throw new ArgumentException("Geen objectreferenties gevonden in activiteit.");
         }
 
-        var actorInfo = await GetActorDescription(item.HeeftBetrekkingOp.First());
-        var baseText = $"Contactverzoek doorgestuurd aan {actorInfo}";
-
-        if (item.HeeftBetrekkingOp.Count == 2) // assuming the second activiteit will be the extra email adress 'afdeling/group + email'
-        {
-            var medewerkerRef = item.HeeftBetrekkingOp[1];
-            baseText += $" and medewerker \"{medewerkerRef.ObjectId}\"";
-        }
-
-        return baseText;
+        var descriptions = await Task.WhenAll(item.HeeftBetrekkingOp.Select(GetActorDescription));
+        return string.Join(" en ", descriptions);
     }
 
     private async Task<string> GetActorDescription(ObjectIdentificator objectIdentificator)
     {
-        return objectIdentificator.CodeObjecttype switch
+        var actorInfo = objectIdentificator.CodeObjecttype switch
         {
             KnownAfdelingIdentificators.CodeObjecttypeAfdeling => await GetAfdelingDescription(objectIdentificator.ObjectId),
             KnownGroepIdentificators.CodeObjecttypeGroep => await GetGroepDescription(objectIdentificator.ObjectId),
             KnownMedewerkerIdentificators.CodeObjecttypeMedewerker => $"{KnownActorType.Medewerker.ToLower()} \"{objectIdentificator.ObjectId}\"",
             _ => throw new InvalidOperationException($"Onbekend objecttype: {objectIdentificator.CodeObjecttype}")
         };
+
+        return $"Contactverzoek doorgestuurd aan {actorInfo}";
     }
 
     private async Task<string> GetAfdelingDescription(string objectId)

@@ -80,7 +80,7 @@ public class KnownContactAction
                 new ObjectIdentificator
                 {
                     CodeRegister = "openklant",
-                    CodeObjecttype = "zgw-actor",
+                    CodeObjecttype = "actor",
                     CodeSoortObjectId = "uuid",
                     ObjectId = actorId
 
