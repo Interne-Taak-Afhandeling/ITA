@@ -41,11 +41,7 @@
 
       <utrecht-form-field>
         <utrecht-form-label for="medewerker">Medewerker</utrecht-form-label>
-        <utrecht-textbox
-          :required="forwardContactmomentForm.forwardTo == FORWARD_OPTIONS.medewerker"
-          id="medewerker"
-          v-model="forwardContactmomentForm.medewerker"
-        />
+        <utrecht-textbox id="medewerker" v-model="forwardContactmomentForm.medewerker" />
       </utrecht-form-field>
 
       <interne-toelichting-field
@@ -75,8 +71,7 @@ const { taak } = defineProps<{ taak: Internetaken }>();
 
 const FORWARD_OPTIONS = {
   afdeling: "Afdeling",
-  groep: "Groep",
-  medewerker: "Medewerker"
+  groep: "Groep"
 } as const;
 
 const afdelingen = ref<{ label: string; value: string }[]>([]);
@@ -119,12 +114,8 @@ function getForwardContactVerzoekPayload() {
     actorType: forwardContactmomentForm.value.forwardTo,
     actorIdentifier: getActorIdentifier(),
     interneNotitie: forwardContactmomentForm.value.interneNotitie,
-    medewerkerEmail: ""
+    medewerkerEmail: forwardContactmomentForm.value.medewerker
   };
-
-  if (forwardContactmomentForm.value.forwardTo != FORWARD_OPTIONS.medewerker) {
-    payload.medewerkerEmail = forwardContactmomentForm.value.medewerker;
-  }
 
   return payload;
 }
@@ -134,8 +125,6 @@ function getActorIdentifier() {
     return forwardContactmomentForm.value.afdeling;
   } else if (forwardContactmomentForm.value.forwardTo == FORWARD_OPTIONS.groep) {
     return forwardContactmomentForm.value.groep;
-  } else if (forwardContactmomentForm.value.forwardTo == FORWARD_OPTIONS.medewerker) {
-    return forwardContactmomentForm.value.medewerker;
   } else {
     return "";
   }
