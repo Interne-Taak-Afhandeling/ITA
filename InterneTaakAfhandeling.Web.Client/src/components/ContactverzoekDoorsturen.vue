@@ -103,9 +103,11 @@ function resetForm() {
 async function forwardContactverzoek() {
   const email = forwardContactmomentForm.value.medewerker;
 
-  if (!isValidEmail(email)) {
-    toast.add({ text: "The e-mail is not a valid e-mail", type: "error" });
-    return;
+  if (email && email.trim() !== "") {
+    if (!isValidEmail(email)) {
+      toast.add({ text: "The e-mail is not a valid e-mail", type: "error" });
+      return;
+    }
   }
 
   isLoading.value = true;
