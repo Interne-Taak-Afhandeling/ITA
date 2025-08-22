@@ -108,13 +108,6 @@ async function forwardContactverzoek() {
     return;
   }
 
-  // if (email && email.trim() !== "") {
-  //   if (!isValidEmail(email)) {
-  //     toast.add({ text: "The e-mail is not a valid e-mail", type: "error" });
-  //     return;
-  //   }
-  // }
-
   isLoading.value = true;
 
   try {
