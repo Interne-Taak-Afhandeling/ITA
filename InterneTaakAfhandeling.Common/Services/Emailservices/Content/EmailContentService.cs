@@ -1,9 +1,8 @@
- 
-using System.Text; 
+using System.Text;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 
-namespace InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
+namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 
 public interface IEmailContentService
 {

@@ -1,9 +1,9 @@
-using System.Net.Mail;
 using System.Net;
+using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
+namespace InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 
 public interface IEmailService
 {

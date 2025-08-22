@@ -4,11 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using InterneTaakAfhandeling.Poller.Features;
-using InterneTaakAfhandeling.Poller.Services.Emailservices.SmtpMailService;
-using InterneTaakAfhandeling.Poller.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Poller.Data;
 using InterneTaakAfhandeling.Poller.Services.NotifierState; 
 using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
 class Program
