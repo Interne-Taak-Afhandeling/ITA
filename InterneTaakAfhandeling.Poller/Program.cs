@@ -44,8 +44,15 @@ class Program
                 })
                 .AddHttpClient() // Add HttpClient factory
                 .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString))
-                .AddITAApiClients(configuration)
-                .AddScoped<IEmailService, EmailService>()
+                .AddITAApiClients(configuration);
+ 
+                services.Configure<SmtpSettings>(configuration.GetSection("Email:SmtpSettings"));
+                services.AddOptions<SmtpSettings>()
+                .Bind(configuration.GetSection("Email:SmtpSettings"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+            
+            services.AddScoped<IEmailService, EmailService>()
                 .AddScoped<IEmailContentService, EmailContentService>()
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
