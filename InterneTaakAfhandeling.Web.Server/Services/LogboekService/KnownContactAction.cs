@@ -124,16 +124,12 @@ public class KnownContactAction
         {
             KnownActorType.Afdeling => CreateIdentificator(KnownAfdelingIdentificators.ObjectRegisterId, request.ActorIdentifier),
             KnownActorType.Groep => CreateIdentificator(KnownGroepIdentificators.ObjectRegisterId, request.ActorIdentifier),
-            KnownActorType.Medewerker => CreateIdentificator(KnownMedewerkerIdentificators.EmailHandmatig, request.ActorIdentifier),
             _ => throw new InvalidOperationException($"Unknown ActorType: {request.ActorType}")
         };
 
         objectIdentificators.Add(objectIdentificator);
 
-        // Create extra email identificator only if groep / afdeling is selected and extra MedewerkerEmail is provided
-        bool shouldCreateEmailIdentificator =
-            request.ActorType != KnownActorType.Medewerker &&
-            !string.IsNullOrWhiteSpace(request.MedewerkerEmail);
+        bool shouldCreateEmailIdentificator = !string.IsNullOrWhiteSpace(request.MedewerkerEmail);
 
         if (shouldCreateEmailIdentificator) {
             objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.EmailHandmatig, request.MedewerkerEmail));

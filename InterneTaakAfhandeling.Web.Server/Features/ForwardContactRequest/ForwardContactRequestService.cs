@@ -39,7 +39,6 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
 
         var primaryActor = request.ActorType switch
         {
-            KnownActorType.Medewerker => await GetOrCreateMedewerkerActor(request.ActorIdentifier),
             KnownActorType.Afdeling => await GetOrCreateAfdelingActor(request.ActorIdentifier),
             KnownActorType.Groep => await GetOrCreateGroepActor(request.ActorIdentifier),
             _ => throw new ArgumentException($"Invalid actor type: {request.ActorType}")
@@ -47,9 +46,8 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
 
         if (primaryActor != null) actors.Add(primaryActor);
 
+        if (string.IsNullOrWhiteSpace(request.MedewerkerEmail)) return actors;
 
-        if ((request.ActorType != KnownActorType.Afdeling && request.ActorType != KnownActorType.Groep) ||
-            string.IsNullOrWhiteSpace(request.MedewerkerEmail)) return actors;
         var medewerkerActor = await GetOrCreateMedewerkerActor(request.MedewerkerEmail);
         if (medewerkerActor != null) actors.Add(medewerkerActor);
 

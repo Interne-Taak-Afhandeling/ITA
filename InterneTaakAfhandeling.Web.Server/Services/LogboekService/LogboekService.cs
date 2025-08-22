@@ -147,7 +147,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         {
             KnownAfdelingIdentificators.CodeObjecttypeAfdeling => await GetAfdelingDescription(objectIdentificator.ObjectId),
             KnownGroepIdentificators.CodeObjecttypeGroep => await GetGroepDescription(objectIdentificator.ObjectId),
-            KnownMedewerkerIdentificators.CodeObjecttypeMedewerker => $"{KnownActorType.Medewerker.ToLower()} \"{objectIdentificator.ObjectId}\"",
+            KnownMedewerkerIdentificators.CodeObjecttypeMedewerker => $"medewerker \"{objectIdentificator.ObjectId}\"",
             _ => throw new InvalidOperationException($"Onbekend objecttype: {objectIdentificator.CodeObjecttype}")
         };
 
