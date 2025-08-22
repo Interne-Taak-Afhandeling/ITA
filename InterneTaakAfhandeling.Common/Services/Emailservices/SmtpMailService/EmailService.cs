@@ -11,16 +11,11 @@ public interface IEmailService
     Task<SmtpResult> SendEmailAsync(string to, string subject, string body); 
 }
 
-public class EmailService : IEmailService
+public class EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailService> logger)
+    : IEmailService
 {
-    private readonly ILogger<EmailService> _logger;
-    private readonly SmtpSettings _smtpSettings;
-
-    public EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailService> logger)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _smtpSettings = smtpOptions.Value;
-    }
+    private readonly ILogger<EmailService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly SmtpSettings _smtpSettings = smtpOptions.Value;
 
     public async Task<SmtpResult> SendEmailAsync(string to, string subject, string body)
     {
@@ -35,13 +30,11 @@ public class EmailService : IEmailService
             };
             mailMessage.To.Add(to);
 
-            using var smtpClient = new SmtpClient(_smtpSettings.Host, _smtpSettings.Port)
-            {
-                Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password),
-                EnableSsl = _smtpSettings.EnableSsl
-            };
+            using var smtpClient = new SmtpClient(_smtpSettings.Host, _smtpSettings.Port);
+            smtpClient.Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password);
+            smtpClient.EnableSsl = _smtpSettings.EnableSsl;
 
-             
+
             _logger.LogInformation("Sending email to {To} via {Host}:{Port}", to[..Math.Min(to.Length, 4)], _smtpSettings.Host, _smtpSettings.Port);
             await smtpClient.SendMailAsync(mailMessage);
             
@@ -51,7 +44,7 @@ public class EmailService : IEmailService
         {
             _logger.LogError(smtpEx, "SMTP error occurred while sending email via {Host}:{Port}", _smtpSettings.Host, _smtpSettings.Port);
             return new SmtpResult { Success = false, Message = $"SMTP error: {smtpEx.Message}" };
-         }
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email via {Host}:{Port}", _smtpSettings.Host, _smtpSettings.Port);

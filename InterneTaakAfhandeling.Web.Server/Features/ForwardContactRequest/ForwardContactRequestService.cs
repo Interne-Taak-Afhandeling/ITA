@@ -42,22 +42,35 @@ public class ForwardContactRequestService(
             throw new InvalidOperationException(
                 $"Unable to update Internetaak with ID {internetaakId}.");
 
-        var notificationResult = await NotifyInternetaakActors(updatedInternetaak);
+        var messages = await NotifyInternetaakActors(updatedInternetaak);
 
         return new ForwardContactRequestResponse
         {
             Internetaak = updatedInternetaak,
-            NotificationResult = notificationResult
+            NotificationResult = string.Join(", ", messages)
         };
     }
 
 
-    private async Task<string> NotifyInternetaakActors(Internetaak internetaken)
+    private async Task<List<string>> NotifyInternetaakActors(Internetaak internetaken)
     {
+        var notificationResults = new List<string>();
+
         try
         {
-            var actorEmails = await ResolveActorsEmailAsync(internetaken);
-            if (actorEmails.Count != internetaken.ToegewezenAanActoren?.Count)
+            var emailResult = await ResolveActorsEmailAsync(internetaken);
+
+            if (emailResult.NotFoundActors.Count > 0)
+            {
+                var notFoundMessage = emailResult.NotFoundActors.Select(actor =>
+                {
+                    var actorName = actor.Naam ?? actor.Uuid;
+                    return $"{actorName}' heeft geen e-mailadres geregistreerd";
+                });
+                notificationResults.AddRange(notFoundMessage);
+            }
+
+            if (emailResult.FoundEmails.Count > 0)
             {
                 var klantContact =
                     await openKlantApiClient.GetKlantcontactAsync(internetaken.AanleidinggevendKlantcontact.Uuid);
@@ -75,37 +88,56 @@ public class ForwardContactRequestService(
                 var emailContent =
                     emailContentService.BuildInternetakenEmailContent(internetaken, klantContact, digitaleAdress, zaak);
 
-                await Task.WhenAll(actorEmails.Select(email =>
-                    emailService.SendEmailAsync(email, $"Contactverzoek Doorgestuurd - {internetaken.Nummer}",
-                        emailContent)));
+                var emailTasks = emailResult.FoundEmails.Select(async email =>
+                {
+                    var result = await emailService.SendEmailAsync(email,
+                        $"Contactverzoek Doorgestuurd - {internetaken.Nummer}", emailContent);
+                    return new { Email = email, Result = result };
+                });
+
+                var emailResults = await Task.WhenAll(emailTasks);
+
+                var failedEmails = emailResults.Where(r => !r.Result.Success).ToList();
+                if (failedEmails.Count > 0)
+                {
+                    var failedEmailsWithErrors =
+                        string.Join(", ", failedEmails.Select(f => $"{f.Email} ({f.Result.Message})"));
+                    logger.LogWarning("Some emails failed to send for internetaak {Number}: {FailedEmails}",
+                        internetaken.Nummer, failedEmailsWithErrors);
+
+                    var failedEmailAddresses = string.Join(", ", failedEmails.Select(f => f.Email));
+                    notificationResults.Add(
+                        $"E-mail verzending gedeeltelijk mislukt voor internetaak {internetaken.Nummer}. Mislukte e-mails: {failedEmailAddresses}");
+                }
             }
             else
             {
                 logger.LogInformation("No actor emails found for internetaken: {Number}, skipping",
                     internetaken.Nummer);
-                return $"Kan e-mail voor internetaak niet verwerken {internetaken.Nummer}: Er zijn geen e-mailadressen van acteurs gevonden";
+                notificationResults.Add(
+                    $"No actor emails found for internetaak {internetaken.Nummer}, skipping email notifications");
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing internetaken {Number}", internetaken.Nummer);
-
-            return $"Kan e-mail voor internetaak niet verwerken {internetaken.Nummer}: {ex.Message}";
+            notificationResults.Add($"Error processing internetaak {internetaken.Nummer}");
         }
 
-        return "E-mailmeldingen zijn succesvol verzonden";
+        return notificationResults;
     }
 
 
-    private async Task<List<string>> ResolveActorsEmailAsync(Internetaak internetaken)
+    private async Task<ActorEmailResolutionResult> ResolveActorsEmailAsync(Internetaak internetaken)
     {
+        var result = new ActorEmailResolutionResult();
+
         if (internetaken.ToegewezenAanActoren == null)
         {
             logger.LogWarning("No actor assigned to internetaak {Nummer}", internetaken.Nummer);
-            return [];
+            return result;
         }
 
-        var emailAddresses = new List<string>();
 
         foreach (var toegewezenAanActoren in internetaken.ToegewezenAanActoren)
         {
@@ -120,7 +152,10 @@ public class ForwardContactRequestService(
 
             if (actor.Actoridentificator == null ||
                 !validCodeObjectTypes.Contains(actor.Actoridentificator.CodeObjecttype))
+            {
+                result.NotFoundActors.Add(actor);
                 continue;
+            }
 
             var objectId = actor.Actoridentificator.ObjectId;
             var actorIdentificator = actor.Actoridentificator;
@@ -129,7 +164,7 @@ public class ForwardContactRequestService(
                 KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId &&
                 actorIdentificator.CodeRegister == KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister)
             {
-                emailAddresses.Add(objectId);
+                result.FoundEmails.Add(objectId);
             }
 
             else if (actorIdentificator.CodeSoortObjectId ==
@@ -142,27 +177,33 @@ public class ForwardContactRequestService(
                     case 0:
                         logger.LogWarning("No medewerker found in overigeobjecten for actorIdentificator {ObjectId}",
                             objectId);
-
+                        result.NotFoundActors.Add(actor);
                         continue;
                     case > 1:
                         logger.LogWarning(
                             "Multiple objects found in overigeobjecten for actorIdentificator {ObjectId}. Expected exactly one match.",
                             objectId);
+                        result.NotFoundActors.Add(actor);
                         continue;
                     default:
                         objectRecords.First().Data.EmailAddresses.ForEach(x =>
                         {
                             if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
-                                emailAddresses.Add(x);
+                            {
+                                result.FoundEmails.Add(x);
+                            }
                             else
+                            {
                                 logger.LogWarning("Invalid email address found for object {ObjectId}", objectId);
+                                result.NotFoundActors.Add(actor);
+                            }
                         });
                         break;
                 }
             }
         }
 
-        return emailAddresses;
+        return result;
     }
 
 

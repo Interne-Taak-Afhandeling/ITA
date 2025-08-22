@@ -62,3 +62,9 @@ public class ForwardContactRequestResponse
     public Internetaak? Internetaak { get; init; }
     public required string NotificationResult { get; init; }
 }
+
+public class ActorEmailResolutionResult
+{
+    public List<string> FoundEmails { get; } = [];
+    public List<Actor> NotFoundActors { get; } = [];
+}
