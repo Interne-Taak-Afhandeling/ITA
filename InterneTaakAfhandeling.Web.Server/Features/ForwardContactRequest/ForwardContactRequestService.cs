@@ -10,7 +10,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
 public interface IForwardContactRequestService
 {
-    Task<Internetaak?> ForwardAsync(Guid internetaakId, ForwardContactRequestModel request);
+    Task<ForwardContactRequestResponse> ForwardAsync(Guid internetaakId, ForwardContactRequestModel request);
 }
 
 public class ForwardContactRequestService(
@@ -22,7 +22,8 @@ public class ForwardContactRequestService(
     IContactmomentenService contactmomentenService,
     ILogger<ForwardContactRequestService> logger) : IForwardContactRequestService
 {
-    public async Task<Internetaak?> ForwardAsync(Guid internetaakId, ForwardContactRequestModel request)
+    public async Task<ForwardContactRequestResponse> ForwardAsync(Guid internetaakId,
+        ForwardContactRequestModel request)
     {
         var actors = await GetTargetActors(request);
 
@@ -41,18 +42,22 @@ public class ForwardContactRequestService(
             throw new InvalidOperationException(
                 $"Unable to update Internetaak with ID {internetaakId}.");
 
-        await NotifyInternetaakActors(updatedInternetaak);
+        var notificationResult = await NotifyInternetaakActors(updatedInternetaak);
 
-        return updatedInternetaak;
+        return new ForwardContactRequestResponse
+        {
+            Internetaak = updatedInternetaak,
+            NotificationResult = notificationResult
+        };
     }
 
 
-    private async Task NotifyInternetaakActors(Internetaak internetaken)
+    private async Task<string> NotifyInternetaakActors(Internetaak internetaken)
     {
         try
         {
             var actorEmails = await ResolveActorsEmailAsync(internetaken);
-            if (actorEmails.Count > 0)
+            if (actorEmails.Count != internetaken.ToegewezenAanActoren?.Count)
             {
                 var klantContact =
                     await openKlantApiClient.GetKlantcontactAsync(internetaken.AanleidinggevendKlantcontact.Uuid);
@@ -78,12 +83,17 @@ public class ForwardContactRequestService(
             {
                 logger.LogInformation("No actor emails found for internetaken: {Number}, skipping",
                     internetaken.Nummer);
+                return $"Kan e-mail voor internetaak niet verwerken {internetaken.Nummer}: Er zijn geen e-mailadressen van acteurs gevonden";
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing internetaken {Number}", internetaken.Nummer);
+
+            return $"Kan e-mail voor internetaak niet verwerken {internetaken.Nummer}: {ex.Message}";
         }
+
+        return "E-mailmeldingen zijn succesvol verzonden";
     }
 
 
@@ -132,6 +142,7 @@ public class ForwardContactRequestService(
                     case 0:
                         logger.LogWarning("No medewerker found in overigeobjecten for actorIdentificator {ObjectId}",
                             objectId);
+
                         continue;
                     case > 1:
                         logger.LogWarning(

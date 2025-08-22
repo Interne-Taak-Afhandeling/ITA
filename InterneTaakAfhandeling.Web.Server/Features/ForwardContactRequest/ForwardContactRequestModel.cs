@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
@@ -54,4 +55,10 @@ public class ForwardContactRequestModel : IValidatableObject
                 break;
         }
     }
+}
+
+public class ForwardContactRequestResponse
+{
+    public Internetaak? Internetaak { get; init; }
+    public required string NotificationResult { get; init; }
 }

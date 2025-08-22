@@ -10,7 +10,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 public class ForwardContactRequestController(
     IForwardContactRequestService forwardContactRequestService) : Controller
 {
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ForwardContactRequestResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPost("{id:guid}/forward")]
