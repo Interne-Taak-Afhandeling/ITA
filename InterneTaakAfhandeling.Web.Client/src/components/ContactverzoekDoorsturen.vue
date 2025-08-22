@@ -70,6 +70,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { get } from "@/utils/fetchWrapper";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import { klantcontactService } from "@/services/klantcontactService";
+import { EMAIL_PATTERN } from "@/validation.ts";
 
 const emit = defineEmits<{ success: [] }>();
 const { taak } = defineProps<{ taak: Internetaken }>();
@@ -125,8 +126,7 @@ async function forwardContactverzoek() {
 }
 
 function isValidEmail(email: string) {
-  const emailPattern = /^[\w.%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return emailPattern.test(email);
+  return EMAIL_PATTERN.test(email);
 }
 
 function getForwardContactVerzoekPayload() {
