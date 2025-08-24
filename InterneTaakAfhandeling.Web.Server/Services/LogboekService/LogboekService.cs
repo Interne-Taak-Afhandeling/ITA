@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
+﻿using InterneTaakAfhandeling.Common.Services;
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -108,6 +109,19 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                         activiteit.Notitie = item.Notitie;
                         break;
                     }
+
+                case ActiviteitTypes.Doorsturen:
+                    {
+                        activiteit.Tekst = await CreateDoorsturenText(item);
+
+                        activiteit.UitgevoerdDoor = GetName(item);
+
+                        if (!string.IsNullOrEmpty(item.Notitie))
+                        {
+                            activiteit.Notitie = item.Notitie;
+                        }
+                        break;
+                    }
             }
 
             activiteiten.Add(activiteit);
@@ -116,6 +130,49 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         return activiteiten;
     }
 
+    private async Task<string> CreateDoorsturenText(ActiviteitData item)
+    {
+        if (item.HeeftBetrekkingOp == null || item.HeeftBetrekkingOp.Count == 0)
+        {
+            throw new ArgumentException("Geen objectreferenties gevonden in activiteit.");
+        }
+
+        var descriptions = await Task.WhenAll(item.HeeftBetrekkingOp.Select(GetActorDescription));
+        return string.Join(" en ", descriptions);
+    }
+
+    private async Task<string> GetActorDescription(ObjectIdentificator objectIdentificator)
+    {
+        var actorInfo = objectIdentificator.CodeObjecttype switch
+        {
+            KnownAfdelingIdentificators.CodeObjecttypeAfdeling => await GetAfdelingDescription(objectIdentificator.ObjectId),
+            KnownGroepIdentificators.CodeObjecttypeGroep => await GetGroepDescription(objectIdentificator.ObjectId),
+            KnownMedewerkerIdentificators.CodeObjecttypeMedewerker => $"medewerker \"{objectIdentificator.ObjectId}\"",
+            _ => throw new InvalidOperationException($"Onbekend objecttype: {objectIdentificator.CodeObjecttype}")
+        };
+
+        return $"Contactverzoek doorgestuurd aan {actorInfo}";
+    }
+
+    private async Task<string> GetAfdelingDescription(string objectId)
+    {
+        var afdeling = await _objectenApiClient.GetAfdeling(objectId);
+        if (afdeling == null)
+        {
+            throw new InvalidOperationException($"Afdeling {objectId} is not known in objecten register");
+        }
+        return $"{KnownActorType.Afdeling.ToLower()} \"{afdeling.Record.Data.Naam}\"";
+    }
+
+    private async Task<string> GetGroepDescription(string objectId)
+    {
+        var groep = await _objectenApiClient.GetGroep(objectId);
+        if (groep == null)
+        {
+            throw new InvalidOperationException($"Groep {objectId} is not known in objecten register");
+        }
+        return $"{KnownActorType.Groep.ToLower()} \"{groep.Record.Data.Naam}\"";
+    }
 
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)
     {
@@ -134,6 +191,8 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         ActiviteitTypes.ZaakkoppelingGewijzigd => "Zaak gewijzigd",
         ActiviteitTypes.Toegewezen => "Opgepakt",
         ActiviteitTypes.InterneNotitie => "Interne notitie",
+        ActiviteitTypes.Doorsturen => "Doorgestuurd",
+
         _ => type ?? "Onbekende actie"
     };
 
@@ -159,12 +218,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
             Notitie = knownContactAction.Notitie ?? string.Empty,
             Omschrijving = knownContactAction.Description,
             Actor = knownContactAction.Actor,
-            HeeftBetrekkingOp = knownContactAction.HeeftBetrekkingOp != null
-                ?
-                [
-                    knownContactAction.HeeftBetrekkingOp
-                ]
-                : []
+            HeeftBetrekkingOp = knownContactAction.HeeftBetrekkingOp ?? []
         });
         return logBoekPatch;
     }

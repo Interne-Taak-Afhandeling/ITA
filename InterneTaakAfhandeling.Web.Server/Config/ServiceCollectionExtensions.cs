@@ -13,6 +13,9 @@ using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using Microsoft.EntityFrameworkCore;
+using InterneTaakAfhandeling.Web.Server.Data;
+
 
 
 namespace InterneTaakAfhandeling.Web.Server.Config
@@ -64,6 +67,11 @@ namespace InterneTaakAfhandeling.Web.Server.Config
                 .ValidateOnStart();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IEmailContentService, EmailContentService>();
+
+            
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+         
             services.AddExceptionHandler<ExceptionToProblemDetailsMapper>();
 
             services.AddProblemDetails();

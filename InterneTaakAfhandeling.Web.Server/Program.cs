@@ -1,5 +1,7 @@
 using InterneTaakAfhandeling.Web.Server.Config;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,5 +33,9 @@ app.MapControllers();
 app.MapITAAuthEndpoints();
 app.MapHealthChecks("/healthz").AllowAnonymous();
 app.MapFallbackToFile("/index.html");
-
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();  
+}
 app.Run();

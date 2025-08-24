@@ -1,10 +1,12 @@
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
-public class KnownAfdelingIdentificators
+public class KnownAfdelingIdentificators : IObjectRegisterId
 {
-    public static readonly KnownAfdelingIdentificators ObjectregisterId = new()
+    public const string CodeObjecttypeAfdeling = "afd";
+
+    public static readonly KnownAfdelingIdentificators ObjectRegisterId = new()
     {
-        CodeObjecttype = "afd",
+        CodeObjecttype = CodeObjecttypeAfdeling,
         CodeRegister = "obj",
         CodeSoortObjectId = "idf"
     };

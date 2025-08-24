@@ -32,7 +32,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.Afdelinge
             try
             {
                 var afdelingen = await GetAfdelingenRecursive(1);
-                return Ok(afdelingen);
+  
+                var result = afdelingen.Select(x => new { x.Naam, x.Uuid }).ToList();
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -41,9 +43,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.Afdelinge
             }
         }
 
-        private async Task<IEnumerable<string>> GetAfdelingenRecursive(int page)
+        private async Task<IEnumerable<(string Naam, Guid Uuid)>> GetAfdelingenRecursive(int page)
         {
-            var afdelingen = new List<string>();
+            var afdelingen = new List<(string Naam, Guid Uuid)>();
 
             var result = await objectApiClient.GetAfdelingen(page);
 
@@ -52,8 +54,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.Afdelinge
                 return [];
             }
 
-            afdelingen =  result.Results.Select(x => x.Record.Data).Select(x=> x.Naam ).ToList();
-
+            afdelingen = [.. result.Results.Select(x => (x.Record.Data.Naam, x.Uuid))];
 
             if (result.Next != null)
             {

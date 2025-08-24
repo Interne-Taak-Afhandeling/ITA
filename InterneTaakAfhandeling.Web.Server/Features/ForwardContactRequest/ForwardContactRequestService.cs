@@ -5,6 +5,8 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
+using InterneTaakAfhandeling.Common.Services;
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
@@ -145,9 +147,9 @@ public class ForwardContactRequestService(
 
             var validCodeObjectTypes = new List<string>
             {
-                KnownMedewerkerIdentificators.ObjectregisterId.CodeObjecttype,
-                KnownAfdelingIdentificators.ObjectregisterId.CodeObjecttype,
-                KnownGroepIdentificators.ObjectregisterId.CodeObjecttype
+                KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
+                KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
+                KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype
             };
 
             if (actor.Actoridentificator == null ||
@@ -168,8 +170,8 @@ public class ForwardContactRequestService(
             }
 
             else if (actorIdentificator.CodeSoortObjectId ==
-                     KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId &&
-                     actorIdentificator.CodeRegister == KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister)
+                     KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId &&
+                     actorIdentificator.CodeRegister == KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister)
             {
                 var objectRecords = await objectApiClient.GetObjectsByIdentificatie(objectId);
                 switch (objectRecords.Count)
@@ -213,7 +215,6 @@ public class ForwardContactRequestService(
 
         var primaryActor = request.ActorType switch
         {
-            KnownActorType.Medewerker => await GetOrCreateMedewerkerActor(request.ActorIdentifier),
             KnownActorType.Afdeling => await GetOrCreateAfdelingActor(request.ActorIdentifier),
             KnownActorType.Groep => await GetOrCreateGroepActor(request.ActorIdentifier),
             _ => throw new ArgumentException($"Invalid actor type: {request.ActorType}")
@@ -221,9 +222,8 @@ public class ForwardContactRequestService(
 
         if (primaryActor != null) actors.Add(primaryActor);
 
+        if (string.IsNullOrWhiteSpace(request.MedewerkerEmail)) return actors;
 
-        if ((request.ActorType != KnownActorType.Afdeling && request.ActorType != KnownActorType.Groep) ||
-            string.IsNullOrWhiteSpace(request.MedewerkerEmail)) return actors;
         var medewerkerActor = await GetOrCreateMedewerkerActor(request.MedewerkerEmail);
         if (medewerkerActor != null) actors.Add(medewerkerActor);
 
@@ -269,26 +269,33 @@ public class ForwardContactRequestService(
         if (string.IsNullOrWhiteSpace(identifier))
             return null;
 
+        var afdeling = await objectApiClient.GetAfdeling(identifier);
+
+        if (afdeling == null)
+        {
+            throw new InvalidDataException($"Afdeling with identifier {identifier} does not exist.");
+        }
+       
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
             IndicatieActief = true,
             SoortActor = SoortActor.organisatorische_eenheid,
             ActoridentificatorObjectId = identifier,
-            ActoridentificatorCodeObjecttype = KnownAfdelingIdentificators.ObjectregisterId.CodeObjecttype,
-            ActoridentificatorCodeRegister = KnownAfdelingIdentificators.ObjectregisterId.CodeRegister,
-            ActoridentificatorCodeSoortObjectId = KnownAfdelingIdentificators.ObjectregisterId.CodeSoortObjectId
+            ActoridentificatorCodeObjecttype = KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
+            ActoridentificatorCodeRegister = KnownAfdelingIdentificators.ObjectRegisterId.CodeRegister,
+            ActoridentificatorCodeSoortObjectId = KnownAfdelingIdentificators.ObjectRegisterId.CodeSoortObjectId
         });
         if (actor == null)
         {
             var actorRequest = new ActorRequest
             {
                 SoortActor = SoortActor.organisatorische_eenheid,
-                Naam = identifier,
+                Naam = afdeling.Record.Data.Naam,
                 Actoridentificator = new Actoridentificator
                 {
-                    CodeObjecttype = KnownMedewerkerIdentificators.ObjectregisterId.CodeObjecttype,
-                    CodeRegister = KnownMedewerkerIdentificators.ObjectregisterId.CodeRegister,
-                    CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectregisterId.CodeSoortObjectId,
+                    CodeObjecttype = KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
+                    CodeRegister = KnownAfdelingIdentificators.ObjectRegisterId.CodeRegister,
+                    CodeSoortObjectId = KnownAfdelingIdentificators.ObjectRegisterId.CodeSoortObjectId,
                     ObjectId = identifier
                 }
             };
@@ -303,26 +310,33 @@ public class ForwardContactRequestService(
         if (string.IsNullOrWhiteSpace(identifier))
             return null;
 
+        var groep = await objectApiClient.GetGroep(identifier);
+
+        if (groep == null)
+        {
+            throw new InvalidDataException($"Groep with identifier {identifier} does not exist.");
+        }
+
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
             IndicatieActief = true,
             SoortActor = SoortActor.organisatorische_eenheid,
             ActoridentificatorObjectId = identifier,
-            ActoridentificatorCodeObjecttype = KnownGroepIdentificators.ObjectregisterId.CodeObjecttype,
-            ActoridentificatorCodeRegister = KnownGroepIdentificators.ObjectregisterId.CodeRegister,
-            ActoridentificatorCodeSoortObjectId = KnownGroepIdentificators.ObjectregisterId.CodeSoortObjectId
+            ActoridentificatorCodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+            ActoridentificatorCodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+            ActoridentificatorCodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId
         });
         if (actor == null)
         {
             var actorRequest = new ActorRequest
             {
                 SoortActor = SoortActor.organisatorische_eenheid,
-                Naam = identifier,
+                Naam = groep.Record.Data.Naam,
                 Actoridentificator = new Actoridentificator
                 {
-                    CodeObjecttype = KnownGroepIdentificators.ObjectregisterId.CodeObjecttype,
-                    CodeRegister = KnownGroepIdentificators.ObjectregisterId.CodeRegister,
-                    CodeSoortObjectId = KnownGroepIdentificators.ObjectregisterId.CodeSoortObjectId,
+                    CodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+                    CodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+                    CodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId,
                     ObjectId = identifier
                 }
             };

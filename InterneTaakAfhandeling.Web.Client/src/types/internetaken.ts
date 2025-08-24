@@ -224,6 +224,13 @@ export interface CreateRelatedKlantcontactRequest {
   interneNotitie?: string;
 }
 
+export interface ForwardKlantcontactRequest {
+  actorType: string;
+  actorIdentifier: string;
+  medewerkerEmail?: string;
+  interneNotitie?: string;
+}
+
 export interface RelatedKlantcontactResult {
   klantcontact: Klantcontact;
   actorKlantcontact: ActorKlantcontact;

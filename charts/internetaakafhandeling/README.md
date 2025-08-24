@@ -14,6 +14,8 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| afdeling.type | string | `""` | De url van het afdeling objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie |
+| afdeling.typeVersion | int | `1` | De versie van het afdeling objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | apiConnections.object.apiKey | string | `""` |  |
 | apiConnections.object.baseUrl | string | `""` |  |
 | apiConnections.openKlant.apiKey | string | `""` |  |
@@ -21,21 +23,20 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | apiConnections.zaakSysteem.baseUrl | string | `""` |  |
 | apiConnections.zaakSysteem.clientId | string | `""` |  |
 | apiConnections.zaakSysteem.key | string | `""` |  |
-| certificates.commonName | string | `""` |  |
-| certificates.email | string | `""` |  |
-| certificates.enabled | bool | `true` |  |
-| certificates.installClusterIssuer | bool | `true` |  |
-| certificates.issuerName | string | `"letsencrypt-prod"` |  |
 | database.host | string | `""` |  |
 | database.name | string | `"interneTaakAfhandeling"` |  |
 | database.password | string | `""` |  |
 | database.port | string | `"5432"` |  |
 | database.username | string | `""` |  |
-| ingress.enabled | bool | `true` |  |
-| ingress.host | string | `""` |  |
-| ingress.port | int | `80` |  |
-| logboek.type | string | `""` |  |
-| logboek.typeVersion | int | `1` |  |
+| groep.type | string | `""` | De url van het groep objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie |
+| groep.typeVersion | int | `1` | De versie van het groep objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
+| ingress.annotations | object | `{}` |  |
+| ingress.className | string | `""` |  |
+| ingress.enabled | bool | `false` |  |
+| ingress.hosts | list | `[]` | ingress hosts |
+| ingress.tls | list | `[]` |  |
+| logboek.type | string | `""` | De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie |
+| logboek.typeVersion | int | `1` | De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | poller.image.pullPolicy | string | `"Always"` |  |
 | poller.image.repository | string | `"ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"` |  |
 | poller.image.tag | string | `"latest"` |  |
@@ -53,9 +54,12 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | postgresql.auth.postgresPassword | string | `""` |  |
 | postgresql.auth.username | string | `""` |  |
 | postgresql.enabled | bool | `true` |  |
+| postgresql.image.repository | string | `"bitnamilegacy/postgresql"` |  |
 | postgresql.metrics.enabled | bool | `false` |  |
+| postgresql.metrics.image.repository | string | `"bitnamilegacy/postgres-exporter"` |  |
 | postgresql.primary.persistence.enabled | bool | `true` |  |
 | postgresql.primary.persistence.size | string | `"8Gi"` |  |
+| postgresql.volumePermissions.image.repository | string | `"bitnamilegacy/os-shell"` |  |
 | web.appsettings.setting1 | string | `""` |  |
 | web.appsettings.setting2 | string | `""` |  |
 | web.image.pullPolicy | string | `"Always"` |  |
