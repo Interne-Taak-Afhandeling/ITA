@@ -1,3 +1,4 @@
+import { knownErrorMessages } from "@/utils/fetchWrapper";
 import { ref, computed } from "vue";
 
 export interface PaginationResponse<T = unknown> {
@@ -23,7 +24,9 @@ export function usePagination<T = unknown>(
   const error = ref<string | null>(null);
   const results = ref<T[]>([]);
   const totalCount = ref(0);
-  const currentPage = ref(initialPage);
+
+  const currentPage = ref<number>(initialPage);
+
   const pageSize = ref(initialPageSize);
   const hasNextPage = ref(false);
   const hasPreviousPage = ref(false);
@@ -78,16 +81,23 @@ export function usePagination<T = unknown>(
 
       results.value = response.results;
       totalCount.value = response.count;
-      currentPage.value = page;
+      currentPage.value = response.previous ? page : 1;
       hasNextPage.value = !!response.next;
       hasPreviousPage.value = !!response.previous;
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Er is een fout opgetreden bij het ophalen van gegevens";
-      error.value = message;
-      console.error("Pagination fetch error:", err);
+      //fallback to the first page in case of a notfound on a higer pagenr
+      if ((err as { message: string }).message == knownErrorMessages.notFound && page > 1) {
+        isLoading.value = false;
+        currentPage.value = 1;
+        await fetchData(currentPage.value);
+      } else {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Er is een fout opgetreden bij het ophalen van gegevens";
+        error.value = message;
+        console.error("Pagination fetch error:", err);
+      }
     } finally {
       isLoading.value = false;
     }

@@ -39,7 +39,16 @@ public class AfdelingenGroepenOverzichtController(
             };
             var result = await _interneTakenOverzichtService.GetInterneTakenOverzichtAsync(query);
 
-           return Ok(result);
+            return Ok(result);
+        }
+        catch (HttpRequestException ex)
+        {
+            if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return NotFound();
+            }
+            
+            throw;
         }
         catch (Exception ex)
         {

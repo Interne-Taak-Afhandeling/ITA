@@ -15,12 +15,14 @@ public class ForwardContactRequestModel : IValidatableObject
 
     public string? MedewerkerEmail { get; set; } // Optional medewerker email when ActorType is afdeling/groep
 
+    public string? InterneNotitie { get; set; } // Optional note to add to the contact request
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (ActorType is not (KnownActorType.Afdeling or KnownActorType.Medewerker or KnownActorType.Groep))
+        if (ActorType is not (KnownActorType.Afdeling or KnownActorType.Groep))
         {
             yield return new ValidationResult(
-                "ActorType must be 'medewerker', 'afdeling', or 'groep'.",
+                "ActorType must be 'afdeling', or 'groep'.",
                 [nameof(ActorType)]);
             yield break;
         }
@@ -32,19 +34,6 @@ public class ForwardContactRequestModel : IValidatableObject
 
         switch (ActorType)
         {
-            case KnownActorType.Medewerker:
-            {
-                if (!string.IsNullOrWhiteSpace(MedewerkerEmail))
-                    yield return new ValidationResult(
-                        "MedewerkerEmail should not be provided when ActorType is 'medewerker'. Use ActorIdentifier for the email.",
-                        [nameof(MedewerkerEmail)]);
-
-                if (!string.IsNullOrWhiteSpace(ActorIdentifier) && !EmailRegex.IsMatch(ActorIdentifier))
-                    yield return new ValidationResult(
-                        "ActorIdentifier must be a valid email address when ActorType is 'medewerker'.",
-                        [nameof(ActorIdentifier)]);
-                break;
-            }
             case KnownActorType.Afdeling or KnownActorType.Groep when
                 !string.IsNullOrWhiteSpace(MedewerkerEmail) &&
                 !EmailRegex.IsMatch(MedewerkerEmail):

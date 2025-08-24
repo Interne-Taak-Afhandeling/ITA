@@ -23,9 +23,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
         }
 
         public async Task<InterneTakenOverzichtResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery)
-        {
-
-            //refactoring suggestion: there is a _openKlantApiClient.QueryInterneTakenAsync that could be used for this (with some minor refactoring)
+        {                   
             var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(interneTakenQuery);
 
             var OverzichtItems = (await Task.WhenAll(internetakenResponse.Results
