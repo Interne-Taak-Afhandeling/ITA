@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
@@ -5,8 +6,6 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
-using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
@@ -56,19 +55,14 @@ public class ForwardContactRequestService(
 
     private async Task<List<string>> NotifyInternetaakActors(Internetaak internetaken)
     {
-        var notificationResults = new List<string>();
-
+        var notificationResults = new List<string> { "Contactverzoek succesvol doorgestuurd" };
         try
         {
             var emailResult = await ResolveActorsEmailAsync(internetaken);
 
             if (emailResult.NotFoundActors.Count > 0)
             {
-                var notFoundMessage = emailResult.NotFoundActors.Select(actor =>
-                {
-                    var actorName = actor.Naam ?? actor.Uuid;
-                    return $"{actorName}' heeft geen e-mailadres geregistreerd";
-                });
+                var notFoundMessage = emailResult.NotFoundActors.Select(actor => $"{actor.Naam}' heeft geen e-mailadres geregistreerd");
                 notificationResults.AddRange(notFoundMessage);
             }
 
@@ -271,11 +265,8 @@ public class ForwardContactRequestService(
 
         var afdeling = await objectApiClient.GetAfdeling(identifier);
 
-        if (afdeling == null)
-        {
-            throw new InvalidDataException($"Afdeling with identifier {identifier} does not exist.");
-        }
-       
+        if (afdeling == null) throw new InvalidDataException($"Afdeling with identifier {identifier} does not exist.");
+
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
             IndicatieActief = true,
@@ -312,10 +303,7 @@ public class ForwardContactRequestService(
 
         var groep = await objectApiClient.GetGroep(identifier);
 
-        if (groep == null)
-        {
-            throw new InvalidDataException($"Groep with identifier {identifier} does not exist.");
-        }
+        if (groep == null) throw new InvalidDataException($"Groep with identifier {identifier} does not exist.");
 
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
