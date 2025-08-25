@@ -60,22 +60,25 @@ public class ObjectIdentificator
 
 public class LogboekOptions
 {
+    [Required]
     public required string Type { get; init; }
-
+    [Required]
     public required string TypeVersion { get; init; }
 }
 
-
+  
 public class AfdelingOptions
 {
+    [Required]
     public required string Type { get; init; }
-
+    [Required]
     public required string TypeVersion { get; init; }
 }
 
-public class GroepOptions
+public class GroepOptions 
 {
+    [Required]
     public required string Type { get; init; }
-
+    [Required]
     public required string TypeVersion { get; init; }
 }

@@ -59,15 +59,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
-             
-            services.Configure<SmtpSettings>(configuration.GetSection("Email:SmtpSettings"));
-            services.AddOptions<SmtpSettings>()
-                .Bind(configuration.GetSection("Email:SmtpSettings"))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IEmailContentService, EmailContentService>();
-
+            services.AddSmtpClients(configuration);
             
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));

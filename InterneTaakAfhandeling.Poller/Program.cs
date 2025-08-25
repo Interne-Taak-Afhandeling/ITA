@@ -1,19 +1,17 @@
+using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Poller.Data;
+using InterneTaakAfhandeling.Poller.Features;
+using InterneTaakAfhandeling.Poller.Services.NotifierState;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using InterneTaakAfhandeling.Poller.Features;
-using InterneTaakAfhandeling.Poller.Data;
-using InterneTaakAfhandeling.Poller.Services.NotifierState; 
-using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
-class Program
+internal class Program
 {
-    static async Task Main(string[] args)
+    private static async Task Main(string[] args)
     {
         try
         {
@@ -21,18 +19,19 @@ class Program
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile($"appsettings.{environment}.json", true, true)
                 .AddEnvironmentVariables()
                 .AddUserSecrets<Program>()
                 .Build();
 
             Log.Logger = new LoggerConfiguration()
-                   .ReadFrom.Configuration(configuration)
-                   .CreateLogger();
+                .ReadFrom.Configuration(configuration)
+                .CreateLogger();
 
             var connectionString = configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in configuration.");
+                                   ?? throw new InvalidOperationException(
+                                       "Connection string 'DefaultConnection' not found in configuration.");
 
             // Setup DI
             var services = new ServiceCollection()
@@ -44,19 +43,11 @@ class Program
                 })
                 .AddHttpClient() // Add HttpClient factory
                 .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString))
-                .AddITAApiClients(configuration);
- 
-                services.Configure<SmtpSettings>(configuration.GetSection("Email:SmtpSettings"));
-                services.AddOptions<SmtpSettings>()
-                .Bind(configuration.GetSection("Email:SmtpSettings"))
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-            
-            services.AddScoped<IEmailService, EmailService>()
-                .AddScoped<IEmailContentService, EmailContentService>()
+                .AddITAApiClients(configuration)
+                .AddSmtpClients(configuration)
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
-                .AddScoped<IContactmomentenService, ContactmomentenService>(); 
+                .AddScoped<IContactmomentenService, ContactmomentenService>();
 
             var serviceProvider = services.BuildServiceProvider();
 
@@ -66,14 +57,14 @@ class Program
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbContext.Database.Migrate();
             }
-         
+
 
             // Get services
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
             var processor = serviceProvider.GetRequiredService<IInternetakenProcessor>();
 
             // Retrieve the message from the configuration; fallback if not found
-            string message = configuration["PollerMessage"] ?? "Poller executed at";
+            var message = configuration["PollerMessage"] ?? "Poller executed at";
 
             Console.WriteLine($"{message} {DateTimeOffset.UtcNow}");
 
