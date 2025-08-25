@@ -62,7 +62,8 @@ public class ForwardContactRequestService(
 
             if (emailResult.NotFoundActors.Count > 0)
             {
-                var notFoundMessage = emailResult.NotFoundActors.Select(actor => $"{actor.Naam}' heeft geen e-mailadres geregistreerd");
+                var notFoundMessage =
+                    emailResult.NotFoundActors.Select(actor => $"{actor.Naam}' heeft geen e-mailadres geregistreerd");
                 notificationResults.AddRange(notFoundMessage);
             }
 
@@ -110,14 +111,13 @@ public class ForwardContactRequestService(
             {
                 logger.LogInformation("No actor emails found for internetaken: {Number}, skipping",
                     internetaken.Nummer);
-                notificationResults.Add(
-                    $"No actor emails found for internetaak {internetaken.Nummer}, skipping email notifications");
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing internetaken {Number}", internetaken.Nummer);
-            notificationResults.Add($"Error processing internetaak {internetaken.Nummer}");
+            notificationResults.Add(
+                $"Niet in staat om acteurs te informeren voor contactverzoek {internetaken.Nummer}");
         }
 
         return notificationResults;
