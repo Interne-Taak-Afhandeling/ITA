@@ -1,11 +1,11 @@
 using InterneTaakAfhandeling.Common.Services;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Poller.Services.NotifierState;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

@@ -10,20 +10,22 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 [Authorize]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 public class ForwardContactRequestController(
-    IForwardContactRequestService forwardContactRequestService, ILogboekService logboekService, ITAUser user) : Controller {
-
+    IForwardContactRequestService forwardContactRequestService,
+    ILogboekService logboekService,
+    ITAUser user) : Controller
+{
     private readonly ITAUser _user = user ?? throw new ArgumentNullException(nameof(user));
 
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ForwardContactRequestResponse),StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPost("{id:guid}/forward")]
     public async Task<IActionResult> ForwardContactRequestAsync([FromRoute] Guid id,
         [FromBody] ForwardContactRequestModel request)
     {
-        await forwardContactRequestService.ForwardAsync(id, request);
+        var response = await forwardContactRequestService.ForwardAsync(id, request);
         await logboekService.LogContactRequestAction(KnownContactAction.ForwardKlantContact(request, _user), id);
 
-        return Ok();
+        return Ok(response);
     }
 }
