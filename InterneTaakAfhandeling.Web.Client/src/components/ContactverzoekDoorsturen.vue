@@ -40,8 +40,13 @@
       </utrecht-form-field>
 
       <utrecht-form-field>
-        <utrecht-form-label for="medewerker">Medewerker</utrecht-form-label>
-        <utrecht-textbox id="medewerker" v-model="forwardContactmomentForm.medewerker" />
+        <utrecht-form-label for="medewerker">E-mailadres medewerker</utrecht-form-label>
+        <utrecht-textbox
+          id="medewerker"
+          type="email"
+          v-model="forwardContactmomentForm.medewerker"
+          placeholder="Voer een e-mailadres in"
+        />
       </utrecht-form-field>
 
       <interne-toelichting-field
@@ -65,6 +70,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { get } from "@/utils/fetchWrapper";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import { klantcontactService } from "@/services/klantcontactService";
+import { EMAIL_PATTERN } from "@/validation.ts";
 
 const emit = defineEmits<{ success: [] }>();
 const { taak } = defineProps<{ taak: Internetaken }>();
@@ -96,7 +102,17 @@ function resetForm() {
 }
 
 async function forwardContactverzoek() {
+  const email = forwardContactmomentForm.value.medewerker;
+
+  if (email && email.trim() !== "") {
+    if (!isValidEmail(email)) {
+      toast.add({ text: "The e-mail is not a valid e-mail", type: "error" });
+      return;
+    }
+  }
+
   isLoading.value = true;
+
   try {
     await klantcontactService.forwardKlantContact(taak.uuid, getForwardContactVerzoekPayload());
     toast.add({ text: "Contactmoment is doorgestuurd", type: "ok" });
@@ -107,6 +123,10 @@ async function forwardContactverzoek() {
   } finally {
     isLoading.value = false;
   }
+}
+
+function isValidEmail(email: string) {
+  return EMAIL_PATTERN.test(email);
 }
 
 function getForwardContactVerzoekPayload() {
