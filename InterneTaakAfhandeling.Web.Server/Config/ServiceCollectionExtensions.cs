@@ -1,5 +1,4 @@
 using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features;
 using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe;
@@ -12,7 +11,6 @@ using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using Microsoft.EntityFrameworkCore;
 using InterneTaakAfhandeling.Web.Server.Data;
 
