@@ -60,7 +60,7 @@
 import { ref, onMounted } from "vue";
 import { toast } from "./toast/toast";
 import InterneToelichtingField from "./InterneToelichtingField.vue";
-import type { Internetaken } from "@/types/internetaken";
+import type { ForwardKlantContactResponse, Internetaken } from "@/types/internetaken";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { get } from "@/utils/fetchWrapper";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
@@ -98,8 +98,11 @@ function resetForm() {
 async function forwardContactverzoek() {
   isLoading.value = true;
   try {
-    await klantcontactService.forwardKlantContact(taak.uuid, getForwardContactVerzoekPayload());
-    toast.add({ text: "Contactmoment is doorgestuurd", type: "ok" });
+    const forwardKlantContactResponse = await klantcontactService.forwardKlantContact(
+      taak.uuid,
+      getForwardContactVerzoekPayload()
+    );
+    toast.add({ text: forwardKlantContactResponse.notificationResult, type: "ok" });
     resetForm();
     emit("success");
   } catch (err: unknown) {

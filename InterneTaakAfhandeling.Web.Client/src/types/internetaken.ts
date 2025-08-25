@@ -315,3 +315,7 @@ export interface InterneTakenPaginated {
   previous?: string;
   results: InterneTaakOverviewItem[];
 }
+export interface ForwardKlantContactResponse {
+  internetaak: Internetaken;
+  notificationResult: string;
+}
