@@ -158,9 +158,11 @@ const fetchAfdelingen = async () => {
   afdelingen.value = [];
   const response = await get<{ naam: string; uuid: string }[]>("/api/afdelingen");
 
+  const sortedResponse = sortListByNaam(response);
+
   afdelingen.value = [
     { label: "Selecteer een afdeling", value: "" },
-    ...response.map((afdeling) => ({
+    ...sortedResponse.map((afdeling) => ({
       label: afdeling.naam,
       value: afdeling.uuid
     }))
@@ -170,14 +172,20 @@ const fetchGroepen = async () => {
   groepen.value = [];
   const response = await get<{ naam: string; uuid: string }[]>("/api/groepen");
 
+  const sortedResponse = sortListByNaam(response);
+
   groepen.value = [
     { label: "Selecteer een groep", value: "" },
-    ...response.map((groep) => ({
+    ...sortedResponse.map((groep) => ({
       label: groep.naam,
       value: groep.uuid
     }))
   ];
 };
+
+function sortListByNaam<T extends { naam: string }>(list: T[]): T[] {
+  return list.sort((a, b) => a.naam.localeCompare(b.naam, undefined, { sensitivity: "base" }));
+}
 
 onMounted(async () => {
   try {
