@@ -25,8 +25,7 @@ public class ForwardContactRequestService(
     {
         var actors = await GetTargetActors(request);
 
-        var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId) ??
-                          throw new ArgumentException($"Internetaak with ID {internetaakId} not found.");
+        var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
 
         var internetakenUpdateRequest = new InternetakenPatchActorsRequest
         {
@@ -55,48 +54,40 @@ public class ForwardContactRequestService(
                 return GenericError;
             }
 
-            var notificationResults = new List<string>();
-
             var actorEmailResult = await emailInputService.ResolveActorsEmailAsync(actors);
 
-            if (actorEmailResult.FoundEmails.Count <= 0)
+            if (actorEmailResult.FoundEmails.Count > 0)
             {
-                return GenericError;
+                var emailInput = await emailInputService.FetchInterneTaakEmailInput(internetaken);
+
+                var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput);
+
+                var emailTasks = actorEmailResult.FoundEmails.Select(async email =>
+                {
+                    var result = await emailService.SendEmailAsync(email,
+                        $"Contactverzoek Doorgestuurd - {internetaken.Nummer}", emailContent);
+                    return new { Email = email, Result = result };
+                });
+
+                var sendEmailResults = await Task.WhenAll(emailTasks);
+
+                var failedEmails = sendEmailResults.Where(r => !r.Result.Success).ToList();
+
+                if (failedEmails.Count > 0)
+                {
+                    return GenericError;
+                }
             }
 
-            var emailInput = await emailInputService.FetchInterneTaakEmailInput(internetaken);
-
-            var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput);
-
-            var emailTasks = actorEmailResult.FoundEmails.Select(async email =>
-            {
-                var result = await emailService.SendEmailAsync(email,
-                    $"Contactverzoek Doorgestuurd - {internetaken.Nummer}", emailContent);
-                return new { Email = email, Result = result };
-            });
-
-            var sendEmailResults = await Task.WhenAll(emailTasks);
-
-            var failedEmails = sendEmailResults.Where(r => !r.Result.Success).ToList();
-            
-            if (failedEmails.Count > 0)
-            {
-                var failedEmailsWithErrors =
-                    string.Join(", ", failedEmails.Select(f => $"{f.Email} ({f.Result.Message})"));
-                logger.LogWarning("Some emails failed to send for internetaak {Number}: {FailedEmails}",
-                    internetaken.Nummer, failedEmailsWithErrors);
-
-                var failedEmailAddresses = string.Join(", ", failedEmails.Select(f => f.Email));
-                return $"E-mail verzending gedeeltelijk mislukt voor internetaak {internetaken.Nummer}. Mislukte e-mails: {failedEmailAddresses}";
-            }
+            return actorEmailResult.Errors.Count > 0
+                ? string.Join("\n", actorEmailResult.Errors)
+                : "Contactverzoek succesvol doorgestuurd";
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing internetaken {Number}", internetaken.Nummer);
             return GenericError;
         }
-
-        return "Contactverzoek succesvol doorgestuurd";
     }
 
     private async Task<List<Actor>> GetTargetActors(ForwardContactRequestModel request)
@@ -110,21 +101,18 @@ public class ForwardContactRequestService(
             _ => throw new ArgumentException($"Invalid actor type: {request.ActorType}")
         };
 
-        if (primaryActor != null) actors.Add(primaryActor);
+        actors.Add(primaryActor);
 
         if (string.IsNullOrWhiteSpace(request.MedewerkerEmail)) return actors;
 
         var medewerkerActor = await GetOrCreateMedewerkerActor(request.MedewerkerEmail);
-        if (medewerkerActor != null) actors.Add(medewerkerActor);
+        actors.Add(medewerkerActor);
 
         return actors;
     }
 
-    private async Task<Actor?> GetOrCreateMedewerkerActor(string identifier)
+    private async Task<Actor> GetOrCreateMedewerkerActor(string identifier)
     {
-        if (string.IsNullOrWhiteSpace(identifier))
-            return null;
-
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
             ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
@@ -155,14 +143,9 @@ public class ForwardContactRequestService(
         return actor;
     }
 
-    private async Task<Actor?> GetOrCreateAfdelingActor(string identifier)
+    private async Task<Actor> GetOrCreateAfdelingActor(string identifier)
     {
-        if (string.IsNullOrWhiteSpace(identifier))
-            return null;
-
         var afdeling = await objectApiClient.GetAfdeling(identifier);
-
-        if (afdeling == null) throw new InvalidDataException($"Afdeling with identifier {identifier} does not exist.");
 
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
@@ -194,11 +177,8 @@ public class ForwardContactRequestService(
         return actor;
     }
 
-    private async Task<Actor?> GetOrCreateGroepActor(string identifier)
+    private async Task<Actor> GetOrCreateGroepActor(string identifier)
     {
-        if (string.IsNullOrWhiteSpace(identifier))
-            return null;
-
         var groep = await objectApiClient.GetGroep(identifier);
 
         if (groep == null) throw new InvalidDataException($"Groep with identifier {identifier} does not exist.");
