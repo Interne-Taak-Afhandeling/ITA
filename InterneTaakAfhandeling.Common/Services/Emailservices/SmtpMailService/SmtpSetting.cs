@@ -1,16 +1,14 @@
-namespace InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
-
-public class SmtpSettings
+namespace InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService
 {
-    public string Host { get; set; } = string.Empty;
+    public class SmtpSettings
+    {
 
-    public int Port { get; set; }
 
-    public string Username { get; set; } = string.Empty;
-
-    public string Password { get; set; } = string.Empty;
-
-    public string FromEmail { get; set; } = string.Empty;
-
-    public bool EnableSsl { get; set; } = true;
+        public string Host { get; set; } = string.Empty;
+        public int Port { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string FromEmail { get; set; } = string.Empty;
+        public bool EnableSsl { get; set; } = true;
+    }
 }
