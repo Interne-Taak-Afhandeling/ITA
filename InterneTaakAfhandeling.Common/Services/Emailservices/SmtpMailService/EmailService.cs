@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Mail;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -8,7 +7,8 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 
 public interface IEmailService
 {
-    Task<SmtpResult> SendEmailAsync(string to, string subject, string body); 
+    Task<SmtpResult> SendEmailAsync(string to, string subject, string body);
+    bool IsConfiguredCorrectly();
 }
 
 public class EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailService> logger)
@@ -16,6 +16,10 @@ public class EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailServi
 {
     private readonly ILogger<EmailService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly SmtpSettings _smtpSettings = smtpOptions.Value;
+
+    public bool IsConfiguredCorrectly() => !string.IsNullOrEmpty(_smtpSettings.Host)
+        && _smtpSettings.Port > 0
+        && !string.IsNullOrEmpty(_smtpSettings.FromEmail);
 
     public async Task<SmtpResult> SendEmailAsync(string to, string subject, string body)
     {
@@ -37,7 +41,7 @@ public class EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailServi
 
             _logger.LogInformation("Sending email to {To} via {Host}:{Port}", to[..Math.Min(to.Length, 4)], _smtpSettings.Host, _smtpSettings.Port);
             await smtpClient.SendMailAsync(mailMessage);
-            
+
             return new SmtpResult { Success = true, Message = "Email sent successfully" };
         }
         catch (SmtpException smtpEx)
@@ -55,7 +59,7 @@ public class EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailServi
     {
         try
         {
-            return new MailAddress(email).Address == email; 
+            return new MailAddress(email).Address == email;
         }
         catch
         {

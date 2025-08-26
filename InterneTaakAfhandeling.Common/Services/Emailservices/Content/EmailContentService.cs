@@ -1,12 +1,13 @@
-using System.Text;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
+using System.Text;
 
 namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 
+
+
 public interface IEmailContentService
 {
-    string BuildInternetakenEmailContent(Internetaak internetaken, Klantcontact klantcontact, List<DigitaleAdres>? digitaleAdressen,Zaak? zaak);
+    string BuildInternetakenEmailContent(InterneTakenEmailInput input);
 }
 
 public class EmailContentService : IEmailContentService
@@ -37,10 +38,12 @@ public class EmailContentService : IEmailContentService
     </body>
     </html>";
 
-    public string BuildInternetakenEmailContent(Internetaak internetaken, Klantcontact klantcontact, List<DigitaleAdres>? digitaleAdressen, Zaak? zaak)
+    public string BuildInternetakenEmailContent(InterneTakenEmailInput input)
     {
+        var (internetaken, klantcontact, digitaleAdressen, zaak) = input;
+
         var betrokkene = klantcontact.HadBetrokkenActoren.FirstOrDefault();
-        
+
         var sb = new StringBuilder(EmailTemplate);
         sb.Replace("{Starttijd}", FormatPlaatsgevondenOp(klantcontact.PlaatsgevondenOp))
           .Replace("{Toelichting}", internetaken.Toelichting ?? "N/A")
@@ -49,14 +52,14 @@ public class EmailContentService : IEmailContentService
           .Replace("{Inhoud}", klantcontact.Inhoud != null ? $"{klantcontact.Inhoud}</dd>" : "")
           .Replace("{Vraag}", klantcontact.Onderwerp != null ? klantcontact.Onderwerp : "")
           .Replace("{AangemaaktDoor}", betrokkene?.Naam != null ? betrokkene.Naam : "")
-          .Replace("{DigitaleAdressen}", digitaleAdressen != null ? BuildDigitaleAdressen(digitaleAdressen) : "" )
+          .Replace("{DigitaleAdressen}", digitaleAdressen != null ? BuildDigitaleAdressen(digitaleAdressen) : "")
           .Replace("{BetrokkeneNaam}", FullName(klantcontact.Expand?.HadBetrokkenen?.FirstOrDefault()?.Contactnaam))
           .Replace("{Zaak}", betrokkene?.Naam != null ? zaak?.Identificatie : "");
 
         return sb.ToString();
     }
 
-    private string BuildDigitaleAdressen(List<DigitaleAdres> digitaleAdressen)
+    private string BuildDigitaleAdressen(IReadOnlyList<DigitaleAdres> digitaleAdressen)
     {
         var sb = new StringBuilder();
         foreach (var adres in digitaleAdressen)
@@ -67,7 +70,7 @@ public class EmailContentService : IEmailContentService
     }
     public static string FullName(Contactnaam? contact)
     {
-        if(contact == null)
+        if (contact == null)
         {
             return string.Empty;
         }
@@ -76,8 +79,8 @@ public class EmailContentService : IEmailContentService
     }
 
     public static string FormatPlaatsgevondenOp(DateTimeOffset plaatsgevondenOp)
-    { 
-         
+    {
+
         TimeZoneInfo dutchTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Amsterdam");
         DateTimeOffset dutchTime = TimeZoneInfo.ConvertTime(plaatsgevondenOp, dutchTimeZone);
 

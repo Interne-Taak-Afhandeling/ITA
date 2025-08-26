@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -52,8 +52,3 @@ public class ForwardContactRequestResponse
     public required string NotificationResult { get; init; }
 }
 
-public class ActorEmailResolutionResult
-{
-    public List<string> FoundEmails { get; } = [];
-    public List<Actor> NotFoundActors { get; } = [];
-}

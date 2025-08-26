@@ -1,11 +1,9 @@
-using InterneTaakAfhandeling.Common.Services;
+﻿using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi;
-using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
@@ -19,9 +17,8 @@ public class ForwardContactRequestService(
     IObjectApiClient objectApiClient,
     IEmailService emailService,
     IEmailContentService emailContentService,
-    IZakenApiClient zakenApiClient,
-    IContactmomentenService contactmomentenService,
-    ILogger<ForwardContactRequestService> logger) : IForwardContactRequestService
+    ILogger<ForwardContactRequestService> logger,
+    IInterneTaakEmailInputService emailInputService) : IForwardContactRequestService
 {
     public async Task<ForwardContactRequestResponse> ForwardAsync(Guid internetaakId,
         ForwardContactRequestModel request)
@@ -31,177 +28,76 @@ public class ForwardContactRequestService(
         var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId) ??
                           throw new ArgumentException($"Internetaak with ID {internetaakId} not found.");
 
-
         var internetakenUpdateRequest = new InternetakenPatchActorsRequest
         {
             ToegewezenAanActoren = [.. actors.Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })]
         };
 
+        var updatedInternetaak = await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid);
 
-        var updatedInternetaak =
-            await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid) ??
-            throw new InvalidOperationException(
-                $"Unable to update Internetaak with ID {internetaakId}.");
-
-        var messages = await NotifyInternetaakActors(updatedInternetaak);
+        var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
 
         return new ForwardContactRequestResponse
         {
             Internetaak = updatedInternetaak,
-            NotificationResult = string.Join(", ", messages)
+            NotificationResult = notficationResult
         };
     }
 
-
-    private async Task<List<string>> NotifyInternetaakActors(Internetaak internetaken)
+    private async Task<string> NotifyInternetaakActors(Internetaak internetaken, IReadOnlyList<Actor> actors)
     {
-        var notificationResults = new List<string> { "Contactverzoek succesvol doorgestuurd" };
+        const string GenericError = "Het contactverzoek is doorgestuurd, maar hiervan kon geen emailnotificatie verstuurd worden";
+
         try
         {
-            var emailResult = await ResolveActorsEmailAsync(internetaken);
-
-            if (emailResult.NotFoundActors.Count > 0)
+            if (!emailService.IsConfiguredCorrectly())
             {
-                var notFoundMessage =
-                    emailResult.NotFoundActors.Select(actor => $"{actor.Naam}' heeft geen e-mailadres geregistreerd");
-                notificationResults.AddRange(notFoundMessage);
+                return GenericError;
             }
 
-            if (emailResult.FoundEmails.Count > 0)
+            var notificationResults = new List<string>();
+
+            var actorEmailResult = await emailInputService.ResolveActorsEmailAsync(actors);
+
+            if (actorEmailResult.FoundEmails.Count <= 0)
             {
-                var klantContact =
-                    await openKlantApiClient.GetKlantcontactAsync(internetaken.AanleidinggevendKlantcontact.Uuid);
-
-                var digitaleAdress = klantContact.Expand?.HadBetrokkenen
-                    ?.SelectMany(x => x.Expand?.DigitaleAdressen ?? []).ToList();
-
-                Zaak? zaak = null;
-
-                var onderwerpObjectId = contactmomentenService.GetZaakOnderwerpObject(klantContact);
-
-                if (!string.IsNullOrEmpty(onderwerpObjectId))
-                    zaak = await zakenApiClient.GetZaakAsync(onderwerpObjectId);
-
-                var emailContent =
-                    emailContentService.BuildInternetakenEmailContent(internetaken, klantContact, digitaleAdress, zaak);
-
-                var emailTasks = emailResult.FoundEmails.Select(async email =>
-                {
-                    var result = await emailService.SendEmailAsync(email,
-                        $"Contactverzoek Doorgestuurd - {internetaken.Nummer}", emailContent);
-                    return new { Email = email, Result = result };
-                });
-
-                var emailResults = await Task.WhenAll(emailTasks);
-
-                var failedEmails = emailResults.Where(r => !r.Result.Success).ToList();
-                if (failedEmails.Count > 0)
-                {
-                    var failedEmailsWithErrors =
-                        string.Join(", ", failedEmails.Select(f => $"{f.Email} ({f.Result.Message})"));
-                    logger.LogWarning("Some emails failed to send for internetaak {Number}: {FailedEmails}",
-                        internetaken.Nummer, failedEmailsWithErrors);
-
-                    var failedEmailAddresses = string.Join(", ", failedEmails.Select(f => f.Email));
-                    notificationResults.Add(
-                        $"E-mail verzending gedeeltelijk mislukt voor internetaak {internetaken.Nummer}. Mislukte e-mails: {failedEmailAddresses}");
-                }
+                return GenericError;
             }
-            else
+
+            var emailInput = await emailInputService.FetchInterneTaakEmailInput(internetaken);
+
+            var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput);
+
+            var emailTasks = actorEmailResult.FoundEmails.Select(async email =>
             {
-                logger.LogInformation("No actor emails found for internetaken: {Number}, skipping",
-                    internetaken.Nummer);
+                var result = await emailService.SendEmailAsync(email,
+                    $"Contactverzoek Doorgestuurd - {internetaken.Nummer}", emailContent);
+                return new { Email = email, Result = result };
+            });
+
+            var sendEmailResults = await Task.WhenAll(emailTasks);
+
+            var failedEmails = sendEmailResults.Where(r => !r.Result.Success).ToList();
+            
+            if (failedEmails.Count > 0)
+            {
+                var failedEmailsWithErrors =
+                    string.Join(", ", failedEmails.Select(f => $"{f.Email} ({f.Result.Message})"));
+                logger.LogWarning("Some emails failed to send for internetaak {Number}: {FailedEmails}",
+                    internetaken.Nummer, failedEmailsWithErrors);
+
+                var failedEmailAddresses = string.Join(", ", failedEmails.Select(f => f.Email));
+                return $"E-mail verzending gedeeltelijk mislukt voor internetaak {internetaken.Nummer}. Mislukte e-mails: {failedEmailAddresses}";
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing internetaken {Number}", internetaken.Nummer);
-            notificationResults.Add(
-                $"Niet in staat om acteurs te informeren voor contactverzoek {internetaken.Nummer}");
+            return GenericError;
         }
 
-        return notificationResults;
+        return "Contactverzoek succesvol doorgestuurd";
     }
-
-
-    private async Task<ActorEmailResolutionResult> ResolveActorsEmailAsync(Internetaak internetaken)
-    {
-        var result = new ActorEmailResolutionResult();
-
-        if (internetaken.ToegewezenAanActoren == null)
-        {
-            logger.LogWarning("No actor assigned to internetaak {Nummer}", internetaken.Nummer);
-            return result;
-        }
-
-
-        foreach (var toegewezenAanActoren in internetaken.ToegewezenAanActoren)
-        {
-            var actor = await openKlantApiClient.GetActorAsync(toegewezenAanActoren.Uuid);
-
-            var validCodeObjectTypes = new List<string>
-            {
-                KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
-                KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
-                KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype
-            };
-
-            if (actor.Actoridentificator == null ||
-                !validCodeObjectTypes.Contains(actor.Actoridentificator.CodeObjecttype))
-            {
-                result.NotFoundActors.Add(actor);
-                continue;
-            }
-
-            var objectId = actor.Actoridentificator.ObjectId;
-            var actorIdentificator = actor.Actoridentificator;
-
-            if (actorIdentificator.CodeSoortObjectId ==
-                KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId &&
-                actorIdentificator.CodeRegister == KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister)
-            {
-                result.FoundEmails.Add(objectId);
-            }
-
-            else if (actorIdentificator.CodeSoortObjectId ==
-                     KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId &&
-                     actorIdentificator.CodeRegister == KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister)
-            {
-                var objectRecords = await objectApiClient.GetObjectsByIdentificatie(objectId);
-                switch (objectRecords.Count)
-                {
-                    case 0:
-                        logger.LogWarning("No medewerker found in overigeobjecten for actorIdentificator {ObjectId}",
-                            objectId);
-                        result.NotFoundActors.Add(actor);
-                        continue;
-                    case > 1:
-                        logger.LogWarning(
-                            "Multiple objects found in overigeobjecten for actorIdentificator {ObjectId}. Expected exactly one match.",
-                            objectId);
-                        result.NotFoundActors.Add(actor);
-                        continue;
-                    default:
-                        objectRecords.First().Data.EmailAddresses.ForEach(x =>
-                        {
-                            if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
-                            {
-                                result.FoundEmails.Add(x);
-                            }
-                            else
-                            {
-                                logger.LogWarning("Invalid email address found for object {ObjectId}", objectId);
-                                result.NotFoundActors.Add(actor);
-                            }
-                        });
-                        break;
-                }
-            }
-        }
-
-        return result;
-    }
-
 
     private async Task<List<Actor>> GetTargetActors(ForwardContactRequestModel request)
     {
@@ -244,6 +140,7 @@ public class ForwardContactRequestService(
             {
                 SoortActor = SoortActor.medewerker,
                 Naam = identifier,
+                IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
                     CodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
@@ -282,6 +179,7 @@ public class ForwardContactRequestService(
             {
                 SoortActor = SoortActor.organisatorische_eenheid,
                 Naam = afdeling.Record.Data.Naam,
+                IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
                     CodeObjecttype = KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
@@ -320,6 +218,7 @@ public class ForwardContactRequestService(
             {
                 SoortActor = SoortActor.organisatorische_eenheid,
                 Naam = groep.Record.Data.Naam,
+                IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
                     CodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,

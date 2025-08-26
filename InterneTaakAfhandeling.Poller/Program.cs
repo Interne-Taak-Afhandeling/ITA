@@ -1,4 +1,5 @@
-using InterneTaakAfhandeling.Common.Extensions;
+﻿using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Poller.Data;
 using InterneTaakAfhandeling.Poller.Features;
@@ -47,7 +48,8 @@ internal class Program
                 .AddSmtpClients(configuration)
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
-                .AddScoped<IContactmomentenService, ContactmomentenService>();
+                .AddScoped<IContactmomentenService, ContactmomentenService>()
+                .AddSingleton<IInterneTaakEmailInputService, InterneTaakEmailInputService>();
 
             var serviceProvider = services.BuildServiceProvider();
 
