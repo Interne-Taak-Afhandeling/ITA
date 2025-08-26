@@ -62,21 +62,10 @@ public class ForwardContactRequestService(
 
                 var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput);
 
-                var emailTasks = actorEmailResult.FoundEmails.Select(async email =>
-                {
-                    var result = await emailService.SendEmailAsync(email,
-                        $"Contactverzoek Doorgestuurd - {internetaken.Nummer}", emailContent);
-                    return new { Email = email, Result = result };
-                });
+                var emailTasks = actorEmailResult.FoundEmails.Select(async email => await emailService.SendEmailAsync(email,
+                        $"Contactverzoek Doorgestuurd - {internetaken.Nummer}", emailContent));
 
-                var sendEmailResults = await Task.WhenAll(emailTasks);
-
-                var failedEmails = sendEmailResults.Where(r => !r.Result.Success).ToList();
-
-                if (failedEmails.Count > 0)
-                {
-                    return GenericError;
-                }
+                await Task.WhenAll(emailTasks);
             }
 
             return actorEmailResult.Errors.Count > 0
@@ -180,8 +169,6 @@ public class ForwardContactRequestService(
     private async Task<Actor> GetOrCreateGroepActor(string identifier)
     {
         var groep = await objectApiClient.GetGroep(identifier);
-
-        if (groep == null) throw new InvalidDataException($"Groep with identifier {identifier} does not exist.");
 
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
