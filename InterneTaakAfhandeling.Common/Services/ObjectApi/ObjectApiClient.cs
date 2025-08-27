@@ -13,10 +13,10 @@ public interface IObjectApiClient
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
     Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, Guid logboekDataUuid);
     Task<ObjectModels<Afdeling>?> GetAfdelingen(int page);
-    Task<ObjectResult<Afdeling>?> GetAfdeling(string uuid);
+    Task<ObjectResult<Afdeling>> GetAfdeling(string uuid);
 
     Task<ObjectModels<Groep>?> GetGroepen(int page);
-    Task<ObjectResult<Groep>?> GetGroep(string uuid);
+    Task<ObjectResult<Groep>> GetGroep(string uuid);
 
 }
 
@@ -213,7 +213,7 @@ public class ObjectApiClient(
     }
 
 
-    public async Task<ObjectResult<Afdeling>?> GetAfdeling(string uuid)
+    public async Task<ObjectResult<Afdeling>> GetAfdeling(string uuid)
     {
         return await GetObject<Afdeling>(uuid);
     }
@@ -237,12 +237,12 @@ public class ObjectApiClient(
         }
     }
 
-    public async Task<ObjectResult<Groep>?> GetGroep(string uuid)
+    public async Task<ObjectResult<Groep>> GetGroep(string uuid)
     {
         return await GetObject<Groep>(uuid);
     }
 
-    public async Task<ObjectResult<T>?> GetObject<T>(string uuid)
+    public async Task<ObjectResult<T>> GetObject<T>(string uuid)
     {
         HttpResponseMessage? response = null;
 
@@ -251,7 +251,7 @@ public class ObjectApiClient(
             response = await _httpClient.GetAsync($"objects/{uuid}");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<ObjectResult<T>>();
-            return result;
+            return result!;
         }
         catch (HttpRequestException ex)
         {

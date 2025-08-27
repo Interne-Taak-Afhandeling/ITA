@@ -7,7 +7,7 @@
       @click="toast.remove(message)"
     >
       <utrecht-alert :type="message.type">
-        <div v-html="message.text"></div>
+        <div v-html="message.text" class="preserve-newline"></div>
       </utrecht-alert>
     </output>
   </transition-group>

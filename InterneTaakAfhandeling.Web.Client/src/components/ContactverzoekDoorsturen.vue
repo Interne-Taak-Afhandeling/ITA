@@ -114,8 +114,11 @@ async function forwardContactverzoek() {
   isLoading.value = true;
 
   try {
-    await klantcontactService.forwardKlantContact(taak.uuid, getForwardContactVerzoekPayload());
-    toast.add({ text: "Contactmoment is doorgestuurd", type: "ok" });
+    const forwardKlantContactResponse = await klantcontactService.forwardKlantContact(
+      taak.uuid,
+      getForwardContactVerzoekPayload()
+    );
+    toast.add({ text: forwardKlantContactResponse.notificationResult, type: "ok", timeout: 5000 });
     resetForm();
     emit("success");
   } catch (err: unknown) {

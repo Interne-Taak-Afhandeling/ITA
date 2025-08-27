@@ -1,37 +1,82 @@
+﻿using InterneTaakAfhandeling.Common.Services;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
 public interface IForwardContactRequestService
 {
-    Task<Internetaak?> ForwardAsync(Guid internetaakId, ForwardContactRequestModel request);
+    Task<ForwardContactRequestResponse> ForwardAsync(Guid internetaakId, ForwardContactRequestModel request);
 }
 
-public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient, IObjectApiClient objectApiClient) : IForwardContactRequestService
+public class ForwardContactRequestService(
+    IOpenKlantApiClient openKlantApiClient,
+    IObjectApiClient objectApiClient,
+    IEmailService emailService,
+    IEmailContentService emailContentService,
+    ILogger<ForwardContactRequestService> logger,
+    IInterneTaakEmailInputService emailInputService) : IForwardContactRequestService
 {
-    public async Task<Internetaak?> ForwardAsync(Guid internetaakId, ForwardContactRequestModel request)
+    public async Task<ForwardContactRequestResponse> ForwardAsync(Guid internetaakId,
+        ForwardContactRequestModel request)
     {
         var actors = await GetTargetActors(request);
 
-        var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId) ??
-                          throw new ArgumentException($"Internetaak with ID {internetaakId} not found.");
-
+        var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
 
         var internetakenUpdateRequest = new InternetakenPatchActorsRequest
         {
             ToegewezenAanActoren = [.. actors.Select(x => new UuidObject { Uuid = Guid.Parse(x.Uuid) })]
         };
 
+        var updatedInternetaak = await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid);
 
-        var updatedInternetaak =
-            await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid) ??
-            throw new InvalidOperationException(
-                $"Unable to update Internetaak with ID {internetaakId}.");
+        var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
 
-        return updatedInternetaak;
+        return new ForwardContactRequestResponse
+        {
+            Internetaak = updatedInternetaak,
+            NotificationResult = notficationResult
+        };
+    }
+
+    private async Task<string> NotifyInternetaakActors(Internetaak internetaken, IReadOnlyList<Actor> actors)
+    {
+        const string GenericError = "Het contactverzoek is doorgestuurd, maar hiervan kon geen e-mailnotificatie verstuurd worden";
+
+        try
+        {
+            if (!emailService.IsConfiguredCorrectly())
+            {
+                return GenericError;
+            }
+
+            var actorEmailResult = await emailInputService.ResolveActorsEmailAsync(actors);
+
+            if (actorEmailResult.FoundEmails.Count > 0)
+            {
+                var emailInput = await emailInputService.FetchInterneTaakEmailInput(internetaken);
+
+                var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput);
+
+                var emailTasks = actorEmailResult.FoundEmails.Select(async email => await emailService.SendEmailAsync(email,
+                        $"Contactverzoek Doorgestuurd - {internetaken.Nummer}", emailContent));
+
+                await Task.WhenAll(emailTasks);
+            }
+
+            return actorEmailResult.Errors.Count > 0
+                ? $"Het contactverzoek is doorgestuurd, maar niet elke e-mailnotificatie kon verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}"
+                : "Contactverzoek succesvol doorgestuurd";
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error processing e-mail notifications for forwarded interne taak {Number}", internetaken.Nummer);
+            return GenericError;
+        }
     }
 
     private async Task<List<Actor>> GetTargetActors(ForwardContactRequestModel request)
@@ -45,21 +90,18 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             _ => throw new ArgumentException($"Invalid actor type: {request.ActorType}")
         };
 
-        if (primaryActor != null) actors.Add(primaryActor);
+        actors.Add(primaryActor);
 
         if (string.IsNullOrWhiteSpace(request.MedewerkerEmail)) return actors;
 
         var medewerkerActor = await GetOrCreateMedewerkerActor(request.MedewerkerEmail);
-        if (medewerkerActor != null) actors.Add(medewerkerActor);
+        actors.Add(medewerkerActor);
 
         return actors;
     }
 
-    private async Task<Actor?> GetOrCreateMedewerkerActor(string identifier)
+    private async Task<Actor> GetOrCreateMedewerkerActor(string identifier)
     {
-        if (string.IsNullOrWhiteSpace(identifier))
-            return null;
-
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
             ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
@@ -75,6 +117,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             {
                 SoortActor = SoortActor.medewerker,
                 Naam = identifier,
+                IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
                     CodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
@@ -89,18 +132,10 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
         return actor;
     }
 
-    private async Task<Actor?> GetOrCreateAfdelingActor(string identifier)
+    private async Task<Actor> GetOrCreateAfdelingActor(string identifier)
     {
-        if (string.IsNullOrWhiteSpace(identifier))
-            return null;
-
         var afdeling = await objectApiClient.GetAfdeling(identifier);
 
-        if (afdeling == null)
-        {
-            throw new InvalidDataException($"Afdeling with identifier {identifier} does not exist.");
-        }
-       
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
             IndicatieActief = true,
@@ -116,6 +151,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             {
                 SoortActor = SoortActor.organisatorische_eenheid,
                 Naam = afdeling.Record.Data.Naam,
+                IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
                     CodeObjecttype = KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
@@ -130,17 +166,9 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
         return actor;
     }
 
-    private async Task<Actor?> GetOrCreateGroepActor(string identifier)
+    private async Task<Actor> GetOrCreateGroepActor(string identifier)
     {
-        if (string.IsNullOrWhiteSpace(identifier))
-            return null;
-
         var groep = await objectApiClient.GetGroep(identifier);
-
-        if (groep == null)
-        {
-            throw new InvalidDataException($"Groep with identifier {identifier} does not exist.");
-        }
 
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
@@ -157,6 +185,7 @@ public class ForwardContactRequestService(IOpenKlantApiClient openKlantApiClient
             {
                 SoortActor = SoortActor.organisatorische_eenheid,
                 Naam = groep.Record.Data.Naam,
+                IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
                     CodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,

@@ -8,7 +8,7 @@ using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using Microsoft.Extensions.Options;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.AfdelingenOverzicht
+namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.AfdelingenOverzicht
 {
 
 
