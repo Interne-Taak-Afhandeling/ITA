@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaak.GroepenOverzicht
+namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.GroepenOverzicht
 {
 
 
