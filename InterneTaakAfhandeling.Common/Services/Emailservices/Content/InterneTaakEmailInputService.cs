@@ -74,7 +74,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
                         continue;
                     }
 
-                    var afdeling = objectRecords.First().Data;
+                    var afdeling = objectRecords.First();
                     var email = afdeling.Email;
 
                     if (!string.IsNullOrEmpty(email) && EmailService.IsValidEmail(email))
@@ -102,7 +102,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
                         continue;
                     }
 
-                    var groep = objectRecords.First().Data;
+                    var groep = objectRecords.First();
                     var email = groep.Email;
 
                     if (!string.IsNullOrEmpty(email) && EmailService.IsValidEmail(email))
@@ -130,7 +130,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
                         continue;
                     }
 
-                    objectRecords.First().Data?.EmailAddresses?.ForEach(x =>
+                    objectRecords.First().EmailAddresses?.ForEach(x =>
                     {
                         if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
                         {

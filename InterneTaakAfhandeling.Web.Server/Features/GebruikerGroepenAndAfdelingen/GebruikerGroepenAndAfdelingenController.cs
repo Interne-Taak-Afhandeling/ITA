@@ -31,7 +31,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.GebruikerGroepenAndAfdeling
                 throw new ConflictException($"Meerdere medewerkers gevonden met dezelfde identificatie {SecureLogging.SanitizeAndTruncate(user.ObjectregisterMedewerkerId, 5)}");
             }
 
-            var result = results.Single().Data;
+            var result = results.Single();
             //return new List<string>();
             return (result.Afdelingen ?? Enumerable.Empty<MedewerkerAfdeling>())
                 .Select(a => a.Afdelingnaam)

@@ -168,7 +168,7 @@ function handleLoadingError(err: unknown) {
 
 const fetchAfdelingen = async () => {
   afdelingen.value = [];
-  const response = await get<{ naam: string; uuid: string }[]>("/api/afdelingen");
+  const response = await get<{ naam: string; identificatie: string }[]>("/api/afdelingen");
 
   const sortedResponse = sortListByNaam(response);
 
@@ -176,13 +176,13 @@ const fetchAfdelingen = async () => {
     { label: "Selecteer een afdeling", value: "" },
     ...sortedResponse.map((afdeling) => ({
       label: afdeling.naam,
-      value: afdeling.uuid
+      value: afdeling.identificatie
     }))
   ];
 };
 const fetchGroepen = async () => {
   groepen.value = [];
-  const response = await get<{ naam: string; uuid: string }[]>("/api/groepen");
+  const response = await get<{ naam: string; identificatie: string }[]>("/api/groepen");
 
   const sortedResponse = sortListByNaam(response);
 
@@ -190,7 +190,7 @@ const fetchGroepen = async () => {
     { label: "Selecteer een groep", value: "" },
     ...sortedResponse.map((groep) => ({
       label: groep.naam,
-      value: groep.uuid
+      value: groep.identificatie
     }))
   ];
 };

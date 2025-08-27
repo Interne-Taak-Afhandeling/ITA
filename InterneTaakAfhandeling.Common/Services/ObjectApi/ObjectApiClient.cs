@@ -8,19 +8,16 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi;
 
 public interface IObjectApiClient
 {
-    Task<List<ObjectRecord<MedewerkerObjectData>>> GetMedewerkersByIdentificatie(string identificatie);
-    Task<List<ObjectRecord<Afdeling>>> GetAfdelingenByIdentificatie(string identificatie);
-    Task<List<ObjectRecord<Groep>>> GetGroepenByIdentificatie(string identificatie);
+    Task<List<MedewerkerObjectData>> GetMedewerkersByIdentificatie(string identificatie);
+    Task<List<Afdeling>> GetAfdelingenByIdentificatie(string identificatie);
+    Task<List<Groep>> GetGroepenByIdentificatie(string identificatie);
 
     Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId);
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
     Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, Guid logboekDataUuid);
-    Task<ObjectModels<Afdeling>?> GetAfdelingen(int page);
-    Task<ObjectResult<Afdeling>> GetAfdeling(string uuid);
 
-    Task<ObjectModels<Groep>?> GetGroepen(int page);
-    Task<ObjectResult<Groep>> GetGroep(string uuid);
-
+    Task<ObjectModels<Afdeling>> GetAfdelingen(int page);
+    Task<ObjectModels<Groep>> GetGroepen(int page);
 }
 
 public class ObjectApiClient(
@@ -38,16 +35,16 @@ public class ObjectApiClient(
     private readonly IOptions<AfdelingOptions> afdelingOptions = afdelingOptions ?? throw new ArgumentNullException(nameof(afdelingOptions));
     private readonly IOptions<GroepOptions> groepOptions = groepOptions ?? throw new ArgumentNullException(nameof(groepOptions));
 
-    public Task<List<ObjectRecord<MedewerkerObjectData>>> GetMedewerkersByIdentificatie(string identificatie)
+    public Task<List<MedewerkerObjectData>> GetMedewerkersByIdentificatie(string identificatie)
         => GetObjectsByIdentificatie<MedewerkerObjectData>(identificatie, null);
 
-    public Task<List<ObjectRecord<Afdeling>>> GetAfdelingenByIdentificatie(string identificatie)
+    public Task<List<Afdeling>> GetAfdelingenByIdentificatie(string identificatie)
         => GetObjectsByIdentificatie<Afdeling>(identificatie, afdelingOptions.Value.Type);
 
-    public Task<List<ObjectRecord<Groep>>> GetGroepenByIdentificatie(string identificatie)
+    public Task<List<Groep>> GetGroepenByIdentificatie(string identificatie)
         => GetObjectsByIdentificatie<Groep>(identificatie, groepOptions.Value.Type);
 
-    public async Task<List<ObjectRecord<T>>> GetObjectsByIdentificatie<T>(string identificatie, string? objectType)
+    private async Task<List<T>> GetObjectsByIdentificatie<T>(string identificatie, string? objectType)
     {
         var truncated = TruncateId(identificatie);
         _logger.LogInformation("Fetching objects for identificatie {Identificatie}", truncated);
@@ -72,8 +69,7 @@ public class ObjectApiClient(
 
 
             return result.Results
-                .Where(r => r?.Record != null)
-                .Select(r => r.Record)
+                .Select(r => r.Record.Data)
                 .ToList();
         }
         catch (HttpRequestException ex)
@@ -209,7 +205,7 @@ public class ObjectApiClient(
         }
     }
 
-    public async Task<ObjectModels<Afdeling>?> GetAfdelingen(int page)
+    public async Task<ObjectModels<Afdeling>> GetAfdelingen(int page)
     {
         HttpResponseMessage? response = null;
 
@@ -218,7 +214,7 @@ public class ObjectApiClient(
             response = await _httpClient.GetAsync($"objects?type={afdelingOptions.Value.Type}&typeVersion={afdelingOptions.Value.TypeVersion}&page={page}");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<ObjectModels<Afdeling>>();            
-            return result;
+            return result!;
         }
         catch (HttpRequestException ex)
         {
@@ -228,13 +224,7 @@ public class ObjectApiClient(
         }
     }
 
-
-    public async Task<ObjectResult<Afdeling>> GetAfdeling(string uuid)
-    {
-        return await GetObject<Afdeling>(uuid);
-    }
-
-    public async Task<ObjectModels<Groep>?> GetGroepen(int page)
+    public async Task<ObjectModels<Groep>> GetGroepen(int page)
     {
         HttpResponseMessage? response = null;
 
@@ -243,36 +233,12 @@ public class ObjectApiClient(
             response = await _httpClient.GetAsync($"objects?type={groepOptions.Value.Type}&typeVersion={groepOptions.Value.TypeVersion}&page={page}");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<ObjectModels<Groep>>();
-            return result;
-        }
-        catch (HttpRequestException ex)
-        {
-            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
-            _logger.LogError(ex, "Error retrieving groepen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
-            throw;
-        }
-    }
-
-    public async Task<ObjectResult<Groep>> GetGroep(string uuid)
-    {
-        return await GetObject<Groep>(uuid);
-    }
-
-    public async Task<ObjectResult<T>> GetObject<T>(string uuid)
-    {
-        HttpResponseMessage? response = null;
-
-        try
-        {
-            response = await _httpClient.GetAsync($"objects/{uuid}");
-            response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<ObjectResult<T>>();
             return result!;
         }
         catch (HttpRequestException ex)
         {
             var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
-            _logger.LogError(ex, "Error retrieving {ObjectName} from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", typeof(T).Name, response?.StatusCode, errorResponse);
+            _logger.LogError(ex, "Error retrieving groepen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
             throw;
         }
     }
@@ -283,6 +249,4 @@ public class ObjectApiClient(
             ? "***"
             : $"{id.AsSpan()[..TruncatedLength]}***";
     }
-
-  
 }

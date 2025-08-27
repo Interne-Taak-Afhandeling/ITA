@@ -33,7 +33,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.Afdel
             {
                 var afdelingen = await GetAfdelingenRecursive(1);
   
-                var result = afdelingen.Select(x => new { x.Naam, x.Uuid }).ToList();
+                var result = afdelingen.Select(x => new { x.Naam, x.Identificatie }).ToList();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -43,18 +43,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.Afdel
             }
         }
 
-        private async Task<IEnumerable<(string Naam, Guid Uuid)>> GetAfdelingenRecursive(int page)
+        private async Task<IEnumerable<Afdeling>> GetAfdelingenRecursive(int page)
         {
-            var afdelingen = new List<(string Naam, Guid Uuid)>();
+            var afdelingen = new List<Afdeling>();
 
             var result = await objectApiClient.GetAfdelingen(page);
 
-            if (result == null)
-            {
-                return [];
-            }
-
-            afdelingen = [.. result.Results.Select(x => (x.Record.Data.Naam, x.Uuid))];
+            afdelingen = [.. result.Results.Select(x => x.Record.Data)];
 
             if (result.Next != null)
             {
