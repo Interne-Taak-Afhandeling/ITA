@@ -74,7 +74,7 @@ public class ForwardContactRequestService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error processing internetaken {Number}", internetaken.Nummer);
+            logger.LogError(ex, "Error processing e-mail notifications for forwarded interne taak {Number}", internetaken.Nummer);
             return GenericError;
         }
     }
