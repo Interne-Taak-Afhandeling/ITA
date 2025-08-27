@@ -58,7 +58,6 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
-            services.AddSingleton<IInterneTaakEmailInputService, InterneTaakEmailInputService>();
             services.AddSmtpClients(configuration);
             
             services.AddDbContext<ApplicationDbContext>(options =>

@@ -48,8 +48,7 @@ internal class Program
                 .AddSmtpClients(configuration)
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
-                .AddScoped<IContactmomentenService, ContactmomentenService>()
-                .AddSingleton<IInterneTaakEmailInputService, InterneTaakEmailInputService>();
+                .AddScoped<IContactmomentenService, ContactmomentenService>();
 
             var serviceProvider = services.BuildServiceProvider();
 
