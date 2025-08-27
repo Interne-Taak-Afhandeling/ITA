@@ -123,7 +123,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing internetaken {Number}", internetaken.Nummer);
+            _logger.LogError(ex, "Error processing e-mail notifications for new interne taak {Number}", internetaken.Nummer);
             success = false;
             errorMessage = ex.Message;
         }
