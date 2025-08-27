@@ -9,12 +9,12 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi;
 public interface IObjectApiClient
 {
     Task<List<MedewerkerObjectData>> GetMedewerkersByIdentificatie(string identificatie);
-    Task<List<Afdeling>> GetAfdelingenByIdentificatie(string identificatie);
-    Task<List<Groep>> GetGroepenByIdentificatie(string identificatie);
 
     Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId);
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
     Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, Guid logboekDataUuid);
+    Task<List<Afdeling>> GetAfdelingenByIdentificatie(string identificatie);
+    Task<List<Groep>> GetGroepenByIdentificatie(string identificatie);
 
     Task<ObjectModels<Afdeling>> GetAfdelingen(int page);
     Task<ObjectModels<Groep>> GetGroepen(int page);
