@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models; 
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -8,7 +8,10 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi;
 
 public interface IObjectApiClient
 {
-    Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie);
+    Task<List<ObjectRecord<MedewerkerObjectData>>> GetMedewerkersByIdentificatie(string identificatie);
+    Task<List<ObjectRecord<Afdeling>>> GetAfdelingenByIdentificatie(string identificatie);
+    Task<List<ObjectRecord<Groep>>> GetGroepenByIdentificatie(string identificatie);
+
     Task<ObjectResult<LogboekData>> CreateLogboekForInternetaak(Guid internetaakId);
     Task<ObjectResult<LogboekData>?> GetLogboek(Guid internetaakId);
     Task<LogboekData> UpdateLogboek(ObjectPatchModel<LogboekData> logboekData, Guid logboekDataUuid);
@@ -35,18 +38,31 @@ public class ObjectApiClient(
     private readonly IOptions<AfdelingOptions> afdelingOptions = afdelingOptions ?? throw new ArgumentNullException(nameof(afdelingOptions));
     private readonly IOptions<GroepOptions> groepOptions = groepOptions ?? throw new ArgumentNullException(nameof(groepOptions));
 
-    public async Task<List<ObjectRecord<MedewerkerObjectData>>> GetObjectsByIdentificatie(string identificatie)
+    public Task<List<ObjectRecord<MedewerkerObjectData>>> GetMedewerkersByIdentificatie(string identificatie)
+        => GetObjectsByIdentificatie<MedewerkerObjectData>(identificatie, null);
+
+    public Task<List<ObjectRecord<Afdeling>>> GetAfdelingenByIdentificatie(string identificatie)
+        => GetObjectsByIdentificatie<Afdeling>(identificatie, afdelingOptions.Value.Type);
+
+    public Task<List<ObjectRecord<Groep>>> GetGroepenByIdentificatie(string identificatie)
+        => GetObjectsByIdentificatie<Groep>(identificatie, groepOptions.Value.Type);
+
+    public async Task<List<ObjectRecord<T>>> GetObjectsByIdentificatie<T>(string identificatie, string? objectType)
     {
         var truncated = TruncateId(identificatie);
         _logger.LogInformation("Fetching objects for identificatie {Identificatie}", truncated);
 
         try
         {
-            var response = await _httpClient.GetAsync(
-                $"objects?ordering=record__data__identificatie&data_attr=identificatie__exact__{identificatie}");
+            var url = $"objects?ordering=record__data__identificatie&data_attr=identificatie__exact__{identificatie}";
+            if (!string.IsNullOrWhiteSpace(objectType))
+            {
+                url += $"&objectType={objectType}";
+            }
+            var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadFromJsonAsync<ObjectModels<MedewerkerObjectData>>();
+            var result = await response.Content.ReadFromJsonAsync<ObjectModels<T>>();
 
             if (result?.Results == null || result.Results.Count == 0)
             {
