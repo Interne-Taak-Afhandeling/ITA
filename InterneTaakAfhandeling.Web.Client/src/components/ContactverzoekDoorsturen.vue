@@ -118,7 +118,7 @@ async function forwardContactverzoek() {
       taak.uuid,
       getForwardContactVerzoekPayload()
     );
-    toast.add({ text: forwardKlantContactResponse.notificationResult, type: "ok" });
+    toast.add({ text: forwardKlantContactResponse.notificationResult, type: "ok", timeout: 5000 });
     resetForm();
     emit("success");
   } catch (err: unknown) {

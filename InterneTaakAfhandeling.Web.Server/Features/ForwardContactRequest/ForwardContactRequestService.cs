@@ -45,7 +45,7 @@ public class ForwardContactRequestService(
 
     private async Task<string> NotifyInternetaakActors(Internetaak internetaken, IReadOnlyList<Actor> actors)
     {
-        const string GenericError = "Het contactverzoek is doorgestuurd, maar hiervan kon geen emailnotificatie verstuurd worden";
+        const string GenericError = "Het contactverzoek is doorgestuurd, maar hiervan kon geen e-mailnotificatie verstuurd worden";
 
         try
         {
@@ -69,7 +69,7 @@ public class ForwardContactRequestService(
             }
 
             return actorEmailResult.Errors.Count > 0
-                ? string.Join("\n", actorEmailResult.Errors)
+                ? $"Het contactverzoek is doorgestuurd, maar niet elke e-mailnotificatie kon verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}"
                 : "Contactverzoek succesvol doorgestuurd";
         }
         catch (Exception ex)
