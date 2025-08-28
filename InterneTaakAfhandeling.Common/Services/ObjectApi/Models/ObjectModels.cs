@@ -88,12 +88,16 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 
     public class Groep
     {
+        public string? Email { get; set; }
         public required string Naam { get; set; }
+        public required string Identificatie { get; set; }
     }
 
     public class Afdeling
     {
+        public string? Email { get; set; }
         public required string Naam { get; set; }
+        public required string Identificatie { get; set; }
     }
 
     public class Vervanging

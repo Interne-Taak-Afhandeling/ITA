@@ -11,7 +11,7 @@ public interface IOpenKlantApiClient
 {
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
     Task<Actor> GetActorAsync(string? uuid);
-    Task<Actor?> CreateActorAsync(ActorRequest request);
+    Task<Actor> CreateActorAsync(ActorRequest request);
     Task<Klantcontact> GetKlantcontactAsync(string uuid);
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);    Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
@@ -25,7 +25,7 @@ public interface IOpenKlantApiClient
     Task<Internetaak> PatchInternetaakStatusAsync(InternetakenPatchStatusRequest internetakenUpdateRequest, string uuid);
     Task<Internetaak> PatchInternetaakActorAsync(InternetakenPatchActorsRequest internetakenUpdateRequest, string uuid);
 
-    Task<Internetaak?> GetInternetaakByIdAsync(Guid uuid);
+    Task<Internetaak> GetInternetaakByIdAsync(Guid uuid);
     Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
 
 }
@@ -83,7 +83,7 @@ public partial class OpenKlantApiClient(
         }
     }
 
-    public async Task<Actor?> CreateActorAsync(ActorRequest request)
+    public async Task<Actor> CreateActorAsync(ActorRequest request)
     {
         try
         {
@@ -91,7 +91,7 @@ public partial class OpenKlantApiClient(
             response.EnsureSuccessStatusCode();
 
             var actor = await response.Content.ReadFromJsonAsync<Actor>();
-            return actor;
+            return actor!;
         }
         catch (Exception ex)
         {
@@ -382,12 +382,13 @@ public partial class OpenKlantApiClient(
     }
 
   
-    public async Task<Internetaak?> GetInternetaakByIdAsync(Guid uuid)
+    public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)
     {
         var response = await _httpClient.GetAsync($"internetaken/{uuid}");
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<Internetaak>();
+        var result = await response.Content.ReadFromJsonAsync<Internetaak>();
+        return result!;
 
     }
 

@@ -35,7 +35,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public Onderwerpobjectidentificator? Onderwerpobjectidentificator { get; set; }
     }
 
-    public class Onderwerpobjectidentificator
+    public class Onderwerpobjectidentificator: IObjectRegisterId
     {
         public required string ObjectId { get; set; }
         public required string CodeObjecttype { get; set; }
@@ -66,7 +66,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
 
 
-    public class Actoridentificator
+    public class Actoridentificator: IObjectRegisterId
     {
         public required string ObjectId { get; set; }
         public required string CodeObjecttype { get; set; }

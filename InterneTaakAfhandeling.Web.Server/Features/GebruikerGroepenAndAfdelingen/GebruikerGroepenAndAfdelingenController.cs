@@ -25,13 +25,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.GebruikerGroepenAndAfdeling
         }
         private async Task<List<string>> GetGebruikerGroepenAndAfdelingenAsync()
         {
-            var results = await objectApiClient.GetObjectsByIdentificatie(user.ObjectregisterMedewerkerId);
+            var results = await objectApiClient.GetMedewerkersByIdentificatie(user.ObjectregisterMedewerkerId);
             if (results.Count > 1)
             {
                 throw new ConflictException($"Meerdere medewerkers gevonden met dezelfde identificatie {SecureLogging.SanitizeAndTruncate(user.ObjectregisterMedewerkerId, 5)}");
             }
 
-            var result = results.Single().Data;
+            var result = results.Single();
             //return new List<string>();
             return (result.Afdelingen ?? Enumerable.Empty<MedewerkerAfdeling>())
                 .Select(a => a.Afdelingnaam)

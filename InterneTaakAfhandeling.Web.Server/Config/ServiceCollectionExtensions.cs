@@ -1,18 +1,19 @@
-using InterneTaakAfhandeling.Common.Extensions;
+﻿using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Data;
 using InterneTaakAfhandeling.Web.Server.Features;
 using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe;
 using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
-using InterneTaakAfhandeling.Web.Server.Middleware;
-using InterneTaakAfhandeling.Web.Server.Services;
-using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
+using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
+using InterneTaakAfhandeling.Web.Server.Middleware;
+using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.EntityFrameworkCore;
-using InterneTaakAfhandeling.Web.Server.Data;
 
 
 
@@ -57,7 +58,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
-
+            services.AddSmtpClients(configuration);
             
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));

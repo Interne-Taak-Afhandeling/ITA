@@ -45,7 +45,6 @@
           id="medewerker"
           type="email"
           v-model="forwardContactmomentForm.medewerker"
-          placeholder="Voer een e-mailadres in"
         />
       </utrecht-form-field>
 
@@ -55,9 +54,11 @@
       />
     </utrecht-fieldset>
 
-    <utrecht-button type="submit" appearance="primary-action-button"
-      >Contactverzoek doorsturen</utrecht-button
-    >
+    <utrecht-button-group>
+      <utrecht-button type="submit" appearance="primary-action-button"
+        >Contactverzoek doorsturen</utrecht-button
+      >
+    </utrecht-button-group>
   </form>
 </template>
 
@@ -114,8 +115,11 @@ async function forwardContactverzoek() {
   isLoading.value = true;
 
   try {
-    await klantcontactService.forwardKlantContact(taak.uuid, getForwardContactVerzoekPayload());
-    toast.add({ text: "Contactmoment is doorgestuurd", type: "ok" });
+    const forwardKlantContactResponse = await klantcontactService.forwardKlantContact(
+      taak.uuid,
+      getForwardContactVerzoekPayload()
+    );
+    toast.add({ text: forwardKlantContactResponse.notificationResult, type: "ok", timeout: 5000 });
     resetForm();
     emit("success");
   } catch (err: unknown) {
@@ -165,7 +169,7 @@ function handleLoadingError(err: unknown) {
 
 const fetchAfdelingen = async () => {
   afdelingen.value = [];
-  const response = await get<{ naam: string; uuid: string }[]>("/api/afdelingen");
+  const response = await get<{ naam: string; identificatie: string }[]>("/api/afdelingen");
 
   const sortedResponse = sortListByNaam(response);
 
@@ -173,13 +177,13 @@ const fetchAfdelingen = async () => {
     { label: "Selecteer een afdeling", value: "" },
     ...sortedResponse.map((afdeling) => ({
       label: afdeling.naam,
-      value: afdeling.uuid
+      value: afdeling.identificatie
     }))
   ];
 };
 const fetchGroepen = async () => {
   groepen.value = [];
-  const response = await get<{ naam: string; uuid: string }[]>("/api/groepen");
+  const response = await get<{ naam: string; identificatie: string }[]>("/api/groepen");
 
   const sortedResponse = sortListByNaam(response);
 
@@ -187,7 +191,7 @@ const fetchGroepen = async () => {
     { label: "Selecteer een groep", value: "" },
     ...sortedResponse.map((groep) => ({
       label: groep.naam,
-      value: groep.uuid
+      value: groep.identificatie
     }))
   ];
 };
