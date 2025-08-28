@@ -49,51 +49,88 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
 
                 if (actorIdentificator.Matches(KnownMedewerkerIdentificators.EmailHandmatig))
                 {
-                    result.FoundEmails.Add(actorIdentificator.ObjectId);
+                    if (EmailService.IsValidEmail(actorIdentificator.ObjectId))
+                    {
+                        result.FoundEmails.Add(actorIdentificator.ObjectId);
+                    }
+                    else
+                    {
+                        result.Errors.Add($"actorIdentificator {actorIdentificator.ObjectId} is geen valide e-mailadres");
+                    }
                 }
                 else if (actorIdentificator.Matches(KnownAfdelingIdentificators.ObjectRegisterId))
                 {
-                    var afdeling = await objectApiClient.GetAfdeling(actorIdentificator.ObjectId);
-
-                    if (string.IsNullOrWhiteSpace(afdeling.Record.Data.Email))
-                    {
-                        result.Errors.Add($"Er is geen e-mailadres bekend voor afdeling {afdeling.Record.Data.Naam}");
-                    }
-                    else
-                    {
-                        result.FoundEmails.Add(afdeling.Record.Data.Email);
-                    }
-                }
-                else if (actorIdentificator.Matches(KnownGroepIdentificators.ObjectRegisterId))
-                {
-                    var groep = await objectApiClient.GetGroep(actorIdentificator.ObjectId);
-
-                    if (string.IsNullOrWhiteSpace(groep.Record.Data.Email))
-                    {
-                        result.Errors.Add($"Er is geen e-mailadres bekend voor groep {groep.Record.Data.Naam}");
-                    }
-                    else
-                    {
-                        result.FoundEmails.Add(groep.Record.Data.Email);
-                    }
-                }
-                else if (actorIdentificator.Matches(KnownMedewerkerIdentificators.ObjectRegisterId))
-                {
-                    var objectRecords = await objectApiClient.GetObjectsByIdentificatie(actorIdentificator.ObjectId);
+                    var objectRecords = await objectApiClient.GetAfdelingenByIdentificatie(actorIdentificator.ObjectId);
 
                     if (objectRecords.Count == 0)
                     {
-                        result.Errors.Add($"No medewerker found in overigeobjecten for actorIdentificator {actorIdentificator.ObjectId}");
+                        result.Errors.Add($"Geen afdeling gevonden in overigeobjecten voor actorIdentificator {actorIdentificator.ObjectId}");
                         continue;
                     }
 
                     if (objectRecords.Count > 1)
                     {
-                        result.Errors.Add($"Multiple objects found in overigeobjecten for actorIdentificator {actorIdentificator.ObjectId}. Expected exactly one match.");
+                        result.Errors.Add($"Meerdere afdelingen gevonden in overigeobjecten voor actorIdentificator {actorIdentificator.ObjectId}");
                         continue;
                     }
 
-                    objectRecords.First().Data?.EmailAddresses?.ForEach(x =>
+                    var afdeling = objectRecords.First();
+                    var email = afdeling.Email;
+
+                    if (!string.IsNullOrEmpty(email) && EmailService.IsValidEmail(email))
+                    {
+                        result.FoundEmails.Add(email);
+                    }
+                    else
+                    {
+                        result.Errors.Add($"Er is geen e-mailadres bekend voor afdeling {afdeling.Naam}");
+                    }
+                }
+                else if (actorIdentificator.Matches(KnownGroepIdentificators.ObjectRegisterId))
+                {
+                    var objectRecords = await objectApiClient.GetGroepenByIdentificatie(actorIdentificator.ObjectId);
+
+                    if (objectRecords.Count == 0)
+                    {
+                        result.Errors.Add($"Geen afdeling gevonden in overigeobjecten voor actorIdentificator {actorIdentificator.ObjectId}");
+                        continue;
+                    }
+
+                    if (objectRecords.Count > 1)
+                    {
+                        result.Errors.Add($"Meerdere groepen gevonden in overigeobjecten voor actorIdentificator {actorIdentificator.ObjectId}");
+                        continue;
+                    }
+
+                    var groep = objectRecords.First();
+                    var email = groep.Email;
+
+                    if (!string.IsNullOrEmpty(email) && EmailService.IsValidEmail(email))
+                    {
+                        result.FoundEmails.Add(email);
+                    }
+                    else
+                    {
+                        result.Errors.Add($"Er is geen e-mailadres bekend voor afdeling {groep.Naam}");
+                    }
+                }
+                else if (actorIdentificator.Matches(KnownMedewerkerIdentificators.ObjectRegisterId))
+                {
+                    var objectRecords = await objectApiClient.GetMedewerkersByIdentificatie(actorIdentificator.ObjectId);
+
+                    if (objectRecords.Count == 0)
+                    {
+                        result.Errors.Add($"Geen medewerker gevonden in overigeobjecten voor actorIdentificator {actorIdentificator.ObjectId}");
+                        continue;
+                    }
+
+                    if (objectRecords.Count > 1)
+                    {
+                        result.Errors.Add($"Meerdere medewerkers gevonden in overigeobjecten voor actorIdentificator {actorIdentificator.ObjectId}");
+                        continue;
+                    }
+
+                    objectRecords.First().EmailAddresses?.ForEach(x =>
                     {
                         if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
                         {
@@ -101,7 +138,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
                         }
                         else
                         {
-                            result.Errors.Add($"Invalid email address found for object {actorIdentificator.ObjectId}");
+                            result.Errors.Add($"E-mailadres voor medewerker {actorIdentificator.ObjectId} in objectenregistratie is niet valide");
                         }
                     });
 

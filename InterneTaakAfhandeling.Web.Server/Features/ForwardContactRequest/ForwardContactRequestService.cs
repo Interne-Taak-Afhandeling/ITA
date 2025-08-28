@@ -100,7 +100,7 @@ public class ForwardContactRequestService(
         return actors;
     }
 
-    private async Task<Actor> GetOrCreateMedewerkerActor(string identifier)
+    private async Task<Actor> GetOrCreateMedewerkerActor(string email)
     {
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
@@ -109,21 +109,21 @@ public class ForwardContactRequestService(
             ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId,
             IndicatieActief = true,
             SoortActor = SoortActor.medewerker,
-            ActoridentificatorObjectId = identifier
+            ActoridentificatorObjectId = email
         });
         if (actor == null)
         {
             var actorRequest = new ActorRequest
             {
                 SoortActor = SoortActor.medewerker,
-                Naam = identifier,
+                Naam = email,
                 IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
                     CodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
                     CodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
                     CodeSoortObjectId = KnownMedewerkerIdentificators.EmailHandmatig.CodeSoortObjectId,
-                    ObjectId = identifier
+                    ObjectId = email
                 }
             };
             return await openKlantApiClient.CreateActorAsync(actorRequest);
@@ -132,71 +132,77 @@ public class ForwardContactRequestService(
         return actor;
     }
 
-    private async Task<Actor> GetOrCreateAfdelingActor(string identifier)
+    private async Task<Actor> GetOrCreateAfdelingActor(string identificatie)
     {
-        var afdeling = await objectApiClient.GetAfdeling(identifier);
-
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
             IndicatieActief = true,
             SoortActor = SoortActor.organisatorische_eenheid,
-            ActoridentificatorObjectId = identifier,
+            ActoridentificatorObjectId = identificatie,
             ActoridentificatorCodeObjecttype = KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
             ActoridentificatorCodeRegister = KnownAfdelingIdentificators.ObjectRegisterId.CodeRegister,
             ActoridentificatorCodeSoortObjectId = KnownAfdelingIdentificators.ObjectRegisterId.CodeSoortObjectId
         });
-        if (actor == null)
+
+        if (actor != null)
         {
-            var actorRequest = new ActorRequest
-            {
-                SoortActor = SoortActor.organisatorische_eenheid,
-                Naam = afdeling.Record.Data.Naam,
-                IndicatieActief = true,
-                Actoridentificator = new Actoridentificator
-                {
-                    CodeObjecttype = KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
-                    CodeRegister = KnownAfdelingIdentificators.ObjectRegisterId.CodeRegister,
-                    CodeSoortObjectId = KnownAfdelingIdentificators.ObjectRegisterId.CodeSoortObjectId,
-                    ObjectId = identifier
-                }
-            };
-            return await openKlantApiClient.CreateActorAsync(actorRequest);
+            return actor;
         }
 
-        return actor;
+        var afdelingen = await objectApiClient.GetAfdelingenByIdentificatie(identificatie);
+        var afdeling = afdelingen.First();
+
+        var actorRequest = new ActorRequest
+        {
+            SoortActor = SoortActor.organisatorische_eenheid,
+            Naam = afdeling.Naam,
+            IndicatieActief = true,
+            Actoridentificator = new Actoridentificator
+            {
+                CodeObjecttype = KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
+                CodeRegister = KnownAfdelingIdentificators.ObjectRegisterId.CodeRegister,
+                CodeSoortObjectId = KnownAfdelingIdentificators.ObjectRegisterId.CodeSoortObjectId,
+                ObjectId = identificatie
+            }
+        };
+
+        return await openKlantApiClient.CreateActorAsync(actorRequest);
     }
 
-    private async Task<Actor> GetOrCreateGroepActor(string identifier)
+    private async Task<Actor> GetOrCreateGroepActor(string identificatie)
     {
-        var groep = await objectApiClient.GetGroep(identifier);
-
         var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
         {
             IndicatieActief = true,
             SoortActor = SoortActor.organisatorische_eenheid,
-            ActoridentificatorObjectId = identifier,
+            ActoridentificatorObjectId = identificatie,
             ActoridentificatorCodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
             ActoridentificatorCodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
             ActoridentificatorCodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId
         });
-        if (actor == null)
+
+        if (actor != null)
         {
-            var actorRequest = new ActorRequest
-            {
-                SoortActor = SoortActor.organisatorische_eenheid,
-                Naam = groep.Record.Data.Naam,
-                IndicatieActief = true,
-                Actoridentificator = new Actoridentificator
-                {
-                    CodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
-                    CodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
-                    CodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId,
-                    ObjectId = identifier
-                }
-            };
-            return await openKlantApiClient.CreateActorAsync(actorRequest);
+            return actor;
         }
 
-        return actor;
+        var groepen = await objectApiClient.GetGroepenByIdentificatie(identificatie);
+        var groep = groepen.First();
+
+        var actorRequest = new ActorRequest
+        {
+            SoortActor = SoortActor.organisatorische_eenheid,
+            Naam = groep.Naam,
+            IndicatieActief = true,
+            Actoridentificator = new Actoridentificator
+            {
+                CodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+                CodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+                CodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId,
+                ObjectId = identificatie
+            }
+        };
+
+        return await openKlantApiClient.CreateActorAsync(actorRequest);
     }
 }

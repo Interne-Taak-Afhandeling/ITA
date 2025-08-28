@@ -138,40 +138,32 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         }
 
         var descriptions = await Task.WhenAll(item.HeeftBetrekkingOp.Select(GetActorDescription));
-        return string.Join(" en ", descriptions);
+        return $"Contactverzoek doorgestuurd aan {string.Join(" en ", descriptions)}";
     }
 
     private async Task<string> GetActorDescription(ObjectIdentificator objectIdentificator)
     {
-        var actorInfo = objectIdentificator.CodeObjecttype switch
+        return objectIdentificator.CodeObjecttype switch
         {
             KnownAfdelingIdentificators.CodeObjecttypeAfdeling => await GetAfdelingDescription(objectIdentificator.ObjectId),
             KnownGroepIdentificators.CodeObjecttypeGroep => await GetGroepDescription(objectIdentificator.ObjectId),
             KnownMedewerkerIdentificators.CodeObjecttypeMedewerker => $"medewerker \"{objectIdentificator.ObjectId}\"",
             _ => throw new InvalidOperationException($"Onbekend objecttype: {objectIdentificator.CodeObjecttype}")
         };
-
-        return $"Contactverzoek doorgestuurd aan {actorInfo}";
     }
 
     private async Task<string> GetAfdelingDescription(string objectId)
     {
-        var afdeling = await _objectenApiClient.GetAfdeling(objectId);
-        if (afdeling == null)
-        {
-            throw new InvalidOperationException($"Afdeling {objectId} is not known in objecten register");
-        }
-        return $"{KnownActorType.Afdeling.ToLower()} \"{afdeling.Record.Data.Naam}\"";
+        var afdelingen = await _objectenApiClient.GetAfdelingenByIdentificatie(objectId);
+        var afdeling = afdelingen.FirstOrDefault();
+        return $"{KnownActorType.Afdeling.ToLower()} \"{afdeling?.Naam ?? "onbekend"}\"";
     }
 
     private async Task<string> GetGroepDescription(string objectId)
     {
-        var groep = await _objectenApiClient.GetGroep(objectId);
-        if (groep == null)
-        {
-            throw new InvalidOperationException($"Groep {objectId} is not known in objecten register");
-        }
-        return $"{KnownActorType.Groep.ToLower()} \"{groep.Record.Data.Naam}\"";
+        var groepen = await _objectenApiClient.GetGroepenByIdentificatie(objectId);
+        var groep = groepen.FirstOrDefault();
+        return $"{KnownActorType.Groep.ToLower()} \"{groep?.Naam ?? "onbekend"}\"";
     }
 
     public async Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId)

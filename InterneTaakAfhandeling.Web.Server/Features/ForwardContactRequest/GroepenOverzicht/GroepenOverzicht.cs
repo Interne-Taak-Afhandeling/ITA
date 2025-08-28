@@ -33,7 +33,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.Groep
             try
             {
                 var groepen = await GetGroepenRecursive(1); 
-                var result = groepen.Select(x => new { x.Naam, x.Uuid }).ToList();
+                var result = groepen.Select(x => new { x.Naam, x.Identificatie }).ToList();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -44,18 +44,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.Groep
         }
 
 
-        private async Task<IEnumerable<(string Naam, Guid Uuid)>> GetGroepenRecursive(int page)
+        private async Task<IEnumerable<Groep>> GetGroepenRecursive(int page)
         {
-            var groepen = new List<(string Naam, Guid Uuid)>();
+            var groepen = new List<Groep>();
 
             var result = await objectApiClient.GetGroepen(page);
 
-            if (result == null)
-            {
-                return [];
-            }
-
-            groepen = [.. result.Results.Select(x => (x.Record.Data.Naam, x.Uuid))];
+            groepen = [.. result.Results.Select(x => x.Record.Data)];
 
             if (result.Next != null)
             {
