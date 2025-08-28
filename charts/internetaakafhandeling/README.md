@@ -43,12 +43,6 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | poller.notification.hourThreshold | string | `"-24"` |  |
 | poller.notification.pollerMessage | string | `"Poller uitgevoerd om:"` |  |
 | poller.schedule | string | `"*/15 * * * *"` |  |
-| poller.smtp.enableSsl | string | `"true"` |  |
-| poller.smtp.fromEmail | string | `""` |  |
-| poller.smtp.host | string | `""` |  |
-| poller.smtp.password | string | `""` |  |
-| poller.smtp.port | string | `"25"` |  |
-| poller.smtp.username | string | `""` |  |
 | postgresql.auth.database | string | `"interneTaakAfhandeling"` |  |
 | postgresql.auth.password | string | `""` |  |
 | postgresql.auth.postgresPassword | string | `""` |  |
@@ -60,6 +54,12 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | postgresql.primary.persistence.enabled | bool | `true` |  |
 | postgresql.primary.persistence.size | string | `"8Gi"` |  |
 | postgresql.volumePermissions.image.repository | string | `"bitnamilegacy/os-shell"` |  |
+| smtp.enableSsl | bool | `true` |  |
+| smtp.fromEmail | string | `""` |  |
+| smtp.host | string | `""` |  |
+| smtp.password | string | `""` |  |
+| smtp.port | int | `25` |  |
+| smtp.username | string | `""` |  |
 | web.appsettings.setting1 | string | `""` |  |
 | web.appsettings.setting2 | string | `""` |  |
 | web.image.pullPolicy | string | `"Always"` |  |
