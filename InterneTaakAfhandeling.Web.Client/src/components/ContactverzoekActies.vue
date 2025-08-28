@@ -54,7 +54,7 @@ form + :deep(form) {
   }
 
   .utrecht-button-group {
-    margin-top: 1rem;
+    margin-block: 1rem;
   }
 
   .small {

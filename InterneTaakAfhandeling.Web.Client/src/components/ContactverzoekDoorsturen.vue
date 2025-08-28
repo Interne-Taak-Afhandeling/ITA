@@ -45,7 +45,6 @@
           id="medewerker"
           type="email"
           v-model="forwardContactmomentForm.medewerker"
-          placeholder="Voer een e-mailadres in"
         />
       </utrecht-form-field>
 
@@ -55,9 +54,11 @@
       />
     </utrecht-fieldset>
 
-    <utrecht-button type="submit" appearance="primary-action-button"
-      >Contactverzoek doorsturen</utrecht-button
-    >
+    <utrecht-button-group>
+      <utrecht-button type="submit" appearance="primary-action-button"
+        >Contactverzoek doorsturen</utrecht-button
+      >
+    </utrecht-button-group>
   </form>
 </template>
 
