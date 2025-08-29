@@ -79,6 +79,14 @@ groep:
   # -- De versie van het groep objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
   typeVersion: 1
 
+smtp:
+  host: ""
+  port: "25"
+  username: ""
+  password: ""
+  fromEmail: ""
+  enableSsl: "true"
+
 # Web Application Configuration
 web:
   image:
@@ -121,12 +129,4 @@ poller:
   
   notification:
     pollerMessage: "Poller uitgevoerd om:"
-    hourThreshold: "-24"
-  
-  smtp:
-    host: ""
-    port: "25"
-    username: ""
-    password: ""
-    fromEmail: ""
-    enableSsl: "true"
+    hourThreshold: "-24"  
