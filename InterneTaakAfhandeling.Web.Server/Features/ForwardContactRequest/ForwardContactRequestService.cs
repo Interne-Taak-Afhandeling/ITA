@@ -88,7 +88,7 @@ public class ForwardContactRequestService(
     private static string GetResultMessage(EmailResult[] results, ActorEmailResolutionResult actorEmailResult)
     {
         var failedEmails = results.Where(r => !r.Success).ToList();
-        var anySuccess = results.Length != failedEmails.Count;
+        var anySuccess = results.Length != 0 && results.Length != failedEmails.Count;
 
         if (!anySuccess)
             return GenericError;
