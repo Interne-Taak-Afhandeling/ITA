@@ -43,40 +43,63 @@ public class ForwardContactRequestService(
         };
     }
 
+    private const string GenericError = "Het contactverzoek is doorgestuurd, maar hiervan kon geen e-mailnotificatie verstuurd worden";
+
     private async Task<string> NotifyInternetaakActors(Internetaak internetaken, IReadOnlyList<Actor> actors)
     {
-        const string GenericError = "Het contactverzoek is doorgestuurd, maar hiervan kon geen e-mailnotificatie verstuurd worden";
-
         try
         {
             if (!emailService.IsConfiguredCorrectly())
-            {
                 return GenericError;
-            }
 
             var actorEmailResult = await emailInputService.ResolveActorsEmailAsync(actors);
 
-            if (actorEmailResult.FoundEmails.Count > 0)
-            {
-                var emailInput = await emailInputService.FetchInterneTaakEmailInput(internetaken);
+            if (!actorEmailResult.FoundEmails.Any())
+                return GetResultMessageWhenNoEmails(actorEmailResult);
 
-                var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput);
+            var emailInput = await emailInputService.FetchInterneTaakEmailInput(internetaken);
+            var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput);
+            var subject = $"Contactverzoek Doorgestuurd - {internetaken.Nummer}";
 
-                var emailTasks = actorEmailResult.FoundEmails.Select(async email => await emailService.SendEmailAsync(email,
-                        $"Contactverzoek Doorgestuurd - {internetaken.Nummer}", emailContent));
+            var sendResults = await SendEmailsAsync(actorEmailResult.FoundEmails, subject, emailContent);
 
-                await Task.WhenAll(emailTasks);
-            }
-
-            return actorEmailResult.Errors.Count > 0
-                ? $"Het contactverzoek is doorgestuurd, maar niet elke e-mailnotificatie kon verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}"
-                : "Contactverzoek succesvol doorgestuurd";
+            return GetResultMessage(sendResults, actorEmailResult);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error processing e-mail notifications for forwarded interne taak {Number}", internetaken.Nummer);
             return GenericError;
         }
+    }
+
+    private async Task<EmailResult[]> SendEmailsAsync(IEnumerable<string> emails, string subject, string content)
+    {
+        var tasks = emails.Select(email => emailService.SendEmailAsync(email, subject, content));
+        return await Task.WhenAll(tasks);
+    }
+
+    private static string GetResultMessageWhenNoEmails(ActorEmailResolutionResult actorEmailResult)
+    {
+        return actorEmailResult.Errors.Any()
+            ? $"Het contactverzoek is doorgestuurd, maar niet elke e-mailnotificatie kon verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}"
+            : "Contactverzoek succesvol doorgestuurd";
+    }
+
+    private static string GetResultMessage(EmailResult[] results, ActorEmailResolutionResult actorEmailResult)
+    {
+        var failedEmails = results.Where(r => !r.Success).ToList();
+        var anySuccess = results.Length > 0 && results.Length != failedEmails.Count;
+
+        if (!anySuccess)
+            return GenericError;
+
+        if (failedEmails.Any())
+            return $"Contactverzoek doorgestuurd, maar {failedEmails.Count} email(s) notificaties mislukte tijdens het doorsturen.";
+
+        if (actorEmailResult.Errors.Any())
+            return $"Het contactverzoek is doorgestuurd, maar niet elke e-mailnotificatie kon verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}";
+
+        return "Contactverzoek succesvol doorgestuurd";
     }
 
     private async Task<List<Actor>> GetTargetActors(ForwardContactRequestModel request)

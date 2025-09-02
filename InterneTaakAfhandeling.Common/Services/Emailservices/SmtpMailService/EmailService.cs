@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -7,7 +7,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 
 public interface IEmailService
 {
-    Task SendEmailAsync(string to, string subject, string body);
+    Task<EmailResult> SendEmailAsync(string to, string subject, string body);
     bool IsConfiguredCorrectly();
 }
 
@@ -21,7 +21,7 @@ public class EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailServi
         && _smtpSettings.Port > 0
         && !string.IsNullOrEmpty(_smtpSettings.FromEmail);
 
-    public async Task SendEmailAsync(string to, string subject, string body)
+    public async Task<EmailResult> SendEmailAsync(string to, string subject, string body)
     {
         try
         {
@@ -41,14 +41,17 @@ public class EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailServi
 
             _logger.LogInformation("Sending email to {To} via {Host}:{Port}", to[..Math.Min(to.Length, 4)], _smtpSettings.Host, _smtpSettings.Port);
             await smtpClient.SendMailAsync(mailMessage);
+            return new EmailResult { Success = true };
         }
         catch (SmtpException smtpEx)
         {
             _logger.LogError(smtpEx, "SMTP error occurred while sending email via {Host}:{Port}", _smtpSettings.Host, _smtpSettings.Port);
+            return new EmailResult { Success = false, ErrorMessage = smtpEx.Message };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email via {Host}:{Port}", _smtpSettings.Host, _smtpSettings.Port);
+            return new EmailResult { Success = false, ErrorMessage = ex.Message };
         }
     }
     public static bool IsValidEmail(string email)
