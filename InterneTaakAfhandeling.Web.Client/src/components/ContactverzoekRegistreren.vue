@@ -183,7 +183,8 @@ function getKlantcontactPayload() {
     klantcontactRequest: buildKlantcontactModel(),
     aanleidinggevendKlantcontactUuid: getAanleidinggevendKlantcontactId(),
     partijUuid: getPartijId(),
-    interneTaakId: taak.uuid
+    interneTaakId: taak.uuid,
+    interneNotitie: registerContactmomentForm.value.interneNotitie.trim()
   };
 }
 
