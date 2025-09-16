@@ -2,7 +2,7 @@ apiVersion: v2
 name: internetaakafhandeling
 description: Helm chart for InterneTaakAfhandeling including Web API and Poller
 type: application
-version: 0.2.1
+version: 1.0.1
 appVersion: 0.2.0
 dependencies:
   - name: postgresql
