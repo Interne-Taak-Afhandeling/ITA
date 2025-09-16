@@ -16,24 +16,6 @@
 {{- end -}}
 {{- end -}}
 
-{{/* ConfigMap name helper */}}
-{{- define "internetaakafhandeling.configMapName" -}}
-{{- if .Values.configMapName -}}
-{{- .Values.configMapName | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-config" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-
-{{/* Secret name helper */}}
-{{- define "internetaakafhandeling.secretName" -}}
-{{- if .Values.secretName -}}
-{{- .Values.secretName | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-secret" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-
 {{/* Web specific names */}}
 {{- define "internetaakafhandeling.web.name" -}}
 {{- printf "%s-web" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}

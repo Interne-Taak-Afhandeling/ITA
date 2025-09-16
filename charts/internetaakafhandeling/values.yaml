@@ -1,8 +1,6 @@
 # Naming overrides - useful when used as subchart
 nameOverride: ""
 fullnameOverride: ""
-configMapName: ""
-secretName: ""
 
 # Global PostgreSQL configuration
 postgresql:

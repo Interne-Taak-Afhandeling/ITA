@@ -41,9 +41,9 @@ spec:
               subPath: appsettings.json
           envFrom:
             - configMapRef:
-                name: {{ include "internetaakafhandeling.configMapName" . }}
+                name: {{ include "internetaakafhandeling.fullname" . }}-config
             - secretRef:
-                name: {{ include "internetaakafhandeling.secretName" . }}
+                name: {{ include "internetaakafhandeling.fullname" . }}-secrets
       volumes:
         - name: appsettings-volume
           configMap:
