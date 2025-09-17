@@ -1,3 +1,7 @@
+# Naming overrides - useful when used as subchart
+nameOverride: ""
+fullnameOverride: ""
+
 # Global PostgreSQL configuration
 postgresql:
   enabled: true
