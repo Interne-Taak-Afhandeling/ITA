@@ -1,20 +1,26 @@
 {{/* Common names and labels */}}
 {{- define "internetaakafhandeling.name" -}}
-{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "internetaakafhandeling.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else if .Values.nameOverride -}}
+{{- printf "%s-%s" .Release.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
 {{- end -}}
 
 {{/* Web specific names */}}
 {{- define "internetaakafhandeling.web.name" -}}
-{{- printf "%s-web" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-web" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/* Poller specific names */}}
 {{- define "internetaakafhandeling.poller.name" -}}
-{{- printf "%s-poller" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-poller" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/* Common labels */}}
@@ -41,18 +47,18 @@ app.kubernetes.io/component: poller
 {{/* Selector labels */}}
 {{- define "internetaakafhandeling.web.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "internetaakafhandeling.web.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/instance: {{ include "internetaakafhandeling.fullname" . }}
 {{- end -}}
 
 {{- define "internetaakafhandeling.poller.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "internetaakafhandeling.poller.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/instance: {{ include "internetaakafhandeling.fullname" . }}
 {{- end -}}
 
 {{/* Database connection string helper */}}
 {{- define "internetaakafhandeling.databaseConnectionString" -}}
 {{- if .Values.postgresql.enabled -}}
-  {{- printf "Host=%s-postgresql;Port=%s;Database=%s;Username=%s;Password=%s;" .Release.Name .Values.database.port .Values.database.name .Values.database.username .Values.database.password -}}
+  {{- printf "Host=%s-postgresql;Port=%s;Database=%s;Username=%s;Password=%s;" (include "internetaakafhandeling.fullname" .) .Values.database.port .Values.database.name .Values.database.username .Values.database.password -}}
 {{- else -}}
   {{- printf "Host=%s;Port=%s;Database=%s;Username=%s;Password=%s;" .Values.database.host .Values.database.port .Values.database.name .Values.database.username .Values.database.password -}}
 {{- end -}}
