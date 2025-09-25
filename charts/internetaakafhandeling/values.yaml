@@ -97,10 +97,13 @@ web:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
     tag: "latest"
     pullPolicy: Always
-  
+
   service:
     type: ClusterIP
     port: 80
+
+  nodeSelector: {}
+    # agentpool: userpool
   
   oidc:
     authority: ""
@@ -117,7 +120,19 @@ web:
     faviconUrl: ""
     designTokensUrl: ""
     webFontSources: []
-  
+
+  podResources: {}
+    # requests:
+    #   memory: "256Mi"
+    #   cpu: "200m"
+
+  # Pod configuration
+  imagePullSecrets: []
+  serviceAccountName: ""
+  securityContext: {}
+  affinity: {}
+  tolerations: []
+
   appsettings:
     setting1: ""
     setting2: ""
@@ -125,12 +140,38 @@ web:
 # Poller Configuration
 poller:
   schedule: "*/15 * * * *"
-  
+
+  # Job cleanup configuration
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+
+  # CronJob configuration
+  concurrencyPolicy: Forbid
+  suspend: false
+  startingDeadlineSeconds: 600
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 86400  # 24 hours
+
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
     tag: "latest"
     pullPolicy: Always
-  
+
+  nodeSelector: {}
+    # agentpool: userpool
+
+  podResources: {}
+    # requests:
+    #   memory: "64Mi"
+    #   cpu: "100m"
+
+  # Pod configuration
+  imagePullSecrets: []
+  serviceAccountName: ""
+  securityContext: {}
+  affinity: {}
+  tolerations: []
+
   notification:
     pollerMessage: "Poller uitgevoerd om:"
     hourThreshold: "-24"  
