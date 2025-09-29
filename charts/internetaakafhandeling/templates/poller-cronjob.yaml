@@ -6,17 +6,55 @@ metadata:
     {{- include "internetaakafhandeling.poller.labels" . | nindent 4 }}
 spec:
   schedule: "{{ .Values.poller.schedule }}"
+  concurrencyPolicy: {{ .Values.poller.concurrencyPolicy | default "Forbid" }}
+  suspend: {{ .Values.poller.suspend | default false }}
+  {{- if .Values.poller.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.poller.startingDeadlineSeconds }}
+  {{- end }}
+  successfulJobsHistoryLimit: {{ .Values.poller.successfulJobsHistoryLimit | default 3 }}
+  failedJobsHistoryLimit: {{ .Values.poller.failedJobsHistoryLimit | default 1 }}
   jobTemplate:
     spec:
+      backoffLimit: {{ .Values.poller.backoffLimit | default 6 }}
+      {{- if .Values.poller.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ .Values.poller.ttlSecondsAfterFinished }}
+      {{- end }}
       template:
         metadata:
           labels:
             {{- include "internetaakafhandeling.poller.selectorLabels" . | nindent 12 }}
         spec:
+          {{- if .Values.poller.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml .Values.poller.imagePullSecrets | nindent 12 }}
+          {{- end }}
+          {{- if .Values.poller.serviceAccountName }}
+          serviceAccountName: {{ .Values.poller.serviceAccountName }}
+          {{- end }}
+          {{- if .Values.poller.securityContext }}
+          securityContext:
+            {{- toYaml .Values.poller.securityContext | nindent 12 }}
+          {{- end }}
+          {{- if .Values.poller.nodeSelector }}
+          nodeSelector:
+            {{- toYaml .Values.poller.nodeSelector | nindent 12 }}
+          {{- end }}
+          {{- if .Values.poller.affinity }}
+          affinity:
+            {{- toYaml .Values.poller.affinity | nindent 12 }}
+          {{- end }}
+          {{- if .Values.poller.tolerations }}
+          tolerations:
+            {{- toYaml .Values.poller.tolerations | nindent 12 }}
+          {{- end }}
           containers:
             - name: internetaakafhandeling-poller
               image: "{{ .Values.poller.image.repository }}:{{ .Values.poller.image.tag }}"
               imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
+              {{- if .Values.poller.podResources }}
+              resources:
+                {{- toYaml .Values.poller.podResources | nindent 16 }}
+              {{- end }}
               envFrom:
                 - configMapRef:
                     name: {{ include "internetaakafhandeling.fullname" . }}-config
