@@ -19,6 +19,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly IEmailService _emailService;
     private readonly ILogger<InternetakenNotifier> _logger;
     private readonly string _apiBaseUrl;
+    private readonly string _itaBaseUrl;
     private readonly IEmailContentService _emailContentService;
     private readonly INotifierStateService _notifierStateService;
     private readonly IInterneTaakEmailInputService _emailInputService;
@@ -37,6 +38,8 @@ public class InternetakenNotifier : IInternetakenProcessor
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _apiBaseUrl = configuration.GetValue<string>("OpenKlantApi:BaseUrl")
             ?? throw new ArgumentException("OpenKlantApi:BaseUrl configuration is missing");
+        _itaBaseUrl = configuration.GetValue<string>("Ita:BaseUrl")
+            ?? throw new ArgumentException("Ita:BaseUrl configuration is missing");
         _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
         _notifierStateService = notifierStateService ?? throw new ArgumentNullException(nameof(notifierStateService));
         _emailInputService = emailInputService;
@@ -109,7 +112,7 @@ public class InternetakenNotifier : IInternetakenProcessor
             if (actorEmails.Count > 0)
             {
                 var emailInput = await _emailInputService.FetchInterneTaakEmailInput(internetaken);
-                var emailContent = _emailContentService.BuildInternetakenEmailContent(emailInput);
+                var emailContent = _emailContentService.BuildInternetakenEmailContent(emailInput, _itaBaseUrl);
 
                 await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {internetaken.Nummer}", emailContent)));
 

@@ -4,6 +4,7 @@ using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
@@ -18,8 +19,11 @@ public class ForwardContactRequestService(
     IEmailService emailService,
     IEmailContentService emailContentService,
     ILogger<ForwardContactRequestService> logger,
-    IInterneTaakEmailInputService emailInputService) : IForwardContactRequestService
+    IInterneTaakEmailInputService emailInputService,
+    IConfiguration configuration) : IForwardContactRequestService
 {
+    private readonly string _itaBaseUrl = configuration.GetValue<string>("Ita:BaseUrl")
+        ?? throw new ArgumentException("Ita:BaseUrl configuration is missing");
     public async Task<ForwardContactRequestResponse> ForwardAsync(Guid internetaakId,
         ForwardContactRequestModel request)
     {
@@ -58,7 +62,7 @@ public class ForwardContactRequestService(
                 return GetResultMessageWhenNoEmails(actorEmailResult);
 
             var emailInput = await emailInputService.FetchInterneTaakEmailInput(internetaken);
-            var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput);
+            var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput, _itaBaseUrl);
             var subject = $"Contactverzoek Doorgestuurd - {internetaken.Nummer}";
 
             var sendResults = await SendEmailsAsync(actorEmailResult.FoundEmails, subject, emailContent);

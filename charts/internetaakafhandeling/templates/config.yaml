@@ -43,7 +43,10 @@ data:
   # Notification settings
   pollerMessage: {{ .Values.poller.notification.pollerMessage | quote }}
   InternetakenNotifier__HourThreshold: {{ .Values.poller.notification.hourThreshold | quote }}
-  
+
+  # ITA Base URL for email
+  Ita__BaseUrl: {{ .Values.ita.baseUrl | quote }}
+
   LogBoekOptions__Type: {{ .Values.logboek.type | quote }}
   LogBoekOptions__TypeVersion: {{ .Values.logboek.typeVersion | toString | quote }}
 

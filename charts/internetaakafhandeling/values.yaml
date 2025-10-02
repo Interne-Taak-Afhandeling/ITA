@@ -91,6 +91,10 @@ smtp:
   fromEmail: ""
   enableSsl: "true"
 
+# ITA Base URL for sending emails
+ita:
+  baseUrl: ""
+
 # Web Application Configuration
 web:
   image:
