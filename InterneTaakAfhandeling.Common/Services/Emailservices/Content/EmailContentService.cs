@@ -21,8 +21,8 @@ public class EmailContentService : IEmailContentService
         </style>
     </head>
     <body>
-        <p>Er is een nieuw contactverzoek voor je beschikbaar in ITA.</p>
-        <p><a href=""{Link}"">Bekijk contactverzoek {Nummer}</a></p>
+        <p>Er is een nieuw contactverzoek voor jou.</p>
+        <p>Bekijk <a href=""{Link}"">contactverzoek {Nummer} in ITA Contactverzoeken</a>.</p>
     </body>
     </html>";
 
