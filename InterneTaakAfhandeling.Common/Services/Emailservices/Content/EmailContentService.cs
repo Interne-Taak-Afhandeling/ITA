@@ -28,7 +28,7 @@ public class EmailContentService : IEmailContentService
 
     public string BuildInternetakenEmailContent(InterneTakenEmailInput input, string itaBaseUrl)
     {
-        var (internetaken, _, _, _) = input;
+        var internetaken = input.InterneTaak;
 
         var deeplink = $"{itaBaseUrl.TrimEnd('/')}/contactverzoek/{internetaken.Nummer}";
 

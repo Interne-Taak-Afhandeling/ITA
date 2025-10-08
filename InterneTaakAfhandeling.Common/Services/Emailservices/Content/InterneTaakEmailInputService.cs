@@ -1,9 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi;
-using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 
 namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
 {
@@ -14,29 +11,12 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
     }
 
     public class InterneTaakEmailInputService(
-            IOpenKlantApiClient openKlantApiClient,
-            IContactmomentenService contactmomentenService,
-            IZakenApiClient zakenApiClient,
             IObjectApiClient objectApiClient
             ) : IInterneTaakEmailInputService
     {
-        public async Task<InterneTakenEmailInput> FetchInterneTaakEmailInput(Internetaak interneTaak)
+        public Task<InterneTakenEmailInput> FetchInterneTaakEmailInput(Internetaak interneTaak)
         {
-            var klantContact =
-                    await openKlantApiClient.GetKlantcontactAsync(interneTaak.AanleidinggevendKlantcontact.Uuid);
-
-            var digitaleAdressen = klantContact.Expand?.HadBetrokkenen
-                ?.SelectMany(x => x.Expand?.DigitaleAdressen ?? [])
-                .ToArray() ?? [];
-
-            Zaak? zaak = null;
-
-            var onderwerpObjectId = contactmomentenService.GetZaakOnderwerpObject(klantContact);
-
-            if (!string.IsNullOrEmpty(onderwerpObjectId))
-                zaak = await zakenApiClient.GetZaakAsync(onderwerpObjectId);
-
-            return new(interneTaak, klantContact, digitaleAdressen, zaak);
+            return Task.FromResult(new InterneTakenEmailInput(interneTaak));
         }
 
         public async Task<ActorEmailResolutionResult> ResolveActorsEmailAsync(IReadOnlyList<Actor> actors)
