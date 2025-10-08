@@ -1,5 +1,7 @@
-﻿using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
+﻿using InterneTaakAfhandeling.Common.Services;
+using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 
 namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
