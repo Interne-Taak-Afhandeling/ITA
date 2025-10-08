@@ -61,8 +61,7 @@ public class ForwardContactRequestService(
             if (!actorEmailResult.FoundEmails.Any())
                 return GetResultMessageWhenNoEmails(actorEmailResult);
 
-            var emailInput = await emailInputService.FetchInterneTaakEmailInput(internetaken);
-            var emailContent = emailContentService.BuildInternetakenEmailContent(emailInput, _itaBaseUrl);
+            var emailContent = emailContentService.BuildInternetakenEmailContent(internetaken, _itaBaseUrl);
             var subject = $"Contactverzoek Doorgestuurd - {internetaken.Nummer}";
 
             var sendResults = await SendEmailsAsync(actorEmailResult.FoundEmails, subject, emailContent);

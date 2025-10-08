@@ -8,7 +8,6 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
 {
     public interface IInterneTaakEmailInputService
     {
-        Task<InterneTakenEmailInput> FetchInterneTaakEmailInput(Internetaak interneTaak);
         Task<ActorEmailResolutionResult> ResolveActorsEmailAsync(IReadOnlyList<Actor> actors);
     }
 
@@ -16,11 +15,6 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
             IObjectApiClient objectApiClient
             ) : IInterneTaakEmailInputService
     {
-        public Task<InterneTakenEmailInput> FetchInterneTaakEmailInput(Internetaak interneTaak)
-        {
-            return Task.FromResult(new InterneTakenEmailInput(interneTaak));
-        }
-
         public async Task<ActorEmailResolutionResult> ResolveActorsEmailAsync(IReadOnlyList<Actor> actors)
         {
             var result = new ActorEmailResolutionResult();

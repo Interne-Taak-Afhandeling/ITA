@@ -7,7 +7,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 
 public interface IEmailContentService
 {
-    string BuildInternetakenEmailContent(InterneTakenEmailInput input, string itaBaseUrl);
+    string BuildInternetakenEmailContent(Internetaak internetaak, string itaBaseUrl);
 }
 
 public class EmailContentService : IEmailContentService
@@ -26,15 +26,13 @@ public class EmailContentService : IEmailContentService
     </body>
     </html>";
 
-    public string BuildInternetakenEmailContent(InterneTakenEmailInput input, string itaBaseUrl)
+    public string BuildInternetakenEmailContent(Internetaak internetaak, string itaBaseUrl)
     {
-        var internetaken = input.InterneTaak;
-
-        var deeplink = $"{itaBaseUrl.TrimEnd('/')}/contactverzoek/{internetaken.Nummer}";
+        var deeplink = $"{itaBaseUrl.TrimEnd('/')}/contactverzoek/{internetaak.Nummer}";
 
         var sb = new StringBuilder(EmailTemplate);
         sb.Replace("{Link}", deeplink)
-          .Replace("{Nummer}", internetaken.Nummer);
+          .Replace("{Nummer}", internetaak.Nummer);
 
         return sb.ToString();
     }

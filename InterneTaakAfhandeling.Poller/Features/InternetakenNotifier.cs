@@ -111,8 +111,7 @@ public class InternetakenNotifier : IInternetakenProcessor
 
             if (actorEmails.Count > 0)
             {
-                var emailInput = await _emailInputService.FetchInterneTaakEmailInput(internetaken);
-                var emailContent = _emailContentService.BuildInternetakenEmailContent(emailInput, _itaBaseUrl);
+                var emailContent = _emailContentService.BuildInternetakenEmailContent(internetaken, _itaBaseUrl);
 
                 await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {internetaken.Nummer}", emailContent)));
 
