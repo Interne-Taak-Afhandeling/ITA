@@ -91,6 +91,11 @@ smtp:
   fromEmail: ""
   enableSsl: "true"
 
+# ITA Base URL for email deeplinks
+# Example: https://itawebsite.nl
+ita:
+  baseUrl: ""
+
 # Web Application Configuration
 web:
   image:
