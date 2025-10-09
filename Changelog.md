@@ -11,10 +11,13 @@
 * Manage the list of "Kanalen" #174
 * Forward a contact request #16
 * Receive an email for a forwarded contactrequest #108
+* Email notifications contain only a deeplink to contact request (no confidential information) #368
 
 
 
 ### Warnings and deployment notes
+
+* New required release variable: `Ita_BaseUrl` - The base URL of the ITA website for deeplinks in email notifications
 
 ### Bugfixes
 
