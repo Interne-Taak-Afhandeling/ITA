@@ -91,46 +91,46 @@ public class InternetakenNotifier : IInternetakenProcessor
 
     }
 
-    public async Task<ProcessingResult> ProcessInternetakenAsync(Internetaak internetaken)
+    public async Task<ProcessingResult> ProcessInternetakenAsync(Internetaak internetaak)
     {
-        bool success = true;
+        var success = true;
         string? errorMessage = null;
 
         try
         {
-            _logger.LogInformation("Processing internetaken: {Number}", internetaken.Nummer);
+            _logger.LogInformation("Processing internetaken: {Number}", internetaak.Nummer);
 
-            var actors = await GetActorsAsync(internetaken);
+            var actors = await GetActorsAsync(internetaak);
             var actorEmailsResult = await _emailInputService.ResolveActorsEmailAsync(actors);
             var actorEmails = actorEmailsResult.FoundEmails;
 
             foreach (var error in actorEmailsResult.Errors)
             {
-                _logger.LogWarning("Error while resolving actors for interne taak {Number}: {Error}", internetaken.Nummer, error);
+                _logger.LogWarning("Error while resolving actors for interne taak {Number}: {Error}", internetaak.Nummer, error);
             }
 
             if (actorEmails.Count > 0)
             {
-                var emailContent = _emailContentService.BuildInternetakenEmailContent(internetaken, _itaBaseUrl);
+                var emailContent = _emailContentService.BuildInternetakenEmailContent(internetaak, _itaBaseUrl);
 
-                await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {internetaken.Nummer}", emailContent)));
+                await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {internetaak.Nummer}", emailContent)));
 
-                _logger.LogInformation("Successfully processed internetaken: {Number}", internetaken.Nummer);
+                _logger.LogInformation("Successfully processed internetaken: {Number}", internetaak.Nummer);
             }
             else
             {
-                _logger.LogInformation("No actor emails found for internetaken: {Number}, skipping", internetaken.Nummer);
+                _logger.LogInformation("No actor emails found for internetaken: {Number}, skipping", internetaak.Nummer);
                 errorMessage = "No actor emails found";
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing e-mail notifications for new interne taak {Number}", internetaken.Nummer);
+            _logger.LogError(ex, "Error processing e-mail notifications for new interne taak {Number}", internetaak.Nummer);
             success = false;
             errorMessage = ex.Message;
         }
 
-        return new ProcessingResult(success, Guid.Parse(internetaken.Uuid), internetaken.ToegewezenOp ?? DateTimeOffset.MinValue, errorMessage);
+        return new ProcessingResult(success, Guid.Parse(internetaak.Uuid), internetaak.ToegewezenOp ?? DateTimeOffset.MinValue, errorMessage);
     }
 
     private async Task<List<Actor>> GetActorsAsync(Internetaak internetaken)
