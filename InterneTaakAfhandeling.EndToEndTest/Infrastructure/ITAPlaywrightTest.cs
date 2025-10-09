@@ -20,6 +20,29 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
     {
         private const string StoragePath = "./auth.json";
 
+        static ITAPlaywrightTest()
+        {
+            // Configure browser to show automatically in local development (like KISS-frontend)
+            var isLocal = IsRunningLocally();
+            if (isLocal && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HEADED")))
+            {
+                Environment.SetEnvironmentVariable("HEADED", "1");
+            }
+        }
+
+        /// <summary>
+        /// Detects if tests are running locally (not in CI/CD)
+        /// </summary>
+        private static bool IsRunningLocally()
+        {
+            // Check common CI environment variables
+            var ciEnvironments = new[]
+            {
+                "CI","GITHUB_ACTIONS", "AZURE_PIPELINES"           };
+
+            return !ciEnvironments.Any(env => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(env)));
+        }
+
         private static readonly IConfiguration s_configuration = BuildConfiguration();
 
         private static IConfiguration BuildConfiguration()
@@ -32,15 +55,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
 
             return new ConfigurationBuilder()
-                .AddUserSecrets<ITAPlaywrightTest>()  // Sensitive credentials (passwords, etc.)
-                .AddEnvironmentVariables()           // Environment variables (including from .env)
+                .AddUserSecrets<ITAPlaywrightTest>()  
+                .AddEnvironmentVariables()           
                 .Build();
         }
 
         // Initialize UniqueOtpHelper if TOTP secret is available
         private static readonly UniqueOtpHelper? s_uniqueOtpHelper = CreateOtpHelperIfConfigured();
 
-        // this is used to build a test report for each test
+        // this is used to build a test report 
         private static readonly ConcurrentDictionary<string, string> s_testReports = [];
 
         private readonly List<string> _steps = [];
@@ -480,6 +503,18 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return value;
         }
 
+        [TestInitialize]
+        public async Task TestInitializeWithAuth()
+        {
+            // Clear any existing auth state to force fresh login every time
+            if (File.Exists(StoragePath))
+            {
+                File.Delete(StoragePath);
+            }
+            
+            await HandleAuthenticationAsync();
+        }
+
         public override BrowserNewContextOptions ContextOptions()
         {
             var baseUrl = s_configuration["TestSettings:TEST_BASE_URL"];
@@ -487,13 +522,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return new(base.ContextOptions())
             {
                 BaseURL = baseUrl ?? "https://ita.test.icatt.nl", // Default fallback
-                // save auth state so we don't need to log in in every single test
-                StorageStatePath = File.Exists(StoragePath) ? StoragePath : null,
+                // Don't reuse auth state - force fresh login every time to see the login flow
+                StorageStatePath = null,
                 ViewportSize = new() { Width = 1920, Height = 1080 },
             };
         }
-
-
 
         protected void RegisterCleanup(Func<Task> cleanupFunc)
         {
@@ -519,12 +552,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             try
             {
-                // Create login helper and perform login
+                // Create login helper and perform fresh login every time
                 var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper);
                 await loginHelper.LoginAsync();
 
-                // Store authentication state for reuse in other tests
-                await Context.StorageStateAsync(new() { Path = StoragePath });
+                // Don't save auth state - we want fresh login every time to see the flow
             }
             catch (Exception ex)
             {
