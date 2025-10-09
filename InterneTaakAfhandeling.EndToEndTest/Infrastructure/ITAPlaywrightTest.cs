@@ -79,11 +79,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         /// </summary>
         /// <param name="description"></param>
         /// <returns></returns>
-        protected Task Step(string description)
+        protected async Task Step(string description)
         {
-            _steps.Add(description);
-            Console.WriteLine($"Step: {description}");
-            return Task.CompletedTask;
+            _steps.Add($"{DateTime.Now:HH:mm:ss.fff} - {description}");
+            await Task.CompletedTask;
         }
 
         /// <summary>
@@ -515,7 +514,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             // If no credentials are configured, skip authentication
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                Console.WriteLine("Authentication credentials not configured - tests will run without login");
                 return;
             }
 
@@ -527,12 +525,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
                 // Store authentication state for reuse in other tests
                 await Context.StorageStateAsync(new() { Path = StoragePath });
-
-                Console.WriteLine("Successfully authenticated with Azure AD");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Authentication failed: {ex.Message}");
                 // Don't fail the test, just continue without authentication
             }
         }

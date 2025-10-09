@@ -3,11 +3,11 @@ using Microsoft.Playwright;
 namespace InterneTaakAfhandeling.EndToEndTest.Helpers
 {
     /// <summary>
-    /// Extension methods for common page interactions in ITA
+    /// Extension methods for Azure AD authentication and ITA page interactions
     /// </summary>
     public static class PageExtensions
     {
-        // Azure AD Authentication helpers
+        // Azure AD Authentication locators
         public static ILocator GetMicrosoftEmailField(this IPage page)
         {
             return page.Locator("input[name='loginfmt']");
@@ -31,169 +31,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Helpers
         public static ILocator GetStaySignedInYesButton(this IPage page)
         {
             return page.Locator("input[type='submit'][value='Yes'], input[id='idSIButton9']");
-        }
-
-        public static ILocator GetStaySignedInNoButton(this IPage page)
-        {
-            return page.Locator("input[type='submit'][value='No'], input[id='idBtn_Back']");
-        }
-
-        // Legacy navigation helpers (for compatibility)
-        public static ILocator GetLoginButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Login" });
-        }
-
-        public static ILocator GetUsernameField(this IPage page)
-        {
-            return page.GetByLabel("Username");
-        }
-
-        public static ILocator GetPasswordField(this IPage page)
-        {
-            return page.GetByLabel("Password");
-        }
-
-        // Main navigation
-        public static ILocator GetNavigationMenu(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Navigation);
-        }
-
-        public static ILocator GetDashboardLink(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Link, new() { Name = "Dashboard" });
-        }
-
-        public static ILocator GetTasksLink(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Link, new() { Name = "Tasks" });
-        }
-
-        // Task management
-        public static ILocator GetCreateTaskButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Create Task" });
-        }
-
-        public static ILocator GetTaskTitleField(this IPage page)
-        {
-            return page.GetByLabel("Task Title");
-        }
-
-        public static ILocator GetTaskDescriptionField(this IPage page)
-        {
-            return page.GetByLabel("Description");
-        }
-
-        public static ILocator GetSaveTaskButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Save" });
-        }
-
-        public static ILocator GetTasksList(this IPage page)
-        {
-            return page.GetByRole(AriaRole.List, new() { Name = "Tasks" });
-        }
-
-        public static ILocator GetTaskByTitle(this IPage page, string title)
-        {
-            return page.GetByText(title);
-        }
-
-        // Search functionality
-        public static ILocator GetSearchField(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Searchbox);
-        }
-
-        public static ILocator GetSearchButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Search" });
-        }
-
-        // Common form elements
-        public static ILocator GetSubmitButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Submit" });
-        }
-
-        public static ILocator GetCancelButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Cancel" });
-        }
-
-        public static ILocator GetDeleteButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Delete" });
-        }
-
-        public static ILocator GetEditButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Edit" });
-        }
-
-        // Alert and notification helpers
-        public static ILocator GetSuccessMessage(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Alert).Filter(new() { HasText = "success" });
-        }
-
-        public static ILocator GetErrorMessage(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Alert).Filter(new() { HasText = "error" });
-        }
-
-        // Table helpers
-        public static ILocator GetTableHeader(this IPage page, string headerText)
-        {
-            return page.GetByRole(AriaRole.Columnheader, new() { Name = headerText });
-        }
-
-        public static ILocator GetTableRow(this IPage page, string rowText)
-        {
-            return page.GetByRole(AriaRole.Row).Filter(new() { HasText = rowText });
-        }
-
-        // Modal helpers
-        public static ILocator GetModal(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Dialog);
-        }
-
-        public static ILocator GetModalTitle(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Heading).First;
-        }
-
-        public static ILocator GetModalCloseButton(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Button, new() { Name = "Close" });
-        }
-
-        // Helper methods for common actions
-        public static async Task NavigateToTasksAsync(this IPage page)
-        {
-            await page.GetTasksLink().ClickAsync();
-        }
-
-        public static async Task NavigateToDashboardAsync(this IPage page)
-        {
-            await page.GetDashboardLink().ClickAsync();
-        }
-
-        public static async Task CreateNewTaskAsync(this IPage page, string title, string description)
-        {
-            await page.GetCreateTaskButton().ClickAsync();
-            await page.GetTaskTitleField().FillAsync(title);
-            await page.GetTaskDescriptionField().FillAsync(description);
-            await page.GetSaveTaskButton().ClickAsync();
-        }
-
-        public static async Task SearchForAsync(this IPage page, string searchTerm)
-        {
-            await page.GetSearchField().FillAsync(searchTerm);
-            await page.GetSearchButton().ClickAsync();
         }
 
         // Azure AD Authentication flow helpers

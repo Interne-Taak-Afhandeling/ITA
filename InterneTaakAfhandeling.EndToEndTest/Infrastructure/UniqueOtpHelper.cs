@@ -7,7 +7,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
     /// The Azure AD 2FA login method checks to see the same one-time-password is only used once.
     /// Because of this, we need to make sure the same OTP is not re-used across tests.
     /// We cannot change the lifetime of OTPs, so we actually need to wait until the previous one expires.
-    /// Based on KISS-frontend implementation.
     /// </summary>
     public class UniqueOtpHelper
     {
