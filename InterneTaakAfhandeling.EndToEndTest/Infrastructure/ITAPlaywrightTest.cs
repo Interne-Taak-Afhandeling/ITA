@@ -55,8 +55,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
 
             return new ConfigurationBuilder()
-                .AddUserSecrets<ITAPlaywrightTest>()  
-                .AddEnvironmentVariables()           
+                .AddUserSecrets<ITAPlaywrightTest>()
+                .AddEnvironmentVariables()
                 .Build();
         }
 
@@ -511,7 +511,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             {
                 File.Delete(StoragePath);
             }
-            
+
             await HandleAuthenticationAsync();
         }
 
@@ -553,14 +553,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             try
             {
                 // Create login helper and perform fresh login every time
-                var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper);
+                var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper ?? throw new InvalidOperationException("TOTP helper not initialized"));
                 await loginHelper.LoginAsync();
 
-                // Don't save auth state - we want fresh login every time to see the flow
             }
             catch (Exception ex)
             {
-                // Don't fail the test, just continue without authentication
+                throw new InvalidOperationException(
+                    $"Azure AD authentication failed. Check your test credentials and ensure the application is accessible. " +
+                    $"Error: {ex.Message}", ex);
             }
         }
 
