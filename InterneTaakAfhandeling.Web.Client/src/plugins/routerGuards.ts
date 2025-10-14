@@ -44,7 +44,9 @@ function functioneelBeheerderAccessGuard(
   next: NavigationGuardNext
 ) {
   const authStore = useAuthStore();
-  const requiresFunctioneelBeheerderAccess = to.matched.some((record) => record.meta.requiresFunctioneelBeheerderAccess);
+  const requiresFunctioneelBeheerderAccess = to.matched.some(
+    (record) => record.meta.requiresFunctioneelBeheerderAccess
+  );
 
   return authGuard(to, from, () => {
     if (requiresFunctioneelBeheerderAccess && !authStore.hasFunctioneelBeheerderAccess) {
