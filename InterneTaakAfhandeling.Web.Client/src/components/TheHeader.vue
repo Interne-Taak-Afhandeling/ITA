@@ -55,7 +55,7 @@
                 >Alle contactverzoeken</router-link
               >
             </li>
-            <li class="utrecht-nav-list__item">
+            <li v-if="hasFunctioneelBeheerderAccess" class="utrecht-nav-list__item">
               <router-link
                 :to="{ name: 'beheer' }"
                 class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
@@ -91,6 +91,7 @@ import { useAuthStore } from "@/stores/auth";
 const resources = injectResources();
 const authStore = useAuthStore();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+const hasFunctioneelBeheerderAccess = computed(() => authStore.hasFunctioneelBeheerderAccess);
 const user = computed(() => authStore.user);
 
 const svg = computed(() => {

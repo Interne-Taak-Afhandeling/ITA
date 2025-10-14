@@ -11,6 +11,9 @@ export const useAuthStore = defineStore("auth", () => {
 
   const isAuthenticated = computed(() => user.value?.isLoggedIn || false);
   const hasITASystemAccess = computed(() => user.value?.hasITASystemAccess || false);
+  const hasFunctioneelBeheerderAccess = computed(
+    () => user.value?.hasFunctioneelBeheerderAccess || false
+  );
 
   async function initialize() {
     isLoading.value = true;
@@ -62,6 +65,7 @@ export const useAuthStore = defineStore("auth", () => {
     error,
     isAuthenticated,
     hasITASystemAccess,
+    hasFunctioneelBeheerderAccess,
     initialized,
     initialize,
     login,

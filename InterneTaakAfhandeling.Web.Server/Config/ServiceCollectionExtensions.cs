@@ -40,6 +40,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
               options.ClientId = GetRequiredConfigValue(configuration, "OIDC_CLIENT_ID");
               options.ClientSecret = GetRequiredConfigValue(configuration, "OIDC_CLIENT_SECRET");
               options.ITASystemAccessRole = GetRequiredConfigValue(configuration, "OIDC_ITA_SYSTEM_ACCESS_ROLE");
+              options.FunctioneelBeheerderRole = GetRequiredConfigValue(configuration, "OIDC_FUNCTIONEEL_BEHEERDER_ROLE");
               options.NameClaimType = configuration["OIDC_NAME_CLAIM_TYPE"];
               options.RoleClaimType = configuration["OIDC_ROLE_CLAIM_TYPE"];
               options.ObjectregisterMedewerkerIdClaimType = configuration["OIDC_OBJECTREGISTER_MEDEWERKER_ID_CLAIM_TYPE"];

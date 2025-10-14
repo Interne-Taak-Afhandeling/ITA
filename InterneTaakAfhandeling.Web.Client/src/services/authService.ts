@@ -12,7 +12,8 @@ class AuthService {
           email: data.email || "",
           name: data.name || "",
           roles: data.roles || [],
-          hasITASystemAccess: data.hasITASystemAccess || false
+          hasITASystemAccess: data.hasITASystemAccess || false,
+          hasFunctioneelBeheerderAccess: data.hasFunctioneelBeheerderAccess || false
         };
         return userData;
       }

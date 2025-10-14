@@ -32,6 +32,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                 var email = user?.FindFirst(emailClaimType)?.Value ?? string.Empty;
                 var roles = user?.FindAll(roleClaimType).Select(x=> x.Value).ToArray() ?? [];
                 var hasITASystemAccess = roles.Contains(authOptions.ITASystemAccessRole);
+                var hasFunctioneelBeheerderAccess = roles.Contains(authOptions.FunctioneelBeheerderRole);
 
                 if(isLoggedIn && !string.IsNullOrWhiteSpace(objectregisterMedewerkerIdClaimType) && string.IsNullOrWhiteSpace(objectregisterMedewerkerId))
                 {
@@ -39,7 +40,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                 }
 
 
-                return new ITAUser {ObjectregisterMedewerkerId= objectregisterMedewerkerId , IsLoggedIn = isLoggedIn, Name = name, Email = email, Roles = roles, HasITASystemAccess = hasITASystemAccess };
+                return new ITAUser {ObjectregisterMedewerkerId= objectregisterMedewerkerId , IsLoggedIn = isLoggedIn, Name = name, Email = email, Roles = roles, HasITASystemAccess = hasITASystemAccess, HasFunctioneelBeheerderAccess = hasFunctioneelBeheerderAccess };
             });
 
             var authBuilder = services.AddAuthentication(options =>
@@ -111,6 +112,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
             }
             services.AddAuthorizationBuilder()
                 .AddPolicy(ITAPolicy.Name, policy => policy.RequireRole(authOptions.ITASystemAccessRole))
+                .AddPolicy(FunctioneelBeheerderPolicy.Name, policy => policy.RequireRole(authOptions.FunctioneelBeheerderRole))
                 .AddFallbackPolicy("LoggedIn", policy => policy.RequireAuthenticatedUser());
             services.AddDistributedMemoryCache();
             services.AddOpenIdConnectAccessTokenManagement();

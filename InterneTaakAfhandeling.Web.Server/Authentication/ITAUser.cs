@@ -8,5 +8,6 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
         public required string Email { get; set; }
         public string[] Roles { get; set; } = [];
         public bool HasITASystemAccess { get; set; }
+        public bool HasFunctioneelBeheerderAccess { get; set; }
     }
 }

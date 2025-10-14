@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Data;
 using InterneTaakAfhandeling.Web.Server.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Kanaal.GetById;
 
 [Route("api/kanaal")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = FunctioneelBeheerderPolicy.Name)]
 public class GetByIdController(ApplicationDbContext dbContext) : Controller
 {
     [HttpGet("{id}")]
