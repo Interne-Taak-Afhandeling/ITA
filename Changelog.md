@@ -12,7 +12,7 @@
 * Forward a contact request #16
 * Receive an email for a forwarded contactrequest #108
 * Email notifications contain only a deeplink to contact request (no confidential information) #368
-* Role-based access control for "Beheer" functionality - only users with "Functioneel Beheerder" role can access and manage "Kanalenlijst" #375 #385 #386
+* Role-based access control for "Beheer" functionality - only users with "Functioneel Beheerder" role can access and manage "Kanalenlijst" #375
 
 
 
