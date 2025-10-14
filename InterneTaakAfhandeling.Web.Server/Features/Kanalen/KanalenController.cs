@@ -9,7 +9,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Kanalen;
 
 [Route("api/kanalen")]
 [ApiController]
-[Authorize(Policy = FunctioneelBeheerderPolicy.Name)]
+[Authorize]
 public class KanalenController(ApplicationDbContext dbContext) : Controller
 {
     [HttpGet]
