@@ -112,6 +112,7 @@ web:
     clientId: ""
     clientSecret: ""
     itaSystemAccessRole: ""
+    functioneelBeheerderRole: ""
     nameClaimType: ""
     roleClaimType: ""
     objectregisterMedewerkerIdClaimType: ""
