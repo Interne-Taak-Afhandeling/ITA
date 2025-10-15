@@ -550,19 +550,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 return;
             }
 
-            try
-            {
-                // Create login helper and perform fresh login every time
-                var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper ?? throw new InvalidOperationException("TOTP helper not initialized"));
-                await loginHelper.LoginAsync();
 
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(
-                    $"Azure AD authentication failed. Check your test credentials and ensure the application is accessible. " +
-                    $"Error: {ex.Message}", ex);
-            }
+            // login helper and perform fresh login every time
+            var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper ?? throw new InvalidOperationException("TOTP helper not initialized"));
+            await loginHelper.LoginAsync();
+
+
         }
 
 
