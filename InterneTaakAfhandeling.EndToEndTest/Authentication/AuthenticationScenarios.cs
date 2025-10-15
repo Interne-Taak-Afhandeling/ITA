@@ -28,6 +28,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Authentication
             var werkvoorraadHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn werkvoorraad" });
             await Expect(werkvoorraadHeading).ToBeVisibleAsync();
 
+            await Step("Wait on homepage for 3 seconds");
+            await Task.Delay(3000);
+
         }
 
 
