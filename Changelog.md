@@ -10,7 +10,7 @@
 ### Warnings and deployment notes
 
 * New required release variable: `Ita_BaseUrl` - The base URL of the ITA website for deeplinks in email notifications
-* New required release variable: `OIDC_FUNCTIONEEL_BEHEERDER_ROLE` - The Azure AD role name for Functioneel Beheerder access (e.g., "ITA-Functioneel-Beheerder")
+* New required release variable: `Oidc_Functioneel_Beheerder_Role` - The Azure AD role name for Functioneel Beheerder access (e.g., "ITA-Functioneel-Beheerder")
 * Azure AD configuration required: Create and assign the "ITA-Functioneel-Beheerder" app role to users who need access to management features
 
 ### Bugfixes
