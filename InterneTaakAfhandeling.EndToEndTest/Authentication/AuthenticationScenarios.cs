@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Authentication
@@ -25,7 +24,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Authentication
                 "Page should have content and not be blank");
 
             await Step("Verify 'Mijn werkvoorraad' heading is present");
-            var werkvoorraadHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn werkvoorraad" });
+            var werkvoorraadHeading = Page.GetByRole(Microsoft.Playwright.AriaRole.Heading, new() { Name = "Mijn werkvoorraad" });
             await Expect(werkvoorraadHeading).ToBeVisibleAsync();
 
         }

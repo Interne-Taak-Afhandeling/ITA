@@ -1,6 +1,6 @@
 using Microsoft.Playwright;
 
-namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
+namespace EndToEndTest.Common.Infrastructure
 {
     /// <summary>
     /// Helper class for handling Azure AD authentication flow in tests
@@ -37,7 +37,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             await usernameInput.FillAsync(_username);
             await _page.ClickAsync("input[type='submit']");
-            
+
             try
             {
                 // Wait for password page with longer timeout and better error handling
@@ -50,7 +50,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 {
                     var errorText = await errorElement.TextContentAsync();
                 }
-                
+
                 // Check if we're stuck on the username page
                 if (await usernameInput.IsVisibleAsync())
                 {
@@ -115,4 +115,3 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         }
     }
 }
-

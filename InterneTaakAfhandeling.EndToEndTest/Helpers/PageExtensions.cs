@@ -1,37 +1,14 @@
 using Microsoft.Playwright;
+using EndToEndTest.Common.Helpers;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Helpers
 {
     /// <summary>
-    /// Extension methods for Azure AD authentication and ITA page interactions
+    /// Extension methods for ITA-specific page interactions
+    /// Note: Azure AD locator methods are available from AzureAdPageExtensions in EndToEndTest.Common
     /// </summary>
     public static class PageExtensions
     {
-        // Azure AD Authentication locators
-        public static ILocator GetMicrosoftEmailField(this IPage page)
-        {
-            return page.Locator("input[name='loginfmt']");
-        }
-
-        public static ILocator GetMicrosoftPasswordField(this IPage page)
-        {
-            return page.Locator("input[id='i0118'][name='passwd']");
-        }
-
-        public static ILocator GetMicrosoftNextButton(this IPage page)
-        {
-            return page.Locator("input[id='idSIButton9'][value='Next']");
-        }
-
-        public static ILocator GetMicrosoftSignInButton(this IPage page)
-        {
-            return page.Locator("input[id='idSIButton9'][value='Sign in']");
-        }
-
-        public static ILocator GetStaySignedInYesButton(this IPage page)
-        {
-            return page.Locator("input[type='submit'][value='Yes'], input[id='idSIButton9']");
-        }
 
         // Azure AD Authentication flow helpers
         public static async Task<bool> LoginWithAzureAdAsync(this IPage page, string username, string password)
