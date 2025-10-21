@@ -147,7 +147,7 @@ namespace EndToEndTest.Common.Infrastructure
 
             // Enhanced HTML report with descriptive test name and error handling
             var traceSection = !string.IsNullOrEmpty(fileName)
-                ? $"""<p><strong>Trace:</strong> <a target="_blank" href="https://trace.playwright.dev/?trace=./playwright-traces/{fileName}">View Playwright Trace</a></p>"""
+                ? $"""<p><strong>Trace:</strong> <a target="_blank" href="https://trace.playwright.dev/?trace=https://interne-taak-afhandeling.github.io/ITA/{fileName}">View Playwright Trace</a></p>"""
                 : $"""<p><strong>Trace:</strong> <em>Not available (test failed during initialization)</em></p>""";
 
             // For failed tests
@@ -262,7 +262,7 @@ namespace EndToEndTest.Common.Infrastructure
 
             var html = GenerateHtmlReport(testsByClass, totalTests, passedTests, failedTests);
 
-            var htmlPath = Path.Combine(Environment.CurrentDirectory, "playwright-traces", "test-report.html");
+            var htmlPath = Path.Combine(Environment.CurrentDirectory, "playwright-traces", "index.html");
             await File.WriteAllTextAsync(htmlPath, html);
 
             await Task.CompletedTask;
@@ -277,7 +277,7 @@ namespace EndToEndTest.Common.Infrastructure
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src https://unpkg.com/simpledotcss@2.3.3/simple.min.css 'sha256-l0D//z1BZPnhAdIJ0lA8dsfuil0AB4xBpnOa/BhNVoU=' 'unsafe-inline';">
-    <title>E2E Test Report</title>
+    <title>ITA E2E Test Report</title>
     <link rel="stylesheet" href="https://unpkg.com/simpledotcss@2.3.3/simple.min.css">
     <style>
         [data-outcome=Failed] { border-left: 4px solid #dc3545; }
@@ -377,7 +377,7 @@ namespace EndToEndTest.Common.Infrastructure
 </head>
 <body>
     <header>
-        <h1>End-to-End Test Report</h1>
+        <h1>🧪 ITA End-to-End Test Report</h1>
         <p>Generated on {{DateTime.Now:yyyy-MM-dd HH:mm:ss}}</p>
     </header>
 
