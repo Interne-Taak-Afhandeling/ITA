@@ -4,7 +4,6 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.Helpers
 {
     public static class SharedCode
     {
-        // Navigation and Creation Methods
         public static async Task CreateNewContactmomentAsync(this IPage page)
         {
             await page.GetByRole(AriaRole.Button, new() { Name = "Nieuw contactmoment" }).ClickAsync();
@@ -15,7 +14,6 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.Helpers
             await page.GetByRole(AriaRole.Tab, new() { Name = "Contactverzoek" }).ClickAsync();
         }
 
-        // Radio Button Locators
         public static ILocator GetAfdelingRadioButton(this IPage page)
         {
             return page.GetByRole(AriaRole.Radio, new() { Name = "Afdeling" });
@@ -31,10 +29,14 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.Helpers
             return page.GetByRole(AriaRole.Radio, new() { Name = "Medewerker" });
         }
 
-        // Dropdown/Combobox Locators
         public static ILocator GetAfdelingCombobox(this IPage page)
         {
             return page.GetByRole(AriaRole.Combobox, new() { Name = "Afdeling" });
+        }
+
+        public static ILocator GetAfdelingGroepDropdown(this IPage page)
+        {
+            return page.GetByLabel("Afdeling / groep");
         }
 
         public static ILocator GetGroupCombobox(this IPage page)
@@ -47,7 +49,6 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.Helpers
             return page.GetByRole(AriaRole.Textbox, new() { Name = "Afdeling" });
         }
 
-        // Text Input Field Locators
         public static ILocator GetInterneToelichtingTextbox(this IPage page)
         {
             return page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting voor medewerker" });
@@ -73,7 +74,6 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.Helpers
             return page.GetByRole(AriaRole.Textbox, new() { Name = "Telefoonnummer of e-mailadres" });
         }
 
-        // Validation Field Locators
         public static ILocator GetTelefoonnummer1field(this IPage page)
         {
             return page.Locator("input[name='telefoonnummer1']");
@@ -117,7 +117,6 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.Helpers
             return page.Locator(".toast.success");
         }
 
-        // Form Specific Locators
         public static ILocator GetKanaalField(this IPage page)
         {
             return page.GetByLabel("Kanaal");
@@ -128,7 +127,6 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.Helpers
             return page.GetByLabel("Afdeling / groep Afdeling:");
         }
 
-        // Table and Search Result Locators
         public static ILocator GetOverviewTable(this IPage page)
         {
             return page.Locator("table.overview");
@@ -139,7 +137,6 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.Helpers
             return page.Locator("table.overview tbody tr");
         }
 
-        // Utility Methods for Common Actions
         public static async Task SelectDropdownOptionAsync(this IPage page, string fieldName, string optionText)
         {
             await page.GetByRole(AriaRole.Combobox, new() { Name = fieldName }).FillAsync(optionText);
