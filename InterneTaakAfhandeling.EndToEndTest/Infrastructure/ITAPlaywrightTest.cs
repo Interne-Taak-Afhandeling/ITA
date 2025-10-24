@@ -1,10 +1,17 @@
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Playwright;
 using Microsoft.Playwright.MSTest;
+using Microsoft.Testing.Platform.Configurations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Concurrent;
-using System.Text.Encodings.Web;
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text.Encodings.Web;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 {
@@ -20,7 +27,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
     {
         private const string StoragePath = "./auth.json";
 
-        static ITAPlaywrightTest()
+
+        public TestDataHelper TestDataHelper { get; }
+
+
+        public ITAPlaywrightTest()
         {
             // Configure browser to show automatically in local development (like KISS-frontend)
             var isLocal = IsRunningLocally();
@@ -28,7 +39,39 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             {
                 Environment.SetEnvironmentVariable("HEADED", "1");
             }
+
+
+            var openklantApiBaseUrl = GetRequiredConfig("OpenKlantApi:BaseUrl");
+            var openklantApiKey = GetRequiredConfig("OpenKlantApi:ApiKey");
+
+            var objectenApiBaseUrl = GetRequiredConfig("ObjectApi:BaseUrl");
+            var objectenApiKey = GetRequiredConfig("ObjectApi:ApiKey");
+
+            var services = new ServiceCollection();
+            services.AddOptions();
+            services.Configure<AfdelingOptions>(s_configuration.GetSection("AfdelingOptions"));
+            services.Configure<GroepOptions>(s_configuration.GetSection("GroepOptions"));
+            services.Configure<LogboekOptions>(s_configuration.GetSection("LogboekOptions"));
+            var serviceProvider = services.BuildServiceProvider();
+            var afdelingOptions = serviceProvider.GetRequiredService<IOptions<AfdelingOptions>>();
+            var groepOptions = serviceProvider.GetRequiredService<IOptions<GroepOptions>>();
+            var logboekOptions = serviceProvider.GetRequiredService<IOptions<LogboekOptions>>();
+
+            var username = s_configuration["TestSettings:TEST_USERNAME"];
+
+            TestDataHelper = new TestDataHelper(
+                openklantApiBaseUrl,
+                openklantApiKey,
+                objectenApiBaseUrl,
+                objectenApiKey,
+                logboekOptions,
+                afdelingOptions,
+                groepOptions,
+                username);
+
         }
+
+
 
         /// <summary>
         /// Detects if tests are running locally (not in CI/CD)
@@ -43,9 +86,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return !ciEnvironments.Any(env => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(env)));
         }
 
-        private static readonly IConfiguration s_configuration = BuildConfiguration();
+        private static readonly Microsoft.Extensions.Configuration.IConfiguration s_configuration = BuildConfiguration();
 
-        private static IConfiguration BuildConfiguration()
+        private static Microsoft.Extensions.Configuration.IConfiguration BuildConfiguration()
         {
             // Load .env file if it exists
             var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
@@ -60,10 +103,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 .Build();
         }
 
+
+
         // Initialize UniqueOtpHelper if TOTP secret is available
         private static readonly UniqueOtpHelper? s_uniqueOtpHelper = CreateOtpHelperIfConfigured();
 
-        // this is used to build a test report 
+        // this is used to build afdelingOptions test report 
         private static readonly ConcurrentDictionary<string, string> s_testReports = [];
 
         private readonly List<string> _steps = [];
@@ -71,11 +116,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         // clean up actions that are registered by the tests
         private readonly List<Func<Task>> _cleanupActions = [];
 
-        protected static IConfiguration Configuration => s_configuration;
+        protected static Microsoft.Extensions.Configuration.IConfiguration Configuration => s_configuration;
 
-        public ITAPlaywrightTest()
-        {
-        }
+
 
         /// <summary>
         /// This is run before each test
@@ -98,7 +141,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         }
 
         /// <summary>
-        /// Start a test step. This ends up in the test report
+        /// Start afdelingOptions test step. This ends up in the test report
         /// </summary>
         /// <param name="description"></param>
         /// <returns></returns>
@@ -123,7 +166,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             try
             {
-                // stop tracing and save a zip file in the output directory
+                // stop tracing and save afdelingOptions zip file in the output directory
                 await Context.Tracing.StopAsync(new()
                 {
                     Path = fullPath
@@ -228,7 +271,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         }
 
         /// <summary>
-        /// This is run after all tests in a test class are done
+        /// This is run after all tests in afdelingOptions test class are done
         /// </summary>
         /// <returns></returns>
         [ClassCleanup(InheritanceBehavior.BeforeEachDerivedClass)]

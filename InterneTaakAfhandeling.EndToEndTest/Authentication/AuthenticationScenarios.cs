@@ -1,14 +1,32 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using InterneTaakAfhandeling.Common.Services;
+using InterneTaakAfhandeling.Common.Services.ObjectApi;
+using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
+using Microsoft.Extensions.Configuration;
+using System.Security.Claims;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Authentication
 {
     [TestClass]
     public class AuthenticationScenarios : ITAPlaywrightTest
     {
+             
+
+
         [TestMethod]
         public async Task CanLoginAndAccessHomePage()
         {
+
+            //this might not a sensible place to create a contactverzoek, but for just to serve as an example we'll make one here
+             await  TestDataHelper.CreateContactverzoek();
+
+
+
+
+
+
             await Step("Navigate to home page");
             await Page.GotoAsync("/");
 
