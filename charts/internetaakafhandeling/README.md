@@ -1,6 +1,6 @@
 # internetaakafhandeling
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.0.0](https://img.shields.io/badge/Version-0.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.0](https://img.shields.io/badge/AppVersion-0.0.0-informational?style=flat-square)
 
 Helm chart for InterneTaakAfhandeling including Web API and Poller
 
@@ -9,6 +9,8 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | Repository | Name | Version |
 |------------|------|---------|
 | https://charts.bitnami.com/bitnami | postgresql | 12.5.6 |
+> [!NOTE]
+> For production environments, it is recommended to use [CloudNativePG](https://github.com/cloudnative-pg/cloudnative-pg) for PostgreSQL in stead of the dependent Helm charts included here. The bundled charts are primarily intended for testing and development purposes. Also, be aware of the upcoming changes to the bitnami catalog described in this [issue](https://github.com/bitnami/containers/issues/83267).
 
 ## Values
 
@@ -28,6 +30,7 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | database.password | string | `""` |  |
 | database.port | string | `"5432"` |  |
 | database.username | string | `""` |  |
+| fullnameOverride | string | `""` |  |
 | groep.type | string | `""` | De url van het groep objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie |
 | groep.typeVersion | int | `1` | De versie van het groep objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | ingress.annotations | object | `{}` |  |
@@ -35,8 +38,10 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | ingress.enabled | bool | `false` |  |
 | ingress.hosts | list | `[]` | ingress hosts |
 | ingress.tls | list | `[]` |  |
+| ita.baseUrl | string | `""` |  |
 | logboek.type | string | `""` | De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie |
 | logboek.typeVersion | int | `1` | De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
+| nameOverride | string | `""` |  |
 | poller.image.pullPolicy | string | `"Always"` |  |
 | poller.image.repository | string | `"ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"` |  |
 | poller.image.tag | string | `"latest"` |  |
@@ -69,6 +74,7 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | web.oidc.clientId | string | `""` |  |
 | web.oidc.clientSecret | string | `""` |  |
 | web.oidc.emailClaimType | string | `""` |  |
+| web.oidc.functioneelBeheerderRole | string | `""` |  |
 | web.oidc.itaSystemAccessRole | string | `""` |  |
 | web.oidc.nameClaimType | string | `""` |  |
 | web.oidc.objectregisterMedewerkerIdClaimType | string | `""` |  |
