@@ -60,7 +60,7 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.SharedCode
                 response => response.Url.Contains("/postklantcontacten")
             );
 
-            // // Register cleanup
+            // Register cleanup
             // RegisterCleanup(async () =>
             // {
             //     await TestCleanupHelper.CleanupPostKlantContacten(klantContactPostResponse);

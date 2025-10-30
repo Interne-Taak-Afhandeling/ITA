@@ -72,6 +72,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var testContactmomentOnderwerp = "Test_Contact_from_ITA_E2E_test";
             var testContactverzoekNummer = "8001321008";
 
+            // OPTION: Uncomment the next line to always create fresh data with current timestamp
+            // await DeleteTestKlantcontact();
 
             //the contactmoment is the basis of a contactverzoek
             //check if it already exists
@@ -95,10 +97,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 Vertrouwelijk = false
             }) ?? throw new Exception("Failed to create contactmoment for testing.");
 
-
-
             //now we have a contactmoment, let's add the rest
-
 
             //- the actor who submitted the contactmoment/internetaak
             //first check if that actor already exists
@@ -111,10 +110,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 SoortActor = SoortActor.medewerker,
                 ActoridentificatorObjectId = Username
             });
-            
+
             actorWhoSubmittedTheContactrequest ??= await OpenKlantApiClient.CreateActorAsync(new ActorRequest
             {
-                Naam = "e2e test user",
+                Naam = "ICATT Integratietest",
                 SoortActor = SoortActor.medewerker,
                 IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
@@ -142,14 +141,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             //but for now we will assume they were manually created there. it's very static stable data.
             //eventually it would be better to manage that from here, but let's take it one step at the time
 
-
             //find the objectenapi afdeling to which we will assign the internetaak
             //depending on what we're going to test we'll probably need to do the same for medewerker and groep
             var afdelingen = await ObjectApiClient.FindAfdelingen("Burgerzaken_ibz");
+
             Assert.AreEqual(1, afdelingen.Results.Count, "Expected exactly one afdeling with name 'Burgerzaken_ibz' in objectenapi for testing.");
             var afdeling = afdelingen.Results.First();
 
-            //- asing the internetaak to the actor representing the afdeling (do the same for a medewerker?)
+            //- assigning the internetaak to the actor representing the afdeling (do the same for a medewerker?)
             //first check if that actor already exists
             var actorForAfdelingToWhichTheContactrequestWillBeAssigned = await OpenKlantApiClient.QueryActorAsync(new ActorQuery
             {
@@ -163,7 +162,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             actorForAfdelingToWhichTheContactrequestWillBeAssigned ??= await OpenKlantApiClient.CreateActorAsync(new ActorRequest
             {
-                Naam = "e2e test afdeling",
+                Naam = "ICATT Integratietest",
                 SoortActor = SoortActor.organisatorische_eenheid,
                 IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
@@ -174,9 +173,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId
                 }
             });
-
-
-
 
             //- the internetaak/contactverzoek
             //first check if it already exists
@@ -193,13 +189,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 return;
             }
 
-            await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
+            var createdInternetaak = await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
             {
                 AanleidinggevendKlantcontact = new UuidObject { Uuid = Guid.Parse(contactmoment.Uuid) },
                 GevraagdeHandeling = "terugbellen svp",
                 Nummer = testContactverzoekNummer,
                 Status = KnownInternetaakStatussen.TeVerwerken,
-                ToegewezenAanActoren = [new UuidObject { Uuid = Guid.Parse(actorForAfdelingToWhichTheContactrequestWillBeAssigned.Uuid) }],
+                ToegewezenAanActoren = [
+                    new UuidObject { Uuid = Guid.Parse(actorWhoSubmittedTheContactrequest.Uuid) },
+                    new UuidObject { Uuid = Guid.Parse(actorForAfdelingToWhichTheContactrequestWillBeAssigned.Uuid) }
+                ],
                 Toelichting = "Test contactverzoek from ITA E2E test"
 
             });
@@ -208,7 +207,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             //todo: clean up?
 
-
         }
+
+
     }
 }

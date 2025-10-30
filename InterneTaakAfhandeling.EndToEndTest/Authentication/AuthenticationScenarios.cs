@@ -12,20 +12,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Authentication
     [TestClass]
     public class AuthenticationScenarios : ITAPlaywrightTest
     {
-             
+
 
 
         [TestMethod]
         public async Task CanLoginAndAccessHomePage()
         {
-
-            //this might not a sensible place to create a contactverzoek, but for just to serve as an example we'll make one here
-             await  TestDataHelper.CreateContactverzoek();
-
-
-
-
-
+            // Create test data for demonstration purposes - this ensures we have a contactverzoek in the system
+            // In a real scenario, this would be in a dedicated contactverzoek test
+            await TestDataHelper.CreateContactverzoek();
 
             await Step("Navigate to home page");
             await Page.GotoAsync("/");

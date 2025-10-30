@@ -2,11 +2,9 @@ using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Playwright;
-using Microsoft.Playwright.MSTest;
-using Microsoft.Testing.Platform.Configurations;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Concurrent;
 using System.Net.Http.Headers;
@@ -27,8 +25,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
     {
         private const string StoragePath = "./auth.json";
 
-
         public TestDataHelper TestDataHelper { get; }
+        public OpenKlantApiClient OpenKlantApiClient { get; }
+        // public TestCleanupHelper TestCleanupHelper { get; }
 
 
         public ITAPlaywrightTest()
@@ -69,6 +68,20 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 groepOptions,
                 username);
 
+            // Initialize TestCleanupHelper with OpenKlantApiClient
+            services.AddLogging();
+            var serviceProviderWithLogging = services.BuildServiceProvider();
+            var logger = serviceProviderWithLogging.GetRequiredService<ILogger<OpenKlantApiClient>>();
+
+            var openKlantHttpClient = new System.Net.Http.HttpClient
+            {
+                BaseAddress = new System.Uri(openklantApiBaseUrl)
+            };
+            openKlantHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", openklantApiKey);
+            OpenKlantApiClient = new OpenKlantApiClient(openKlantHttpClient, logger);
+
+            // TestCleanupHelper = new TestCleanupHelper(openKlantApiClient);
+
         }
 
 
@@ -102,7 +115,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 .AddEnvironmentVariables()
                 .Build();
         }
-
 
 
         // Initialize UniqueOtpHelper if TOTP secret is available
