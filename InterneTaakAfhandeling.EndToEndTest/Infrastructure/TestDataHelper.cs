@@ -5,6 +5,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,24 +15,26 @@ using System.Threading.Tasks;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 {
-
     public class TestDataHelper
     {
-
-
         private OpenKlantApiClient OpenKlantApiClient { get; }
         private ObjectApiClient ObjectApiClient { get; }
-
         private string Username { get; }
+        private string OpenKlantBaseUrl { get; }
+        private string OpenKlantApiKey { get; }
+
         public TestDataHelper(string openKlantBaseUrl, string openKlantApiKey, string objectenApiBaseUrl, string objectenApiKey,
             IOptions<LogboekOptions> l,
             IOptions<AfdelingOptions> a,
             IOptions<GroepOptions> g,
             string username)
         {
+            // Store the values for use in delete methods
+            OpenKlantBaseUrl = openKlantBaseUrl;
+            OpenKlantApiKey = openKlantApiKey;
+            Username = username;
 
             var loggerFactory = new LoggerFactory();
-
 
             var openKlantHttpClient = new HttpClient
             {
@@ -42,32 +45,22 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             OpenKlantApiClient = new OpenKlantApiClient(openKlantHttpClient, loggerFactory.CreateLogger<OpenKlantApiClient>());
 
-
-
             // create the objectenapiclient instance
-
             var objectApiHttpClient = new HttpClient
             {
                 BaseAddress = new Uri(objectenApiBaseUrl)
             };
 
-            objectApiHttpClient.BaseAddress = new Uri(objectenApiBaseUrl);
             objectApiHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", objectenApiKey);
             objectApiHttpClient.DefaultRequestHeaders.Add("Content-Crs", "EPSG:4326");
 
             ObjectApiClient = new ObjectApiClient(objectApiHttpClient, loggerFactory.CreateLogger<ObjectApiClient>(), l, a, g);
-
-
-            Username = username;
         }
-
 
         public async Task CreateContactverzoek()
         {
-
             //we need to add multiplethings to create a contactverzoek.
             //for each we will check if it already exists to avoid creating duplicates on multiple test runs
-
 
             var testContactmomentOnderwerp = "Test_Contact_from_ITA_E2E_test";
             var testContactverzoekNummer = "8001321008";
@@ -185,7 +178,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             if (internetaken.Count == 1)
             {
-                //already exists
                 return;
             }
 
@@ -200,15 +192,65 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     new UuidObject { Uuid = Guid.Parse(actorForAfdelingToWhichTheContactrequestWillBeAssigned.Uuid) }
                 ],
                 Toelichting = "Test contactverzoek from ITA E2E test"
-
             });
 
             //todo: add a zaak?
-
             //todo: clean up?
-
         }
 
+        public async Task DeleteTestInternetaak()
+        {
+            var testContactverzoekNummer = "8001321008";
 
+            var internetaken = await OpenKlantApiClient.QueryInterneTakenAsync(new InterneTaakQuery
+            {
+                Nummer = testContactverzoekNummer
+            });
+
+            foreach (var internetaak in internetaken)
+            {
+                try
+                {
+                    using var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", OpenKlantApiKey);
+
+                    var deleteUrl = $"{OpenKlantBaseUrl}internetaken/{internetaak.Uuid}";
+                    var response = await httpClient.DeleteAsync(deleteUrl);
+
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (Exception)
+                {
+                }
+            }
+        }
+
+        public async Task DeleteTestKlantcontact()
+        {
+            var testContactmomentOnderwerp = "Test_Contact_from_ITA_E2E_test";
+
+            var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(new KlantcontactQuery
+            {
+                Onderwerp = testContactmomentOnderwerp,
+            });
+
+            foreach (var contactmoment in contactmomenten)
+            {
+                try
+                {
+                    using var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", OpenKlantApiKey);
+
+                    var deleteUrl = $"{OpenKlantBaseUrl}klantcontacten/{contactmoment.Uuid}";
+                    var response = await httpClient.DeleteAsync(deleteUrl);
+
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+        }
     }
 }

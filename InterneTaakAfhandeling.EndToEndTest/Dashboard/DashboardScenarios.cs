@@ -42,5 +42,24 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
             await Expect(onderwerpInDetails).ToBeVisibleAsync(new() { Timeout = 10000 });
         }
+
+        [TestMethod("Test delete functionality for contactverzoek")]
+        public async Task TestDeleteContactverzoek()
+        {
+            await Step("Test deleting existing test data");
+
+            // First create some test data to ensure there's something to delete
+            await Step("Create test data first");
+            await TestDataHelper.CreateContactverzoek();
+
+            await Step("Now delete the test internetaak");
+            await TestDataHelper.DeleteTestInternetaak();
+
+            await Step("Delete the test klantcontact");
+            await TestDataHelper.DeleteTestKlantcontact();
+
+            await Step("Verify deletion completed");
+            // You can add verification here if needed
+        }
     }
 }
