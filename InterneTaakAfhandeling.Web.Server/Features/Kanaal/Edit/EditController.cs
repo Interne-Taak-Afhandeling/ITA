@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Data;
 using InterneTaakAfhandeling.Web.Server.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Kanaal.Edit;
 
 [Route("api/kanaal")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = FunctioneelBeheerderPolicy.Name)]
 public class EditController(ApplicationDbContext dbContext) : Controller
 {
     [HttpPut("{id}")]

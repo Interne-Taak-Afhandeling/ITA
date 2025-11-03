@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\InterneTaakAfhandeling.Common\InterneTaakAfhandeling.Common.csproj" />
+    <ProjectReference Include="..\EndToEndTest.Common\EndToEndTest.Common.csproj" />
   </ItemGroup>
 
 </Project>

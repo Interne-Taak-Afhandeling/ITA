@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Kanaal.Delete;
 
 [Route("api/kanaal")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = FunctioneelBeheerderPolicy.Name)]
 public class DeleteController(ApplicationDbContext dbContext) : Controller
 {
     [HttpDelete("{id}")]

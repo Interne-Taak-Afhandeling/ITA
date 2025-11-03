@@ -19,6 +19,7 @@ data:
   OIDC_AUTHORITY: {{ .Values.web.oidc.authority }}
   OIDC_CLIENT_ID: {{ .Values.web.oidc.clientId }}
   OIDC_ITA_SYSTEM_ACCESS_ROLE: {{ .Values.web.oidc.itaSystemAccessRole }}
+  OIDC_FUNCTIONEEL_BEHEERDER_ROLE: {{ .Values.web.oidc.functioneelBeheerderRole }}
   OIDC_NAME_CLAIM_TYPE: {{ .Values.web.oidc.nameClaimType }}
   OIDC_ROLE_CLAIM_TYPE: {{ .Values.web.oidc.roleClaimType }}
   OIDC_OBJECTREGISTER_MEDEWERKER_ID_CLAIM_TYPE: {{ .Values.web.oidc.objectregisterMedewerkerIdClaimType }}
@@ -43,7 +44,10 @@ data:
   # Notification settings
   pollerMessage: {{ .Values.poller.notification.pollerMessage | quote }}
   InternetakenNotifier__HourThreshold: {{ .Values.poller.notification.hourThreshold | quote }}
-  
+
+  # ITA Base URL for email
+  Ita__BaseUrl: {{ .Values.ita.baseUrl | quote }}
+
   LogBoekOptions__Type: {{ .Values.logboek.type | quote }}
   LogBoekOptions__TypeVersion: {{ .Values.logboek.typeVersion | toString | quote }}
 

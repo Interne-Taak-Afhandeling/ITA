@@ -92,7 +92,8 @@ const router = createRouter({
       component: BeheerView,
       meta: {
         title: "Beheer",
-        requiresITAAccess: true
+        requiresITAAccess: true,
+        requiresFunctioneelBeheerderAccess: true
       },
       children: [
         {
@@ -101,7 +102,8 @@ const router = createRouter({
           component: KanalenView,
           meta: {
             title: "Kanalen",
-            requiresITAAccess: true
+            requiresITAAccess: true,
+            requiresFunctioneelBeheerderAccess: true
           }
         },
         {
@@ -110,7 +112,8 @@ const router = createRouter({
           component: KanaalView,
           meta: {
             title: "Kanaal",
-            requiresITAAccess: true
+            requiresITAAccess: true,
+            requiresFunctioneelBeheerderAccess: true
           }
         }
       ]

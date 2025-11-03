@@ -1,3 +1,4 @@
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Data;
 using InterneTaakAfhandeling.Web.Server.Data.Entities;
 using Microsoft.AspNetCore.Authorization;

@@ -38,6 +38,25 @@ function itaAccessGuard(
   });
 }
 
+function functioneelBeheerderAccessGuard(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) {
+  const authStore = useAuthStore();
+  const requiresFunctioneelBeheerderAccess = to.matched.some(
+    (record) => record.meta.requiresFunctioneelBeheerderAccess
+  );
+
+  return authGuard(to, from, () => {
+    if (requiresFunctioneelBeheerderAccess && !authStore.hasFunctioneelBeheerderAccess) {
+      return next({ name: "forbidden" });
+    }
+
+    return next();
+  });
+}
+
 function titleGuard(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
@@ -80,5 +99,6 @@ export default {
     router.beforeEach(titleGuard);
     router.beforeEach(authGuard);
     router.beforeEach(itaAccessGuard);
+    router.beforeEach(functioneelBeheerderAccessGuard);
   }
 };

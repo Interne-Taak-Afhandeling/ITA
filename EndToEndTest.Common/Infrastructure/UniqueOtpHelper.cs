@@ -1,6 +1,6 @@
 using OtpNet;
 
-namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
+namespace EndToEndTest.Common.Infrastructure
 {
     /// <summary>
     /// Helper for generating unique TOTP codes for Azure AD 2FA
@@ -27,14 +27,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             {
                 var remainingSeconds = _otp.RemainingSeconds();
                 var newCode = _otp.ComputeTotp();
-                
+
                 if (newCode == _oldCode)
                 {
                     // Wait for the current OTP to expire and get a new one
                     await Task.Delay(TimeSpan.FromSeconds(remainingSeconds + 1));
                     newCode = _otp.ComputeTotp();
                 }
-                
+
                 _oldCode = newCode;
                 return newCode;
             }

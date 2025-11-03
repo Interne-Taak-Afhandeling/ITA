@@ -4,4 +4,5 @@ export type User = {
   name: string;
   roles: string[];
   hasITASystemAccess: boolean;
+  hasFunctioneelBeheerderAccess: boolean;
 };
