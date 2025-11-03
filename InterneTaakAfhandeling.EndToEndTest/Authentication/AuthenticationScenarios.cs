@@ -18,9 +18,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Authentication
         [TestMethod]
         public async Task CanLoginAndAccessHomePage()
         {
-            // Create test data for demonstration purposes - this ensures we have a contactverzoek in the system
-            // In a real scenario, this would be in a dedicated contactverzoek test
-            await TestDataHelper.CreateContactverzoek();
 
             await Step("Navigate to home page");
             await Page.GotoAsync("/");
