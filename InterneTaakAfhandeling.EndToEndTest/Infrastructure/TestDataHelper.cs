@@ -194,8 +194,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 Toelichting = "Test contactverzoek from ITA E2E test"
             });
 
-            //todo: add a zaak?
-            //todo: clean up?
         }
 
         public async Task DeleteTestInternetaak()
