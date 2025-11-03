@@ -48,7 +48,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Test deleting existing test data");
 
-            // First create some test data to ensure there's something to delete
             await Step("Create test data first");
             await TestDataHelper.CreateContactverzoek();
 
@@ -58,8 +57,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Delete the test klantcontact");
             await TestDataHelper.DeleteTestKlantcontact();
 
-            await Step("Verify deletion completed");
-            // You can add verification here if needed
+
         }
     }
 }
