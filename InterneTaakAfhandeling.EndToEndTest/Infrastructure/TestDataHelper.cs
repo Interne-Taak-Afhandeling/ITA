@@ -57,7 +57,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             ObjectApiClient = new ObjectApiClient(objectApiHttpClient, loggerFactory.CreateLogger<ObjectApiClient>(), l, a, g);
         }
 
-        public async Task CreateContactverzoek()
+        public async Task<string> CreateContactverzoek()
         {
             //we need to add multiplethings to create a contactverzoek.
             //for each we will check if it already exists to avoid creating duplicates on multiple test runs
@@ -174,81 +174,31 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 Nummer = testContactverzoekNummer
             });
 
-            Assert.IsTrue(internetaken.Count <= 1, "Did not expect multiple test internetaken.");
+            Assert.IsFalse(internetaken.Count > 1, "Did not expect multiple test internetaken.");
 
-            if (internetaken.Count == 1)
+            if (internetaken.Count == 0)
             {
-                return;
-            }
-
-            var createdInternetaak = await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
-            {
-                AanleidinggevendKlantcontact = new UuidObject { Uuid = Guid.Parse(contactmoment.Uuid) },
-                GevraagdeHandeling = "terugbellen svp",
-                Nummer = testContactverzoekNummer,
-                Status = KnownInternetaakStatussen.TeVerwerken,
-                ToegewezenAanActoren = [
-                    new UuidObject { Uuid = Guid.Parse(actorWhoSubmittedTheContactrequest.Uuid) },
+                var createdInternetaak = await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
+                {
+                    AanleidinggevendKlantcontact = new UuidObject { Uuid = Guid.Parse(contactmoment.Uuid) },
+                    GevraagdeHandeling = "terugbellen svp",
+                    Nummer = testContactverzoekNummer,
+                    Status = KnownInternetaakStatussen.TeVerwerken,
+                    ToegewezenAanActoren = [
+                        new UuidObject { Uuid = Guid.Parse(actorWhoSubmittedTheContactrequest.Uuid) },
                     new UuidObject { Uuid = Guid.Parse(actorForAfdelingToWhichTheContactrequestWillBeAssigned.Uuid) }
-                ],
-                Toelichting = "Test contactverzoek from ITA E2E test"
-            });
+                    ],
+                    Toelichting = "Test contactverzoek from ITA E2E test"
+                });
+            }
 
+            return contactmoment.Uuid;
         }
 
-        public async Task DeleteTestInternetaak()
+
+        public async Task DeleteTestKlantcontact(string uuid)
         {
-            var testContactverzoekNummer = "8001321008";
-
-            var internetaken = await OpenKlantApiClient.QueryInterneTakenAsync(new InterneTaakQuery
-            {
-                Nummer = testContactverzoekNummer
-            });
-
-            foreach (var internetaak in internetaken)
-            {
-                try
-                {
-                    using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", OpenKlantApiKey);
-
-                    var deleteUrl = $"{OpenKlantBaseUrl}internetaken/{internetaak.Uuid}";
-                    var response = await httpClient.DeleteAsync(deleteUrl);
-
-                    response.EnsureSuccessStatusCode();
-                }
-                catch (Exception)
-                {
-                }
-            }
-        }
-
-        public async Task DeleteTestKlantcontact()
-        {
-            var testContactmomentOnderwerp = "Test_Contact_from_ITA_E2E_test";
-
-            var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(new KlantcontactQuery
-            {
-                Onderwerp = testContactmomentOnderwerp,
-            });
-
-            foreach (var contactmoment in contactmomenten)
-            {
-                try
-                {
-                    using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", OpenKlantApiKey);
-
-                    var deleteUrl = $"{OpenKlantBaseUrl}klantcontacten/{contactmoment.Uuid}";
-                    var response = await httpClient.DeleteAsync(deleteUrl);
-
-                    response.EnsureSuccessStatusCode();
-                }
-                catch (Exception)
-                {
-
-                }
-            }
+            await OpenKlantApiClient.DeleteKlantcontactAsync(uuid);
         }
     }
 }

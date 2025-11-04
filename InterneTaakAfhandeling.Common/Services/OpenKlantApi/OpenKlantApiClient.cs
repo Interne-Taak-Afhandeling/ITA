@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Web;
@@ -18,6 +19,7 @@ public interface IOpenKlantApiClient
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
     Task<List<Klantcontact>> QueryKlantcontactAsync(KlantcontactQuery query);
+    Task DeleteKlantcontactAsync(string uuid);
 
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
     Task<Internetaak> GetInternetaakByIdAsync(Guid uuid);
@@ -272,6 +274,11 @@ public partial class OpenKlantApiClient(
         return klantcontacten?.Results ?? [];
     }
 
+
+    public async Task DeleteKlantcontactAsync(string uuid)
+    {
+        await httpClient.DeleteAsync($"klantcontacten/{uuid}");      
+    }
 
     public async Task<Actor?> QueryActorAsync(ActorQuery query)
     {

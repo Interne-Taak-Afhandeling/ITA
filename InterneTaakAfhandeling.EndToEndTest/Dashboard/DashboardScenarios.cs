@@ -51,13 +51,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Test deleting existing test data");
 
             await Step("Create test data first");
-            await TestDataHelper.CreateContactverzoek();
+            var contactmomentId  = await TestDataHelper.CreateContactverzoek();
 
-            await Step("Now delete the test internetaak");
-            await TestDataHelper.DeleteTestInternetaak();
+           // await Step("Now delete the test internetaak");
+           // await TestDataHelper.DeleteTestInternetaak();
 
-            await Step("Delete the test klantcontact");
-            await TestDataHelper.DeleteTestKlantcontact();
+            await Step("Delete the test klantcontact and contactverzoek");
+            await TestDataHelper.DeleteTestKlantcontact(contactmomentId);
 
 
         }
