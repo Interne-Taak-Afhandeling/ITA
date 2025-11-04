@@ -5,6 +5,8 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Playwright;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Security.Claims;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
