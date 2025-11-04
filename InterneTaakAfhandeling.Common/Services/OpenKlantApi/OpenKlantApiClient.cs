@@ -277,7 +277,7 @@ public partial class OpenKlantApiClient(
 
     public async Task DeleteKlantcontactAsync(string uuid)
     {
-        await httpClient.DeleteAsync($"klantcontacten/{uuid}");      
+        await _httpClient.DeleteAsync($"klantcontacten/{uuid}");      
     }
 
     public async Task<Actor?> QueryActorAsync(ActorQuery query)
