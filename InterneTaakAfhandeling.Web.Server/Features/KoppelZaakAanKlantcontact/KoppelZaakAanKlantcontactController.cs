@@ -56,7 +56,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                     Status = StatusCodes.Status400BadRequest
                 });
 
-            if (string.IsNullOrWhiteSpace(request.AanleidinggevendKlantcontactUuid))
+            if (request.AanleidinggevendKlantcontactUuid == default)
                 return BadRequest(new ProblemDetails
                 {
                     Title = "Ongeldige aanvraag",
@@ -65,7 +65,6 @@ public class KoppelZaakAanKlantcontactController : Controller
                 });
 
             var safeZaakId = SecureLogging.SanitizeAndTruncate(request.ZaakIdentificatie, 50);
-            var safeKlantcontactUuid = SecureLogging.SanitizeUuid(request.AanleidinggevendKlantcontactUuid);
 
             _logger.LogInformation("Zoeken naar zaak met identificatie: {SafeZaakId}", safeZaakId);
             var zaak = await _zakenApiClient.GetZaakByIdentificatieAsync(request.ZaakIdentificatie);
@@ -79,7 +78,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                 });
 
             _logger.LogInformation("Ophalen aanleidinggevend klantcontact met UUID: {SafeKlantcontactUuid}",
-                safeKlantcontactUuid);
+                request.AanleidinggevendKlantcontactUuid);
             var aanleidinggevendKlantcontact =
                 await _openKlantApiClient.GetKlantcontactAsync(request.AanleidinggevendKlantcontactUuid);
 
@@ -87,7 +86,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                 return NotFound(new ProblemDetails
                 {
                     Title = "Aanleidinggevend klantcontact niet gevonden",
-                    Detail = $"Geen klantcontact gevonden met UUID: {safeKlantcontactUuid}",
+                    Detail = $"Geen klantcontact gevonden met UUID: {request.AanleidinggevendKlantcontactUuid}",
                     Status = StatusCodes.Status404NotFound
                 });
             // validating internetaak is related to klant contact 
@@ -97,7 +96,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                 return NotFound(new ProblemDetails
                 {
                     Title = "Internetaak niet gerelateerd aan klantcontact",
-                    Detail = $"Internetaak is niet gekoppeld aan klantcontact met UUID: {safeKlantcontactUuid}",
+                    Detail = $"Internetaak is niet gekoppeld aan klantcontact met UUID: {request.AanleidinggevendKlantcontactUuid}",
                     Status = StatusCodes.Status409Conflict
                 });
 
@@ -115,11 +114,10 @@ public class KoppelZaakAanKlantcontactController : Controller
         catch (Exception ex)
         {
             var safeZaakId = SecureLogging.SanitizeAndTruncate(request.ZaakIdentificatie, 50);
-            var safeKlantcontactUuid = SecureLogging.SanitizeUuid(request.AanleidinggevendKlantcontactUuid);
 
             _logger.LogError(ex,
                 "Fout bij koppelen van zaak {SafeZaakId} aan aanleidinggevend klantcontact {SafeKlantcontactUuid}",
-                safeZaakId, safeKlantcontactUuid);
+                safeZaakId, request.AanleidinggevendKlantcontactUuid);
 
             throw new ConflictException(
                 $"Er is een fout opgetreden bij het koppelen van de zaak: {ex.Message}",
@@ -130,8 +128,7 @@ public class KoppelZaakAanKlantcontactController : Controller
     private async Task<Onderwerpobject> KoppelZaakAanOnderwerpobject(Klantcontact klantcontact, string zaakUuid,
         string internetaakId)
     {
-        var safeKlantcontactUuid = SecureLogging.SanitizeUuid(klantcontact.Uuid);
-        _logger.LogInformation("Koppelen zaak aan klantcontact met UUID: {SafeKlantcontactUuid}", safeKlantcontactUuid);
+        _logger.LogInformation("Koppelen zaak aan klantcontact met UUID: {SafeKlantcontactUuid}", klantcontact.Uuid);
 
         Onderwerpobject? bestaandZaakOnderwerpobject = null;
         var zaakOnderwerpobjectCount = 0;
@@ -139,16 +136,15 @@ public class KoppelZaakAanKlantcontactController : Controller
         if (klantcontact.GingOverOnderwerpobjecten?.Count > 0)
             foreach (var onderwerpobjectRef in klantcontact.GingOverOnderwerpobjecten)
             {
-                if (string.IsNullOrEmpty(onderwerpobjectRef?.Uuid)) continue;
+                if (onderwerpobjectRef?.Uuid == null) continue;
 
-                var onderwerpobject = await _openKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid);
+                var onderwerpobject = await _openKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
 
                 if (onderwerpobject?.Onderwerpobjectidentificator != null &&
                     onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&
                     onderwerpobject.Onderwerpobjectidentificator.CodeRegister == "openzaak")
                 {
-                    var safeOnderwerpUuid = SecureLogging.SanitizeUuid(onderwerpobject.Uuid);
-                    _logger.LogInformation("Zaak-onderwerpobject gevonden: {SafeOnderwerpUuid}", safeOnderwerpUuid);
+                    _logger.LogInformation("Zaak-onderwerpobject gevonden: {SafeOnderwerpUuid}", onderwerpobject.Uuid);
                     zaakOnderwerpobjectCount++;
 
                     bestaandZaakOnderwerpobject ??= onderwerpobject;
@@ -160,7 +156,7 @@ public class KoppelZaakAanKlantcontactController : Controller
         {
             _logger.LogWarning(
                 "Klantcontact {SafeKlantcontactUuid} heeft {ZaakOnderwerpobjectCount} zaak-gerelateerde onderwerpobjecten. Het koppelen van een nieuwe zaak wordt niet ondersteund in deze situatie.",
-                safeKlantcontactUuid, zaakOnderwerpobjectCount);
+                klantcontact.Uuid, zaakOnderwerpobjectCount);
             throw new ConflictException(
                 "Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit contactverzoek.",
                 "MEERDERE_ZAKEN_GEKOPPELD");
@@ -179,15 +175,14 @@ public class KoppelZaakAanKlantcontactController : Controller
             }
         };
         
-        if (bestaandZaakOnderwerpobject != null && !string.IsNullOrEmpty(bestaandZaakOnderwerpobject.Uuid))
+        if (bestaandZaakOnderwerpobject?.Uuid != null)
         {
-            var safeOnderwerpUuid = SecureLogging.SanitizeUuid(bestaandZaakOnderwerpobject.Uuid);
             var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
             _logger.LogInformation(
                 "Bijwerken bestaand zaak-onderwerpobject {SafeOnderwerpUuid} met nieuwe zaak {SafeZaakUuid}",
-                safeOnderwerpUuid, safeZaakUuid);
+                bestaandZaakOnderwerpobject.Uuid, safeZaakUuid);
 
-            var modifiedKlantContact = await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid, request);
+            var modifiedKlantContact = await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid.Value, request);
             await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid), _user),
                 Guid.Parse(internetaakId));
             return modifiedKlantContact;
@@ -195,10 +190,9 @@ public class KoppelZaakAanKlantcontactController : Controller
         else
         {
             var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
-            var safeKlantUuid = SecureLogging.SanitizeUuid(klantcontact.Uuid);
             _logger.LogInformation(
                 "Aanmaken nieuw onderwerpobject voor zaak {SafeZaakUuid} en klantcontact {SafeKlantUuid}",
-                safeZaakUuid, safeKlantUuid);
+                safeZaakUuid, klantcontact.Uuid);
 
             var linkedKlantContact = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
 
@@ -238,7 +232,7 @@ public class KoppelZaakAanKlantcontactController : Controller
 public class KoppelZaakAanKlantcontactRequest
 {
     public required string ZaakIdentificatie { get; set; }
-    public required string AanleidinggevendKlantcontactUuid { get; set; }
+    public required Guid AanleidinggevendKlantcontactUuid { get; set; }
 
     public required string InternetaakId { get; set; }
 }
