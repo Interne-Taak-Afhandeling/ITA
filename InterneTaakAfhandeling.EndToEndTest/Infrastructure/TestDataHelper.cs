@@ -57,12 +57,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             ObjectApiClient = new ObjectApiClient(objectApiHttpClient, loggerFactory.CreateLogger<ObjectApiClient>(), l, a, g);
         }
 
-        public async Task<string> CreateContactverzoek()
+        public async Task<string> CreateContactverzoek(string onderwerp = "Test_Contact_from_ITA_E2E_test")
         {
             //we need to add multiplethings to create a contactverzoek.
             //for each we will check if it already exists to avoid creating duplicates on multiple test runs
 
-            var testContactmomentOnderwerp = "Test_Contact_from_ITA_E2E_test";
+            var testContactmomentOnderwerp = onderwerp;
             var testContactverzoekNummer = "8001321008";
 
             // OPTION: Uncomment the next line to always create fresh data with current timestamp
