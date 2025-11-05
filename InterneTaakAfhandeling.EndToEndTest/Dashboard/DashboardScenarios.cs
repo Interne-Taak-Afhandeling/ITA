@@ -54,9 +54,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Create test data first");
             var contactmomentId = await TestDataHelper.CreateContactverzoek();
 
-            // await Step("Now delete the test internetaak");
-            // await TestDataHelper.DeleteTestInternetaak();
-
             await Step("Delete the test klantcontact and contactverzoek");
             await TestDataHelper.DeleteTestKlantcontact(contactmomentId);
 
