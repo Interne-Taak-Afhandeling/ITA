@@ -40,6 +40,16 @@ jobs:
           "TestSettings:TEST_PASSWORD": "${{ secrets.PLAYWRIGHT_PASSWORD }}"
           "TestSettings:TEST_TOTP_SECRET": ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
           "TestSettings:TEST_BASE_URL": ${{ secrets.PLAYWRIGHT_BASE_URL }}
+          "TestSettings:OpenKlantApi_BaseUrl": ${{ secrets.PLAYWRIGHT_OPENKLANTAPI_BASEURL }}
+          "TestSettings:OpenKlantApi_ApiKey": ${{ secrets.PLAYWRIGHT_OPENKLANTAPI_APIKEY }}
+          "TestSettings:ObjectApi_BaseUrl": ${{ secrets.PLAYWRIGHT_OBJECTAPI_BASEURL }}
+          "TestSettings:ObjectApi_ApiKey": ${{ secrets.PLAYWRIGHT_OBJECTAPI_APIKEY }}
+          "TestSettings:LogBoekOptions_TypeVersion": ${{ secrets.PLAYWRIGHT_LOGBOEKOPTIONS_TYPEVERSION }}
+          "TestSettings:LogBoekOptions_Type": ${{ secrets.PLAYWRIGHT_LOGBOEKOPTIONS_TYPE }}
+          "TestSettings:GroepOptions_TypeVersion": ${{ secrets.PLAYWRIGHT_GROEPOPTIONS_TYPEVERSION }}
+          "TestSettings:GroepOptions_Type": ${{ secrets.PLAYWRIGHT_GROEPOPTIONS_TYPE }}
+          "TestSettings:AfdelingOptions_TypeVersion": ${{ secrets.PLAYWRIGHT_AFDELINGOPTIONS_TYPEVERSION }}
+          "TestSettings:AfdelingOptions_Type": ${{ secrets.PLAYWRIGHT_AFDELINGOPTIONS_TYPE }}
       - name: Upload artifact
         if: ${{ always() }}
         uses: actions/upload-pages-artifact@v3

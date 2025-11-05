@@ -39,17 +39,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
 
 
-            var openklantApiBaseUrl = GetRequiredConfig("OpenKlantApi:BaseUrl");
-            var openklantApiKey = GetRequiredConfig("OpenKlantApi:ApiKey");
+            var openklantApiBaseUrl = GetRequiredConfig("TestSettings:OpenKlantApi:BaseUrl");
+            var openklantApiKey = GetRequiredConfig("TestSettings:OpenKlantApi:ApiKey");
 
-            var objectenApiBaseUrl = GetRequiredConfig("ObjectApi:BaseUrl");
-            var objectenApiKey = GetRequiredConfig("ObjectApi:ApiKey");
+            var objectenApiBaseUrl = GetRequiredConfig("TestSettings:ObjectApi:BaseUrl");
+            var objectenApiKey = GetRequiredConfig("TestSettings:ObjectApi:ApiKey");
 
             var services = new ServiceCollection();
             services.AddOptions();
-            services.Configure<AfdelingOptions>(s_configuration.GetSection("AfdelingOptions"));
-            services.Configure<GroepOptions>(s_configuration.GetSection("GroepOptions"));
-            services.Configure<LogboekOptions>(s_configuration.GetSection("LogboekOptions"));
+            services.Configure<AfdelingOptions>(s_configuration.GetSection("TestSettings:AfdelingOptions"));
+            services.Configure<GroepOptions>(s_configuration.GetSection("TestSettings:GroepOptions"));
+            services.Configure<LogboekOptions>(s_configuration.GetSection("TestSettings:LogboekOptions"));
             var serviceProvider = services.BuildServiceProvider();
             var afdelingOptions = serviceProvider.GetRequiredService<IOptions<AfdelingOptions>>();
             var groepOptions = serviceProvider.GetRequiredService<IOptions<GroepOptions>>();
