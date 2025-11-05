@@ -21,14 +21,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var testOnderwerp = "Test_Contact_from_ITA_E2E_test";
 
             await Step("Ensure test data exists via API");
-            await TestDataHelper.CreateContactverzoek(testOnderwerp);
+            var contactmomentId = await TestDataHelper.CreateContactverzoek(testOnderwerp);
 
             await Step("Navigate to home page");
             await Page.GotoAsync("/");
 
             await Step("Wait for dashboard to load");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
 
             await Step("Click on contactverzoek to view details");
             var onderwerpElement = Page.Locator($"text={testOnderwerp}");
@@ -44,20 +43,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
             await Expect(onderwerpInDetails).ToBeVisibleAsync(new() { Timeout = 10000 });
-        }
-
-        [TestMethod("Test delete functionality for contactverzoek")]
-        public async Task TestDeleteContactverzoek()
-        {
-            await Step("Test deleting existing test data");
-
-            await Step("Create test data first");
-            var contactmomentId = await TestDataHelper.CreateContactverzoek();
 
             await Step("Delete the test klantcontact and contactverzoek");
             await TestDataHelper.DeleteTestKlantcontact(contactmomentId);
-
-
         }
     }
 }
