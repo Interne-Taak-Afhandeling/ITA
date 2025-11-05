@@ -9,7 +9,7 @@ namespace ITA.InterneTaakAfhandeling.EndToEndTest.SharedCode
     [TestClass]
     public class AnonymousContactVerzoekScenarios : ITAPlaywrightTest
     {
-        [TestMethod(" Contactverzoek creation and search vin ITA Website")]
+        [TestMethod("Contactverzoek creation and search in ITA Website")]
         public async Task AnonymousContactVerzoekEmailAfdeling()
         {
             await Step("Given the user is on the KISS demo environment for data creation");
