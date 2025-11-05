@@ -14,12 +14,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
     [TestClass]
     public class DashboardScenarios : ITAPlaywrightTest
     {
-
+        // NOTE: This is a proof of concept test to validate data creation and cleanup functionality
         [TestMethod("Data creation and navigation to details page of contactverzoek")]
         public async Task User_CanClickContactverzoekToViewDetails_FromDashboard()
         {
+            var testOnderwerp = "Test_Contact_from_ITA_E2E_test";
+
             await Step("Ensure test data exists via API");
-            await TestDataHelper.CreateContactverzoek();
+            await TestDataHelper.CreateContactverzoek(testOnderwerp);
 
             await Step("Navigate to home page");
             await Page.GotoAsync("/");
@@ -27,11 +29,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Wait for dashboard to load");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            var testOnderwerp = "Test_Contact_from_ITA_E2E_test";
 
             await Step("Click on contactverzoek to view details");
             var onderwerpElement = Page.Locator($"text={testOnderwerp}");
-            await Expect(onderwerpElement).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(onderwerpElement).ToBeVisibleAsync();
 
             var testRow = Page.GetByRole(AriaRole.Row).Filter(new() { HasText = testOnderwerp });
             var detailsLink = testRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" });
@@ -51,10 +52,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Test deleting existing test data");
 
             await Step("Create test data first");
-            var contactmomentId  = await TestDataHelper.CreateContactverzoek();
+            var contactmomentId = await TestDataHelper.CreateContactverzoek();
 
-           // await Step("Now delete the test internetaak");
-           // await TestDataHelper.DeleteTestInternetaak();
+            // await Step("Now delete the test internetaak");
+            // await TestDataHelper.DeleteTestInternetaak();
 
             await Step("Delete the test klantcontact and contactverzoek");
             await TestDataHelper.DeleteTestKlantcontact(contactmomentId);
