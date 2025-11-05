@@ -27,7 +27,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
         [ProducesResponseType(typeof(ContactmomentenResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpGet("{klantcontactId}/klantcontacten")]
-        public async Task<IActionResult> GetKlantcontactKeten(string klantcontactId)
+        public async Task<IActionResult> GetKlantcontactKeten(Guid klantcontactId)
         {
             try
             {
@@ -36,11 +36,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
             }
             catch (Exception ex)
             {
-                if (Guid.TryParse(klantcontactId, out Guid parsedKlantcontactId))
-                {
-                    _logger.LogError(ex, "Error retrieving contact chain for klantcontact {ParsedKlantcontactId}",
-                        parsedKlantcontactId);
-                }
+                _logger.LogError(ex, "Error retrieving contact chain for klantcontact {ParsedKlantcontactId}",
+                    klantcontactId);
 
                 return NotFound(new ProblemDetails
                 {
@@ -51,7 +48,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
             }
         }
 
-        private async Task<ContactmomentenResponse> GetKlantcontactKetenInternal(string klantcontactUuid)
+        private async Task<ContactmomentenResponse> GetKlantcontactKetenInternal(Guid klantcontactUuid)
         {
             var ketenVolgorde = await _klantcontactService.BouwKlantcontactKetenAsync(klantcontactUuid);
             ketenVolgorde.Reverse();  // Nieuwste bovenaan
@@ -73,7 +70,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
         }
 
         public record ContactmomentResponse(
-            string Uuid,
+            Guid Uuid,
             bool ContactGelukt,
             string Tekst,
             DateTimeOffset Datum,
@@ -83,7 +80,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantcontactenOverview
 
         public record ContactmomentenResponse(
             List<ContactmomentResponse> Contactmomenten,
-            string LaatsteBekendKlantcontactUuid
+            Guid LaatsteBekendKlantcontactUuid
         );
     }
 }

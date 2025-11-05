@@ -2,7 +2,7 @@
 {
     public class PartijReference
     {
-        public required string Uuid { get; set; }
+        public required Guid Uuid { get; set; }
     }
 
     public class BetrokkeneRequest

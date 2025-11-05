@@ -54,7 +54,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
                     "MISSING_EMAIL_CLAIM");
             }
 
-            var laatsteKlantcontactUuid = string.Empty;
+            Guid? laatsteKlantcontactUuid = null;
 
             try
             {
@@ -86,14 +86,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
 
             var onderwerpobject = await CreateOnderwerpobjectKlantcontactAsync(
                 newKlantcontact.Uuid,
-                laatsteKlantcontactUuid ?? aanleidinggevendKlantcontactUuid.ToString());
+                laatsteKlantcontactUuid ?? aanleidinggevendKlantcontactUuid);
 
             result.Onderwerpobject = onderwerpobject;
 
-            var partijForBetrokkeneId = partijUuid.HasValue ? partijUuid.ToString() : null;
-            if (!string.IsNullOrWhiteSpace(partijForBetrokkeneId))
+            if (partijUuid.HasValue)
             {
-                var betrokkene = await CreateBetrokkeneAsync(newKlantcontact.Uuid, partijForBetrokkeneId);
+                var betrokkene = await CreateBetrokkeneAsync(newKlantcontact.Uuid, partijUuid.Value);
                 result.Betrokkene = betrokkene;
             }
 
@@ -101,20 +100,20 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
             return result;
         }
 
-        private async Task<string> GetLaatsteKlantcontactUuidAsync(Guid klantcontactUuid)
+        private async Task<Guid> GetLaatsteKlantcontactUuidAsync(Guid klantcontactUuid)
         {
             try
             {
-                var ketenVolgorde = await _klantcontactService.BouwKlantcontactKetenAsync(klantcontactUuid.ToString());
+                var ketenVolgorde = await _klantcontactService.BouwKlantcontactKetenAsync(klantcontactUuid);
                 ketenVolgorde.Reverse(); // Nieuwste bovenaan
 
-                return ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid.ToString();
+                return ketenVolgorde.Count > 0 ? ketenVolgorde[0].Uuid : klantcontactUuid;
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Could not determine latest klantcontact in chain, using original {klantcontactUuid}", klantcontactUuid);
 
-                return klantcontactUuid.ToString();
+                return klantcontactUuid;
             }
         }
 
@@ -184,8 +183,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
         }
 
         private async Task<Onderwerpobject> CreateOnderwerpobjectKlantcontactAsync(
-            string klantcontactUuid,
-            string wasKlantcontactUuid)
+            Guid klantcontactUuid,
+            Guid wasKlantcontactUuid)
         {
             var request = new KlantcontactOnderwerpobjectRequest
             {
@@ -193,7 +192,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
                 WasKlantcontact = new KlantcontactReference { Uuid = wasKlantcontactUuid },
                 Onderwerpobjectidentificator = new Onderwerpobjectidentificator
                 {
-                    ObjectId = wasKlantcontactUuid,
+                    ObjectId = wasKlantcontactUuid.ToString(),
                     CodeObjecttype = "klantcontact",
                     CodeRegister = "openklant",
                     CodeSoortObjectId = "uuid"
@@ -212,9 +211,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
             }
         }
 
-        private async Task<Betrokkene> CreateBetrokkeneAsync(string klantcontactUuid, string partijUuid)
+        private async Task<Betrokkene> CreateBetrokkeneAsync(Guid klantcontactUuid, Guid partijUuid)
         {
-            if (string.IsNullOrEmpty(klantcontactUuid) || string.IsNullOrEmpty(partijUuid))
+            if (klantcontactUuid == Guid.Empty || partijUuid == Guid.Empty)
             {
                 throw new ConflictException(
                     "Both klantcontact UUID and partij UUID are required to create a betrokkene",

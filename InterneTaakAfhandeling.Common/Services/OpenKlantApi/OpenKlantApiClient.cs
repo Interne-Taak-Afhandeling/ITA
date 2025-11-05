@@ -1,4 +1,5 @@
-using InterneTaakAfhandeling.Common.Exceptions;
+﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
@@ -12,7 +13,7 @@ public interface IOpenKlantApiClient
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
     Task<Actor> GetActorAsync(string? uuid);
     Task<Actor> CreateActorAsync(ActorRequest request);
-    Task<Klantcontact> GetKlantcontactAsync(string uuid);
+    Task<Klantcontact> GetKlantcontactAsync(Guid uuid);
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);    Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
@@ -20,8 +21,8 @@ public interface IOpenKlantApiClient
     Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters);
 
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
-    Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, KlantcontactOnderwerpobjectRequest request);
-    Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid); 
+    Task<Onderwerpobject> UpdateOnderwerpobjectAsync(Guid uuid, KlantcontactOnderwerpobjectRequest request);
+    Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid); 
     Task<Internetaak> PatchInternetaakStatusAsync(InternetakenPatchStatusRequest internetakenUpdateRequest, string uuid);
     Task<Internetaak> PatchInternetaakActorAsync(InternetakenPatchActorsRequest internetakenUpdateRequest, string uuid);
 
@@ -124,7 +125,7 @@ public partial class OpenKlantApiClient(
         }
     }
 
-    public async Task<Onderwerpobject> UpdateOnderwerpobjectAsync(string uuid, KlantcontactOnderwerpobjectRequest request)
+    public async Task<Onderwerpobject> UpdateOnderwerpobjectAsync(Guid uuid, KlantcontactOnderwerpobjectRequest request)
     {
         try
         {
@@ -148,7 +149,7 @@ public partial class OpenKlantApiClient(
         }
     }
 
-    public async Task<Onderwerpobject?> GetOnderwerpobjectAsync(string uuid)
+    public async Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid)
     {
         var response = await _httpClient.GetAsync($"onderwerpobjecten/{uuid}");
 
@@ -225,12 +226,9 @@ public partial class OpenKlantApiClient(
         return actor;
     }
 
-    public async Task<Klantcontact> GetKlantcontactAsync(string uuid)
+    public async Task<Klantcontact> GetKlantcontactAsync(Guid uuid)
     {
-        if (Guid.TryParse(uuid, out Guid parsedUuid))
-        {
-            _logger.LogInformation("Fetching klantcontact {parsedUuid}", parsedUuid);
-        }
+        _logger.LogInformation("Fetching klantcontact {Uuid}", uuid);
 
         var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen");
         response.EnsureSuccessStatusCode();
@@ -241,13 +239,13 @@ public partial class OpenKlantApiClient(
 
 
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
-
+        
         _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
         foreach (var obj in klantcontact?.GingOverOnderwerpobjecten ?? [])
         {
             _logger.LogInformation("Onderwerpobject: {Uuid}, Identificator: {Id}",
                 obj.Uuid,
-                obj.Onderwerpobjectidentificator?.ObjectId);
+                SecureLogging.SanitizeAndTruncate(obj.Onderwerpobjectidentificator?.ObjectId));
         }
 
         return klantcontact;
@@ -300,7 +298,11 @@ public partial class OpenKlantApiClient(
                     ))];
             }
 
-            item.AanleidinggevendKlantcontact = await GetKlantcontactAsync(item.AanleidinggevendKlantcontact?.Uuid ?? string.Empty);
+            if (item.AanleidinggevendKlantcontact?.Uuid != null)
+            {
+                item.AanleidinggevendKlantcontact = await GetKlantcontactAsync(item.AanleidinggevendKlantcontact.Uuid);
+            }
+
         }
 
         return response.Results;
@@ -312,14 +314,8 @@ public partial class OpenKlantApiClient(
         try
         {
 
-            if (Guid.TryParse(request.WasPartij.Uuid, out Guid parsedWasPartijUuid))
-            {
-                if (Guid.TryParse(request.HadKlantcontact.Uuid, out Guid parsedHadKlantcontactUuid))
-                {
-                    _logger.LogInformation("Creating betrokkene with partij {parsedWasPartijUuid} for klantcontact {parsedHadKlantcontactUuid}",
-                        parsedWasPartijUuid, parsedHadKlantcontactUuid);
-                }
-            }
+            _logger.LogInformation("Creating betrokkene with partij {parsedWasPartijUuid} for klantcontact {parsedHadKlantcontactUuid}",
+                        request.WasPartij.Uuid, request.HadKlantcontact.Uuid);
 
             var response = await _httpClient.PostAsJsonAsync("betrokkenen", request);
             response.EnsureSuccessStatusCode();
