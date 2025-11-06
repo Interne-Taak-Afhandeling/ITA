@@ -2,6 +2,13 @@
 using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Net.Http.Headers;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Web;
@@ -9,25 +16,33 @@ using System.Web;
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
 public interface IOpenKlantApiClient
-{
-    Task<InternetakenResponse?> GetInternetakenAsync(string path);
+{    
     Task<Actor> GetActorAsync(string? uuid);
+    Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Actor> CreateActorAsync(ActorRequest request);
+
     Task<Klantcontact> GetKlantcontactAsync(Guid uuid);
-    Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);    Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
-    Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
+    Task<List<Klantcontact>> QueryKlantcontactAsync(KlantcontactQuery query);
+    Task DeleteKlantcontactAsync(Guid uuid);
+
+    Task<InternetakenResponse?> GetInternetakenAsync(string path);
+    Task<Internetaak> GetInternetaakByIdAsync(Guid uuid);
+    Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
+    Task<Internetaak> CreateInterneTaak(InternetaakPostRequest internetaakPostRequest);
     Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters);
+    Task<Internetaak> PatchInternetaakStatusAsync(InternetakenPatchStatusRequest internetakenUpdateRequest, string uuid);
+    Task<Internetaak> PatchInternetaakActorAsync(InternetakenPatchActorsRequest internetakenUpdateRequest, string uuid);
 
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject> UpdateOnderwerpobjectAsync(Guid uuid, KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid); 
-    Task<Internetaak> PatchInternetaakStatusAsync(InternetakenPatchStatusRequest internetakenUpdateRequest, string uuid);
-    Task<Internetaak> PatchInternetaakActorAsync(InternetakenPatchActorsRequest internetakenUpdateRequest, string uuid);
 
-    Task<Internetaak> GetInternetaakByIdAsync(Guid uuid);
-    Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
+    Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
+
+    Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
+
 
 }
 
@@ -251,7 +266,23 @@ public partial class OpenKlantApiClient(
         return klantcontact;
     }
 
-  
+
+    public async Task<List<Klantcontact>> QueryKlantcontactAsync(KlantcontactQuery query)
+    {
+        var queryString = query.BuildQueryString();
+        var path = $"klantcontacten?{queryString}";     
+        var response = await _httpClient.GetAsync(path);
+        response.EnsureSuccessStatusCode();
+        var klantcontacten = await response.Content.ReadFromJsonAsync<KlantcontactResponse>();
+        return klantcontacten?.Results ?? [];
+    }
+
+
+    public async Task DeleteKlantcontactAsync(Guid uuid)
+    {
+        await _httpClient.DeleteAsync($"klantcontacten/{uuid}");      
+    }
+
     public async Task<Actor?> QueryActorAsync(ActorQuery query)
     {
         var queryDictionary = HttpUtility.ParseQueryString(string.Empty);
@@ -276,7 +307,7 @@ public partial class OpenKlantApiClient(
 
     public async Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters)
     {
-        var  queryString = interneTaakQueryParameters.BuildQueryString();
+        var queryString = interneTaakQueryParameters.BuildQueryString();
         var path = $"internetaken?{queryString}";
         var response = await GetInternetakenAsync(path);
 
@@ -377,7 +408,7 @@ public partial class OpenKlantApiClient(
         }
     }
 
-  
+
     public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)
     {
         var response = await _httpClient.GetAsync($"internetaken/{uuid}");
@@ -405,9 +436,32 @@ public partial class OpenKlantApiClient(
         }
     }
 
+
+
+
+
+
+    public async Task<Internetaak> CreateInterneTaak(InternetaakPostRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsync($"internetaken", JsonContent.Create(request));
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadFromJsonAsync<Internetaak>();
+
+            return content ?? throw new InvalidOperationException("Failed to post Internetaak. The response content is null.");
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"Failed to post Internetaak {e}");
+        }
+    }
+
     public async Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query)
     {
-        var queryString =query.BuildQueryString();
+        var queryString = query.BuildQueryString();
         var response = await _httpClient.GetAsync($"/klantinteracties/api/v1/internetaken?{queryString}");
 
         if (response.IsSuccessStatusCode)
@@ -422,15 +476,15 @@ public partial class OpenKlantApiClient(
 
             return JsonSerializer.Deserialize<InternetakenResponse>(content, options)
                 ?? new InternetakenResponse { Results = new List<Internetaak>(), Count = 0 };
-        }              
+        }
 
-         throw new HttpRequestException($"Failed to fetch internetaken: {response.ReasonPhrase}", null, response.StatusCode);
+        throw new HttpRequestException($"Failed to fetch internetaken: {response.ReasonPhrase}", null, response.StatusCode);
     }
 
 
 
 
- 
+
 
 
     public async Task<Internetaak> PatchInterneTaak(JsonContent request, string uuid)
@@ -452,13 +506,12 @@ public partial class OpenKlantApiClient(
 
     public async Task<Internetaak> PatchInternetaakStatusAsync(InternetakenPatchStatusRequest request, string uuid)
     {
-      return  await PatchInterneTaak(JsonContent.Create(request), uuid);
+        return await PatchInterneTaak(JsonContent.Create(request), uuid);
     }
     public async Task<Internetaak> PatchInternetaakActorAsync(InternetakenPatchActorsRequest request, string uuid)
     {
-        return  await PatchInterneTaak(JsonContent.Create(request), uuid);
+        return await PatchInterneTaak(JsonContent.Create(request), uuid);
     }
-
 
     private class KlantcontactResponse
     {

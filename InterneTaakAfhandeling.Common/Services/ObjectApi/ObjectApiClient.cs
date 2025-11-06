@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using Microsoft.Extensions.Logging;
@@ -17,6 +17,7 @@ public interface IObjectApiClient
     Task<List<Groep>> GetGroepenByIdentificatie(string identificatie);
 
     Task<ObjectModels<Afdeling>> GetAfdelingen(int page);
+    Task<ObjectModels<Afdeling>> FindAfdelingen(string query);
     Task<ObjectModels<Groep>> GetGroepen(int page);
 }
 
@@ -202,6 +203,26 @@ public class ObjectApiClient(
             _logger.LogError(ex, "Error updating logboek {logboekUuid}. Error response {errorResponse}", logboekUuid, errorResponse);
             throw;
              
+        }
+    }
+
+
+    public async Task<ObjectModels<Afdeling>> FindAfdelingen(string query)
+    {
+        HttpResponseMessage? response = null;
+
+        try
+        {
+            response = await _httpClient.GetAsync($"objects?type={afdelingOptions.Value.Type}&typeVersion={afdelingOptions.Value.TypeVersion}&data_icontains={query}");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<ObjectModels<Afdeling>>();
+            return result!;
+        }
+        catch (HttpRequestException ex)
+        {
+            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
+            _logger.LogError(ex, "Error retrieving afdelingen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
+            throw;
         }
     }
 
