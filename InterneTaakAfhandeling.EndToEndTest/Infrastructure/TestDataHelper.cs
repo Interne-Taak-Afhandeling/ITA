@@ -57,7 +57,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             ObjectApiClient = new ObjectApiClient(objectApiHttpClient, loggerFactory.CreateLogger<ObjectApiClient>(), l, a, g);
         }
 
-        public async Task<string> CreateContactverzoek(string onderwerp = "Test_Contact_from_ITA_E2E_test")
+        public async Task<Guid> CreateContactverzoek(string onderwerp = "Test_Contact_from_ITA_E2E_test")
         {
             //we need to add multiplethings to create a contactverzoek.
             //for each we will check if it already exists to avoid creating duplicates on multiple test runs
@@ -211,7 +211,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             {
                 var createdInternetaak = await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
                 {
-                    AanleidinggevendKlantcontact = new UuidObject { Uuid = Guid.Parse(contactmoment.Uuid) },
+                    AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmoment.Uuid },
                     GevraagdeHandeling = "terugbellen svp",
                     Nummer = testContactverzoekNummer,
                     Status = KnownInternetaakStatussen.TeVerwerken,
@@ -227,7 +227,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         }
 
 
-        public async Task DeleteTestKlantcontact(string uuid)
+        public async Task DeleteTestKlantcontact(Guid uuid)
         {
             await OpenKlantApiClient.DeleteKlantcontactAsync(uuid);
         }

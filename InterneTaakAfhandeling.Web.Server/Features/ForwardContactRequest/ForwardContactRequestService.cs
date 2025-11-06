@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Services;
+﻿using InterneTaakAfhandeling.Common.Helpers;
+using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
@@ -70,7 +71,7 @@ public class ForwardContactRequestService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error processing e-mail notifications for forwarded interne taak {Number}", internetaken.Nummer);
+            logger.LogError(ex, "Error processing e-mail notifications for forwarded interne taak {Number}", SecureLogging.SanitizeAndTruncate(internetaken.Nummer));
             return GenericError;
         }
     }

@@ -59,14 +59,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
             return item;
         }
 
-        private async Task LoadKlantcontactInfoAsync(string AanleidinggevendKlantcontactUuid, InterneTaakOverzichtItem item)
+        private async Task LoadKlantcontactInfoAsync(Guid aanleidinggevendKlantcontactUuid, InterneTaakOverzichtItem item)
         {
-            if (AanleidinggevendKlantcontactUuid == null)
+            if (aanleidinggevendKlantcontactUuid == default)
                 return;
 
             try
             {
-                var klantcontact = await GetKlantcontactAsync(AanleidinggevendKlantcontactUuid);
+                var klantcontact = await GetKlantcontactAsync(aanleidinggevendKlantcontactUuid);
                 if (klantcontact != null)
                 {
                     item.Onderwerp = klantcontact.Onderwerp;
@@ -77,7 +77,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error loading klantcontact {KlantcontactUuid}",
-                    AanleidinggevendKlantcontactUuid);
+                    aanleidinggevendKlantcontactUuid);
             }
         }
 
@@ -109,7 +109,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
             }
         }
 
-        private async Task<Klantcontact?> GetKlantcontactAsync(string uuid)
+        private async Task<Klantcontact?> GetKlantcontactAsync(Guid uuid)
         {
             try
             {

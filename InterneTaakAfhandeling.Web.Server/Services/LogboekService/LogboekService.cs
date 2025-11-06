@@ -44,10 +44,10 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                 case ActiviteitTypes.Klantcontact when item.HeeftBetrekkingOp.Count == 1:
                     {
                         var contactmoment =
-                            await _openKlantApiClient.GetKlantcontactAsync(item.HeeftBetrekkingOp.Single().ObjectId);
+                            await _openKlantApiClient.GetKlantcontactAsync(Guid.Parse(item.HeeftBetrekkingOp.Single().ObjectId));
                         if (contactmoment != null)
                         {
-                            activiteit.Id = contactmoment.Uuid;
+                            activiteit.Id = contactmoment.Uuid.ToString();
                             activiteit.Kanaal = contactmoment.Kanaal ?? "Onbekend";
                             activiteit.Tekst = contactmoment.Inhoud;
                             activiteit.ContactGelukt = contactmoment.IndicatieContactGelukt;
