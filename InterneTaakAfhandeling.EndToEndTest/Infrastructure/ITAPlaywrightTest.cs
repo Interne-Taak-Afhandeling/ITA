@@ -45,6 +45,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var objectenApiBaseUrl = GetRequiredConfig("TestSettings:ObjectApi:BaseUrl");
             var objectenApiKey = GetRequiredConfig("TestSettings:ObjectApi:ApiKey");
 
+            var zakenApiBaseUrl = GetRequiredConfig("TestSettings:ZakenApi:BaseUrl");
+            var zakenApiKey = GetRequiredConfig("TestSettings:ZakenApi:Key");
+            var zakenApiClientId = GetRequiredConfig("TestSettings:ZakenApi:ClientId");
+
+
             var services = new ServiceCollection();
             services.AddOptions();
             services.Configure<AfdelingOptions>(s_configuration.GetSection("TestSettings:AfdelingOptions"));
@@ -62,6 +67,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 openklantApiKey,
                 objectenApiBaseUrl,
                 objectenApiKey,
+                zakenApiBaseUrl,
+                zakenApiKey,
+                zakenApiClientId,
                 logboekOptions,
                 afdelingOptions,
                 groepOptions,
