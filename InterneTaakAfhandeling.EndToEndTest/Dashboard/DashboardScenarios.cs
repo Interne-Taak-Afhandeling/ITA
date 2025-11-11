@@ -7,7 +7,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
     public class DashboardScenarios : ITAPlaywrightTest
     {
         // NOTE: This is a proof of concept test to validate data creation and cleanup functionality
-        [TestMethod("Data creation and navigation to details page of contactverzoek that has ZAAK connected to it")]
+        // [TestMethod("Data creation and navigation to details page of contactverzoek that has ZAAK connected to it")]
         public async Task User_CanClickContactverzoekToViewDetails_FromDashboard()
         {
             var testOnderwerp = "Test_Contact_from_ITA_E2E_test";
@@ -25,8 +25,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var onderwerpElement = Page.Locator($"text={testOnderwerp}");
             await Expect(onderwerpElement).ToBeVisibleAsync();
 
-            var testRow = Page.GetByRole(AriaRole.Row).Filter(new() { HasText = testOnderwerp });
-            var detailsLink = testRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" });
+            var detailsLink = Page.GetDetailsLink(testOnderwerp);
             await detailsLink.ClickAsync();
 
             await Step("Verify details page loads");

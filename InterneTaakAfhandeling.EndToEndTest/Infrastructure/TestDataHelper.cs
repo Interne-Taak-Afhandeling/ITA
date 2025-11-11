@@ -79,8 +79,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var testContactverzoekNummer = attachZaak ? "8001321008" : "8001321009";
             var testZaakIdentificatie = "ZAAK-2023-002";
 
-            Console.WriteLine("=== Starting CreateContactverzoek ===");
-
+            //the contactmoment is the basis of a contactverzoek
             // Check if contactmoment already exists
             var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(new KlantcontactQuery
             {
@@ -102,9 +101,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 Vertrouwelijk = false
             }) ?? throw new Exception("Failed to create contactmoment for testing.");
 
-            Console.WriteLine($"Contactmoment UUID: {contactmoment.Uuid}");
+            //now we have a contactmoment, let's add the rest
 
-            // Get or create actor who submitted the request
+            //- the actor who submitted the contactmoment/internetaak
+            //first check if that actor already exists
             var actorWhoSubmittedTheContactrequest = await OpenKlantApiClient.QueryActorAsync(new ActorQuery
             {
                 ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
@@ -137,10 +137,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     Actor = new ActorReference { Uuid = actorWhoSubmittedTheContactrequest.Uuid },
                     Klantcontact = new KlantcontactReference { Uuid = contactmoment.Uuid }
                 });
-                Console.WriteLine("Connected submitter actor to contactmoment");
             }
 
-            // Get afdeling from ObjectApi
+            //we alse need actors for afdeling and or groep and or medewerker
+            //they refer to items in the objectsregistry
+            //we could manage those objectsregistry items from here,
+            //but for now we will assume they were manually created there. it's very static stable data.
+            //eventually it would be better to manage that from here, but let's take it one step at the time
+
+            //find the objectenapi afdeling to which we will assign the internetaak
+            //depending on what we're going to test we'll probably need to do the same for medewerker and groep
+
             var afdelingen = await ObjectApiClient.FindAfdelingen("Burgerzaken_ibz");
             Assert.AreEqual(1, afdelingen.Results.Count, "Expected exactly one afdeling with name 'Burgerzaken_ibz' in objectenapi for testing.");
             var afdeling = afdelingen.Results.First();
@@ -170,14 +177,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 }
             });
 
-            Console.WriteLine($"Afdeling actor UUID: {actorForAfdelingToWhichTheContactrequestWillBeAssigned.Uuid}");
-
-            // Get medewerker from ObjectApi
+            // Find the medewerker from the objectenapi to which we will assign the internetaak
             var medewerkers = await ObjectApiClient.GetMedewerkersByIdentificatie("icatt-integratie-test@icatt.nl");
             Assert.AreEqual(1, medewerkers.Count, "Expected exactly one medewerker with identificatie 'icatt-integratie-test@icatt.nl' in objectenapi for testing.");
             var medewerker = medewerkers.First();
 
-            // Get or create actor for medewerker
+            // Create or query the actor representing the medewerker to which the contactrequest will be assigned
             var actorForMedewerkerToWhichTheContactrequestWillBeAssigned = await OpenKlantApiClient.QueryActorAsync(new ActorQuery
             {
                 ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
@@ -202,8 +207,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 }
             });
 
-            Console.WriteLine($"Medewerker actor UUID: {actorForMedewerkerToWhichTheContactrequestWillBeAssigned.Uuid}");
-
             // Check if internetaak already exists
             var internetaken = await OpenKlantApiClient.QueryInterneTakenAsync(new InterneTaakQuery
             {
@@ -214,8 +217,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             if (internetaken.Count == 0)
             {
-                Console.WriteLine("Creating new internetaak");
-                var createdInternetaak = await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
+                await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
                 {
                     AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmoment.Uuid },
                     GevraagdeHandeling = "terugbellen svp",
@@ -227,26 +229,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     ],
                     Toelichting = "Test contactverzoek from ITA E2E test"
                 });
-                Console.WriteLine($"Created internetaak UUID: {createdInternetaak.Uuid}");
-            }
-            else
-            {
-                Console.WriteLine($"Internetaak already exists with UUID: {internetaken.First().Uuid}");
             }
 
-            // === ALWAYS TRY TO CONNECT ZAAK (whether contactverzoek is new or existing) ===
             if (attachZaak)
             {
-                Console.WriteLine($"Attempting to find zaak with identificatie: {testZaakIdentificatie}");
                 var zaak = await ZakenApiClient.GetZaakByIdentificatieAsync(testZaakIdentificatie);
 
                 if (zaak == null)
                 {
-                    Console.WriteLine($"WARNING: Zaak with identificatie '{testZaakIdentificatie}' not found in Zaken API. Skipping zaak connection.");
                     return contactmoment.Uuid;
                 }
-
-                Console.WriteLine($"Found zaak with UUID: {zaak.Uuid}");
 
                 // Refresh contactmoment to get the latest onderwerpobjecten
                 contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmoment.Uuid);
@@ -255,7 +247,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 var isZaakAlreadyConnected = false;
                 if (contactmoment.GingOverOnderwerpobjecten?.Count > 0)
                 {
-                    Console.WriteLine($"Checking {contactmoment.GingOverOnderwerpobjecten.Count} existing onderwerpobjecten");
                     foreach (var onderwerpobjectRef in contactmoment.GingOverOnderwerpobjecten)
                     {
                         if (onderwerpobjectRef?.Uuid == null) continue;
@@ -267,67 +258,38 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                             onderwerpobject.Onderwerpobjectidentificator.CodeRegister == "openzaak" &&
                             onderwerpobject.Onderwerpobjectidentificator.ObjectId == zaak.Uuid)
                         {
-                            Console.WriteLine($"Zaak is already connected via onderwerpobject {onderwerpobject.Uuid}");
                             isZaakAlreadyConnected = true;
                             break;
                         }
                     }
                 }
-                else
-                {
-                    Console.WriteLine("No existing onderwerpobjecten found");
-                }
 
                 // Create the onderwerpobject to link the zaak to the klantcontact
                 if (!isZaakAlreadyConnected)
                 {
-                    Console.WriteLine($"Creating onderwerpobject to link zaak {zaak.Uuid} to klantcontact {contactmoment.Uuid}");
-                    try
+                    await OpenKlantApiClient.CreateOnderwerpobjectAsync(new KlantcontactOnderwerpobjectRequest
                     {
-                        var createdOnderwerpobject = await OpenKlantApiClient.CreateOnderwerpobjectAsync(new KlantcontactOnderwerpobjectRequest
+                        Klantcontact = new KlantcontactReference { Uuid = contactmoment.Uuid },
+                        WasKlantcontact = null,
+                        Onderwerpobjectidentificator = new Onderwerpobjectidentificator
                         {
-                            Klantcontact = new KlantcontactReference { Uuid = contactmoment.Uuid },
-                            WasKlantcontact = null,
-                            Onderwerpobjectidentificator = new Onderwerpobjectidentificator
-                            {
-                                ObjectId = zaak.Uuid,
-                                CodeObjecttype = "zgw-Zaak",
-                                CodeRegister = "openzaak",
-                                CodeSoortObjectId = "uuid"
-                            }
-                        });
-                        Console.WriteLine($"✓ Successfully created onderwerpobject {createdOnderwerpobject.Uuid}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"ERROR creating onderwerpobject: {ex.Message}");
-                        throw;
-                    }
+                            ObjectId = zaak.Uuid,
+                            CodeObjecttype = "zgw-Zaak",
+                            CodeRegister = "openzaak",
+                            CodeSoortObjectId = "uuid"
+                        }
+                    });
                 }
             }
-            else
-            {
-                Console.WriteLine("Skipping ZAAK attachment as attachZaak parameter is false");
-            }
 
-            Console.WriteLine("=== Finished CreateContactverzoek ===");
             return contactmoment.Uuid;
         }
 
 
         public async Task<(Guid contactverzoekWithZaak, Guid contactverzoekWithoutZaak)> CreateBothContactverzoekScenarios()
         {
-            Console.WriteLine("=== Creating both contactverzoek scenarios ===");
-
-            // Create contactverzoek WITH zaak (8001321008)
             var contactverzoekWithZaak = await CreateContactverzoek("Test_Contact_with_ZAAK_from_ITA_E2E_test", attachZaak: true);
-            Console.WriteLine($"✓ Created contactverzoek WITH ZAAK: {contactverzoekWithZaak}");
-
-            // Create contactverzoek WITHOUT zaak (8001321009)
             var contactverzoekWithoutZaak = await CreateContactverzoek("Test_Contact_without_ZAAK_from_ITA_E2E_test", attachZaak: false);
-            Console.WriteLine($"✓ Created contactverzoek WITHOUT ZAAK: {contactverzoekWithoutZaak}");
-
-            Console.WriteLine("=== Both contactverzoek scenarios created successfully ===");
 
             return (contactverzoekWithZaak, contactverzoekWithoutZaak);
         }
