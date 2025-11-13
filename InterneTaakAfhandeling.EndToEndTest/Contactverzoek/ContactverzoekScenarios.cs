@@ -33,7 +33,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
-            await Expect(onderwerpInDetails).ToBeVisibleAsync(new());
+            await Expect(onderwerpInDetails).ToBeVisibleAsync();
 
             await Step("Verify contactverzoek field values");
             await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();
@@ -103,9 +103,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
-            await Expect(onderwerpInDetails).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(onderwerpInDetails).ToBeVisibleAsync();
             var zaakElement = Page.Locator($"text={"ZAAK-2023-002"}");
-            await Expect(zaakElement).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(zaakElement).ToBeVisibleAsync();
 
             await Step("Verify contactverzoek field values");
             await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();

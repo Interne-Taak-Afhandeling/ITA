@@ -26,6 +26,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         private string OpenKlantBaseUrl { get; }
         private string OpenKlantApiKey { get; }
 
+        // Track created contactmomenten for cleanup
+        private readonly List<Guid> _createdContactmomenten = new();
+
         public TestDataHelper(string openKlantBaseUrl, string openKlantApiKey, string objectenApiBaseUrl, string objectenApiKey,
             string zakenApiBaseUrl, string zakenApiKey, string zakenApiClientId,
             IOptions<LogboekOptions> l,
@@ -286,6 +289,46 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         }
 
 
+        /// <summary>
+        /// Retrieves the ZAAK identificatie connected to a contactverzoek
+        /// </summary>
+        public async Task<string?> GetZaakIdentificatieFromContactverzoek(Guid klantcontactUuid)
+        {
+            try
+            {
+                var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(klantcontactUuid);
+
+                if (contactmoment?.GingOverOnderwerpobjecten == null || contactmoment.GingOverOnderwerpobjecten.Count == 0)
+                {
+                    return null;
+                }
+
+                foreach (var onderwerpobjectRef in contactmoment.GingOverOnderwerpobjecten)
+                {
+                    if (onderwerpobjectRef?.Uuid == null) continue;
+
+                    var onderwerpobject = await OpenKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
+
+                    if (onderwerpobject?.Onderwerpobjectidentificator != null &&
+                        onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&
+                        onderwerpobject.Onderwerpobjectidentificator.CodeRegister == "openzaak")
+                    {
+                        var zaakUuid = onderwerpobject.Onderwerpobjectidentificator.ObjectId;
+                        var zaak = await ZakenApiClient.GetZaakAsync(zaakUuid);
+
+                        return zaak?.Identificatie;
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to get ZAAK identificatie for klantcontact {klantcontactUuid}: {ex.Message}");
+                return null;
+            }
+        }
+
         public async Task<(Guid contactverzoekWithZaak, Guid contactverzoekWithoutZaak)> CreateBothContactverzoekScenarios()
         {
             var contactverzoekWithZaak = await CreateContactverzoek("Test_Contact_with_ZAAK_from_ITA_E2E_test", attachZaak: true);
@@ -296,7 +339,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public async Task DeleteTestKlantcontact(Guid uuid)
         {
-            await OpenKlantApiClient.DeleteKlantcontactAsync(uuid);
+            try
+            {
+                await OpenKlantApiClient.DeleteKlantcontactAsync(uuid);
+                _createdContactmomenten.Remove(uuid);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to delete klantcontact {uuid}: {ex.Message}");
+            }
+        }
+
+        public async Task CleanupAllCreatedData()
+        {
+            var contactmomentenToDelete = _createdContactmomenten.ToList();
+
+            foreach (var uuid in contactmomentenToDelete)
+            {
+                await DeleteTestKlantcontact(uuid);
+            }
         }
     }
 }
