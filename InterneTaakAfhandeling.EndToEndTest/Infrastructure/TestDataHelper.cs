@@ -166,7 +166,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             actorForAfdelingToWhichTheContactrequestWillBeAssigned ??= await OpenKlantApiClient.CreateActorAsync(new ActorRequest
             {
                 Naam = "e2e afdeling",
-                SoortActor = SoortActor.organisatorische_eenheid,
+                SoortActor = SoortActor.organisatorische_eeenheid,
                 IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
@@ -231,58 +231,64 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 });
             }
 
+            // Optionally attach zaak
             if (attachZaak)
             {
-                var zaak = await ZakenApiClient.GetZaakByIdentificatieAsync(testZaakIdentificatie);
-
-                if (zaak == null)
-                {
-                    return contactmoment.Uuid;
-                }
-
-                // Refresh contactmoment to get the latest onderwerpobjecten
-                contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmoment.Uuid);
-
-                // Check if zaak is already connected via an onderwerpobject
-                var isZaakAlreadyConnected = false;
-                if (contactmoment.GingOverOnderwerpobjecten?.Count > 0)
-                {
-                    foreach (var onderwerpobjectRef in contactmoment.GingOverOnderwerpobjecten)
-                    {
-                        if (onderwerpobjectRef?.Uuid == null) continue;
-
-                        var onderwerpobject = await OpenKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
-
-                        if (onderwerpobject?.Onderwerpobjectidentificator != null &&
-                            onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&
-                            onderwerpobject.Onderwerpobjectidentificator.CodeRegister == "openzaak" &&
-                            onderwerpobject.Onderwerpobjectidentificator.ObjectId == zaak.Uuid)
-                        {
-                            isZaakAlreadyConnected = true;
-                            break;
-                        }
-                    }
-                }
-
-                // Create the onderwerpobject to link the zaak to the klantcontact
-                if (!isZaakAlreadyConnected)
-                {
-                    await OpenKlantApiClient.CreateOnderwerpobjectAsync(new KlantcontactOnderwerpobjectRequest
-                    {
-                        Klantcontact = new KlantcontactReference { Uuid = contactmoment.Uuid },
-                        WasKlantcontact = null,
-                        Onderwerpobjectidentificator = new Onderwerpobjectidentificator
-                        {
-                            ObjectId = zaak.Uuid,
-                            CodeObjecttype = "zgw-Zaak",
-                            CodeRegister = "openzaak",
-                            CodeSoortObjectId = "uuid"
-                        }
-                    });
-                }
+                await AttachZaakToContactmomentAsync(contactmoment.Uuid, testZaakIdentificatie);
             }
 
             return contactmoment.Uuid;
+        }
+
+        private async Task AttachZaakToContactmomentAsync(Guid klantcontactUuid, string zaakIdentificatie)
+        {
+            var zaak = await ZakenApiClient.GetZaakByIdentificatieAsync(zaakIdentificatie);
+
+            if (zaak == null)
+            {
+                return;
+            }
+
+            // Refresh contactmoment to get the latest onderwerpobjecten
+            var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(klantcontactUuid);
+
+            // Check if zaak is already connected via an onderwerpobject
+            var isZaakAlreadyConnected = false;
+            if (contactmoment.GingOverOnderwerpobjecten?.Count > 0)
+            {
+                foreach (var onderwerpobjectRef in contactmoment.GingOverOnderwerpobjecten)
+                {
+                    if (onderwerpobjectRef?.Uuid == null) continue;
+
+                    var onderwerpobject = await OpenKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
+
+                    if (onderwerpobject?.Onderwerpobjectidentificator != null &&
+                        onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&
+                        onderwerpobject.Onderwerpobjectidentificator.CodeRegister == "openzaak" &&
+                        onderwerpobject.Onderwerpobjectidentificator.ObjectId == zaak.Uuid)
+                    {
+                        isZaakAlreadyConnected = true;
+                        break;
+                    }
+                }
+            }
+
+            // Create the onderwerpobject to link the zaak to the klantcontact
+            if (!isZaakAlreadyConnected)
+            {
+                await OpenKlantApiClient.CreateOnderwerpobjectAsync(new KlantcontactOnderwerpobjectRequest
+                {
+                    Klantcontact = new KlantcontactReference { Uuid = klantcontactUuid },
+                    WasKlantcontact = null,
+                    Onderwerpobjectidentificator = new Onderwerpobjectidentificator
+                    {
+                        ObjectId = zaak.Uuid,
+                        CodeObjecttype = "zgw-Zaak",
+                        CodeRegister = "openzaak",
+                        CodeSoortObjectId = "uuid"
+                    }
+                });
+            }
         }
 
 
