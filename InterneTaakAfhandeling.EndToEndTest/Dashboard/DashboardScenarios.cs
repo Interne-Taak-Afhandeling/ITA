@@ -14,6 +14,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Ensure test data exists via API");
             var contactverzoekWithZaak = await TestDataHelper.CreateContactverzoek(testOnderwerp, attachZaak: true);
+            RegisterCleanup(async () =>
+            await TestDataHelper.DeleteContactverzoekAsync(contactverzoekWithZaak.ToString()));
 
             await Step("Navigate to home page");
             await Page.GotoAsync("/");
@@ -33,12 +35,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
-            await Expect(onderwerpInDetails).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(onderwerpInDetails).ToBeVisibleAsync();
             var zaakElement = Page.Locator($"text={"ZAAK-2023-002"}");
-            await Expect(zaakElement).ToBeVisibleAsync(new() { Timeout = 10000 });
-
-            await Step("Delete the test klantcontact and contactverzoek");
-            await TestDataHelper.DeleteTestKlantcontact(contactverzoekWithZaak);
+            await Expect(zaakElement).ToBeVisibleAsync();
         }
     }
 }

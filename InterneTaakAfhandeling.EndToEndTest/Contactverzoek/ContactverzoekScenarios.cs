@@ -14,6 +14,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Ensure test data exists via API");
             var contactverzoekWithoutZaak = await TestDataHelper.CreateContactverzoek(testOnderwerp, attachZaak: false);
+            RegisterCleanup(async () =>
+            await TestDataHelper.DeleteContactverzoekAsync(contactverzoekWithoutZaak.ToString()));
 
             await Step("Navigate to home page");
             await Page.GotoAsync("/");
@@ -72,9 +74,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Expect(Page.GetInterneToelichtingLabel()).ToBeVisibleAsync();
             await Expect(Page.GetInterneToelichtingValue()).ToHaveTextAsync("Test contactverzoek from ITA E2E test");
-
-            await Step("Delete the test klantcontact and contactverzoek");
-            await TestDataHelper.DeleteTestKlantcontact(contactverzoekWithoutZaak);
         }
 
         [TestMethod("Validation of details page of contactverzoek that has ZAAK connected to it")]
@@ -84,6 +83,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Ensure test data exists via API");
             var contactverzoekWithZaak = await TestDataHelper.CreateContactverzoek(testOnderwerp, attachZaak: true);
+            RegisterCleanup(async () =>
+            await TestDataHelper.DeleteContactverzoekAsync(contactverzoekWithZaak.ToString()));
 
             await Step("Navigate to home page");
             await Page.GotoAsync("/");
@@ -146,8 +147,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetInterneToelichtingLabel()).ToBeVisibleAsync();
             await Expect(Page.GetInterneToelichtingValue()).ToBeVisibleAsync();
 
-            await Step("Delete the test klantcontact and contactverzoek");
-            await TestDataHelper.DeleteTestKlantcontact(contactverzoekWithZaak);
         }
     }
 }

@@ -26,9 +26,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         private string OpenKlantBaseUrl { get; }
         private string OpenKlantApiKey { get; }
 
-        // Track created contactmomenten for cleanup
-        private readonly List<Guid> _createdContactmomenten = new();
-
         public TestDataHelper(string openKlantBaseUrl, string openKlantApiKey, string objectenApiBaseUrl, string objectenApiKey,
             string zakenApiBaseUrl, string zakenApiKey, string zakenApiClientId,
             IOptions<LogboekOptions> l,
@@ -203,7 +200,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
-                    ObjectId = medewerker.Identificatie ?? throw new InvalidOperationException("Medewerker identificatie cannot be null"),
+                    ObjectId = medewerker.Identificatie!,
                     CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
                     CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
                     CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId
@@ -329,34 +326,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
         }
 
-        public async Task<(Guid contactverzoekWithZaak, Guid contactverzoekWithoutZaak)> CreateBothContactverzoekScenarios()
+        public async Task DeleteContactverzoekAsync(string klantcontactUuid)
         {
-            var contactverzoekWithZaak = await CreateContactverzoek("Test_Contact_with_ZAAK_from_ITA_E2E_test", attachZaak: true);
-            var contactverzoekWithoutZaak = await CreateContactverzoek("Test_Contact_without_ZAAK_from_ITA_E2E_test", attachZaak: false);
-
-            return (contactverzoekWithZaak, contactverzoekWithoutZaak);
-        }
-
-        public async Task DeleteTestKlantcontact(Guid uuid)
-        {
+            var uuid = Guid.Parse(klantcontactUuid);
             try
             {
                 await OpenKlantApiClient.DeleteKlantcontactAsync(uuid);
-                _createdContactmomenten.Remove(uuid);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to delete klantcontact {uuid}: {ex.Message}");
-            }
-        }
-
-        public async Task CleanupAllCreatedData()
-        {
-            var contactmomentenToDelete = _createdContactmomenten.ToList();
-
-            foreach (var uuid in contactmomentenToDelete)
-            {
-                await DeleteTestKlantcontact(uuid);
             }
         }
     }
