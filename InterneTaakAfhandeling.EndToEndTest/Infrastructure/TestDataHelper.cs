@@ -166,7 +166,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             actorForAfdelingToWhichTheContactrequestWillBeAssigned ??= await OpenKlantApiClient.CreateActorAsync(new ActorRequest
             {
                 Naam = "e2e afdeling",
-                SoortActor = SoortActor.organisatorische_eeenheid,
+                SoortActor = SoortActor.organisatorische_eenheid,
                 IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
