@@ -1,6 +1,6 @@
 .. _handleiding_index:
 
-Handleiding beheer..
+Handleiding beheer
 =========================
 
 Achter de menu optie Beheer vindt men de onderdelen aan ITA die je kan beheren. Op dit moment is het alleen mogelijk om de lijst met kanalen te beheren.
