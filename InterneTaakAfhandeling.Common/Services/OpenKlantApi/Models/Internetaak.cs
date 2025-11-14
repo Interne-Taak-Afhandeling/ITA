@@ -1,4 +1,4 @@
-using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
+﻿using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 
@@ -51,6 +51,16 @@ public class InternetakenUpdateRequest
 
     public required string Toelichting { get; set; }
 
+    public required string Status { get; set; }
+}
+
+public class InternetaakPostRequest
+{
+    public required string Nummer { get; set; }
+    public required string GevraagdeHandeling { get; set; }
+    public required UuidObject AanleidinggevendKlantcontact { get; set; }
+    public required List<UuidObject> ToegewezenAanActoren { get; set; }
+    public required string Toelichting { get; set; }
     public required string Status { get; set; }
 }
 

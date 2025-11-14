@@ -1,0 +1,7 @@
+# Playwright Test Configuration
+root = true
+
+[*.cs]
+# Use tabs for C# files in test projects
+indent_style = space
+indent_size = 4

@@ -24,7 +24,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
     public class KlantcontactReference
     {
-        public required string Uuid { get; set; }
+        public required Guid Uuid { get; set; }
     }
 
     public class KlantcontactenResponse

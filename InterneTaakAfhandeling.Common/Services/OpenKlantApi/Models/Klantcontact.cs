@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -7,7 +7,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
     public class Klantcontact
     {
-        public required string Uuid { get; set; }
+        public required Guid Uuid { get; set; }
         public required string Url { get; set; }
         public List<Onderwerpobject>? GingOverOnderwerpobjecten { get; set; }
         public List<Actor> HadBetrokkenActoren { get; set; }
@@ -28,7 +28,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 
     public class Onderwerpobject
     {
-        public string? Uuid { get; set; }
+        public Guid? Uuid { get; set; }
         public string? Url { get; set; }
         public Klantcontact? Klantcontact { get; set; }
         public Klantcontact? WasKlantcontact { get; set; }

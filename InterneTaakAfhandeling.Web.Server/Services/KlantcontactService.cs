@@ -6,8 +6,8 @@ namespace InterneTaakAfhandeling.Web.Server.Services
 {
     public interface IKlantcontactService
     {
-        Task<Klantcontact?> GetEersteKlantcontactInKetenAsync(string klantcontactUuid);
-        Task<List<Klantcontact>> BouwKlantcontactKetenAsync(string startKlantcontactUuid);
+        Task<Klantcontact?> GetEersteKlantcontactInKetenAsync(Guid klantcontactUuid);
+        Task<List<Klantcontact>> BouwKlantcontactKetenAsync(Guid startKlantcontactUuid);
     }
 
     public class KlantcontactService : IKlantcontactService
@@ -23,7 +23,7 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Klantcontact?> GetEersteKlantcontactInKetenAsync(string klantcontactUuid)
+        public async Task<Klantcontact?> GetEersteKlantcontactInKetenAsync(Guid klantcontactUuid)
         {
             try
             {
@@ -34,24 +34,21 @@ namespace InterneTaakAfhandeling.Web.Server.Services
             }
             catch (Exception ex)
             {
-                if (Guid.TryParse(klantcontactUuid, out Guid parsedKlantcontactUuid))
-                {
-                    _logger.LogError(ex, "Fout bij bepalen eerste klantcontact in keten met startpunt {ParsedKlantcontactUuid}",
-                        parsedKlantcontactUuid);
-                }
+                _logger.LogError(ex, "Fout bij bepalen eerste klantcontact in keten met startpunt {ParsedKlantcontactUuid}",
+                    klantcontactUuid);
                 throw new ConflictException(
                     $"Fout bij bepalen eerste klantcontact in keten: {ex.Message}",
                     "KLANTCONTACT_KETEN_BEPALEN_FOUT");
             }
         }
 
-        public async Task<List<Klantcontact>> BouwKlantcontactKetenAsync(string startKlantcontactUuid)
+        public async Task<List<Klantcontact>> BouwKlantcontactKetenAsync(Guid startKlantcontactUuid)
         {
             var aanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(startKlantcontactUuid) ?? throw new ConflictException(
                     $"Klantcontact with UUID {startKlantcontactUuid} not found",
                     "KLANTCONTACT_NOT_FOUND");
             var keten = new List<Klantcontact>();
-            var verwerkte_uuids = new HashSet<string>() { aanleidinggevendKlantcontact.Uuid };
+            var verwerkte_uuids = new HashSet<Guid>() { aanleidinggevendKlantcontact.Uuid };
 
             await VoegKlantcontactenToeAanKeten(aanleidinggevendKlantcontact.Uuid, keten, verwerkte_uuids);
 
@@ -59,11 +56,11 @@ namespace InterneTaakAfhandeling.Web.Server.Services
         }
 
         private async Task VoegKlantcontactenToeAanKeten(
-            string klantcontactUuid,
+            Guid klantcontactUuid,
             List<Klantcontact> keten,
-            HashSet<string> verwerkte_uuids)
+            HashSet<Guid> verwerkte_uuids)
         {
-            var klantcontacten = await _openKlantApiClient.GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(klantcontactUuid);
+            var klantcontacten = await _openKlantApiClient.GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(klantcontactUuid.ToString());
 
             foreach (var klantcontact in klantcontacten)
             {

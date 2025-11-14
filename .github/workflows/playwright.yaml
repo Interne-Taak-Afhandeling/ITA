@@ -1,0 +1,75 @@
+name: Playwright Tests
+on:
+  schedule:
+    - cron: "0 16 * * *"
+  pull_request:
+    branches: [main, master]
+    paths: ["InterneTaakAfhandeling.EndToEndTest/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: playwright-tests-group
+  cancel-in-progress: false
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./InterneTaakAfhandeling.EndToEndTest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet build
+      - name: Ensure browsers are installed
+        run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
+      - name: Run your tests
+        id: e2e
+        run: dotnet test
+        env:
+          "TestSettings:TEST_USERNAME": ${{ secrets.PLAYWRIGHT_USERNAME }}
+          "TestSettings:TEST_PASSWORD": "${{ secrets.PLAYWRIGHT_PASSWORD }}"
+          "TestSettings:TEST_TOTP_SECRET": ${{ secrets.PLAYWRIGHT_TOTP_SECRET }}
+          "TestSettings:TEST_BASE_URL": ${{ secrets.PLAYWRIGHT_BASE_URL }}
+          "TestSettings:OpenKlantApi:BaseUrl": ${{ secrets.PLAYWRIGHT_OPENKLANTAPI_BASEURL }}
+          "TestSettings:OpenKlantApi:ApiKey": ${{ secrets.PLAYWRIGHT_OPENKLANTAPI_APIKEY }}
+          "TestSettings:ObjectApi:BaseUrl": ${{ secrets.PLAYWRIGHT_OBJECTAPI_BASEURL }}
+          "TestSettings:ObjectApi:ApiKey": ${{ secrets.PLAYWRIGHT_OBJECTAPI_APIKEY }}
+          "TestSettings:LogBoekOptions:TypeVersion": ${{ secrets.PLAYWRIGHT_LOGBOEKOPTIONS_TYPEVERSION }}
+          "TestSettings:LogBoekOptions:Type": ${{ secrets.PLAYWRIGHT_LOGBOEKOPTIONS_TYPE }}
+          "TestSettings:GroepOptions:TypeVersion": ${{ secrets.PLAYWRIGHT_GROEPOPTIONS_TYPEVERSION }}
+          "TestSettings:GroepOptions:Type": ${{ secrets.PLAYWRIGHT_GROEPOPTIONS_TYPE }}
+          "TestSettings:AfdelingOptions:TypeVersion": ${{ secrets.PLAYWRIGHT_AFDELINGOPTIONS_TYPEVERSION }}
+          "TestSettings:AfdelingOption:Type": ${{ secrets.PLAYWRIGHT_AFDELINGOPTIONS_TYPE }}
+      - name: Upload artifact
+        if: ${{ always() }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # directory of your reports
+          path: "./InterneTaakAfhandeling.EndToEndTest/bin/Debug/net8.0/playwright-traces"
+      - name: Upload Playwright screenshots
+        if: always() # Ensures this runs even if the tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: InterneTaakAfhandeling.EndToEndTest/bin/Debug/net8.0/screenshots/
+  deploy:
+    if: ${{ always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    needs: test
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
