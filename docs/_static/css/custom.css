@@ -1,0 +1,14 @@
+@import 'theme.css';
+
+
+/* correctie  om tabellen beter leesbaar te maken */
+
+.wy-table-responsive table{
+  width: 100%;
+}
+
+.wy-table-responsive table td {
+  white-space: normal !important;
+}
+
+/* --------------------------------------------- */
