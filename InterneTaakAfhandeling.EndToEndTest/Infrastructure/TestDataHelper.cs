@@ -1,8 +1,10 @@
-﻿using InterneTaakAfhandeling.Common.Services;
+﻿using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -19,11 +21,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
     {
         private OpenKlantApiClient OpenKlantApiClient { get; }
         private ObjectApiClient ObjectApiClient { get; }
+        private ZakenApiClient ZakenApiClient { get; }
         private string Username { get; }
         private string OpenKlantBaseUrl { get; }
         private string OpenKlantApiKey { get; }
 
         public TestDataHelper(string openKlantBaseUrl, string openKlantApiKey, string objectenApiBaseUrl, string objectenApiKey,
+            string zakenApiBaseUrl, string zakenApiKey, string zakenApiClientId,
             IOptions<LogboekOptions> l,
             IOptions<AfdelingOptions> a,
             IOptions<GroepOptions> g,
@@ -55,21 +59,28 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             objectApiHttpClient.DefaultRequestHeaders.Add("Content-Crs", "EPSG:4326");
 
             ObjectApiClient = new ObjectApiClient(objectApiHttpClient, loggerFactory.CreateLogger<ObjectApiClient>(), l, a, g);
+
+            // create the ZakenApiClient instance
+            var zakenApiHttpClient = new HttpClient
+            {
+                BaseAddress = new Uri(zakenApiBaseUrl)
+            };
+
+            var zakenApiToken = ApiClientExtensions.GenerateZakenApiToken(zakenApiKey, zakenApiClientId);
+            zakenApiHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", zakenApiToken);
+            zakenApiHttpClient.DefaultRequestHeaders.Add("Accept-Crs", "EPSG:4326");
+
+            ZakenApiClient = new ZakenApiClient(zakenApiHttpClient, loggerFactory.CreateLogger<ZakenApiClient>());
         }
 
-        public async Task<Guid> CreateContactverzoek(string onderwerp = "Test_Contact_from_ITA_E2E_test")
+        public async Task<Guid> CreateContactverzoek(string onderwerp = "Test_Contact_from_ITA_E2E_test", bool attachZaak = true)
         {
-            //we need to add multiplethings to create a contactverzoek.
-            //for each we will check if it already exists to avoid creating duplicates on multiple test runs
-
             var testContactmomentOnderwerp = onderwerp;
-            var testContactverzoekNummer = "8001321008";
-
-            // OPTION: Uncomment the next line to always create fresh data with current timestamp
-            // await DeleteTestKlantcontact();
+            var testContactverzoekNummer = attachZaak ? "8001321008" : "8001321009";
+            var testZaakIdentificatie = "ZAAK-2023-002";
 
             //the contactmoment is the basis of a contactverzoek
-            //check if it already exists
+            // Check if contactmoment already exists
             var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(new KlantcontactQuery
             {
                 Onderwerp = testContactmomentOnderwerp,
@@ -118,7 +129,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 }
             });
 
-            //- connect that actor to the contactmoment, if they are not connected allready
+            // Connect actor to contactmoment if not already connected
             if (!contactmoment.HadBetrokkenActoren.Any(a => a.Uuid == actorWhoSubmittedTheContactrequest.Uuid))
             {
                 await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
@@ -136,13 +147,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             //find the objectenapi afdeling to which we will assign the internetaak
             //depending on what we're going to test we'll probably need to do the same for medewerker and groep
-            var afdelingen = await ObjectApiClient.FindAfdelingen("Burgerzaken_ibz");
 
+            var afdelingen = await ObjectApiClient.FindAfdelingen("Burgerzaken_ibz");
             Assert.AreEqual(1, afdelingen.Results.Count, "Expected exactly one afdeling with name 'Burgerzaken_ibz' in objectenapi for testing.");
             var afdeling = afdelingen.Results.First();
 
-            //- assigning the internetaak to the actor representing the afdeling (do the same for a medewerker?)
-            //first check if that actor already exists
+            // Get or create actor for afdeling
             var actorForAfdelingToWhichTheContactrequestWillBeAssigned = await OpenKlantApiClient.QueryActorAsync(new ActorQuery
             {
                 ActoridentificatorCodeObjecttype = KnownAfdelingIdentificators.ObjectRegisterId.CodeObjecttype,
@@ -169,7 +179,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             // Find the medewerker from the objectenapi to which we will assign the internetaak
             var medewerkers = await ObjectApiClient.GetMedewerkersByIdentificatie("icatt-integratie-test@icatt.nl");
-
             Assert.AreEqual(1, medewerkers.Count, "Expected exactly one medewerker with identificatie 'icatt-integratie-test@icatt.nl' in objectenapi for testing.");
             var medewerker = medewerkers.First();
 
@@ -191,15 +200,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 IndicatieActief = true,
                 Actoridentificator = new Actoridentificator
                 {
-                    ObjectId = medewerker.Identificatie ?? throw new InvalidOperationException("Medewerker identificatie cannot be null"),
+                    ObjectId = medewerker.Identificatie!,
                     CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
                     CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
                     CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId
                 }
             });
 
-            //- the internetaak/contactverzoek
-            //first check if it already exists
+            // Check if internetaak already exists
             var internetaken = await OpenKlantApiClient.QueryInterneTakenAsync(new InterneTaakQuery
             {
                 Nummer = testContactverzoekNummer
@@ -209,7 +217,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             if (internetaken.Count == 0)
             {
-                var createdInternetaak = await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
+                await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
                 {
                     AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmoment.Uuid },
                     GevraagdeHandeling = "terugbellen svp",
@@ -217,19 +225,124 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     Status = KnownInternetaakStatussen.TeVerwerken,
                     ToegewezenAanActoren = [
                         new UuidObject { Uuid = Guid.Parse(actorForMedewerkerToWhichTheContactrequestWillBeAssigned.Uuid) },
-                    new UuidObject { Uuid = Guid.Parse(actorForAfdelingToWhichTheContactrequestWillBeAssigned.Uuid) }
+                        new UuidObject { Uuid = Guid.Parse(actorForAfdelingToWhichTheContactrequestWillBeAssigned.Uuid) }
                     ],
                     Toelichting = "Test contactverzoek from ITA E2E test"
                 });
             }
 
+            // Optionally attach zaak
+            if (attachZaak)
+            {
+                await AttachZaakToContactmomentAsync(contactmoment.Uuid, testZaakIdentificatie);
+            }
+
             return contactmoment.Uuid;
         }
 
-
-        public async Task DeleteTestKlantcontact(Guid uuid)
+        private async Task AttachZaakToContactmomentAsync(Guid klantcontactUuid, string zaakIdentificatie)
         {
-            await OpenKlantApiClient.DeleteKlantcontactAsync(uuid);
+            var zaak = await ZakenApiClient.GetZaakByIdentificatieAsync(zaakIdentificatie);
+
+            if (zaak == null)
+            {
+                return;
+            }
+
+            // Refresh contactmoment to get the latest onderwerpobjecten
+            var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(klantcontactUuid);
+
+            // Check if zaak is already connected via an onderwerpobject
+            var isZaakAlreadyConnected = false;
+            if (contactmoment.GingOverOnderwerpobjecten?.Count > 0)
+            {
+                foreach (var onderwerpobjectRef in contactmoment.GingOverOnderwerpobjecten)
+                {
+                    if (onderwerpobjectRef?.Uuid == null) continue;
+
+                    var onderwerpobject = await OpenKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
+
+                    if (onderwerpobject?.Onderwerpobjectidentificator != null &&
+                        onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&
+                        onderwerpobject.Onderwerpobjectidentificator.CodeRegister == "openzaak" &&
+                        onderwerpobject.Onderwerpobjectidentificator.ObjectId == zaak.Uuid)
+                    {
+                        isZaakAlreadyConnected = true;
+                        break;
+                    }
+                }
+            }
+
+            // Create the onderwerpobject to link the zaak to the klantcontact
+            if (!isZaakAlreadyConnected)
+            {
+                await OpenKlantApiClient.CreateOnderwerpobjectAsync(new KlantcontactOnderwerpobjectRequest
+                {
+                    Klantcontact = new KlantcontactReference { Uuid = klantcontactUuid },
+                    WasKlantcontact = null,
+                    Onderwerpobjectidentificator = new Onderwerpobjectidentificator
+                    {
+                        ObjectId = zaak.Uuid,
+                        CodeObjecttype = "zgw-Zaak",
+                        CodeRegister = "openzaak",
+                        CodeSoortObjectId = "uuid"
+                    }
+                });
+            }
+        }
+
+
+        /// <summary>
+        /// Retrieves the ZAAK identificatie connected to a contactverzoek
+        /// </summary>
+        public async Task<string?> GetZaakIdentificatieFromContactverzoek(Guid klantcontactUuid)
+        {
+            try
+            {
+                var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(klantcontactUuid);
+
+                if (contactmoment?.GingOverOnderwerpobjecten == null || contactmoment.GingOverOnderwerpobjecten.Count == 0)
+                {
+                    return null;
+                }
+
+                foreach (var onderwerpobjectRef in contactmoment.GingOverOnderwerpobjecten)
+                {
+                    if (onderwerpobjectRef?.Uuid == null) continue;
+
+                    var onderwerpobject = await OpenKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
+
+                    if (onderwerpobject?.Onderwerpobjectidentificator != null &&
+                        onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&
+                        onderwerpobject.Onderwerpobjectidentificator.CodeRegister == "openzaak")
+                    {
+                        var zaakUuid = onderwerpobject.Onderwerpobjectidentificator.ObjectId;
+                        var zaak = await ZakenApiClient.GetZaakAsync(zaakUuid);
+
+                        return zaak?.Identificatie;
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to get ZAAK identificatie for klantcontact {klantcontactUuid}: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task DeleteContactverzoekAsync(string klantcontactUuid)
+        {
+            var uuid = Guid.Parse(klantcontactUuid);
+            try
+            {
+                await OpenKlantApiClient.DeleteKlantcontactAsync(uuid);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to delete klantcontact {uuid}: {ex.Message}");
+            }
         }
     }
 }
