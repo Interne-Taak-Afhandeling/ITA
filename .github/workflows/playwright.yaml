@@ -50,6 +50,9 @@ jobs:
           "TestSettings:GroepOptions:Type": ${{ secrets.PLAYWRIGHT_GROEPOPTIONS_TYPE }}
           "TestSettings:AfdelingOptions:TypeVersion": ${{ secrets.PLAYWRIGHT_AFDELINGOPTIONS_TYPEVERSION }}
           "TestSettings:AfdelingOption:Type": ${{ secrets.PLAYWRIGHT_AFDELINGOPTIONS_TYPE }}
+          "TestSettings__ZakenApi__BaseUrl": ${{ secrets.ZAKENAPIBASEURL }}
+          "TestSettings__ZakenApi__Key": ${{ secrets.ZAKENAPIKEY }}
+          "TestSettings__ZakenApi__ClientId": ${{ secrets.ZAAKENAPICLIENTID }}
       - name: Upload artifact
         if: ${{ always() }}
         uses: actions/upload-pages-artifact@v3
