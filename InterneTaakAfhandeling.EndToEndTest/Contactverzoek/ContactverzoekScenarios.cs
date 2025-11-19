@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using Microsoft.Playwright;
 
@@ -147,6 +148,214 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetInterneToelichtingLabel()).ToBeVisibleAsync();
             await Expect(Page.GetInterneToelichtingValue()).ToBeVisibleAsync();
 
+        }
+
+        [TestMethod("Validation of fields and registering Contactmoment, Contact opnemen gelukt")]
+        public async Task User_RegisterContactmoment_ContactOpnemenGelukt()
+        {
+            var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
+
+            await Step("Ensure test data exists via API");
+            var contactverzoekWithoutZaak = await TestDataHelper.CreateContactverzoek(testOnderwerp, attachZaak: false);
+            RegisterCleanup(async () =>
+            await TestDataHelper.DeleteContactverzoekAsync(contactverzoekWithoutZaak.ToString()));
+
+            await Step("Navigate to home page");
+            await Page.GotoAsync("/");
+
+            await Step("Wait for dashboard to load");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Click on contactverzoek to view details");
+            var onderwerpElement = Page.Locator($"text={testOnderwerp}");
+            await Expect(onderwerpElement).ToBeVisibleAsync();
+
+            var detailsLink = Page.GetDetailsLink(testOnderwerp);
+            await detailsLink.ClickAsync();
+
+            await Step("Verify details page loads");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Navigate to Contactmoment Registreren tab");
+            var contactmomentTab = Page.GetContactmomentRegistrerenTab();
+            await contactmomentTab.ClickAsync();
+
+            await Step("under Resultaat the option  Contact opnemen gelukt is selected");
+            await Expect(Page.GetByText("Contact opnemen gelukt")).ToBeCheckedAsync();
+
+            await Step("user clicks on 'Contactmoment opslaan");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("error message as Please select one of these options appears for question Wil je het contactmoment afsluiten?");
+            var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
+            await Expect(radioButton).ToHaveJSPropertyAsync("validationMessage", "Please select one of these options.");
+
+            await Step("when user selects Nee for Wil je het contactmoment afsluiten?");
+            await Page.GetByLabel("Nee").ClickAsync();
+
+            await Step("user clicks on 'Contactmoment opslaan");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("error message as Please select an item in the list or Selecteer een item in de lijst. is displayed for the field Kanaal");
+            var kanaalSelect = Page.Locator("#kanalen");
+            await Expect(kanaalSelect).ToHaveJSPropertyAsync("validationMessage", "Please select an item in the list.");
+
+            await Step("when User selects a channel from the list in field Kanaal  ");
+            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
+
+            await Step("clicks on 'Contactmoment opslaan'");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("error message as Please fill in this field or Vul dit veld in is displayed for the field Informatie voor burger/bedrijf");
+            var informatieField = Page.Locator("#informatie-burger");
+            await Expect(informatieField).ToHaveJSPropertyAsync("validationMessage", "Please fill in this field.");
+
+            await Step("when user enters some text in field Informatie voor burger/bedrijf");
+            await informatieField.FillAsync("Test information for contactmoment");
+
+            await Step("clicks on 'Contactmoment opslaan'");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("a Success message is displayed");
+            await Expect(Page.GetByText("Contactmoment succesvol bijgewerkt")).ToBeVisibleAsync();
+
+            await Step("wait for data to be processed");
+            await Page.WaitForTimeoutAsync(2000); // Wait 2 seconds
+
+            await Step("refresh page to ensure Logboek is fully loaded");
+            await Page.ReloadAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("verify Contact gelukt is displayed in Logboek");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" })).ToBeVisibleAsync();
+            await Expect(Page.GetByText("Contact gelukt")).ToBeVisibleAsync();
+
+            await Step("verify the entered information is visible in Logboek");
+            await Expect(Page.GetByRole(AriaRole.Paragraph).Filter(new() { HasText = "Test information for contactmoment" })).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Validation of fields and registering Contactmoment, Contact opnemen niet gelukt")]
+        public async Task User_RegisterContactmoment_ContactOpnemenNietGelukt()
+        {
+            var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
+
+            await Step("Ensure test data exists via API");
+            var contactverzoekWithoutZaak = await TestDataHelper.CreateContactverzoek(testOnderwerp, attachZaak: false);
+            RegisterCleanup(async () =>
+            await TestDataHelper.DeleteContactverzoekAsync(contactverzoekWithoutZaak.ToString()));
+
+            await Step("Navigate to home page");
+            await Page.GotoAsync("/");
+
+            await Step("Wait for dashboard to load");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Click on contactverzoek to view details");
+            var onderwerpElement = Page.Locator($"text={testOnderwerp}");
+            await Expect(onderwerpElement).ToBeVisibleAsync();
+
+            var detailsLink = Page.GetDetailsLink(testOnderwerp);
+            await detailsLink.ClickAsync();
+
+            await Step("Verify details page loads");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Navigate to Contactmoment Registreren tab");
+            var contactmomentTab = Page.GetContactmomentRegistrerenTab();
+            await contactmomentTab.ClickAsync();
+
+            await Step("under Resultaat the option  Contact opnemen gelukt is selected");
+            await Expect(Page.GetByText("Contact opneme gelukt")).ToBeCheckedAsync();
+
+            await Step("user selects “Contact opnemen niet gelukt” under “Resultaat");
+            await Page.GetByText("Contact opnemen niet gelukt").ClickAsync();
+
+            await Step("user clicks on 'Contactmoment opslaan");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("error message as Please select one of these options appears for question Wil je het contactmoment afsluiten?");
+            var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
+            await Expect(radioButton).ToHaveJSPropertyAsync("validationMessage", "Please select one of these options.");
+
+            await Step("when user selects Nee for Wil je het contactmoment afsluiten?");
+            await Page.GetByLabel("Nee").ClickAsync();
+
+            await Step("user clicks on 'Contactmoment opslaan");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("error message as Please select an item in the list or Selecteer een item in de lijst. is displayed for the field Kanaal");
+            var kanaalSelect = Page.Locator("#kanalen");
+            await Expect(kanaalSelect).ToHaveJSPropertyAsync("validationMessage", "Please select an item in the list.");
+
+            await Step("when User selects a channel from the list in field Kanaal  ");
+            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
+
+            await Step("verify that Informatie voor burger/bedrijf is NOT mandatory for niet gelukt");
+            var informatieField = Page.Locator("#informatie-burger");
+            var isRequired = await informatieField.GetAttributeAsync("required");
+            Assert.IsNull(isRequired, "Informatie field should not be required for 'Contact opnemen niet gelukt'");
+
+            await Step("user can save without filling Informatie voor burger/bedrijf");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("a Success message is displayed");
+            await Expect(Page.GetByText("Contactmoment succesvol bijgewerkt")).ToBeVisibleAsync();
+
+            await Step("wait for data to be processed");
+            await Page.WaitForTimeoutAsync(2000);
+
+            await Step("refresh page to ensure Logboek is fully loaded");
+            await Page.ReloadAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("verify Contact niet gelukt is displayed in Logboek");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" })).ToBeVisibleAsync();
+            await Expect(Page.GetByText("Contact niet gelukt")).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Validation of contactverzoek with BSN connected partij")]
+        public async Task User_ViewContactverzoek_WithBSNPartij()
+        {
+            var testOnderwerp = "Test_Contact_with_BSN_Partij";
+
+            await Step("Ensure test data exists via API with BSN partij");
+
+            var klantcontactUuid = await TestDataHelper.CreateContactverzoekWithAfdelingMedewerkerAndPartij(
+        onderwerp: testOnderwerp,
+        bsn: "999992223",
+        attachZaak: false
+    );
+
+            await Step("Wait for data to be fully propagated");
+            await Page.WaitForTimeoutAsync(3000);
+
+            await Step("Navigate to home page");
+            await Page.GotoAsync("/");
+
+            await Step("Wait for dashboard to load");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Click on contactverzoek to view details");
+            var onderwerpElement = Page.Locator($"text={testOnderwerp}");
+            await Expect(onderwerpElement).ToBeVisibleAsync();
+
+            var detailsLink = Page.GetDetailsLink(testOnderwerp);
+            await detailsLink.ClickAsync();
+
+            await Step("Verify details page loads");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Check klant field and contactverzoek page");
+
+            var klantnaamPresent = await Page.GetByText("Klantnaam").CountAsync() > 0;
+            var telefoonnummerPresent = await Page.GetByText("Telefoonnummer").CountAsync() > 0;
+            var emailPresent = await Page.GetByText("E-mail").CountAsync() > 0;
+
+            await Step("Verify contactverzoek details are accessible");
+            var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
+            await Expect(onderwerpInDetails).ToBeVisibleAsync();
+
+            await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();
         }
     }
 }
