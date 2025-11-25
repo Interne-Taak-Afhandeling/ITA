@@ -26,7 +26,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
     [TestClass]
     public class ITAPlaywrightTest : PageTest
     {
-        private const string StoragePath = "./auth.json";
         public TestDataHelper TestDataHelper { get; }
 
         public ITAPlaywrightTest()
@@ -45,6 +44,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var objectenApiBaseUrl = GetRequiredConfig("TestSettings:ObjectApi:BaseUrl");
             var objectenApiKey = GetRequiredConfig("TestSettings:ObjectApi:ApiKey");
 
+            var zakenApiBaseUrl = GetRequiredConfig("TestSettings:ZakenApi:BaseUrl");
+            var zakenApiKey = GetRequiredConfig("TestSettings:ZakenApi:Key");
+            var zakenApiClientId = GetRequiredConfig("TestSettings:ZakenApi:ClientId");
+
+
             var services = new ServiceCollection();
             services.AddOptions();
             services.Configure<AfdelingOptions>(s_configuration.GetSection("TestSettings:AfdelingOptions"));
@@ -62,12 +66,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 openklantApiKey,
                 objectenApiBaseUrl,
                 objectenApiKey,
+                zakenApiBaseUrl,
+                zakenApiKey,
+                zakenApiClientId,
                 logboekOptions,
                 afdelingOptions,
                 groepOptions,
                 username);
 
         }
+
+        private const string StoragePath = "./auth.json";
 
 
         /// <summary>
@@ -280,6 +289,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src https://unpkg.com/simpledotcss@2.3.3/simple.min.css 'sha256-l0D//z1BZPnhAdIJ0lA8dsfuil0AB4xBpnOa/BhNVoU=' 'unsafe-inline';">
