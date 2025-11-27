@@ -195,6 +195,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var noteText = "This is a test note added during ITA E2E testing.";
             await toelichtingTextarea.FillAsync(noteText);
 
+            await Step("Click on 'Opslaan' button to save the note");
+            var opslaanButton = Page.GetOpslaanButton();
+            await opslaanButton.ClickAsync();
+
+            await Step("Verify the note has been added successfully in logboek");
+            var savedNote = Page.Locator($"text={noteText}");
+            await Expect(savedNote).ToBeVisibleAsync();
+
         }
     }
 }
