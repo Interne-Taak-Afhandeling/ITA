@@ -148,5 +148,53 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetInterneToelichtingValue()).ToBeVisibleAsync();
 
         }
+
+
+        [TestMethod("Add a note to contactverzoek that has ZAAK connected to it")]
+        public async Task User_AddNoteToContactverzoekWithZAAK_FromDashboard()
+        {
+            var testOnderwerp = "Test_Contact_from_ITA_E2E_test_with_ZAAK";
+
+            await Step("Ensure test data exists via API");
+            var contactverzoekWithZaak = await TestDataHelper.CreateContactverzoek(testOnderwerp, attachZaak: true);
+            RegisterCleanup(async () =>
+            await TestDataHelper.DeleteContactverzoekAsync(contactverzoekWithZaak.ToString()));
+
+            await Step("Navigate to home page");
+            await Page.GotoAsync("/");
+
+            await Step("Wait for dashboard to load");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Click on contactverzoek to view details");
+            var onderwerpElement = Page.Locator($"text={testOnderwerp}");
+            await Expect(onderwerpElement).ToBeVisibleAsync();
+
+            var detailsLink = Page.GetDetailsLink(testOnderwerp);
+            await detailsLink.ClickAsync();
+
+            await Step("Verify details page loads");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify contactverzoek details are accessible");
+            var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
+            await Expect(onderwerpInDetails).ToBeVisibleAsync();
+            var zaakElement = Page.Locator($"text={"ZAAK-2023-002"}");
+            await Expect(zaakElement).ToBeVisibleAsync();
+
+            await Step("Verify contactverzoek field values");
+            await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();
+            await Expect(Page.GetKlantnaamValue()).ToHaveTextAsync("-");
+
+            await Step("User clicks on 'Alleen toelichting' tab");
+            var alleenToelichtingTab = Page.GetAlleenToelichtingTab();
+            await alleenToelichtingTab.ClickAsync();
+
+            await Step("Add a note to the contactverzoek");
+            var toelichtingTextarea = Page.GetToelichtingTextarea();
+            var noteText = "This is a test note added during ITA E2E testing.";
+            await toelichtingTextarea.FillAsync(noteText);
+
+        }
     }
 }

@@ -97,5 +97,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetInterneToelichtingValue(this IPage page) =>
             page.GetByText("Test contactverzoek from ITA E2E test");
+
+        public static ILocator GetToelichtingTextarea(this IPage page) =>
+        // page.Locator("#interne-toelichting-textv-2");
+
+        page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting *" });
+
+
+        public static ILocator GetOpslaanButton(this IPage page)
+        {
+            return page.Locator("button:has-text('Opslaan')");
+        }
     }
 }
