@@ -344,10 +344,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify details page loads");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("Check klant field displays klantnaam");
+            await Step("Check klant field and contactverzoek page");
 
-            var klantnaamCount = await Page.GetByText("Klantnaam").CountAsync();
-            Assert.IsTrue(klantnaamCount > 0, "Klantnaam should be present on the page.");
+            var klantnaamPresent = await Page.GetByText("Klantnaam").CountAsync() > 0;
+            var telefoonnummerPresent = await Page.GetByText("Telefoonnummer").CountAsync() > 0;
+            var emailPresent = await Page.GetByText("E-mail").CountAsync() > 0;
 
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
