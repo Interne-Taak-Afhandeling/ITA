@@ -1,4 +1,6 @@
-﻿namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
+﻿using System;
+
+namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
     public class PartijReference
     {
