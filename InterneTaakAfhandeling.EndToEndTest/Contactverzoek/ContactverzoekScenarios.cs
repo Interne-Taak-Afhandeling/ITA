@@ -319,8 +319,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var testOnderwerp = "Test_Contact_with_BSN_Partij";
 
             await Step("Ensure test data exists via API with BSN partij");
-
-            var klantcontactUuid = await TestDataHelper.CreateContactverzoekWithAfdelingMedewerkerAndPartij(
+            await TestDataHelper.CreateContactverzoekWithAfdelingMedewerkerAndPartij(
         onderwerp: testOnderwerp,
         bsn: "999992223",
         attachZaak: false
@@ -345,11 +344,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify details page loads");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("Check klant field and contactverzoek page");
+            await Step("Check klant field displays klantnaam");
 
-            var klantnaamPresent = await Page.GetByText("Klantnaam").CountAsync() > 0;
-            var telefoonnummerPresent = await Page.GetByText("Telefoonnummer").CountAsync() > 0;
-            var emailPresent = await Page.GetByText("E-mail").CountAsync() > 0;
+            var klantnaamCount = await Page.GetByText("Klantnaam").CountAsync();
+            Assert.IsTrue(klantnaamCount > 0, "Klantnaam should be present on the page.");
 
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");

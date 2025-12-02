@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 
+
 namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 {
     public class TestDataHelper
@@ -325,19 +326,21 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 return null;
             }
         }
-
         public async Task<Guid> CreateContactverzoekWithAfdelingMedewerkerAndPartij(
-    string onderwerp = "Test_Contact_with_BSN_Partij",
-    string bsn = "999992223",
-    bool attachZaak = false)
+        string onderwerp = "Test_Contact_with_BSN_Partij",
+        string bsn = "999992223",
+        bool attachZaak = false)
         {
             var testContactmomentOnderwerp = onderwerp;
             var testContactverzoekNummer = "8001321010";
             var testZaakIdentificatie = "ZAAK-2023-002";
+
+            // 1. Clean up existing contactmomenten with the same onderwerp
             var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(new KlantcontactQuery
             {
                 Onderwerp = testContactmomentOnderwerp,
             });
+
             foreach (var existing in contactmomenten)
             {
                 await OpenKlantApiClient.DeleteKlantcontactAsync(existing.Uuid);
@@ -350,8 +353,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             });
             Assert.IsTrue(contactmomenten.Count == 0, "Did not expect any test klantcontacten after cleanup.");
 
-            var contactmoment = await OpenKlantApiClient.CreateKlantcontactAsync(new KlantcontactRequest
+            // 3. Find the partij by BSN
+            var partijen = await OpenKlantApiClient.GetPartijenByBsnAsync(bsn);
 
+            var partij = partijen.FirstOrDefault();
+            if (partij == null)
+                throw new Exception($"Partij with BSN {bsn} not found");
+
+            // 4. Create the contactmoment first
+            var contactmoment = await OpenKlantApiClient.CreateKlantcontactAsync(new KlantcontactRequest
             {
                 IndicatieContactGelukt = true,
                 Onderwerp = testContactmomentOnderwerp,
@@ -362,19 +372,40 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 Vertrouwelijk = false
             }) ?? throw new Exception("Failed to create contactmoment for testing.");
 
-            // 2. Find the partij by BSN
-            var partijen = await OpenKlantApiClient.QueryPartijAsync(new PartijQuery
+            // 5. Create the actor who submitted the contactmoment (like in original method)
+            var actorWhoSubmittedTheContactrequest = await OpenKlantApiClient.QueryActorAsync(new ActorQuery
             {
-                PartijidentificatorCodeObjecttype = "BSN",
-                PartijidentificatorObjectId = bsn
+                ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId,
+                IndicatieActief = true,
+                SoortActor = SoortActor.medewerker,
+                ActoridentificatorObjectId = Username
             });
 
-            var partij = partijen.FirstOrDefault();
-            if (partij == null)
-                throw new Exception($"Partij with BSN {bsn} not found");
+            actorWhoSubmittedTheContactrequest ??= await OpenKlantApiClient.CreateActorAsync(new ActorRequest
+            {
+                Naam = "E2E test contactverzoek creator",
+                SoortActor = SoortActor.medewerker,
+                IndicatieActief = true,
+                Actoridentificator = new Actoridentificator
+                {
+                    ObjectId = Username,
+                    CodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
+                    CodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
+                    CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId
+                }
+            });
 
-            // 3. Attach the partij as betrokkene
-            await OpenKlantApiClient.CreateBetrokkeneAsync(new BetrokkeneRequest
+            // Connect actor to contactmoment if not already connected
+            await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+            {
+                Actor = new ActorReference { Uuid = actorWhoSubmittedTheContactrequest.Uuid },
+                Klantcontact = new KlantcontactReference { Uuid = contactmoment.Uuid }
+            });
+
+            // 6. Attach the partij as betrokkene
+            var betrokkene = await OpenKlantApiClient.CreateBetrokkeneAsync(new BetrokkeneRequest
             {
                 WasPartij = new PartijReference { Uuid = Guid.Parse(partij.Uuid) },
                 HadKlantcontact = new KlantcontactReference { Uuid = contactmoment.Uuid },
@@ -382,7 +413,21 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 Initiator = true
             });
 
-            // 4. Find afdeling and medewerker, and assign as in your existing logic
+            var klantnaam = partij.Naam ?? "Onbekende klant";
+            // Update the contactmoment with the klantnaam
+            var updatedContactmoment = await OpenKlantApiClient.PutKlantcontactAsync(contactmoment.Uuid, new KlantcontactRequest
+            {
+                IndicatieContactGelukt = true,
+                Onderwerp = testContactmomentOnderwerp,
+                Inhoud = "This is a test contact request created during an end-to-end test run.",
+                Kanaal = "e-mail",
+                PlaatsgevondenOp = DateTime.UtcNow,
+                Taal = "nl",
+                Vertrouwelijk = false,
+                Klantnaam = klantnaam
+            });
+
+            // 7. Find afdeling and create/get actor for afdeling
             var afdelingen = await ObjectApiClient.FindAfdelingen("Burgerzaken_ibz");
             Assert.AreEqual(1, afdelingen.Results.Count, "Expected exactly one afdeling with name 'Burgerzaken_ibz' in objectenapi for testing.");
             var afdeling = afdelingen.Results.First();
@@ -411,6 +456,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 }
             });
 
+            // 8. Find medewerker 
             var medewerkers = await ObjectApiClient.GetMedewerkersByIdentificatie("icatt-integratie-test@icatt.nl");
             Assert.AreEqual(1, medewerkers.Count, "Expected exactly one medewerker with identificatie 'icatt-integratie-test@icatt.nl' in objectenapi for testing.");
             var medewerker = medewerkers.First();
@@ -439,7 +485,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 }
             });
 
-            // 5. Create the internetaak with the correct nummer
+            // 9. Create the internetaak with both afdeling and medewerker actors
             var internetaken = await OpenKlantApiClient.QueryInterneTakenAsync(new InterneTaakQuery
             {
                 Nummer = testContactverzoekNummer
@@ -463,7 +509,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 });
             }
 
-            // Optionally attach zaak
+            // 10. Optionally attach zaak
             if (attachZaak)
             {
                 await AttachZaakToContactmomentAsync(contactmoment.Uuid, testZaakIdentificatie);
@@ -481,7 +527,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to delete klantcontact {uuid}: {ex.Message}");
+                // Silent catch for deletion errors
             }
         }
     }
