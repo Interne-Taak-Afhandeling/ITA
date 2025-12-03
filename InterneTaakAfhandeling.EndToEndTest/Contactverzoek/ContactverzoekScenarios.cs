@@ -204,5 +204,60 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(savedNote).ToBeVisibleAsync();
 
         }
+
+
+        [TestMethod("Add a note with the actions contact moment and no answer")]
+        public async Task User_AddNoteWithContactMomentNoAnswer_FromDashboard()
+        {
+            var testOnderwerp = "Test_Contact_from_ITA_E2E_test_with_ZAAK";
+
+            await Step("Ensure test data exists via API");
+            var contactverzoekWithZaak = await TestDataHelper.CreateContactverzoek(testOnderwerp, attachZaak: true);
+            RegisterCleanup(async () =>
+            await TestDataHelper.DeleteContactverzoekAsync(contactverzoekWithZaak.ToString()));
+
+            await Step("Navigate to home page");
+            await Page.GotoAsync("/");
+
+            await Step("Wait for dashboard to load");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Click on contactverzoek to view details");
+            var onderwerpElement = Page.Locator($"text={testOnderwerp}");
+            await Expect(onderwerpElement).ToBeVisibleAsync();
+
+            var detailsLink = Page.GetDetailsLink(testOnderwerp);
+            await detailsLink.ClickAsync();
+
+            await Step("Verify details page loads");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify contactverzoek details are accessible");
+            var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
+            await Expect(onderwerpInDetails).ToBeVisibleAsync();
+            var zaakElement = Page.Locator($"text={"ZAAK-2023-002"}");
+            await Expect(zaakElement).ToBeVisibleAsync();
+
+            await Step("user click on Contact opnemen niet gelukt and selects Nee");
+            await Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen niet gelukt" }).CheckAsync();
+            await Page.GetByRole(AriaRole.Radio, new() { Name = "Nee" }).CheckAsync();
+
+            await Step("user selects E-mail as kanaal");
+            await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { "E-mail" });
+
+            await Step("user adds internal note and saves contact moment");
+            await Page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting" }).ClickAsync();
+            var noteText = "test note via contact moment no answer";
+            await Page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting" }).FillAsync(noteText);
+
+            await Step("Click on ' Contactmoment Opslaan' button to save the note");
+            var opslaanButton = Page.GetContactmomentOpslaanButton();
+            await opslaanButton.ClickAsync();
+
+            await Step("Verify the note has been added successfully in logboek");
+            var savedNote = Page.Locator($"text={noteText}");
+            await Expect(savedNote).ToBeVisibleAsync();
+
+        }
     }
 }
