@@ -97,5 +97,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetInterneToelichtingValue(this IPage page) =>
             page.GetByText("Test contactverzoek from ITA E2E test");
+
+        public static ILocator GetContactmomentOpslaanButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Contactmoment opslaan" });
     }
 }

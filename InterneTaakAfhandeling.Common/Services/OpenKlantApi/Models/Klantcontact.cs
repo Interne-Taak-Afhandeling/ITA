@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
-
     public class Klantcontact
     {
         public required Guid Uuid { get; set; }
@@ -35,27 +34,18 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public Onderwerpobjectidentificator? Onderwerpobjectidentificator { get; set; }
     }
 
-    public class Onderwerpobjectidentificator: IObjectRegisterId
+    public class Onderwerpobjectidentificator : IObjectRegisterId
     {
         public required string ObjectId { get; set; }
         public required string CodeObjecttype { get; set; }
         public required string CodeRegister { get; set; }
         public required string CodeSoortObjectId { get; set; }
     }
-    public class ActorResponse
-    {
-        public int Count { get; set; }
 
-        public string? Next { get; set; }
-
-        public string? Previous { get; set; }
-
-        public List<Actor> Results { get; set; } = new();
-    }
     public class Actor
     {
         public required string Uuid { get; set; }
-        public  string? Url { get; set; }
+        public string? Url { get; set; }
         public string? Naam { get; set; }
         public SoortActor SoortActor { get; set; }
         public bool? IndicatieActief { get; set; }
@@ -63,18 +53,13 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public object? ActorIdentificatie { get; set; }
     }
 
-
-
-
-    public class Actoridentificator: IObjectRegisterId
+    public class Actoridentificator : IObjectRegisterId
     {
         public required string ObjectId { get; set; }
         public required string CodeObjecttype { get; set; }
         public required string CodeRegister { get; set; }
         public required string CodeSoortObjectId { get; set; }
     }
-
-
 
     public class DigitaleAdres
     {
@@ -102,8 +87,18 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public string? Rol { get; set; }
         public string? Organisatienaam { get; set; }
         public bool Initiator { get; set; }
+        public Persoonsnaam? Persoonsnaam { get; set; }
+
         [JsonPropertyName("_expand")]
         public BetrokkeneExpand? Expand { get; set; }
+    }
+
+    public class Persoonsnaam
+    {
+        public string? Voorletters { get; set; }
+        public string? Voornaam { get; set; }
+        public string? VoorvoegselAchternaam { get; set; }
+        public string? Achternaam { get; set; }
     }
 
     public class Adres
@@ -135,9 +130,11 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public Partij? WasPartij { get; set; }
         public List<DigitaleAdres>? DigitaleAdressen { get; set; }
     }
+
     public class Partij
     {
         public required string Uuid { get; set; }
         public required string Url { get; set; }
+        public string? Naam { get; set; }
     }
 }
