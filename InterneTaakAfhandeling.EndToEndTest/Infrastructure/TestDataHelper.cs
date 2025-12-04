@@ -410,7 +410,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 WasPartij = new PartijReference { Uuid = Guid.Parse(partij.Uuid) },
                 HadKlantcontact = new KlantcontactReference { Uuid = contactmoment.Uuid },
                 Rol = "klant",
-                Initiator = true
+                Initiator = true,
+                Contactnaam = new Contactnaam {
+                    Voorletters = "V",
+                    Voornaam = "Voornaam",
+                    Achternaam = "Achternaam",
+                    VoorvoegselAchternaam = "de"
+                }
             });
 
             var klantnaam = partij.Naam ?? "Onbekende klant";
