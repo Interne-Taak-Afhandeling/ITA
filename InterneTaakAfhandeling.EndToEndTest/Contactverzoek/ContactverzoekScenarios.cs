@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
+using ITA.InterneTaakAfhandeling.EndToEndTest.Helpers;
 using Microsoft.Playwright;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
@@ -7,6 +8,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
     [TestClass]
     public class ContactverzoekScenarios : ITAPlaywrightTest
     {
+        private const string ZaakNumber = "ZAAK-2023-002";
+
         [TestMethod("Detail validation of Contactverzoek detail page")]
         public async Task User_ClickContactverzoekToViewDetails_FromDashboard()
         {
@@ -105,7 +108,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
             await Expect(onderwerpInDetails).ToBeVisibleAsync();
-            var zaakElement = Page.Locator($"text={"ZAAK-2023-002"}");
+            var zaakElement = Page.Locator($"text={ZaakNumber}");
             await Expect(zaakElement).ToBeVisibleAsync();
 
             await Step("Verify contactverzoek field values");
@@ -179,7 +182,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
             await Expect(onderwerpInDetails).ToBeVisibleAsync();
-            var zaakElement = Page.Locator($"text={"ZAAK-2023-002"}");
+            var zaakElement = Page.Locator($"text={ZaakNumber}");
             await Expect(zaakElement).ToBeVisibleAsync();
 
             await Step("Verify contactverzoek field values");
@@ -196,7 +199,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await toelichtingTextarea.FillAsync(noteText);
 
             await Step("Click on 'Opslaan' button to save the note");
-            var opslaanButton = Page.GetOpslaanButton();
+            var opslaanButton = Page.GetOpslaanButtonAllenToelichting();
             await opslaanButton.ClickAsync();
 
             await Step("Verify the note has been added successfully in logboek");
@@ -235,7 +238,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
             await Expect(onderwerpInDetails).ToBeVisibleAsync();
-            var zaakElement = Page.Locator($"text={"ZAAK-2023-002"}");
+            var zaakElement = Page.Locator($"text={ZaakNumber}");
             await Expect(zaakElement).ToBeVisibleAsync();
 
             await Step("user click on Contact opnemen niet gelukt and selects Nee");
@@ -245,10 +248,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("user selects E-mail as kanaal");
             await Page.GetByLabel("Kanaal").SelectOptionAsync(new[] { "E-mail" });
 
+            await Step("‘Interne toelichting' is displayed in form");
+            await Expect(Page.GetInterneToelichtingLabelForm()).ToBeVisibleAsync();
+
             await Step("user adds internal note and saves contact moment");
-            await Page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting" }).ClickAsync();
+            var interneToelichtingTextbox = Page.GetInterneToelichtingTextboxvalue();
+            await interneToelichtingTextbox.ClickAsync();
             var noteText = "test note via contact moment no answer";
-            await Page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting" }).FillAsync(noteText);
+            await interneToelichtingTextbox.FillAsync(noteText);
 
             await Step("Click on ' Contactmoment Opslaan' button to save the note");
             var opslaanButton = Page.GetContactmomentOpslaanButton();

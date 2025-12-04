@@ -104,7 +104,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting *" });
 
 
-        public static ILocator GetOpslaanButton(this IPage page)
+        public static ILocator GetOpslaanButtonAllenToelichting(this IPage page)
         {
             return page.Locator("button:has-text('Opslaan')");
         }
@@ -113,5 +113,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         {
             return page.Locator("button:has-text('Contactmoment opslaan')");
         }
+        public static ILocator GetInterneToelichtingTextboxvalue(this IPage page)
+        {
+            return page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting" });
+        }
+
+        public static ILocator GetInterneToelichtingLabelForm(this IPage page)
+        {
+            return page.Locator("label.utrecht-form-label", new() { HasText = "Interne toelichting" });
+        }
+
+
+
     }
 }
