@@ -346,9 +346,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Check klant field and contactverzoek page");
 
-            var klantnaamPresent = await Page.GetByText("Klantnaam").CountAsync() > 0;
-            var telefoonnummerPresent = await Page.GetByText("Telefoonnummer").CountAsync() > 0;
-            var emailPresent = await Page.GetByText("E-mail").CountAsync() > 0;
+            var klantnaamValue = await Page.GetKlantnaamValue().InnerTextAsync();
+            Assert.IsFalse(string.IsNullOrWhiteSpace(klantnaamValue) || klantnaamValue == "-", "Klantnaam should have a value");
 
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
