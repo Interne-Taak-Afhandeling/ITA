@@ -40,7 +40,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             ZakenApiClient = CreateZakenApiClient(zakenApiBaseUrl, zakenApiKey, zakenApiClientId, loggerFactory);
         }
 
-        #region Client Creation
+        // Client Creation
 
         private static OpenKlantApiClient CreateOpenKlantApiClient(
             string baseUrl, 
@@ -79,9 +79,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return new ZakenApiClient(httpClient, loggerFactory.CreateLogger<ZakenApiClient>());
         }
 
-        #endregion
+  
 
-        #region Public API
+    //  API
 
         public async Task<Guid> CreateContactverzoek(
             string onderwerp, 
@@ -197,9 +197,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
         }
 
-        #endregion
+  
 
-        #region Contactmoment Operations
+        // Contactmoment Operations
 
         private async Task<Klantcontact> GetOrCreateContactmoment(string onderwerp, string inhoud)
         {
@@ -274,9 +274,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             });
         }
 
-        #endregion
-
-        #region Actor Operations
+        //  Actor Operations
 
         private Task<Actor> GetOrCreateSubmitterActor()
         {
@@ -385,9 +383,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return medewerkers.First();
         }
 
-        #endregion
-
-        #region Partij Operations
+//  Partij Operations
 
         private async Task<Partij> GetPartijByBsn(string bsn)
         {
@@ -420,9 +416,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             });
         }
 
-        #endregion
-
-        #region Internetaak Operations
+    //   Internetaak Operations
 
         private async Task CreateInternetaakIfNotExists(
             string nummer,
@@ -450,9 +444,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             });
         }
 
-        #endregion
-
-        #region Zaak Operations
+        // Zaak Operations
 
         private async Task AttachZaakToContactmomentAsync(Guid klantcontactUuid, string zaakIdentificatie)
         {
@@ -538,6 +530,5 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return zaak?.Identificatie;
         }
 
-        #endregion
     }
 }

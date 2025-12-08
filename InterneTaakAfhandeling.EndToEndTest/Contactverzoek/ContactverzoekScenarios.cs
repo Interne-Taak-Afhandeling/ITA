@@ -8,7 +8,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
     [TestClass]
     public class ContactverzoekScenarios : ITAPlaywrightTest
     {
-        #region Test Methods
+        // Test Methods
 
         [TestMethod("Detail validation of Contactverzoek detail page")]
         public async Task User_ClickContactverzoekToViewDetails_FromDashboard()
@@ -95,9 +95,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();
         }
 
-        #endregion
-
-        #region Setup & Navigation Helpers
+//  Setup & Navigation Helpers
 
         private async Task<Guid> SetupContactverzoek(string onderwerp, bool attachZaak)
         {
@@ -125,9 +123,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetContactmomentRegistrerenTab().ClickAsync();
         }
 
-        #endregion
-
-        #region Verification Helpers
+    // Verification Helpers
 
         private async Task VerifyBasicContactverzoekFields(string onderwerp)
         {
@@ -190,9 +186,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             }
         }
 
-        #endregion
-
-        #region Form Validation & Filling Helpers
+    // Form Validation & Filling Helpers
 
         private async Task VerifyValidationErrors_ContactGelukt()
         {
@@ -277,6 +271,5 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             }
         }
 
-        #endregion
     }
 }
