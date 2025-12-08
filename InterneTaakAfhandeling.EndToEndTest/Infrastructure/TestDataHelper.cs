@@ -238,8 +238,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(
                 new KlantcontactQuery { Onderwerp = onderwerp });
 
-            Assert.IsTrue(contactmomenten.Count <= 1, "Did not expect multiple test klantcontacten.");
-            return contactmomenten.FirstOrDefault();
+             if (contactmomenten.Count > 1)
+         {
+             throw new InvalidOperationException($"Found {contactmomenten.Count} contactmomenten with onderwerp '{onderwerp}', expected at most 1.");
+         }
+    
+    return contactmomenten.FirstOrDefault();
         }
 
         private async Task CleanupExistingContactmomenten(string onderwerp)
@@ -255,7 +259,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var remaining = await OpenKlantApiClient.QueryKlantcontactAsync(
                 new KlantcontactQuery { Onderwerp = onderwerp });
             
-            Assert.IsTrue(remaining.Count == 0, "Did not expect any test klantcontacten after cleanup.");
+            if (remaining.Count > 0)
+            {
+                throw new InvalidOperationException($"Failed to cleanup contactmomenten. Still found {remaining.Count} contactmomenten after deletion.");
+            }
         }
 
         private async Task ConnectActorToContactmoment(Actor actor, Guid contactmomentUuid)
@@ -370,16 +377,22 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         private async Task<ObjectResult<Afdeling>> GetAfdelingByName(string name)
         {
             var afdelingen = await ObjectApiClient.FindAfdelingen(name);
-            Assert.AreEqual(1, afdelingen.Results.Count,
-                $"Expected exactly one afdeling with name '{name}' in objectenapi for testing.");
+            if (afdelingen.Results.Count != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one afdeling with name '{name}', but found {afdelingen.Results.Count}.");
+            }
+    
             return afdelingen.Results.First();
         }
 
         private async Task<MedewerkerObjectData> GetMedewerkerByEmail(string email)
         {
             var medewerkers = await ObjectApiClient.GetMedewerkersByIdentificatie(email);
-            Assert.AreEqual(1, medewerkers.Count,
-                $"Expected exactly one medewerker with identificatie '{email}' in objectenapi for testing.");
+            if (medewerkers.Count != 1)
+            {
+                 throw new InvalidOperationException($"Expected exactly one medewerker with identificatie '{email}', but found {medewerkers.Count}.");
+            }
+    
             return medewerkers.First();
         }
 
@@ -426,7 +439,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var internetaken = await OpenKlantApiClient.QueryInterneTakenAsync(
                 new InterneTaakQuery { Nummer = nummer });
 
-            Assert.IsFalse(internetaken.Count > 1, "Did not expect multiple test internetaken.");
+            if (internetaken.Count > 1)
+            {
+                throw new InvalidOperationException($"Found {internetaken.Count} internetaken with nummer '{nummer}', expected at most 1.");
+            }
 
             if (internetaken.Count > 0)
             {

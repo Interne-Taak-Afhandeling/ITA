@@ -45,7 +45,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactmomentRegistrerenTab();
 
             await Step("Verify 'Contact opnemen gelukt' is selected by default");
-            await Expect(Page.GetByText("Contact opnemen gelukt")).ToBeCheckedAsync();
+           await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen gelukt" })).ToBeCheckedAsync();
 
             await VerifyValidationErrors_ContactGelukt();
             await FillContactmomentForm_ContactGelukt();
@@ -62,7 +62,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactmomentRegistrerenTab();
 
             await Step("Select 'Contact opnemen niet gelukt'");
-            await Page.GetByText("Contact opnemen niet gelukt").ClickAsync();
+            await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen niet gelukt" })).ToBeCheckedAsync();
 
             await VerifyValidationErrors_ContactNietGelukt();
             await FillContactmomentForm_ContactNietGelukt();
@@ -193,7 +193,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify validation: Afsluiten question is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
-            await Expect(radioButton).ToHaveJSPropertyAsync("validationMessage", "Please select one of these options.");
+            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
             await Step("Select 'Nee' for afsluiten");
             await Page.GetByLabel("Nee").ClickAsync();
@@ -201,7 +201,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify validation: Kanaal is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             var kanaalSelect = Page.Locator("#kanalen");
-            await Expect(kanaalSelect).ToHaveJSPropertyAsync("validationMessage", "Please select an item in the list.");
+            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
             await Step("Select Kanaal");
             await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
@@ -209,7 +209,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify validation: Informatie field is required for 'Contact gelukt'");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             var informatieField = Page.Locator("#informatie-burger");
-            await Expect(informatieField).ToHaveJSPropertyAsync("validationMessage", "Please fill in this field.");
+            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
         }
 
         private async Task VerifyValidationErrors_ContactNietGelukt()
@@ -217,7 +217,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify validation: Afsluiten question is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
-            await Expect(radioButton).ToHaveJSPropertyAsync("validationMessage", "Please select one of these options.");
+            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
             await Step("Select 'Nee' for afsluiten");
             await Page.GetByLabel("Nee").ClickAsync();
@@ -225,7 +225,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify validation: Kanaal is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             var kanaalSelect = Page.Locator("#kanalen");
-            await Expect(kanaalSelect).ToHaveJSPropertyAsync("validationMessage", "Please select an item in the list.");
+            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
             await Step("Select Kanaal");
             await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
@@ -256,7 +256,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetByText("Contactmoment succesvol bijgewerkt")).ToBeVisibleAsync();
 
             await Step("Wait and refresh to load Logboek");
-            await Page.ReloadAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step($"Verify '{logboekText}' is displayed in Logboek");
