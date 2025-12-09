@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 {
@@ -72,7 +72,7 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
 
     public class Emails
     {
-        public required string Naam { get; set; }
+        public string? Naam { get; set; }
         public required string Email { get; set; }
     }
 
