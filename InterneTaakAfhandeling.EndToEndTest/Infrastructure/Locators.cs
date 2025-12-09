@@ -111,10 +111,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return page.Locator("button:has-text('Opslaan')");
         }
 
-        public static ILocator GetContactmomentOpslaanButton(this IPage page)
-        {
-            return page.Locator("button:has-text('Contactmoment opslaan')");
-        }
         public static ILocator GetInterneToelichtingTextboxvalue(this IPage page)
         {
             return page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting" });
