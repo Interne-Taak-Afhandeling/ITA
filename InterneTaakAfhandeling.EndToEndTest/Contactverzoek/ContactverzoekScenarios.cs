@@ -6,6 +6,7 @@ using Microsoft.Playwright;
 namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 {
     [TestClass]
+    [DoNotParallelize]
     public class ContactverzoekScenarios : ITAPlaywrightTest
     {
         // Test Methods
@@ -46,6 +47,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Verify 'Contact opnemen gelukt' is selected by default");
            await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen gelukt" })).ToBeCheckedAsync();
+           await Page.WaitForTimeoutAsync(5000);
 
             await VerifyValidationErrors_ContactGelukt();
             await FillContactmomentForm_ContactGelukt();
@@ -60,10 +62,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await NavigateToContactverzoekDetails(testOnderwerp);
             await NavigateToContactmomentRegistrerenTab();
-
+            
             await Step("Select 'Contact opnemen niet gelukt'");
-            await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen niet gelukt" })).ToBeCheckedAsync();
-
+            await Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen niet gelukt" }).ClickAsync();
+       
             await VerifyValidationErrors_ContactNietGelukt();
             await FillContactmomentForm_ContactNietGelukt();
             await VerifyContactmomentSavedSuccessfully("Contact niet gelukt");
@@ -192,6 +194,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Verify validation: Afsluiten question is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
+
             var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
             await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
@@ -201,31 +204,31 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify validation: Kanaal is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             var kanaalSelect = Page.Locator("#kanalen");
-            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
-
+            await Expect(kanaalSelect).ToHaveJSPropertyAsync("validity.valueMissing", true);
             await Step("Select Kanaal");
             await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
 
             await Step("Verify validation: Informatie field is required for 'Contact gelukt'");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             var informatieField = Page.Locator("#informatie-burger");
-            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
+           await Expect(informatieField).ToHaveJSPropertyAsync("validity.valueMissing", true);
         }
 
         private async Task VerifyValidationErrors_ContactNietGelukt()
         {
             await Step("Verify validation: Afsluiten question is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
-            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
+           await Expect(radioButton).ToHaveJSPropertyAsync("validationMessage", "Please select one of these options.");
 
             await Step("Select 'Nee' for afsluiten");
             await Page.GetByLabel("Nee").ClickAsync();
-
+            
             await Step("Verify validation: Kanaal is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             var kanaalSelect = Page.Locator("#kanalen");
-            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
+            await Expect(kanaalSelect).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
             await Step("Select Kanaal");
             await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
