@@ -16,13 +16,14 @@ using System.Web;
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 
 public interface IOpenKlantApiClient
-{    
+{
     Task<Actor> GetActorAsync(string? uuid);
     Task<Actor?> QueryActorAsync(ActorQuery query);
     Task<Actor> CreateActorAsync(ActorRequest request);
 
     Task<Klantcontact> GetKlantcontactAsync(Guid uuid);
     Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request);
+    Task<Klantcontact> PutKlantcontactAsync(Guid uuid, KlantcontactRequest request);
     Task<List<Klantcontact>> GetKlantcontactenByOnderwerpobjectIdentificatorObjectIdAsync(string objectId);
     Task<List<Klantcontact>> QueryKlantcontactAsync(KlantcontactQuery query);
     Task DeleteKlantcontactAsync(Guid uuid);
@@ -37,7 +38,7 @@ public interface IOpenKlantApiClient
 
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject> UpdateOnderwerpobjectAsync(Guid uuid, KlantcontactOnderwerpobjectRequest request);
-    Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid); 
+    Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid);
 
     Task<Betrokkene> CreateBetrokkeneAsync(BetrokkeneRequest request);
 
@@ -52,6 +53,21 @@ public partial class OpenKlantApiClient(
 {
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly ILogger<OpenKlantApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+    public async Task<Klantcontact> PutKlantcontactAsync(Guid uuid, KlantcontactRequest request)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"klantcontacten/{uuid}", request);
+        response.EnsureSuccessStatusCode();
+
+        var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
+        if (klantcontact == null)
+        {
+            throw new ConflictException("Failed to deserialize updated klantcontact response",
+                code: "KLANTCONTACT_DESERIALIZATION_FAILED");
+        }
+
+        return klantcontact;
+    }
 
     public async Task<Klantcontact> CreateKlantcontactAsync(KlantcontactRequest request)
     {
@@ -241,20 +257,43 @@ public partial class OpenKlantApiClient(
         return actor;
     }
 
+    // public async Task<Klantcontact> GetKlantcontactAsync(Guid uuid)
+    // {
+    //     _logger.LogInformation("Fetching klantcontact {Uuid}", uuid);
+
+    //     var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen");
+    //     response.EnsureSuccessStatusCode();
+
+    //     var jsonString = await response.Content.ReadAsStringAsync();
+    //     _logger.LogInformation("API Response: {JsonString}", jsonString);
+
+
+
+    //     var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
+
+    //     _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
+    //     foreach (var obj in klantcontact?.GingOverOnderwerpobjecten ?? [])
+    //     {
+    //         _logger.LogInformation("Onderwerpobject: {Uuid}, Identificator: {Id}",
+    //             obj.Uuid,
+    //             SecureLogging.SanitizeAndTruncate(obj.Onderwerpobjectidentificator?.ObjectId));
+    //     }
+
+    //     return klantcontact;
+    // }
+
     public async Task<Klantcontact> GetKlantcontactAsync(Guid uuid)
     {
         _logger.LogInformation("Fetching klantcontact {Uuid}", uuid);
 
-        var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen");
+        var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen,hadBetrokkenen.wasPartij");
         response.EnsureSuccessStatusCode();
 
         var jsonString = await response.Content.ReadAsStringAsync();
         _logger.LogInformation("API Response: {JsonString}", jsonString);
 
-
-
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
-        
+
         _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
         foreach (var obj in klantcontact?.GingOverOnderwerpobjecten ?? [])
         {
@@ -270,7 +309,7 @@ public partial class OpenKlantApiClient(
     public async Task<List<Klantcontact>> QueryKlantcontactAsync(KlantcontactQuery query)
     {
         var queryString = query.BuildQueryString();
-        var path = $"klantcontacten?{queryString}";     
+        var path = $"klantcontacten?{queryString}";
         var response = await _httpClient.GetAsync(path);
         response.EnsureSuccessStatusCode();
         var klantcontacten = await response.Content.ReadFromJsonAsync<KlantcontactResponse>();
@@ -280,7 +319,7 @@ public partial class OpenKlantApiClient(
 
     public async Task DeleteKlantcontactAsync(Guid uuid)
     {
-        await _httpClient.DeleteAsync($"klantcontacten/{uuid}");      
+        await _httpClient.DeleteAsync($"klantcontacten/{uuid}");
     }
 
     public async Task<Actor?> QueryActorAsync(ActorQuery query)
@@ -393,6 +432,10 @@ public partial class OpenKlantApiClient(
             var response = await _httpClient.GetAsync($"klantcontacten?onderwerpobject__onderwerpobjectidentificatorObjectId={objectId}");
             response.EnsureSuccessStatusCode();
 
+            //  var response = await _httpClient.GetAsync($"partijen?partijIdentificator__objectId={bsn}");
+            // response.EnsureSuccessStatusCode();
+
+
             var klantcontactResponse = await response.Content.ReadFromJsonAsync<KlantcontactResponse>();
             var klantcontacten = klantcontactResponse?.Results ?? [];
 
@@ -407,6 +450,31 @@ public partial class OpenKlantApiClient(
             return [];
         }
     }
+
+    public async Task<List<Partij>> GetPartijenByBsnAsync(string bsn)
+    {
+        try
+        {
+            _logger.LogInformation("Fetching partijen with partijIdentificator__objectId={ObjectId}", bsn);
+
+            var response = await _httpClient.GetAsync($"partijen?partijIdentificator__objectId={bsn}");
+            response.EnsureSuccessStatusCode();
+
+            var partijResponse = await response.Content.ReadFromJsonAsync<PartijResponse>();
+            var partijen = partijResponse?.Results ?? [];
+
+            _logger.LogInformation("Found {Count} partijen referring to objectId {ObjectId}",
+                partijen.Count, bsn);
+
+            return partijen;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving partijen by BSN: {Message}", ex.Message);
+            return [];
+        }
+    }
+
 
 
     public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)
@@ -481,12 +549,6 @@ public partial class OpenKlantApiClient(
         throw new HttpRequestException($"Failed to fetch internetaken: {response.ReasonPhrase}", null, response.StatusCode);
     }
 
-
-
-
-
-
-
     public async Task<Internetaak> PatchInterneTaak(JsonContent request, string uuid)
     {
         try
@@ -521,5 +583,20 @@ public partial class OpenKlantApiClient(
         public List<Klantcontact> Results { get; set; } = [];
     }
 
+    private class PartijResponse
+    {
+        public int Count { get; set; }
+        public string? Next { get; set; }
+        public string? Previous { get; set; }
+        public List<Partij> Results { get; set; } = [];
+    }
+
+    private class ActorResponse
+    {
+        public int Count { get; set; }
+        public string? Next { get; set; }
+        public string? Previous { get; set; }
+        public List<Actor> Results { get; set; } = [];
+    }
 
 }

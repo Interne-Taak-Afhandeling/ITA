@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
@@ -20,6 +21,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public bool? Vertrouwelijk { get; set; }
         [Required]
         public DateTimeOffset PlaatsgevondenOp { get; set; }
+        public string? Klantnaam { get; set; }
     }
 
     public class KlantcontactReference

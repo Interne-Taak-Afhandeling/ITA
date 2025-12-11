@@ -1,4 +1,6 @@
-﻿namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
+﻿using System;
+
+namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
 {
     public class PartijReference
     {
@@ -11,5 +13,6 @@
         public required KlantcontactReference HadKlantcontact { get; set; }
         public string Rol { get; set; } = "klant";
         public bool Initiator { get; set; } = true;
+        public Contactnaam? Contactnaam { get; set; }
     }
 }
