@@ -16,7 +16,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task User_ClickContactverzoekToViewDetails_FromDashboard()
         {
             var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
-            var contactverzoekUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
             await NavigateToContactverzoekDetails(testOnderwerp);
             await VerifyBasicContactverzoekFields(testOnderwerp);
@@ -28,7 +28,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task User_ClickContactverzoekToViewDetailsWithZAAK_FromDashboard()
         {
             var testOnderwerp = "Test_Contact_from_ITA_E2E_test_with_ZAAK";
-            var contactverzoekUuid = await SetupContactverzoek(testOnderwerp, attachZaak: true);
+            await SetupContactverzoek(testOnderwerp, attachZaak: true);
 
             await NavigateToContactverzoekDetails(testOnderwerp);
             await VerifyBasicContactverzoekFields(testOnderwerp);
@@ -40,15 +40,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         [TestMethod("Validation of fields and registering Contactmoment, Contact opnemen gelukt")]
         public async Task User_RegisterContactmoment_ContactOpnemenGelukt()
         {
-            var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
-            var contactverzoekUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            var testOnderwerp = "Test_Contact_opnemen_gelukt";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
             await NavigateToContactverzoekDetails(testOnderwerp);
             await NavigateToContactmomentRegistrerenTab();
 
             await Step("Verify 'Contact opnemen gelukt' is selected by default");
            await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen gelukt" })).ToBeCheckedAsync();
-           await Page.WaitForTimeoutAsync(5000);
+          await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await VerifyValidationErrors_ContactGelukt();
             await FillContactmomentForm_ContactGelukt();
@@ -59,7 +59,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task User_RegisterContactmoment_ContactOpnemenNietGelukt()
         {
             var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
-            var contactverzoekUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
             await NavigateToContactverzoekDetails(testOnderwerp);
             await NavigateToContactmomentRegistrerenTab();
@@ -78,13 +78,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var testOnderwerp = "Test_Contact_with_BSN_Partij";
 
             await Step("Setup contactverzoek with BSN partij");
-            await TestDataHelper.CreateContactverzoekWithAfdelingMedewerkerAndPartij(
+            var uuid = await TestDataHelper.CreateContactverzoekWithAfdelingMedewerkerAndPartij(
                 onderwerp: testOnderwerp,
                 bsn: TestDataConstants.Partijen.TestBsn,
                 attachZaak: false
             );
 
-            await Page.WaitForTimeoutAsync(3000);
+           RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+           await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await NavigateToContactverzoekDetails(testOnderwerp);
 
@@ -115,9 +117,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step($"Click on contactverzoek '{onderwerp}'");
+             await Page.GetDetailsLink(onderwerp).ClickAsync();
             await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
-            await Page.GetDetailsLink(onderwerp).ClickAsync();
+        
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+    //          var detailsLink = Page.GetDetailsLink(onderwerp);
+    // await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+    // await detailsLink.ClickAsync();
         }
 
         private async Task NavigateToContactmomentRegistrerenTab()
@@ -148,6 +154,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetVraagValue(onderwerp)).ToHaveTextAsync(onderwerp);
 
             await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
+             await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible });
+   
             await Expect(Page.GetInformatieVoorBurgerValue()).ToHaveTextAsync(
                 "This is a test contact request created during an end-to-end test run.");
         }
