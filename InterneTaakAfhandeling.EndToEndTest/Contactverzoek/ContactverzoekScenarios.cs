@@ -117,13 +117,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step($"Click on contactverzoek '{onderwerp}'");
-             await Page.GetDetailsLink(onderwerp).ClickAsync();
-            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
-        
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-    //          var detailsLink = Page.GetDetailsLink(onderwerp);
-    // await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-    // await detailsLink.ClickAsync();
+      
+             var detailsLink = Page.GetDetailsLink(onderwerp);
+             await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+             await detailsLink.ClickAsync();
         }
 
         private async Task NavigateToContactmomentRegistrerenTab()
