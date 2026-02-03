@@ -20,7 +20,6 @@ namespace InterneTaakAfhandeling.Common.Services.Zgw
 
     /// <summary>
     /// Generates JWT tokens for ZGW APIs (OpenZaak, podiumd-adapter, etc.)
-    /// Based on: https://open-zaak.readthedocs.io/en/latest/client-development/authentication.html
     /// </summary>
     public class ZgwTokenProvider
     {
