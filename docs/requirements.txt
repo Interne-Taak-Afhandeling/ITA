@@ -2,15 +2,15 @@
 #    uv pip compile --output-file requirements.txt requirements.in
 alabaster==1.0.0
     # via sphinx
-babel==2.17.0
+babel==2.18.0
     # via sphinx
-certifi==2025.11.12
+certifi==2026.1.4
     # via requests
 charset-normalizer==3.4.4
     # via requests
 colorama==0.4.6
     # via sphinx
-docutils==0.21.2
+docutils==0.22.4
     # via
     #   myst-parser
     #   sphinx
@@ -23,7 +23,7 @@ jinja2==3.1.6
     # via
     #   myst-parser
     #   sphinx
-markdown-it-py==3.0.0
+markdown-it-py==4.0.0
     # via
     #   mdit-py-plugins
     #   myst-parser
@@ -33,9 +33,9 @@ mdit-py-plugins==0.5.0
     # via myst-parser
 mdurl==0.1.2
     # via markdown-it-py
-myst-parser==4.0.1
+myst-parser==5.0.0
     # via -r requirements.in
-packaging==25.0
+packaging==26.0
     # via sphinx
 pygments==2.19.2
     # via sphinx
@@ -43,17 +43,17 @@ pyyaml==6.0.3
     # via myst-parser
 requests==2.32.5
     # via sphinx
-roman-numerals-py==3.1.0
+roman-numerals==4.1.0
     # via sphinx
 snowballstemmer==3.0.1
     # via sphinx
-sphinx==8.2.3
+sphinx==9.1.0
     # via
     #   -r requirements.in
     #   myst-parser
     #   sphinx-rtd-theme
     #   sphinxcontrib-jquery
-sphinx-rtd-theme==3.0.2
+sphinx-rtd-theme==3.1.0
     # via -r requirements.in
 sphinxcontrib-applehelp==2.0.0
     # via sphinx
@@ -69,5 +69,5 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
-urllib3==2.6.0
+urllib3==2.6.3
     # via requests
