@@ -1,23 +1,17 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
+using InterneTaakAfhandeling.Common.Services.Zgw;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 
 namespace InterneTaakAfhandeling.Common.Extensions
 {
 
     public static class ApiClientExtensions
     {
-        
-       
-
         public static IServiceCollection AddITAApiClients(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddHttpClient<IOpenKlantApiClient, OpenKlantApiClient>(client =>
@@ -38,18 +32,24 @@ namespace InterneTaakAfhandeling.Common.Extensions
                 client.DefaultRequestHeaders.Add("Content-Crs", "EPSG:4326");
             });
 
+            // Register ZGW token provider and authentication handler for the ZakenApiClient
+            var zaakSysteemBaseUrl = configuration.GetValue<string>("ZaakSysteem:BaseUrl") ?? throw new Exception("ZaakSysteem:BaseUrl configuration value is missing");
+            var zaakSysteemKey = configuration.GetValue<string>("ZaakSysteem:Key") ?? throw new Exception("ZaakSysteem:Key configuration value is missing");
+            var zaakSysteemClientId = configuration.GetValue<string>("ZaakSysteem:ClientId") ?? throw new Exception("ZaakSysteem:ClientId configuration value is missing");
+            var userIdClaimType = configuration.GetValue<string>("OIDC_OBJECTREGISTER_MEDEWERKER_ID_CLAIM_TYPE");
+
+            services.AddSingleton(new ZgwTokenProvider(zaakSysteemKey, zaakSysteemClientId, userIdClaimType));
+            services.AddTransient<ZgwAuthenticationHandler>();
+
             services.AddHttpClient<IZakenApiClient, ZakenApiClient>(client =>
             {
-                var zaakSysteemBaseUrl = configuration.GetValue<string>("ZaakSysteem:BaseUrl") ?? throw new Exception("ZaakSysteem:BaseUrl configuration value is missing");
-                var zaakSysteemKey = configuration.GetValue<string>("ZaakSysteem:Key") ?? throw new Exception("ZaakSysteem:Key configuration value is missing");
-                var zaakSysteemClientId = configuration.GetValue<string>("ZaakSysteem:ClientId") ?? throw new Exception("ZaakSysteem:ClientId configuration value is missing");
-                var DefaultCrs = "EPSG:4326";
+                var defaultCrs = "EPSG:4326";
+                client.BaseAddress = new Uri(zaakSysteemBaseUrl);
+                client.DefaultRequestHeaders.Add("Accept-Crs", defaultCrs);
+            })
+            .AddHttpMessageHandler<ZgwAuthenticationHandler>();
 
-               client.BaseAddress = new Uri(zaakSysteemBaseUrl);
-                client.DefaultRequestHeaders.Add("Accept-Crs", DefaultCrs);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GenerateZakenApiToken(zaakSysteemKey, zaakSysteemClientId));
-            });
-            // registered logboek options 
+            // Register logboek options
             services.AddOptions<LogboekOptions>()
                 .Bind(configuration.GetSection("LogBoekOptions"))
                 .ValidateDataAnnotations()
@@ -65,36 +65,7 @@ namespace InterneTaakAfhandeling.Common.Extensions
              .ValidateDataAnnotations()
              .ValidateOnStart();
 
-
             return services;
-        } 
- 
-
-          public static string GenerateZakenApiToken(string JwtSecretKey, string ClientId)
-        { 
-
-            // Convert secret key to bytes  
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtSecretKey));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            // Set issued-at (iat) timestamp  
-            var issuedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-            // Create JWT payload  
-            var claims = new List<Claim>
-           {
-               new ("client_id", ClientId),
-               new("iat", issuedAt.ToString(), ClaimValueTypes.Integer64)
-           };
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                signingCredentials: credentials
-            );
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            return tokenHandler.WriteToken(token);
         }
-
     }
 }
