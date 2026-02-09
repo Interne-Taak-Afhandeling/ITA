@@ -5,6 +5,7 @@ using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
+using InterneTaakAfhandeling.Common.Services.Zgw;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
@@ -73,7 +74,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             ILoggerFactory loggerFactory)
         {
             var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
-            var token = ApiClientExtensions.GenerateZakenApiToken(apiKey, clientId);
+            var provider = new ZgwTokenProvider(apiKey, clientId);
+            var token = provider.GenerateToken(null);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             httpClient.DefaultRequestHeaders.Add("Accept-Crs", "EPSG:4326");
             return new ZakenApiClient(httpClient, loggerFactory.CreateLogger<ZakenApiClient>());
