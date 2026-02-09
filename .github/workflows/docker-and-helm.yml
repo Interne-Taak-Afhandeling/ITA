@@ -58,7 +58,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.PACKAGE_SECRET }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       # Separate metadata action for Web image
       - name: Extract Docker metadata for Web
