@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,15 +39,13 @@ namespace InterneTaakAfhandeling.Common.Services.Zgw
             var userId = GetUserIdentifier(claimsPrincipal);
             var userRepresentation = claimsPrincipal?.Identity?.Name ?? string.Empty;
 
-            var now = DateTimeOffset.UtcNow;
-            // One minute leeway to account for clock differences between machines
-            var issuedAt = now.AddMinutes(-1);
+            // one minute leeway to account for clock differences between machines
+            var timeNow = DateTime.UtcNow.AddMinutes(-1);
+            var issuer = _clientId;
 
             var claims = new Dictionary<string, object>
             {
                 { "client_id", _clientId },
-                { "iss", _clientId },
-                { "iat", issuedAt.ToUnixTimeSeconds() },
                 { "user_id", userId },
                 { "user_representation", userRepresentation }
             };
@@ -56,16 +54,16 @@ namespace InterneTaakAfhandeling.Common.Services.Zgw
             var key = Encoding.UTF8.GetBytes(_apiKey);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                IssuedAt = issuedAt.DateTime,
-                NotBefore = issuedAt.DateTime,
+                IssuedAt = timeNow,
+                // nbf and expires required or else it is automatically added by the library with a default value
+                // this keeps time consistent and adds our leeway
+                NotBefore = timeNow,
+                Expires = timeNow.AddHours(1),
+                Issuer = issuer,
                 Claims = claims,
                 Subject = new ClaimsIdentity(),
-                Expires = now.AddHours(1).DateTime,
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
-
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
