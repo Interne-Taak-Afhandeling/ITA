@@ -28,26 +28,50 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
         {
             foreach (var kanaalName in kanalenToCleanup)
             {
+                await DeleteKanaalWithRetry(kanaalName);
+            }
+            kanalenToCleanup.Clear();
+        }
+
+        private async Task<bool> DeleteKanaalWithRetry(string kanaalName, int maxRetries = 3)
+        {
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
                 try
                 {
                     await Page.GotoAsync("/");
                     await locators.BeheerLink.ClickAsync();
                     await locators.KanalenLink.ClickAsync();
                     
-                    var kanaalExists = await locators.GetKanaalListItem(kanaalName).CountAsync() > 0;
-                    if (kanaalExists)
+                    var count = await locators.GetKanaalListItem(kanaalName).CountAsync();
+                    if (count == 0)
                     {
-                        Page.Dialog += (_, dialog) => dialog.AcceptAsync();
-                        await locators.GetDeleteButton(kanaalName).ClickAsync();
-                        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                        return true; 
+                    }
+
+                    Page.Dialog += (_, dialog) => dialog.AcceptAsync();
+                    await locators.GetDeleteButton(kanaalName).ClickAsync();
+                    await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                    
+                    // Verify deletion succeeded
+                    var stillExists = await locators.GetKanaalListItem(kanaalName).CountAsync() > 0;
+                    if (!stillExists)
+                    {
+                        return true;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignore cleanup errors
+                    Console.WriteLine($"⚠️ Cleanup attempt {attempt}/{maxRetries} failed for '{kanaalName}': {ex.Message}");
+                    if (attempt < maxRetries)
+                    {
+                        await Task.Delay(1000 * attempt); // Exponential backoff: 1s, 2s, 3s
+                    }
                 }
             }
-            kanalenToCleanup.Clear();
+            
+            Console.WriteLine($"❌ Failed to cleanup kanaal '{kanaalName}' after {maxRetries} attempts");
+            return false;
         }
 
         private async Task NavigateToKanalenPage()
@@ -114,9 +138,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
             kanalenToCleanup.Add(TestKanaalName);
             
             await VerifyKanaalExists(TestKanaalName);
-
-            await DeleteKanaal(TestKanaalName);
-            kanalenToCleanup.Remove(TestKanaalName);
         }
 
         [TestMethod("Edit Kanalen")]
@@ -131,9 +152,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
             await EditKanaalName(TestKanaalName, EditedKanaalName);
 
             await VerifyKanaalExists(EditedKanaalName);
-
-            await DeleteKanaal(EditedKanaalName);
-            kanalenToCleanup.Remove(EditedKanaalName);
         }
 
         [TestMethod("Delete Kanalen")]
@@ -142,9 +160,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
             await NavigateToKanalenPage();
 
             await CreateKanaal(TestKanaalName);
+            kanalenToCleanup.Add(TestKanaalName);
 
             await NavigateToKanalenPage();
-
             await DeleteKanaal(TestKanaalName);
 
             await Step("Verify kanaal was deleted");
@@ -162,21 +180,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
             await VerifyKanaalExists(TestKanaalName);
             
             await Step($"Attempt to create duplicate kanaal: {TestKanaalName}");
-            await locators.KanaalToevoegenLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await locators.NaamTextbox.FillAsync(TestKanaalName);
-            await locators.OpslaanButton.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await CreateKanaal(TestKanaalName);
 
             await Step("Verify error message is displayed");
             var errorMessage = Page.Locator(".preserve-newline").Filter(new() { HasText = $"Er bestaat al een kanaal met de naam {TestKanaalName}" });
             await Expect(errorMessage).ToBeVisibleAsync(new() { Timeout = 10000 });
-
-            await Step("Cancel and delete the kanaal for cleanup");
-            await locators.AnnulerenButton.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await DeleteKanaal(TestKanaalName);
-            kanalenToCleanup.Remove(TestKanaalName);
         }
     }
 }

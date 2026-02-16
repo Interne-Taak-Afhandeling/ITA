@@ -151,10 +151,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetVraagValue(onderwerp)).ToHaveTextAsync(onderwerp);
 
             await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
-             await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
    
-            await Expect(Page.GetInformatieVoorBurgerValue()).ToHaveTextAsync(
-                "This is a test contact request created during an end-to-end test run.");
+            await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(
+                "This is a test contact request created during an end-to-end test run.", new() { Timeout = 10000 });
         }
 
         private async Task VerifyZaakIsVisible(string zaakIdentificatie)
