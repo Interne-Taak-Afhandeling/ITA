@@ -18,60 +18,59 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
         private readonly List<string> kanalenToCleanup = new();
 
         [TestInitialize]
-        public void TestInitialize()
+        public async Task TestInitialize()
         {
             locators = new BeheerLocators(Page);
+            
+            // Pre-cleanup: Remove test data that may exist from previous failed test runs
+            await TryDeleteKanaal(TestKanaalName);
+            await TryDeleteKanaal(EditedKanaalName);
         }
 
         [TestCleanup]
         public async Task TestCleanup()
         {
+            // Post-cleanup: Remove test data created during this test run
             foreach (var kanaalName in kanalenToCleanup)
             {
-                await DeleteKanaalWithRetry(kanaalName);
+                await TryDeleteKanaal(kanaalName);
             }
             kanalenToCleanup.Clear();
         }
 
-        private async Task<bool> DeleteKanaalWithRetry(string kanaalName, int maxRetries = 3)
+        private async Task<bool> TryDeleteKanaal(string kanaalName)
         {
-            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            try
             {
-                try
+                await Page.GotoAsync("/");
+                await locators.BeheerLink.ClickAsync();
+                await locators.KanalenLink.ClickAsync();
+                
+                var count = await locators.GetKanaalListItem(kanaalName).CountAsync();
+                if (count == 0)
                 {
-                    await Page.GotoAsync("/");
-                    await locators.BeheerLink.ClickAsync();
-                    await locators.KanalenLink.ClickAsync();
-                    
-                    var count = await locators.GetKanaalListItem(kanaalName).CountAsync();
-                    if (count == 0)
-                    {
-                        return true; 
-                    }
+                    return true; 
+                }
 
-                    Page.Dialog += (_, dialog) => dialog.AcceptAsync();
-                    await locators.GetDeleteButton(kanaalName).ClickAsync();
-                    await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-                    
-                    // Verify deletion succeeded
-                    var stillExists = await locators.GetKanaalListItem(kanaalName).CountAsync() > 0;
-                    if (!stillExists)
-                    {
-                        return true;
-                    }
-                }
-                catch (Exception ex)
+                Page.Dialog += (_, dialog) => dialog.AcceptAsync();
+                await locators.GetDeleteButton(kanaalName).ClickAsync();
+                await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                
+                // Verify deletion succeeded
+                var stillExists = await locators.GetKanaalListItem(kanaalName).CountAsync() > 0;
+                if (!stillExists)
                 {
-                    Console.WriteLine($"⚠️ Cleanup attempt {attempt}/{maxRetries} failed for '{kanaalName}': {ex.Message}");
-                    if (attempt < maxRetries)
-                    {
-                        await Task.Delay(1000 * attempt); // Exponential backoff: 1s, 2s, 3s
-                    }
+                    return true;
                 }
+                
+                Console.WriteLine($"Kanaal '{kanaalName}' still exists after deletion attempt");
+                return false;
             }
-            
-            Console.WriteLine($"❌ Failed to cleanup kanaal '{kanaalName}' after {maxRetries} attempts");
-            return false;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Cleanup failed for '{kanaalName}'");
+                return false;
+            }
         }
 
         private async Task NavigateToKanalenPage()

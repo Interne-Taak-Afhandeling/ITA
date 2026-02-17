@@ -151,8 +151,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetVraagValue(onderwerp)).ToHaveTextAsync(onderwerp);
 
             await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
-            await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 10000 });
-   
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible });
             await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(
                 "This is a test contact request created during an end-to-end test run.", new() { Timeout = 10000 });
         }
