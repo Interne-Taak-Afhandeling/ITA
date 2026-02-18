@@ -16,3 +16,4 @@ Op dit moment maakt ITA, met als KISS, gebruik van de Objectenregistratie voor i
    developers/index
    manual/index
    decision-record/index
+   changelog/changelog.md
