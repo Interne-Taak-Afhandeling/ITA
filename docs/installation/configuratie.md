@@ -47,9 +47,9 @@ ITA gaat ervan uit dat emailadressen van medewerkers en organisatorische eenhede
 | apiConnections.objectApiKey            | min. 32 karakters  |
 | apiConnections.openKlantApi.baseUrl    | https://uw-openklant-adres/klantinteracties/api/v1/  |
 | apiConnections.openKlantApiKey         | min. 32 karakters  |
-| apiConnections.zaakSysteem.baseUrl     |  De base URL van het zaaksysteem. Dit kan een directe koppeling zijn met bijvoorbeeld OpenZaak (`https://uw-openzaak-adres.nl`) of, bij gebruik van de e-Suite als zaaksysteem, de URL van de podiumd-adapter (`https://podiumd-adapter.uw-domein.nl`). Bij gebruik van de adapter wordt de root-URL gebruikt; de adapter routeert op basis van de ZGW API-paden (bijv. `/zaken/api/v1/`). |
-| apiConnections.zaakSysteem.clientId    | De client ID voor authenticatie bij het zaaksysteem. Bij gebruik van de podiumd-adapter is dit de client ID zoals geconfigureerd in de adapter.  |
-| apiConnections.zaakSysteemKey          |  De secret/key voor authenticatie bij het zaaksysteem. Min. 32 karakters. Bij gebruik van de podiumd-adapter is dit de client secret zoals geconfigureerd in de adapter.  |
+| apiConnections.zaakSysteem.baseUrl     |  https://uw-zaaksysteem-adres.nl of, bij e-Suite, de root-URL van de podiumd-adapter (bijv. `https://podiumd-adapter.uw-domein.nl`). De adapter routeert op basis van de ZGW API-paden (bijv. `/zaken/api/v1/`). |
+| apiConnections.zaakSysteem.clientId    |  bij gebruik van de podiumd-adapter is dit de client ID zoals geconfigureerd in de adapter.  |
+| apiConnections.zaakSysteemKey          |  min. 32 karakters. Bij gebruik van de podiumd-adapter is dit de client secret zoals geconfigureerd in de adapter.  |
 | logboek.type                           | De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie  |
 | logboek.typeVersion                    | De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | afdeling.type                          | De url van het afdeling objecttype in de objecttypen api. |
