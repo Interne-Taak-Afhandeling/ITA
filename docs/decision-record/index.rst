@@ -40,6 +40,11 @@ Dus bij het koppelen van een Zaak aan een Contactverzoek hebben we gekozen voor:
 * Als het voorkomt dat er al 2 of meer Zaken zijn gekoppeld aan een Contactverzoek, dan is het niet mogelijk om een Zaakkoppeling te leggen of aan te passen. In dat geval verschijnt er een melding: "Er is een fout opgetreden bij het koppelen van de zaak: Het koppelen van een nieuwe zaak wordt niet ondersteund omdat er al meerdere zaken gekoppeld zijn aan dit Contactverzoek."
 
 
+Communicatie met de e-Suite via de podiumd-adapter
+---------------------------------------------------
+
+ITA ondersteunt naast OpenZaak ook de e-Suite als zaaksysteem. De communicatie met de e-Suite verloopt niet rechtstreeks, maar via de podiumd-adapter. De adapter vertaalt de standaard ZGW API-aanroepen naar e-Suite API-aanroepen. Dit is dezelfde aanpak als KISS hanteert. Door de adapter te gebruiken hoeft ITA geen e-Suite specifieke logica te bevatten en kan het via de standaard ZGW API's blijven communiceren. Er zijn geen nieuwe omgevingsvariabelen nodig; de bestaande ``zaakSysteem`` configuratie (baseUrl, clientId, key) wordt naar de adapter verwezen.
+
 Tonen van digitale adressen
 ---------------------------------
 

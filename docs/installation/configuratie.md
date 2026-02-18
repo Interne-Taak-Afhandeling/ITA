@@ -15,7 +15,7 @@ OpenID Connect settings
 | web.oidc.functioneelBeheerderRole                       | De waarde van de role claim in het JWT token van de OpenID Connect Provider voor toegang tot beheerfuncties (zoals het beheren van kanalen) <details> <summary>Meer informatie </summary>Bijvoorbeeld: `ITA-Functioneel-Beheerder` </details>     |
 | web.oidc.nameClaimType                                  | De naam van de claim in het JWT token van de OpenID Connect Provider waarin de volledige naam van de ingelogde gebruiker staat <br/> (default waarde is `name`) |
 | web.oidc.roleClaimType                                  | De naam van de claim in het JWT token van de OpenID Connect Provider waarin de rollen van de ingelogde gebruiker staan. <br/> (default waarde is `roles`)  |
-| web.oidc.objectregisterMedewerkerIdClaimType            | De naam van de claim in het JWT token van de OpenID Connect Provider waarin een unieke identificatie van de ingelogde gebruiker staat die overeenkomt met het attribuut `identificatie` van de medewerker in het Medewerkersregister in OverigeObjecten. <br/><br/>In de meeste gevallen zal hier waarschijnlijk 'email' voor gebruikt worden. <br/>Dit gegeven wordt gebruikt om Contactverzoeken te vinden die zijn toegewezen aan de ingelogde gebruiker en om Contactverzoeken te vinden die zijn toegewezen aan de afdelingen en groepen van de ingelogde gebruiker.  |
+| web.oidc.objectregisterMedewerkerIdClaimType            | De naam van de claim in het JWT token van de OpenID Connect Provider waarin een unieke identificatie van de ingelogde gebruiker staat die overeenkomt met het attribuut `identificatie` van de medewerker in het Medewerkersregister in OverigeObjecten. <br/><br/>In de meeste gevallen zal hier waarschijnlijk 'email' voor gebruikt worden. <br/>Dit gegeven wordt gebruikt om Contactverzoeken te vinden die zijn toegewezen aan de ingelogde gebruiker en om Contactverzoeken te vinden die zijn toegewezen aan de afdelingen en groepen van de ingelogde gebruiker. <br/><br/>**Let op:** deze waarde wordt ook als `user_id` claim meegestuurd in het JWT token richting het zaaksysteem. Bij gebruik van de e-Suite via de podiumd-adapter gebruikt de e-Suite deze waarde om te bepalen welke zaken de ingelogde gebruiker mag inzien. De waarde moet daarom overeenkomen met de gebruikersnaam van de medewerker in de e-Suite.  |
 | web.oidc.emailClaimType                                 | De naam van de claim in het JWT token van de OpenID Connect Provider waarin het e-mailadres van de ingelogde gebruiker staat. <br/> (default waarde is `email`)   |
 
 Notificatie settings
@@ -47,9 +47,9 @@ ITA gaat ervan uit dat emailadressen van medewerkers en organisatorische eenhede
 | apiConnections.objectApiKey            | min. 32 karakters  |
 | apiConnections.openKlantApi.baseUrl    | https://uw-openklant-adres/klantinteracties/api/v1/  |
 | apiConnections.openKlantApiKey         | min. 32 karakters  |
-| apiConnections.zaakSysteem.baseUrl     |  https://uw-zaaksysteem-adres.nl |
-| apiConnections.zaakSysteem.clientId    |   |
-| apiConnections.zaakSysteemKey          |  min. 32 karakters  |
+| apiConnections.zaakSysteem.baseUrl     |  De base URL van het zaaksysteem. Dit kan een directe koppeling zijn met bijvoorbeeld OpenZaak (`https://uw-openzaak-adres.nl`) of, bij gebruik van de e-Suite als zaaksysteem, de URL van de podiumd-adapter (`https://podiumd-adapter.uw-domein.nl`). Bij gebruik van de adapter wordt de root-URL gebruikt; de adapter routeert op basis van de ZGW API-paden (bijv. `/zaken/api/v1/`). |
+| apiConnections.zaakSysteem.clientId    | De client ID voor authenticatie bij het zaaksysteem. Bij gebruik van de podiumd-adapter is dit de client ID zoals geconfigureerd in de adapter.  |
+| apiConnections.zaakSysteemKey          |  De secret/key voor authenticatie bij het zaaksysteem. Min. 32 karakters. Bij gebruik van de podiumd-adapter is dit de client secret zoals geconfigureerd in de adapter.  |
 | logboek.type                           | De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie  |
 | logboek.typeVersion                    | De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | afdeling.type                          | De url van het afdeling objecttype in de objecttypen api. |
