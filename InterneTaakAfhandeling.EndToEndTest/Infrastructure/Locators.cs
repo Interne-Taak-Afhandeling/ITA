@@ -121,6 +121,54 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return page.Locator("label.utrecht-form-label", new() { HasText = "Interne toelichting" });
         }
 
+        // Zaak connection locators
+        public static ILocator GetGekoppeldeZaakKoppelenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Gekoppelde zaak Koppelen" });
+
+        public static ILocator GetGekoppeldeZaakWijzigenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Gekoppelde zaak Wijzigen" });
+
+        public static ILocator GetKoppelAanZaakHeading(this IPage page) =>
+            page.GetByRole(AriaRole.Heading, new() { Name = "Koppel aan zaak" });
+
+        public static ILocator GetKoppelAanZaakDescriptionText(this IPage page) =>
+            page.GetByText("Aan welke zaak wil je dit");
+
+        public static ILocator GetZaaknummerTextbox(this IPage page) =>
+            page.GetByRole(AriaRole.Textbox, new() { Name = "Zaaknummer" });
+
+        public static ILocator GetKoppelenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Koppelen", Exact = true });
+
+        public static ILocator GetZaakSuccesvolGekoppeldMessage(this IPage page) =>
+            page.GetByText("Zaak succesvol gekoppeld");
+
+        public static ILocator GetGeenZaakGevondenMessage(this IPage page, string zaakIdentificatie) =>
+            page.GetByText($"Geen zaak gevonden met identificatie: {zaakIdentificatie}");
+
+        public static ILocator GetZaakInDataList(this IPage page, string zaakIdentificatie) =>
+            page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie });
+
+        // Assignment locators
+        public static ILocator GetToewijzenAanMezelfButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Toewijzen aan mezelf" });
+
+        public static ILocator GetToewijzenAanMezelfDialogButton(this IPage page) =>
+            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Toewijzen aan mezelf" });
+
+        public static ILocator GetAnnulerenDialogButton(this IPage page) =>
+            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Annuleren" });
+
+        public static ILocator GetContactverzoekToegwezenMessage(this IPage page) =>
+            page.GetByText("Contactverzoek toegewezen");
+
+        // Contactmoment locators
+        public static ILocator GetContactOpnemenGeluktRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen gelukt" });
+
+        public static ILocator GetContactOpnemenNietGeluktRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen niet gelukt" });
+
 
 
     }

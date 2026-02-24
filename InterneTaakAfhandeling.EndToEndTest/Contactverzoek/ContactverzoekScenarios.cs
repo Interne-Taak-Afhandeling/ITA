@@ -47,7 +47,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactmomentRegistrerenTab();
 
             await Step("Verify 'Contact opnemen gelukt' is selected by default");
-           await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen gelukt" })).ToBeCheckedAsync();
+           await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
           await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await VerifyValidationErrors_ContactGelukt();
@@ -65,7 +65,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactmomentRegistrerenTab();
             
             await Step("Select 'Contact opnemen niet gelukt'");
-            await Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen niet gelukt" }).ClickAsync();
+            await Page.GetContactOpnemenNietGeluktRadio().ClickAsync();
        
             await VerifyValidationErrors_ContactNietGelukt();
             await FillContactmomentForm_ContactNietGelukt();
@@ -99,6 +99,117 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
             await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();
         }
+
+        [TestMethod("Finding a Zaak")]
+        public async Task Finding_Zaak()
+        {
+            var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Click on the Pen-icon next to label 'Gekoppelde zaak'");
+            await Page.GetGekoppeldeZaakKoppelenButton().ClickAsync();
+            
+            await Step("Verify zaak search pop-up box is displayed");
+            await Expect(Page.GetKoppelAanZaakHeading()).ToBeVisibleAsync();
+            await Expect(Page.GetKoppelAanZaakDescriptionText()).ToBeVisibleAsync();
+            
+            await Step("Verify user sees an input field Zaaknummer to fill in a zaak-number");
+            await Expect(Page.GetZaaknummerTextbox()).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Error message for invalid Zaak")]
+        public async Task Error_Message_For_Invalid_Zaak()
+        {
+            var testOnderwerp = "Test_Contact_Invalid_Zaak";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Click on the Pen-icon next to label 'Gekoppelde zaak'");
+            await Page.GetGekoppeldeZaakKoppelenButton().ClickAsync();
+            
+            await Step("Enter invalid Zaaknummer");
+            await Page.GetZaaknummerTextbox().FillAsync("ZAAK 2003-008");
+            
+            await Step("Click on button 'Koppelen'");
+            await Page.GetKoppelenButton().ClickAsync();
+            
+            await Step("Verify error message is displayed");
+            await Expect(Page.GetGeenZaakGevondenMessage("ZAAK 2003-008")).ToBeVisibleAsync();
+            
+            await Step("Verify the popup remains visible");
+            await Expect(Page.GetKoppelAanZaakHeading()).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Connect valid Zaak and verify it is visible")]
+        public async Task Connect_Valid_Zaak_And_Verify_Visibility()
+        {
+            var testOnderwerp = "Test_Contact_Connect_Valid_Zaak";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Click on the Pen-icon next to label 'Gekoppelde zaak'");
+            await Page.GetGekoppeldeZaakKoppelenButton().ClickAsync();
+            
+            await Step("Enter valid Zaaknummer");
+            await Page.GetZaaknummerTextbox().FillAsync("ZAAK-2023-009");
+            
+            await Step("Click on button 'Koppelen'");
+            await Page.GetKoppelenButton().ClickAsync();
+            
+            await Step("Wait for the zaak to be connected");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            
+            await VerifyZaakIsVisible("ZAAK-2023-009");
+        }
+
+        [TestMethod("Only one Zaak can be connected at once - replacing existing Zaak")]
+        public async Task Only_One_Zaak_Can_Be_Connected_Replace_Existing()
+        {
+            var testOnderwerp = "Test_Contact_Replace_Zaak";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Click on the Pen-icon next to label 'Gekoppelde zaak'");
+            await Page.GetGekoppeldeZaakKoppelenButton().ClickAsync();
+            
+            await Step("Enter first Zaaknummer ZAAK-2023-005");
+            await Page.GetZaaknummerTextbox().FillAsync("ZAAK-2023-005");
+            await Page.GetZaaknummerTextbox().PressAsync("Enter");
+            
+            await Step("Verify success message for first zaak");
+            await Expect(Page.GetZaakSuccesvolGekoppeldMessage()).ToBeVisibleAsync();
+            
+            await Step("Wait for the first zaak to be connected");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            
+            await Step("Verify first Zaak ZAAK-2023-005 is visible");
+            await VerifyZaakIsVisible("ZAAK-2023-005");
+            
+            await Step("Click on the Pen-icon again to connect a different zaak");
+            await Page.GetGekoppeldeZaakWijzigenButton().ClickAsync();
+            
+            await Step("Enter second Zaaknummer ZAAK-2023-009");
+            await Page.GetZaaknummerTextbox().FillAsync("ZAAK-2023-009");
+            await Page.GetZaaknummerTextbox().PressAsync("Enter");
+            
+            await Step("Verify success message for second zaak");
+            await Expect(Page.GetZaakSuccesvolGekoppeldMessage()).ToBeVisibleAsync();
+            
+            await Step("Wait for the second zaak to be connected");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            
+            await Step("Verify second Zaak ZAAK-2023-009 is visible");
+            await VerifyZaakIsVisible("ZAAK-2023-009");
+            
+            await Step("Verify first Zaak ZAAK-2023-005 is no longer visible");
+            await Expect(Page.Locator("text=ZAAK-2023-005")).Not.ToBeVisibleAsync();
+        }
+
 
 //  Setup & Navigation Helpers
 
@@ -160,7 +271,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task VerifyZaakIsVisible(string zaakIdentificatie)
         {
             await Step($"Verify ZAAK '{zaakIdentificatie}' is visible");
-            await Expect(Page.Locator($"text={zaakIdentificatie}")).ToBeVisibleAsync();
+            await Expect(Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie })).ToBeVisibleAsync();
         }
 
         private async Task VerifyActionTabsArePresent()
