@@ -100,6 +100,48 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();
         }
 
+
+[TestMethod("Assigning a Contactverzoek to yourself")]
+        public async Task Assigning_Contactverzoek_To_Yourself()
+        {
+            var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Click on 'Toewijzen aan mezelf' button");
+            await Page.GetToewijzenAanMezelfButton().ClickAsync();
+            await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
+            
+            await Step("Verify success message is displayed");
+            await Expect(Page.GetContactverzoekToegwezenMessage()).ToBeVisibleAsync();
+            
+            await Step("Wait for the contactverzoek to be assigned");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            
+            await Step("Verify the current user is now shown as Behandelaar");
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("E2E test contactverzoek creator");
+        }
+
+[TestMethod("validating Annuleren in confirmation dialog")]
+        public async Task Assigning_Contactverzoek_To_Yourself_Annuleren()
+        {
+            var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+            
+            await Step("Capture initial Behandelaar value");
+            var initialBehandelaar = await Page.GetBehandelaarValue().InnerTextAsync();
+
+            await Step("Click on 'Toewijzen aan mezelf' button and cancel");
+            await Page.GetToewijzenAanMezelfButton().ClickAsync();
+            await Page.GetAnnulerenDialogButton().ClickAsync();
+            
+            await Step("Verify Behandelaar field remains unchanged");
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync(initialBehandelaar);
+        }
+
 //  Setup & Navigation Helpers
 
         private async Task<Guid> SetupContactverzoek(string onderwerp, bool attachZaak)
