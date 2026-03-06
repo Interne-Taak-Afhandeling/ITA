@@ -149,27 +149,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         public static ILocator GetZaakInDataList(this IPage page, string zaakIdentificatie) =>
             page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie });
 
-        // Assignment locators
-        public static ILocator GetToewijzenAanMezelfButton(this IPage page) =>
-            page.GetByRole(AriaRole.Button, new() { Name = "Toewijzen aan mezelf" });
-
-        public static ILocator GetToewijzenAanMezelfDialogButton(this IPage page) =>
-            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Toewijzen aan mezelf" });
-
-        public static ILocator GetAnnulerenDialogButton(this IPage page) =>
-            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Annuleren" });
-
-        public static ILocator GetContactverzoekToegwezenMessage(this IPage page) =>
-            page.GetByText("Contactverzoek toegewezen");
-
         // Contactmoment locators
         public static ILocator GetContactOpnemenGeluktRadio(this IPage page) =>
             page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen gelukt" });
 
         public static ILocator GetContactOpnemenNietGeluktRadio(this IPage page) =>
             page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen niet gelukt" });
-
-
-
     }
 }
