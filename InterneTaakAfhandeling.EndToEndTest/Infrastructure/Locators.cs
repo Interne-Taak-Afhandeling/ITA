@@ -130,6 +130,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         public static ILocator GetAnnulerenDialogButton(this IPage page) =>
             page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Annuleren" });
 
+        public static ILocator GetOpslaanEnAfrondenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Opslaan & afronden" });
+
         // Message locators
         public static ILocator GetContactverzoekToegwezenMessage(this IPage page) =>
             page.GetByText("Contactverzoek toegewezen");
