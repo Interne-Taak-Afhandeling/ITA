@@ -259,6 +259,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Navigate to Contactmoment Registreren tab to add another contactmoment");
             await NavigateToContactmomentRegistrerenTab();
 
+            await Step("Verify 'Contact opnemen gelukt' is selected by default");
+            await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
             await Step("Fill and save a new contactmoment on the closed contactverzoek");
             await Page.Locator("#kanalen").SelectOptionAsync(new[] { "E-mail" });
             await Page.Locator("#informatie-burger").FillAsync("Follow-up contactmoment on closed request");
