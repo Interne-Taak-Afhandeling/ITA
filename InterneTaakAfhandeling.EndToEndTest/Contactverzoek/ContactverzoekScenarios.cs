@@ -279,6 +279,46 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetByText("Follow-up contactmoment on closed request")).ToBeVisibleAsync();
         }
 
+        [TestMethod("Validation that closed contactverzoek assigned to user appears in Mijn historie")]
+        public async Task User_ViewClosedContactverzoekInMijnHistorie()
+        {
+            var testOnderwerp = $"Test_MijnHistorie_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await Step("Navigate to contactverzoek and assign to current user");
+            await NavigateToContactverzoekDetails(testOnderwerp);
+            await Page.GetToewijzenAanMezelfButton().ClickAsync();
+            await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
+            await Expect(Page.GetContactverzoekToegwezenMessage()).ToBeVisibleAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Close the contactverzoek");
+            await NavigateToContactmomentRegistrerenTab();
+            var kanaalSelect = Page.Locator("#kanalen");
+            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
+            var informatieField = Page.Locator("#informatie-burger");
+            await informatieField.FillAsync("Closing contactverzoek for Mijn historie test");
+            await Page.GetByLabel("Ja").ClickAsync();
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+            await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
+            await Page.GetOpslaanEnAfrondenButton().ClickAsync();
+            await Expect(Page.GetByText("Contactmoment succesvol opgeslagen en afgerond")).ToBeVisibleAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Navigate to Mijn historie page");
+            await Page.GotoAsync("/historie");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify page title is 'Mijn historie'");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
+
+            await Step("Verify section heading is 'Mijn afgeronde contactverzoeken'");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
+
+            await Step("Verify closed contactverzoek is displayed in the table");
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+        }
+
         [TestMethod("Validation of contactverzoek with BSN connected partij")]
         public async Task User_ViewContactverzoek_WithBSNPartij()
         {
