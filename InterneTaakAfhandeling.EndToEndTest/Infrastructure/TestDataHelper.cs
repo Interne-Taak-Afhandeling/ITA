@@ -91,36 +91,22 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         {
             try
             {
-                Console.WriteLine($"[DEBUG] Starting CreateContactverzoek for onderwerp: {onderwerp}, attachZaak: {attachZaak}");
-                
                 var contactverzoekNummer = attachZaak 
                     ? TestDataConstants.ContactverzoekNummers.WithZaak 
                     : TestDataConstants.ContactverzoekNummers.WithoutZaak;
-                Console.WriteLine($"[DEBUG] Contactverzoek nummer: {contactverzoekNummer}");
 
-                Console.WriteLine("[DEBUG] Creating/getting contactmoment...");
                 var contactmoment = await GetOrCreateContactmoment(
                     onderwerp, 
                     "This is a test contact request created during an end-to-end test run.");
-                Console.WriteLine($"[DEBUG] Contactmoment created with UUID: {contactmoment.Uuid}");
 
-                Console.WriteLine("[DEBUG] Creating/getting submitter actor...");
                 var submitterActor = await GetOrCreateSubmitterActor();
-                Console.WriteLine($"[DEBUG] Submitter actor UUID: {submitterActor.Uuid}");
                 
-                Console.WriteLine("[DEBUG] Connecting submitter actor to contactmoment...");
                 await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
-                Console.WriteLine("[DEBUG] Submitter actor connected");
 
-                Console.WriteLine("[DEBUG] Creating/getting afdeling actor...");
                 var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
-                Console.WriteLine($"[DEBUG] Afdeling actor UUID: {afdelingActor.Uuid}");
                 
-                Console.WriteLine("[DEBUG] Creating/getting medewerker actor...");
                 var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
-                Console.WriteLine($"[DEBUG] Medewerker actor UUID: {medewerkerActor.Uuid}");
 
-                Console.WriteLine("[DEBUG] Creating internetaak...");
                 await CreateInternetaakIfNotExists(
                     contactverzoekNummer,
                     contactmoment.Uuid,
@@ -129,27 +115,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                         Guid.Parse(medewerkerActor.Uuid), 
                         Guid.Parse(afdelingActor.Uuid) 
                     });
-                Console.WriteLine("[DEBUG] Internetaak created");
 
                 if (attachZaak)
                 {
-                    Console.WriteLine("[DEBUG] Attaching ZAAK to contactmoment...");
                     await AttachZaakToContactmomentAsync(contactmoment.Uuid, TestDataConstants.Zaken.TestZaakIdentificatie);
-                    Console.WriteLine("[DEBUG] ZAAK attached");
                 }
 
-                Console.WriteLine($"[DEBUG] CreateContactverzoek completed successfully. Returning UUID: {contactmoment.Uuid}");
                 return contactmoment.Uuid;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] CreateContactverzoek failed: {ex.GetType().Name}");
-                Console.WriteLine($"[ERROR] Message: {ex.Message}");
-                Console.WriteLine($"[ERROR] StackTrace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"[ERROR] InnerException: {ex.InnerException.Message}");
-                }
                 throw;
             }
         }
@@ -215,7 +190,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to get ZAAK identificatie for klantcontact {klantcontactUuid}: {ex.Message}");
                 return null;
             }
         }
@@ -484,10 +458,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             Guid contactmomentUuid,
             List<Guid> actorUuids)
         {
-            Console.WriteLine($"  [DEBUG] Querying for existing internetaak with nummer: {nummer}");
             var internetaken = await OpenKlantApiClient.QueryInterneTakenAsync(
                 new InterneTaakQuery { Nummer = nummer });
-            Console.WriteLine($"  [DEBUG] Found {internetaken.Count} existing internetaken");
 
             if (internetaken.Count > 1)
             {
@@ -496,15 +468,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             if (internetaken.Count > 0)
             {
-                Console.WriteLine($"  [DEBUG] Internetaak already exists, skipping creation");
                 return; // Already exists
             }
-
-            Console.WriteLine($"  [DEBUG] Creating new internetaak...");
-            Console.WriteLine($"  [DEBUG]   - Nummer: {nummer}");
-            Console.WriteLine($"  [DEBUG]   - Contactmoment UUID: {contactmomentUuid}");
-            Console.WriteLine($"  [DEBUG]   - Actor UUIDs: {string.Join(", ", actorUuids)}");
-            Console.WriteLine($"  [DEBUG]   - Status: {KnownInternetaakStatussen.TeVerwerken}");
             
             var createdTaak = await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
             {
@@ -515,7 +480,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 ToegewezenAanActoren = actorUuids.Select(id => new UuidObject { Uuid = id }).ToList(),
                 Toelichting = "Test contactverzoek from ITA E2E test"
             });
-            Console.WriteLine($"  [DEBUG] Internetaak created successfully! UUID: {createdTaak?.Uuid}");
         }
 
         // Zaak Operations
