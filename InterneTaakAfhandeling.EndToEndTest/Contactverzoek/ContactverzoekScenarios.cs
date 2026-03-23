@@ -82,25 +82,23 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactmomentRegistrerenTab();
 
             await Step("Select 'Contact opnemen niet gelukt'");
-            await Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen niet gelukt" }).ClickAsync();
+            await Page.GetContactOpnemenNietGeluktRadio().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Select Kanaal");
-            var kanaalSelect = Page.Locator("#kanalen");
-            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
+            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Telefoon" });
 
             await Step("Select 'Ja' for afsluiten (to close the contactverzoek)");
-            await Page.GetByLabel("Ja").ClickAsync();
+            await Page.GetJaLabel().ClickAsync();
 
             await Step("Try to save without informatie - should show validation error");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
 
             await Step("Verify validation error on Informatie field");
-            var informatieField = Page.Locator("#informatie-burger");
-            await Expect(informatieField).ToHaveJSPropertyAsync("validity.valueMissing", true);
+            await Expect(Page.GetInformatieBurgerTextbox()).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
             await Step("Fill in Informatie field");
-            await informatieField.FillAsync("Required information when closing");
+            await Page.GetInformatieBurgerTextbox().FillAsync("Required information when closing");
 
             await Step("Submit form - should now trigger confirmation modal");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
@@ -112,7 +110,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
 
             await Step("Verify contactverzoek was closed successfully");
-            await Expect(Page.GetByText("Contactmoment succesvol opgeslagen en afgerond")).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
         }
 
         [TestMethod("Validation of Opslaan en afsluiten with confirmation and status verification")]
@@ -129,14 +127,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Fill form fields");
-            var kanaalSelect = Page.Locator("#kanalen");
-            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
-            
-            var informatieField = Page.Locator("#informatie-burger");
-            await informatieField.FillAsync("Test information for save and close");
+            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Telefoon" });
+            await Page.GetInformatieBurgerTextbox().FillAsync("Test information for save and close");
 
             await Step("Select 'Ja' for afsluiten question");
-            await Page.GetByLabel("Ja").ClickAsync();
+            await Page.GetJaLabel().ClickAsync();
 
             await Step("Click 'Contactmoment opslaan' button to trigger confirmation");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
@@ -148,7 +143,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
 
             await Step("Verify request is closed - success message");
-            await Expect(Page.GetByText("Contactmoment succesvol opgeslagen en afgerond")).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Get internetaak UUID and verify status in OpenKlant");
@@ -172,11 +167,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Fill form fields");
-            await Page.Locator("#kanalen").SelectOptionAsync(new[] { "Telefoon" });
-            await Page.Locator("#informatie-burger").FillAsync("Test information for cancel scenario");
+            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Telefoon" });
+            await Page.GetInformatieBurgerTextbox().FillAsync("Test information for cancel scenario");
 
             await Step("Select 'Ja' for afsluiten question");
-            await Page.GetByLabel("Ja").ClickAsync();
+            await Page.GetJaLabel().ClickAsync();
 
             await Step("Click 'Contactmoment opslaan' button to trigger confirmation");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
@@ -191,7 +186,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetByRole(AriaRole.Dialog)).Not.ToBeVisibleAsync();
 
             await Step("Verify request is NOT closed");
-            await Expect(Page.GetByText("Contactmoment succesvol opgeslagen en afgerond")).Not.ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).Not.ToBeVisibleAsync();
 
             await Step("Verify user remains on contactverzoek detail page");
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
@@ -217,15 +212,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactmomentRegistrerenTab();
 
             await Step("Fill form and close the contactverzoek");
-            var kanaalSelect = Page.Locator("#kanalen");
-            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
-            
-            var informatieField = Page.Locator("#informatie-burger");
-            await informatieField.FillAsync("Initial contactmoment before closing");
+            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Telefoon" });
+            await Page.GetInformatieBurgerTextbox().FillAsync("Initial contactmoment before closing");
 
             await Step("Select 'Ja' for afsluiten to close the contactverzoek");
-            await Page.GetByLabel("Ja").ClickAsync();
-            
+            await Page.GetJaLabel().ClickAsync();
+
             await Step("Click 'Contactmoment opslaan' button to trigger confirmation");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
 
@@ -236,7 +228,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
 
             await Step("Wait for close confirmation");
-            await Expect(Page.GetByText("Contactmoment succesvol opgeslagen en afgerond")).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Get internetaak UUID and nummer for navigation");
@@ -262,15 +254,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Fill and save a new contactmoment on the closed contactverzoek");
-            await Page.Locator("#kanalen").SelectOptionAsync(new[] { "E-mail" });
-            await Page.Locator("#informatie-burger").FillAsync("Follow-up contactmoment on closed request");
+            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "E-mail" });
+            await Page.GetInformatieBurgerTextbox().FillAsync("Follow-up contactmoment on closed request");
             
             await Step("Select 'Nee' for afsluiten (don't close it again)");
-            await Page.GetByLabel("Nee").ClickAsync();
+            await Page.GetNeeLabel().ClickAsync();
             await Page.GetContactmomentOpslaanButton().ClickAsync();
 
             await Step("Verify new contactmoment was saved successfully");
-            await Expect(Page.GetByText("Contactmoment succesvol bijgewerkt")).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentSuccesvolBijgewerktMessage()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify the new contactmoment appears in Logboek");
@@ -633,9 +625,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Page.Locator("#kanalen").SelectOptionAsync(new[] { "Telefoon" });
-            await Page.Locator("#informatie-burger").FillAsync("Contact request closed after reassignment");
-            await Page.GetByLabel("Ja").ClickAsync();
+            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Telefoon" });
+            await Page.GetInformatieBurgerTextbox().FillAsync("Contact request closed after reassignment");
+            await Page.GetJaLabel().ClickAsync();
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();

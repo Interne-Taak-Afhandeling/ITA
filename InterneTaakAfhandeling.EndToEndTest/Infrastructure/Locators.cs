@@ -48,7 +48,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetVraagValue(this IPage page, string onderwerp)
         {
-
             var parentDiv = page.Locator("div.utrecht-data-list__item").Filter(new() { HasText = "Vraag" });
             return parentDiv.Locator("dd.utrecht-data-list__item-value");
         }
@@ -100,26 +99,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetContactmomentOpslaanButton(this IPage page) =>
             page.GetByRole(AriaRole.Button, new() { Name = "Contactmoment opslaan" });
-        public static ILocator GetToelichtingTextarea(this IPage page) =>
-        // page.Locator("#interne-toelichting-textv-2");
-
-        page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting *" });
-
-
-        public static ILocator GetOpslaanButtonAllenToelichting(this IPage page)
-        {
-            return page.Locator("button:has-text('Opslaan')");
-        }
-
-        public static ILocator GetInterneToelichtingTextboxvalue(this IPage page)
-        {
-            return page.GetByRole(AriaRole.Textbox, new() { Name = "Interne toelichting" });
-        }
-
-        public static ILocator GetInterneToelichtingLabelForm(this IPage page)
-        {
-            return page.Locator("label.utrecht-form-label", new() { HasText = "Interne toelichting" });
-        }
 
         // Zaak connection locators
         public static ILocator GetGekoppeldeZaakKoppelenButton(this IPage page) =>
@@ -146,9 +125,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         public static ILocator GetGeenZaakGevondenMessage(this IPage page, string zaakIdentificatie) =>
             page.GetByText($"Geen zaak gevonden met identificatie: {zaakIdentificatie}");
 
-        public static ILocator GetZaakInDataList(this IPage page, string zaakIdentificatie) =>
-            page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie });
-
         // Contactmoment locators
         public static ILocator GetContactOpnemenGeluktRadio(this IPage page) =>
             page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen gelukt" });
@@ -168,6 +144,22 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetAnnulerenDialogButton(this IPage page) =>
             page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Annuleren" });
+
+        // Form field locators
+        public static ILocator GetKanalenSelect(this IPage page) => page.Locator("#kanalen");
+        
+        public static ILocator GetInformatieBurgerTextbox(this IPage page) => page.Locator("#informatie-burger");
+        
+        public static ILocator GetJaLabel(this IPage page) => page.GetByLabel("Ja");
+        
+        public static ILocator GetNeeLabel(this IPage page) => page.GetByLabel("Nee");
+        
+        // Success/Error message locators
+        public static ILocator GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage(this IPage page) =>
+            page.GetByText("Contactmoment succesvol opgeslagen en afgerond");
+            
+        public static ILocator GetContactmomentSuccesvolBijgewerktMessage(this IPage page) =>
+            page.GetByText("Contactmoment succesvol bijgewerkt");
 
         // Message locators
         public static ILocator GetContactverzoekToegewezenMessage(this IPage page) =>
