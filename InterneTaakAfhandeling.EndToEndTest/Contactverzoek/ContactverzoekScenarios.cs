@@ -558,5 +558,112 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var optionCount = await options.CountAsync();
             Assert.IsTrue(optionCount > 1, "Dropdown should contain at least one selectable option besides the default");
         }
+
+        [TestMethod("User clicks on MijnHistorie and views closed assigned contact requests")]
+        public async Task User_ClickMijnHistorie_ViewsClosedAssignedContactRequests()
+        {
+            await Step("Given user is on ITA - Create and assign a contactverzoek to current user");
+            var testOnderwerp = $"Test_MijnHistorie_Scenario_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            await CreateAssignAndCloseContactverzoek(testOnderwerp, "Test closure for MijnHistorie scenario");
+
+            await Step("When user clicks on MijnHistorie");
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.GetByRole(AriaRole.Link, new() { Name = "Mijn historie", Exact = true }).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Then closed contact request assigned to the employee is displayed");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+
+            await Step("Verify the contact request shows as assigned to current user");
+            var tableRows = Page.Locator("table tbody tr");
+            await Expect(tableRows.First).ToBeVisibleAsync();
+            var firstRowText = await tableRows.First.InnerTextAsync();
+            Assert.IsTrue(firstRowText.Contains(testOnderwerp), $"Expected to find '{testOnderwerp}' in the history table");
+
+            await Step("Given user is on Historie - When user clicks on a contactverzoek from the list");
+            var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = testOnderwerp });
+            var detailsLink = contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" });
+            await detailsLink.ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Then the detail screen of the contact request is the same as the 'Alle contactverzoeken' page");
+            await VerifyBasicContactverzoekFields(testOnderwerp);
+            await VerifyActionTabsArePresent();
+            await VerifyMetadataFields();
+
+            await Step("Verify the contactverzoek detail page elements are present");
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
+            await Expect(Page.GetDoorsturenTab()).ToBeVisibleAsync();
+            await Expect(Page.GetAlleenToelichtingTab()).ToBeVisibleAsync();
+
+            await Step("Verify the contactverzoek shows as verwerkt status");
+            await Expect(Page.GetStatusValue()).ToHaveTextAsync("verwerkt");
+        }
+
+        [TestMethod("User navigates to unassigned contactverzoek, assigns to self, closes it, and views in history")]
+        public async Task User_AssignUnassignedContactverzoek_CloseAndViewInHistory()
+        {
+            var testOnderwerp = $"Test_Unassigned_Reassignment_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            
+            await Step("Given user is on ITA - Create contactverzoek for another employee (not assigned to current user)");
+            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false, TestDataConstants.ContactverzoekNummers.UnassignedForReassignment);
+
+            await Step("And navigates to a contactverzoek that is created for another employee");
+            await SafeGotoAsync($"/contactverzoek/{TestDataConstants.ContactverzoekNummers.UnassignedForReassignment}");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify contactverzoek page is loaded");
+            await Expect(Page.GetByText($"Contactverzoek {TestDataConstants.ContactverzoekNummers.UnassignedForReassignment}")).ToBeVisibleAsync();
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+
+            await Step("And assign the contactverzoek to self");
+            await Page.GetToewijzenAanMezelfButton().ClickAsync();
+            await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify the current user is now shown as Behandelaar");
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("E2E test contactverzoek creator");
+
+            await Step("When user closes the contact request");
+            await NavigateToContactmomentRegistrerenTab();
+            await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Page.Locator("#kanalen").SelectOptionAsync(new[] { "Telefoon" });
+            await Page.Locator("#informatie-burger").FillAsync("Contact request closed after reassignment");
+            await Page.GetByLabel("Ja").ClickAsync();
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+            await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
+            await Page.GetOpslaanEnAfrondenButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("And navigates to History tab");
+            await SafeGotoAsync("/historie");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Reload page to ensure latest data is displayed");
+            await Page.ReloadAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Then the closed contact request is displayed in the history tab");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+
+            await Step("Verify the reassigned and closed contact request shows in user's history");
+            var tableRows = Page.Locator("table tbody tr");
+            await Expect(tableRows.First).ToBeVisibleAsync();
+            var firstRowText = await tableRows.First.InnerTextAsync();
+            Assert.IsTrue(firstRowText.Contains(testOnderwerp), $"Expected to find reassigned and closed contactverzoek '{testOnderwerp}' in the history table");
+
+            await Step("Verify status in OpenKlant is verwerkt with AfgehandeldOp set");
+            var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
+            Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
+            await VerifyInternetaakStatusInOpenKlant(internetaakUuid.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
+        }
     }
 }
