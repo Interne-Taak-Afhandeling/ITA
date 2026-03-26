@@ -57,6 +57,25 @@ function functioneelBeheerderAccessGuard(
   });
 }
 
+function coordinatorAccessGuard(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) {
+  const authStore = useAuthStore();
+  const requiresCoordinatorAccess = to.matched.some(
+    (record) => record.meta.requiresCoordinatorAccess
+  );
+
+  return authGuard(to, from, () => {
+    if (requiresCoordinatorAccess && !authStore.isCoordinator) {
+      return next({ name: "forbidden" });
+    }
+
+    return next();
+  });
+}
+
 function titleGuard(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
@@ -100,5 +119,6 @@ export default {
     router.beforeEach(authGuard);
     router.beforeEach(itaAccessGuard);
     router.beforeEach(functioneelBeheerderAccessGuard);
+    router.beforeEach(coordinatorAccessGuard);
   }
 };

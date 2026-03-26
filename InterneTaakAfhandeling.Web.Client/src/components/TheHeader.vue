@@ -62,6 +62,13 @@
                 >Beheer</router-link
               >
             </li>
+            <li v-if="isCoordinator" class="utrecht-nav-list__item">
+              <router-link
+                :to="{ name: 'werklijst' }"
+                class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
+                >Werklijst</router-link
+              >
+            </li>
 
             <li
               class="user-name utrecht-nav-list__item utrecht-link utrecht-link--html-a utrecht-nav-list__link"
@@ -92,6 +99,7 @@ const resources = injectResources();
 const authStore = useAuthStore();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const hasFunctioneelBeheerderAccess = computed(() => authStore.hasFunctioneelBeheerderAccess);
+const isCoordinator = computed(() => authStore.isCoordinator);
 const user = computed(() => authStore.user);
 
 const svg = computed(() => {

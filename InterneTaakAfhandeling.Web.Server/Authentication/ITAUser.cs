@@ -9,5 +9,8 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
         public string[] Roles { get; set; } = [];
         public bool HasITASystemAccess { get; set; }
         public bool HasFunctioneelBeheerderAccess { get; set; }
+        public bool HasOrganisatieCoordinatorAccess { get; set; }
+        public bool HasTeamCoordinatorAccess { get; set; }
+        public bool HasCoordinatorAccess => HasOrganisatieCoordinatorAccess || HasTeamCoordinatorAccess;
     }
 }

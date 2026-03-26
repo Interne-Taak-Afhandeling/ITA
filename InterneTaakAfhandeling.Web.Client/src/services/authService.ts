@@ -13,7 +13,10 @@ class AuthService {
           name: data.name || "",
           roles: data.roles || [],
           hasITASystemAccess: data.hasITASystemAccess || false,
-          hasFunctioneelBeheerderAccess: data.hasFunctioneelBeheerderAccess || false
+          hasFunctioneelBeheerderAccess: data.hasFunctioneelBeheerderAccess || false,
+          hasOrganisatieCoordinatorAccess: data.hasOrganisatieCoordinatorAccess || false,
+          hasTeamCoordinatorAccess: data.hasTeamCoordinatorAccess || false,
+          hasCoordinatorAccess: data.hasCoordinatorAccess || false
         };
         return userData;
       }

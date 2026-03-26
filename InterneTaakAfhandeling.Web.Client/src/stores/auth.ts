@@ -14,6 +14,11 @@ export const useAuthStore = defineStore("auth", () => {
   const hasFunctioneelBeheerderAccess = computed(
     () => user.value?.hasFunctioneelBeheerderAccess || false
   );
+  const isOrganisatieCoordinator = computed(
+    () => user.value?.hasOrganisatieCoordinatorAccess || false
+  );
+  const isTeamCoordinator = computed(() => user.value?.hasTeamCoordinatorAccess || false);
+  const isCoordinator = computed(() => user.value?.hasCoordinatorAccess || false);
 
   async function initialize() {
     isLoading.value = true;
@@ -66,6 +71,9 @@ export const useAuthStore = defineStore("auth", () => {
     isAuthenticated,
     hasITASystemAccess,
     hasFunctioneelBeheerderAccess,
+    isOrganisatieCoordinator,
+    isTeamCoordinator,
+    isCoordinator,
     initialized,
     initialize,
     login,

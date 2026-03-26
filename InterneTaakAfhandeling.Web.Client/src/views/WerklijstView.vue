@@ -1,0 +1,94 @@
+<template>
+  <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
+
+  <div v-if="isLoading" class="spinner-container">
+    <simple-spinner />
+  </div>
+
+  <utrecht-alert v-else-if="error" type="error">
+    {{ error }}
+  </utrecht-alert>
+
+  <section v-else>
+    <scroll-container>
+      <werklijst-table :items="results">
+        <template #caption v-if="itemRange">
+          {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} contactverzoeken
+        </template>
+      </werklijst-table>
+    </scroll-container>
+
+    <utrecht-pagination
+      v-if="totalPages > 1"
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :has-next-page="hasNextPage"
+      :has-previous-page="hasPreviousPage"
+      :visible-pages="visiblePages"
+      :is-loading="isLoading"
+      @go-to-page="goToPage"
+      @go-to-previous-page="goToPreviousPage"
+      @go-to-next-page="goToNextPage"
+    />
+  </section>
+</template>
+
+<script setup lang="ts">
+import { onMounted, watch } from "vue";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import UtrechtPagination from "@/components/UtrechtPagination.vue";
+import WerklijstTable from "@/components/werklijst/WerklijstTable.vue";
+import { fetchWerklijst } from "@/services/werklijstService";
+import { usePagination } from "@/composables/use-pagination";
+import ScrollContainer from "@/components/ScrollContainer.vue";
+import { useRoute } from "vue-router";
+import { useState } from "@/composables/use-state";
+
+const route = useRoute();
+
+const pagnrCache = useState<number>("werklijstView", "pagenr");
+
+const {
+  isLoading,
+  error,
+  results,
+  totalCount,
+  currentPage,
+  totalPages,
+  hasNextPage,
+  hasPreviousPage,
+  visiblePages,
+  itemRange,
+  fetchData,
+  goToPage,
+  goToNextPage,
+  goToPreviousPage
+} = usePagination(fetchWerklijst, {
+  initialPage: pagnrCache.value ?? 1,
+  initialPageSize: 20,
+  maxVisiblePages: 5
+});
+
+watch(currentPage, () => (pagnrCache.value = currentPage.value));
+
+onMounted(() => {
+  fetchData();
+});
+</script>
+
+<style lang="scss" scoped>
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+section {
+  margin-top: 1rem;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+}
+</style>
