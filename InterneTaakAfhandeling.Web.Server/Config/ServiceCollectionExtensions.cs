@@ -65,11 +65,6 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IWerklijstService, WerklijstService>();
             services.AddSmtpClients(configuration);
 
-            services.AddOptions<AfhandeltermijnOptions>()
-                .BindConfiguration(AfhandeltermijnOptions.SectionName)
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-            
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
          

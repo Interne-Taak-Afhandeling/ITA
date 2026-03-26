@@ -12,7 +12,6 @@ public class WerklijstQuery
 
     public Guid? AfdelingUuid { get; set; }
     public Guid? GroepUuid { get; set; }
-    public bool? AlleenOverschreden { get; set; }
 }
 
 public class WerklijstResponse
@@ -35,7 +34,4 @@ public record WerklijstOverzichtItem
     public string? Afdeling { get; set; }
     public string? Groep { get; set; }
     public string? Medewerker { get; set; }
-    public DateOnly? AfhandeltermijnDatum { get; set; }
-    public int VerstrekenWerkdagen { get; set; }
-    public bool IsOverschreden { get; set; }
 }

@@ -3,20 +3,16 @@ using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Web.Server.Config;
-using Microsoft.Extensions.Options;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.Werklijst;
 
 public class WerklijstService(
     IOpenKlantApiClient openKlantApiClient,
     IObjectApiClient objectApiClient,
-    IOptions<AfhandeltermijnOptions> afhandeltermijnOptions,
     ILogger<WerklijstService> logger) : IWerklijstService
 {
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
     private readonly IObjectApiClient _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient));
-    private readonly AfhandeltermijnOptions _afhandeltermijnOptions = afhandeltermijnOptions.Value;
     private readonly ILogger<WerklijstService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<WerklijstResponse> GetWerklijstAsync(WerklijstQuery query, ITAUser user)
