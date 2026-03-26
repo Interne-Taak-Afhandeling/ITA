@@ -183,30 +183,21 @@ and verify the assignment is updated.
 
 ---
 
-### User Story 5 — Toewijzing wijzigen vanuit detail (Priority: P3)
+### User Story 5 — Toewijzing wijzigen vanuit detail (Covered by existing functionality)
 
-As a coördinator I want to change the toewijzing of a
-contactverzoek from its detail page so that I can reassign while
-reviewing the full context of the request.
+> **Not a separate implementation story.** Coordinators can already
+> use the existing "Acties > Doorsturen" (`ContactverzoekDoorsturen`)
+> and "Toewijzen aan mij" actions on the detail page. The only
+> requirement is that the coordinator roles are granted access to
+> the detail page — this is covered by the foundational auth work
+> (Phase 2). Verification is included in the E2E test scenarios.
 
-Both coordinator roles can view and edit all contactverzoeken, the
-same as all existing roles do currently. This includes the ability
-to change the toewijzing from within the contactverzoek detail
-view, consistent with how existing roles already operate.
-
-**Why this priority**: This is an existing capability extended to
-the new roles — lower priority because coordinators primarily
-operate from the werklijst.
-
-**Independent Test**: Open a contactverzoek detail page as a
-coordinator and change its toewijzing; verify the change persists.
-
-**Acceptance Scenarios**:
+**Acceptance Scenarios** (verified via E2E tests):
 
 1. **Given** a coördinator viewing a contactverzoek detail page,
-   **When** they choose to change the toewijzing,
-   **Then** the same two-step assignment flow (afdeling/groep →
-   medewerker) is available with all afdelingen/groepen listed.
+   **When** they choose "Acties > Doorsturen",
+   **Then** the existing doorsturen flow (afdeling/groep →
+   optional medewerker email) is available.
 2. **Given** a coördinator changes the toewijzing from the detail
    page,
    **When** they return to the werklijst,
@@ -227,8 +218,8 @@ coordinator and change its toewijzing; verify the change persists.
   membership changes? Their werklijst scope MUST update accordingly
   on the next page load.
 - What if the afhandeltermijn configuration is not set? The system
-  MUST display elapsed time without an overdue indicator, or use a
-  sensible default.
+  MUST use the default afhandeltermijn (5 werkdagen) and display
+  elapsed time and overdue status based on that default.
 - What happens when a user holds both organisatie-coördinator and
   team-coördinator roles? The broadest scope (organisatie) MUST
   take precedence.
@@ -265,8 +256,9 @@ coordinator and change its toewijzing; verify the change persists.
   outside their own afdelingen/groepen, the contactverzoek MUST
   disappear from their werklijst
 - **FR-010**: Both coordinator roles MUST be able to view and edit
-  all contactverzoeken (including changing toewijzing from the
-  detail page), identical to existing roles
+  all contactverzoeken (including using existing "Doorsturen" and
+  "Toewijzen aan mij" actions from the detail page), identical to
+  existing roles — no new UI required, covered by coordinator auth
 - **FR-011**: Bulk assignment MUST report partial success — if some
   items fail, the successful ones MUST persist and failures MUST be
   reported individually

@@ -77,7 +77,7 @@ Bulk-assign internetaken to a target afdeling/groep and optionally a medewerker.
 
 **Validation**:
 - `internetaakUuids` — required, non-empty, max 20 items
-- At least one of `afdelingUuid`, `groepUuid`, `medewerkerEmail` must be provided
+- At least one of `afdelingUuid` or `groepUuid` is required; `medewerkerEmail` is optional
 - `medewerkerEmail` is optional (freeform email; follows existing ContactverzoekDoorsturen pattern)
 
 **Response** `200 OK`:
