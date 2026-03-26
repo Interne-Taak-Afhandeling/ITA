@@ -139,8 +139,9 @@ Assignment follows a two-step selection:
 1. Select a target **afdeling/groep** — for BOTH coordinator roles
    the picker shows ALL afdelingen/groepen (not filtered to own
    scope)
-2. Optionally select a **medewerker** within the selected
-   afdeling/groep
+2. Optionally enter a **medewerker e-mailadres** — a freeform email
+   input (consistent with the existing ContactverzoekDoorsturen
+   pattern; no medewerker list endpoint exists)
 
 Both single-item and bulk (multi-select) assignment MUST be
 supported from the werklijst.
@@ -160,9 +161,9 @@ and verify the assignment is updated.
    **Then** an assignment dialog appears with a list of ALL
    afdelingen/groepen (regardless of coordinator role).
 2. **Given** the assignment dialog with an afdeling/groep selected,
-   **When** the coördinator optionally selects a medewerker,
-   **Then** only medewerkers within the selected afdeling/groep are
-   shown.
+   **When** the coördinator optionally enters a medewerker
+   e-mailadres,
+   **Then** the email is validated client-side before submission.
 3. **Given** a coördinator confirms the assignment,
    **When** the action completes,
    **Then** all selected contactverzoeken are reassigned to the
@@ -215,9 +216,9 @@ coordinator and change its toewijzing; verify the change persists.
 
 ### Edge Cases
 
-- What happens when a coördinator tries to assign to an
-  afdeling/groep that has no medewerkers? The medewerker selection
-  step MUST be skippable (assign to afdeling/groep only).
+- What happens when a coördinator leaves the medewerker email
+  field empty? The assignment proceeds to afdeling/groep only —
+  medewerker is always optional.
 - What happens when a contactverzoek is reassigned by another user
   while a coördinator has it selected for bulk assignment? The
   system MUST detect the conflict and report it without losing the
@@ -257,9 +258,9 @@ coordinator and change its toewijzing; verify the change persists.
 - **FR-007**: The afdeling/groep picker in the assignment flow MUST
   show ALL afdelingen/groepen for both coordinator roles (not
   scoped to own)
-- **FR-008**: The medewerker picker in the assignment flow MUST
-  show only medewerkers within the currently selected
-  afdeling/groep
+- **FR-008**: The medewerker input in the assignment flow MUST be a
+  freeform e-mailadres field with client-side email validation,
+  consistent with the existing ContactverzoekDoorsturen pattern
 - **FR-009**: When a team-coördinator assigns a contactverzoek
   outside their own afdelingen/groepen, the contactverzoek MUST
   disappear from their werklijst
