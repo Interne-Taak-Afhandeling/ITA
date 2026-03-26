@@ -13,14 +13,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
             await Page.GotoAsync("/");
 
             await Step("Verify werklijst navigation link is visible");
-            var werklijstLink = GetWerklijstNavLink(Page);
+            var werklijstLink = Page.GetWerklijstNavLink();
             await Expect(werklijstLink).ToBeVisibleAsync();
 
             await Step("Click werklijst link");
             await werklijstLink.ClickAsync();
 
             await Step("Verify werklijst page loads");
-            var heading = GetWerklijstHeading(Page);
+            var heading = Page.GetWerklijstHeading();
             await Expect(heading).ToBeVisibleAsync();
         }
 
@@ -31,29 +31,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
             await Page.GotoAsync("/werklijst");
 
             await Step("Verify werklijst heading is present");
-            var heading = GetWerklijstHeading(Page);
+            var heading = Page.GetWerklijstHeading();
             await Expect(heading).ToBeVisibleAsync();
 
             await Step("Verify werklijst table is visible");
-            var table = GetWerklijstTable(Page);
+            var table = Page.GetWerklijstTable();
             await Expect(table).ToBeVisibleAsync();
 
             await Step("Verify table has rows");
-            var rows = GetWerklijstTableRows(Page);
+            var rows = Page.GetWerklijstTableRows();
             var rowCount = await rows.CountAsync();
             Assert.IsTrue(rowCount > 0, "Werklijst table should contain at least one row");
         }
-
-        private static Microsoft.Playwright.ILocator GetWerklijstNavLink(Microsoft.Playwright.IPage page) =>
-            WerklijstLocators.GetWerklijstNavLink(page);
-
-        private static Microsoft.Playwright.ILocator GetWerklijstHeading(Microsoft.Playwright.IPage page) =>
-            WerklijstLocators.GetWerklijstHeading(page);
-
-        private static Microsoft.Playwright.ILocator GetWerklijstTable(Microsoft.Playwright.IPage page) =>
-            WerklijstLocators.GetWerklijstTable(page);
-
-        private static Microsoft.Playwright.ILocator GetWerklijstTableRows(Microsoft.Playwright.IPage page) =>
-            WerklijstLocators.GetWerklijstTableRows(page);
     }
 }

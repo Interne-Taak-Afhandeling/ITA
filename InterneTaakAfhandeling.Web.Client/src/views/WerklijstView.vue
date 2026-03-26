@@ -39,7 +39,7 @@ import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
 import WerklijstTable from "@/components/werklijst/WerklijstTable.vue";
-import { fetchWerklijst } from "@/services/werklijstService";
+import { werklijstService } from "@/services/werklijstService";
 import { usePagination } from "@/composables/use-pagination";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import { useRoute } from "vue-router";
@@ -64,7 +64,7 @@ const {
   goToPage,
   goToNextPage,
   goToPreviousPage
-} = usePagination(fetchWerklijst, {
+} = usePagination(werklijstService.fetchWerklijst, {
   initialPage: pagnrCache.value ?? 1,
   initialPageSize: 20,
   maxVisiblePages: 5

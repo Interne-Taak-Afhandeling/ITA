@@ -92,6 +92,7 @@ const router = createRouter({
       component: () => import("@/views/WerklijstView.vue"),
       meta: {
         title: "Werklijst",
+        requiresITAAccess: true,
         requiresCoordinatorAccess: true
       }
     },

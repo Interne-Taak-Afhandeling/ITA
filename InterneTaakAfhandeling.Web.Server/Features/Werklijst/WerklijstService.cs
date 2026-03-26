@@ -61,15 +61,18 @@ public class WerklijstService(
             return new WerklijstResponse();
         }
 
-        // Fetch items per scope name, then merge and apply in-memory pagination.
-        // Municipal scale (~500 items) makes this acceptable for MVP.
+        // Fetch all items per scope name, then merge and apply in-memory pagination.
+        // Municipal scale (~500 items total) makes this acceptable for MVP.
         var allItems = new List<WerklijstOverzichtItem>();
         foreach (var scopeName in scopeNames)
         {
             var interneTaakQuery = BuildBaseQuery(query);
             interneTaakQuery.Actoren__Naam = scopeName;
-            interneTaakQuery.Page = null;
-            interneTaakQuery.PageSize = null;
+
+            // Fetch all pages for this scope to avoid silently dropping items
+            // beyond the upstream API's default page size
+            interneTaakQuery.Page = 1;
+            interneTaakQuery.PageSize = 100;
 
             try
             {
@@ -77,6 +80,16 @@ public class WerklijstService(
                 var items = await Task.WhenAll(
                     response.Results.Select(MapToWerklijstItemAsync));
                 allItems.AddRange(items);
+
+                // Follow pagination if more pages exist
+                while (response.Next is not null)
+                {
+                    interneTaakQuery.Page++;
+                    response = await _openKlantApiClient.GetAllInternetakenAsync(interneTaakQuery);
+                    var nextItems = await Task.WhenAll(
+                        response.Results.Select(MapToWerklijstItemAsync));
+                    allItems.AddRange(nextItems);
+                }
             }
             catch (Exception ex)
             {
