@@ -38,7 +38,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactverzoekByNummer(internetaak.Nummer!);
             await Page.GetToewijzenAanMezelfButton().ClickAsync();
             await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
-            await Expect(Page.GetContactverzoekToegwezenMessage()).ToBeVisibleAsync();
+            await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
 
             await NavigateToContactmomentRegistrerenTab();
             await Page.Locator("#kanalen").SelectOptionAsync(new[] { "Telefoon" });
@@ -68,7 +68,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactverzoekByNummer(internetaakNummer);
             await Page.GetToewijzenAanMezelfButton().ClickAsync();
             await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
-            await Expect(Page.GetContactverzoekToegwezenMessage()).ToBeVisibleAsync();
+            await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
 
             await NavigateToContactmomentRegistrerenTab();
             await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();

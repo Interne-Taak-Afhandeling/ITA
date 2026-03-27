@@ -92,31 +92,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             bool attachZaak = true,
             string? internetaakNummer = null)
         {
-            var contactverzoekNummer = attachZaak 
-                ? TestDataConstants.ContactverzoekNummers.WithZaak 
-                : TestDataConstants.ContactverzoekNummers.WithoutZaak;
-
-            var contactmoment = await GetOrCreateContactmoment(
-                onderwerp, 
-                "This is a test contact request created during an end-to-end test run.");
-
-            var submitterActor = await GetOrCreateSubmitterActor();
-            
-            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
-
-            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
-            
-            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
-
-            await CreateInternetaakIfNotExists(
-                contactverzoekNummer,
-                contactmoment.Uuid,
-                new List<Guid> 
-                { 
-                    Guid.Parse(medewerkerActor.Uuid), 
-                    Guid.Parse(afdelingActor.Uuid) 
-                });
-
             var contactverzoekNummer = internetaakNummer ?? (attachZaak
                 ? TestDataConstants.ContactverzoekNummers.WithZaak
                 : TestDataConstants.ContactverzoekNummers.WithoutZaak);
@@ -146,8 +121,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             {
                 await AttachZaakToContactmomentAsync(contactmoment.Uuid, TestDataConstants.Zaken.TestZaakIdentificatie);
             }
-
-            return contactmoment.Uuid;
 
             return contactmoment.Uuid;
         }
@@ -527,20 +500,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 }
             }
 
-            if (internetaken.Count > 0)
-            {
-                return; // Already exists
-            }
-            
-            await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
-            {
-                AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmomentUuid },
-                GevraagdeHandeling = "terugbellen svp",
-                Nummer = nummer,
-                Status = KnownInternetaakStatussen.TeVerwerken,
-                ToegewezenAanActoren = actorUuids.Select(id => new UuidObject { Uuid = id }).ToList(),
-                Toelichting = "Test contactverzoek from ITA E2E test"
-            });
+            throw new InvalidOperationException("Failed to create internetaak after multiple attempts.");
         }
 
         // Zaak Operations
