@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using ITA.InterneTaakAfhandeling.EndToEndTest.Helpers;
@@ -85,18 +86,30 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
         private async Task SafeGotoAsync(string url)
         {
+            Microsoft.Playwright.PlaywrightException? lastException = null;
+
             for (var attempt = 1; attempt <= 3; attempt++)
             {
                 try
                 {
                     await Page.GotoAsync(url);
-                    return;
+                    return; // Success
                 }
-                catch (Microsoft.Playwright.PlaywrightException) when (attempt < 3)
+                catch (Microsoft.Playwright.PlaywrightException ex)
                 {
-                    await Task.Delay(1500);
+                    lastException = ex;
+                    
+                    if (attempt < 3)
+                    {
+                        await Task.Delay(1500);
+                    }
                 }
             }
+
+            // All attempts failed - throw explicit exception to avoid silent failures
+            throw new InvalidOperationException(
+                $"Failed to navigate to '{url}' after 3 attempts. This indicates a navigation/UI problem that needs investigation.",
+                lastException);
         }
 
         private async Task NavigateToContactverzoekDetails(string onderwerp)
@@ -138,19 +151,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step($"Select department '{organisatorischeEenheidNaam}' from dropdown");
             await Page.GetByLabel("Selecteer een afdeling of").SelectOptionAsync(new[] { organisatorischeEenheidNaam });
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-        }
-
-        private async Task<List<string>> GetAfdelingenEnGroepenDropdownEntriesAsync()
-        {
-            var optionTexts = await Page
-                .GetByLabel("Selecteer een afdeling of")
-                .Locator("option")
-                .AllInnerTextsAsync();
-
-            return optionTexts
-                .Select(text => text.Trim())
-                .Where(text => text.StartsWith("Afdeling:") || text.StartsWith("Groep:"))
-                .ToList();
         }
 
         // Verification Helpers
@@ -236,8 +236,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             if (firstDateMatch.Success && secondDateMatch.Success)
             {
-                var firstDate = DateTime.ParseExact(firstDateMatch.Value, "d-M-yyyy", null);
-                var secondDate = DateTime.ParseExact(secondDateMatch.Value, "d-M-yyyy", null);
+                var firstDate = DateTime.ParseExact(firstDateMatch.Value, "d-M-yyyy", CultureInfo.InvariantCulture);
+                var secondDate = DateTime.ParseExact(secondDateMatch.Value, "d-M-yyyy", CultureInfo.InvariantCulture);
                 Assert.IsTrue(firstDate >= secondDate, "Expected latest closed contactverzoek to be listed first");
                 return;
             }
@@ -304,7 +304,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
-            await Expect(radioButton).ToHaveJSPropertyAsync("validationMessage", "Please select one of these options.");
+            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
             await Step("Select 'Nee' for afsluiten");
             await Page.GetByLabel("Nee").ClickAsync();

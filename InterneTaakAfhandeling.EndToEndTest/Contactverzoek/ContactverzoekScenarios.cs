@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using ITA.InterneTaakAfhandeling.EndToEndTest.Helpers;
@@ -334,8 +333,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await CloseContactverzoekByNummer(first.internetaakNummer, "Telefoon", "First contactverzoek closed");
             await VerifyInternetaakStatusInOpenKlant(first.internetaakUuid, "verwerkt", shouldHaveAfgehandeldOp: true);
-
-            await Task.Delay(2000);
 
             await CloseContactverzoekByNummer(second.internetaakNummer, "E-mail", "Second contactverzoek closed - most recent");
             await VerifyInternetaakStatusInOpenKlant(second.internetaakUuid, "verwerkt", shouldHaveAfgehandeldOp: true);

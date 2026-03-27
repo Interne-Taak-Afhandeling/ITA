@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
