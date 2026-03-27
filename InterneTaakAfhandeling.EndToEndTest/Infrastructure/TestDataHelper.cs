@@ -18,6 +18,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         private ObjectApiClient ObjectApiClient { get; }
         private ZakenApiClient ZakenApiClient { get; }
         private string Username { get; }
+        private ILogger<TestDataHelper> Logger { get; }
 
         public TestDataHelper(
             string openKlantBaseUrl, 
@@ -35,6 +36,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             Username = username;
 
             var loggerFactory = new LoggerFactory();
+            Logger = loggerFactory.CreateLogger<TestDataHelper>();
 
             OpenKlantApiClient = CreateOpenKlantApiClient(openKlantBaseUrl, openKlantApiKey, loggerFactory);
             ObjectApiClient = CreateObjectApiClient(objectenApiBaseUrl, objectenApiKey, loggerFactory, l, a, g);
@@ -89,44 +91,37 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             string onderwerp, 
             bool attachZaak = true)
         {
-            try
+            var contactverzoekNummer = attachZaak 
+                ? TestDataConstants.ContactverzoekNummers.WithZaak 
+                : TestDataConstants.ContactverzoekNummers.WithoutZaak;
+
+            var contactmoment = await GetOrCreateContactmoment(
+                onderwerp, 
+                "This is a test contact request created during an end-to-end test run.");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            
+            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+
+            await CreateInternetaakIfNotExists(
+                contactverzoekNummer,
+                contactmoment.Uuid,
+                new List<Guid> 
+                { 
+                    Guid.Parse(medewerkerActor.Uuid), 
+                    Guid.Parse(afdelingActor.Uuid) 
+                });
+
+            if (attachZaak)
             {
-                var contactverzoekNummer = attachZaak 
-                    ? TestDataConstants.ContactverzoekNummers.WithZaak 
-                    : TestDataConstants.ContactverzoekNummers.WithoutZaak;
-
-                var contactmoment = await GetOrCreateContactmoment(
-                    onderwerp, 
-                    "This is a test contact request created during an end-to-end test run.");
-
-                var submitterActor = await GetOrCreateSubmitterActor();
-                
-                await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
-
-                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
-                
-                var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
-
-                await CreateInternetaakIfNotExists(
-                    contactverzoekNummer,
-                    contactmoment.Uuid,
-                    new List<Guid> 
-                    { 
-                        Guid.Parse(medewerkerActor.Uuid), 
-                        Guid.Parse(afdelingActor.Uuid) 
-                    });
-
-                if (attachZaak)
-                {
-                    await AttachZaakToContactmomentAsync(contactmoment.Uuid, TestDataConstants.Zaken.TestZaakIdentificatie);
-                }
-
-                return contactmoment.Uuid;
+                await AttachZaakToContactmomentAsync(contactmoment.Uuid, TestDataConstants.Zaken.TestZaakIdentificatie);
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
+
+            return contactmoment.Uuid;
         }
 
         public async Task<Guid> CreateContactverzoekWithAfdelingMedewerkerAndPartij(
@@ -190,6 +185,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
             catch (Exception ex)
             {
+                Logger.LogWarning(ex, "Failed to get zaak identificatie from klantcontact {KlantcontactUuid}", klantcontactUuid);
                 return null;
             }
         }

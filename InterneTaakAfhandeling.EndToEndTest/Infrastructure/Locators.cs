@@ -170,7 +170,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Annuleren" });
 
         // Message locators
-        public static ILocator GetContactverzoekToegwezenMessage(this IPage page) =>
+        public static ILocator GetContactverzoekToegewezenMessage(this IPage page) =>
             page.GetByText("Contactverzoek toegewezen");
     }
 }

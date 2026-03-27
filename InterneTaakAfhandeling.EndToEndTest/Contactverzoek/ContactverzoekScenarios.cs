@@ -155,7 +155,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
             Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
 
-            await VerifyInternetaakStatusInOpenKlant(internetaakUuid.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
+            await VerifyInternetaakStatusInOpenKlant(internetaakUuid.Value, KnownInternetaakStatussen.Verwerkt, shouldHaveAfgehandeldOp: true);
         }
 
         [TestMethod("Validation of canceling Opslaan en afsluiten - request not closed")]
@@ -430,7 +430,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
             
             await Step("Verify success message is displayed");
-            await Expect(Page.GetContactverzoekToegwezenMessage()).ToBeVisibleAsync();
+            await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
             
             await Step("Wait for the contactverzoek to be assigned");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
