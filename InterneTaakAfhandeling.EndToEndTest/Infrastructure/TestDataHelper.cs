@@ -480,7 +480,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 return; // Already exists
             }
             
-            var createdTaak = await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
+            await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
             {
                 AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmomentUuid },
                 GevraagdeHandeling = "terugbellen svp",
