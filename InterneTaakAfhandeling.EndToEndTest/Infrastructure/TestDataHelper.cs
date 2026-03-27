@@ -212,7 +212,20 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         {
             var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
             var internetaak = contactmoment?.Expand?.LeiddeTotInterneTaken?.FirstOrDefault();
-            return internetaak != null ? Guid.Parse(internetaak.Uuid) : null;
+            
+            if (internetaak?.Uuid == null)
+            {
+                return null;
+            }
+
+            if (Guid.TryParse(internetaak.Uuid, out var parsedGuid))
+            {
+                return parsedGuid;
+            }
+
+            Logger.LogWarning("Invalid UUID string received for internetaak: '{UuidString}' from contactmoment {ContactmomentUuid}", 
+                internetaak.Uuid, contactmomentUuid);
+            return null;
         }
 
   

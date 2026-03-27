@@ -246,7 +246,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
             
             var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
-            Assert.AreEqual("verwerkt", internetaak.Status, "Status should be verwerkt after closing");
+            Assert.AreEqual(KnownInternetaakStatussen.Verwerkt, internetaak.Status, "Status should be verwerkt after closing");
             var internetaakNummer = internetaak.Nummer;
 
             await Step($"Navigate back to closed contactverzoek using nummer: {internetaakNummer}");
