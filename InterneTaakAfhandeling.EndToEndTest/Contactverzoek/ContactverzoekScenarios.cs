@@ -8,7 +8,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 {
     [TestClass]
     [DoNotParallelize]
-    public class ContactverzoekScenarios : ITAPlaywrightTest
+    public partial class ContactverzoekScenarios : ITAPlaywrightTest
     {
         // Test Methods
 
@@ -47,8 +47,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactmomentRegistrerenTab();
 
             await Step("Verify 'Contact opnemen gelukt' is selected by default");
-           await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
-          await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await VerifyValidationErrors_ContactGelukt();
             await FillContactmomentForm_ContactGelukt();
@@ -168,15 +168,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactmomentRegistrerenTab();
 
             await Step("Verify 'Contact opnemen gelukt' is selected by default");
-            await Expect(Page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen gelukt" })).ToBeCheckedAsync();
+            await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Fill form fields");
-            var kanaalSelect = Page.Locator("#kanalen");
-            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
-            
-            var informatieField = Page.Locator("#informatie-burger");
-            await informatieField.FillAsync("Test information for cancel scenario");
+            await Page.Locator("#kanalen").SelectOptionAsync(new[] { "Telefoon" });
+            await Page.Locator("#informatie-burger").FillAsync("Test information for cancel scenario");
 
             await Step("Select 'Ja' for afsluiten question");
             await Page.GetByLabel("Ja").ClickAsync();
@@ -187,27 +184,28 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify confirmation dialog is displayed");
             await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
 
-            await Step("Click 'Annuleren' on confirmation dialog");
+            await Step("Click 'No' (Annuleren) on confirmation dialog");
             await Page.GetAnnulerenDialogButton().ClickAsync();
 
             await Step("Verify dialog is closed");
             await Expect(Page.GetByRole(AriaRole.Dialog)).Not.ToBeVisibleAsync();
 
-            await Step("Verify request is NOT closed - no success message shown");
+            await Step("Verify request is NOT closed");
             await Expect(Page.GetByText("Contactmoment succesvol opgeslagen en afgerond")).Not.ToBeVisibleAsync();
 
             await Step("Verify user remains on contactverzoek detail page");
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
             await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
 
-            await Step("Verify status in OpenKlant remains 'te_verwerken' (not closed)");
+            await Step("Verify status in OpenKlant remains 'te_verwerken'");
             var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
             Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
-            
+
             var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
             Assert.AreEqual("te_verwerken", internetaak.Status, "Status should remain 'te_verwerken' when canceled");
             Assert.IsNull(internetaak.AfgehandeldOp, "AfgehandeldOp should NOT be set when canceled");
         }
+
 
         [TestMethod("Validation that closed contactverzoek can still be updated")]
         public async Task User_UpdateClosedContactverzoek_CanStillAddContactmoment()
@@ -283,30 +281,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task User_ViewClosedContactverzoekInMijnHistorie()
         {
             var testOnderwerp = $"Test_MijnHistorie_{Guid.NewGuid().ToString().Substring(0, 8)}";
-            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
-
-            await Step("Navigate to contactverzoek and assign to current user");
-            await NavigateToContactverzoekDetails(testOnderwerp);
-            await Page.GetToewijzenAanMezelfButton().ClickAsync();
-            await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
-            await Expect(Page.GetContactverzoekToegwezenMessage()).ToBeVisibleAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            await Step("Close the contactverzoek");
-            await NavigateToContactmomentRegistrerenTab();
-            var kanaalSelect = Page.Locator("#kanalen");
-            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
-            var informatieField = Page.Locator("#informatie-burger");
-            await informatieField.FillAsync("Closing contactverzoek for Mijn historie test");
-            await Page.GetByLabel("Ja").ClickAsync();
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-            await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
-            await Page.GetOpslaanEnAfrondenButton().ClickAsync();
-            await Expect(Page.GetByText("Contactmoment succesvol opgeslagen en afgerond")).ToBeVisibleAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await CreateAssignAndCloseContactverzoek(testOnderwerp, "Closing contactverzoek for Mijn historie test");
 
             await Step("Navigate to Mijn historie page");
-            await Page.GotoAsync("/historie");
+            await SafeGotoAsync("/historie");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify page title is 'Mijn historie'");
@@ -317,6 +295,60 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Verify closed contactverzoek is displayed in the table");
             await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+        }
+
+        [TestMethod("View completed contactverzoeken of afdeling")]
+        public async Task User_ViewCompletedContactverzoekenInAfdelingshistorie()
+        {
+            const string afdelingNaam = "Burgerzaken_ibz";
+            var testOnderwerp = $"Test_Afdelingshistorie_{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+            await CreateAssignAndCloseContactverzoek(testOnderwerp, "Afdelingshistorie test close");
+            await NavigateToAfdelingshistorieAndSelectOrganisatorischeEenheid(afdelingNaam);
+
+            await Step("Verify the closed contactverzoek appears in afdeling history");
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        }
+
+        [TestMethod("View completed contactverzoeken of groep")]
+        public async Task User_ViewCompletedContactverzoekenInGroepHistorie()
+        {
+            const string groepNaam = "Communicatieadviseurs";
+            await NavigateToAfdelingshistorieAndSelectOrganisatorischeEenheid(groepNaam);
+
+            await Step("Verify closed contactverzoeken for the groep are displayed");
+            var tableRows = Page.Locator("table tbody tr");
+            await Expect(tableRows.First).ToBeVisibleAsync();
+            var rowCount = await tableRows.CountAsync();
+            Assert.IsTrue(rowCount > 0, "Expected at least one closed contactverzoek for selected groep");
+
+            await VerifyLatestRecordIsOnTopInHistorieTable(tableRows, rowCount);
+        }
+
+        [TestMethod("Validation that reassigned and closed contactverzoek appears in Mijn historie in descending order")]
+        public async Task User_ReassignCloseContactverzoek_AppearsInHistorieSortedDescending()
+        {
+            var firstOnderwerp = $"Test_First_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var secondOnderwerp = $"Test_Second_{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+            await Step("Create first and second contactverzoek one after another");
+            var first = await SetupAndResolveContactverzoek(firstOnderwerp, TestDataConstants.ContactverzoekNummers.HistorieFirst);
+            var second = await SetupAndResolveContactverzoek(secondOnderwerp, TestDataConstants.ContactverzoekNummers.HistorieSecond);
+
+            await Step("Verify both interne taken are created before closing");
+            await VerifyInternetaakStatusInOpenKlant(first.internetaakUuid, "te_verwerken");
+            await VerifyInternetaakStatusInOpenKlant(second.internetaakUuid, "te_verwerken");
+
+            await CloseContactverzoekByNummer(first.internetaakNummer, "Telefoon", "First contactverzoek closed");
+            await VerifyInternetaakStatusInOpenKlant(first.internetaakUuid, "verwerkt", shouldHaveAfgehandeldOp: true);
+
+            await Task.Delay(2000);
+
+            await CloseContactverzoekByNummer(second.internetaakNummer, "E-mail", "Second contactverzoek closed - most recent");
+            await VerifyInternetaakStatusInOpenKlant(second.internetaakUuid, "verwerkt", shouldHaveAfgehandeldOp: true);
+
+            await VerifyMijnHistorieDescendingOrder(secondOnderwerp, firstOnderwerp);
         }
 
         [TestMethod("Validation of contactverzoek with BSN connected partij")]
@@ -498,213 +530,33 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync(initialBehandelaar);
         }
 
-//  Setup & Navigation Helpers
-
-        private async Task<Guid> SetupContactverzoek(string onderwerp, bool attachZaak)
+        [TestMethod("Check afdelingen en groepen dropdown in Afdelingshistorie")]
+        public async Task User_CheckAfdelingenEnGroepenDropdown_InAfdelingshistorie()
         {
-            await Step("Setup test data via API");
-            var uuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak);
-            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
-            return uuid;
-        }
-
-        private async Task NavigateToContactverzoekDetails(string onderwerp)
-        {
-            await Step("Navigate to home page");
-            await Page.GotoAsync("/");
+            await Step("Navigate to Dashboard");
+            await SafeGotoAsync("/");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step($"Click on contactverzoek '{onderwerp}'");
-      
-             var detailsLink = Page.GetDetailsLink(onderwerp);
-             await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-             await detailsLink.ClickAsync();
-        }
+            await Step("Verify menu option 'Afdelingshistorie' is visible");
+            await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "Afdelingshistorie", Exact = true })).ToBeVisibleAsync();
 
-        private async Task NavigateToContactverzoekByNummer(string internetaakNummer)
-        {
-            await Step($"Navigate to contactverzoek by nummer: {internetaakNummer}");
-            await Page.GotoAsync($"/contactverzoek/{internetaakNummer}");
+            await Step("Click menu option 'Afdelingshistorie'");
+            await Page.GetByRole(AriaRole.Link, new() { Name = "Afdelingshistorie", Exact = true }).ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify page contains no Contactverzoeken");
+            var tableRows = Page.Locator("table tbody tr");
+            var rowCount = await tableRows.CountAsync();
+            Assert.AreEqual(0, rowCount, "Expected no Contactverzoeken on initial Afdelingshistorie page");
+
+            await Step("Verify dropdown is visible and has selectable options");
+            var dropdown = Page.GetByLabel("Selecteer een afdeling of");
+            await Expect(dropdown).ToBeVisibleAsync();
             
-            await Step($"Verify contactverzoek page loaded with nummer: {internetaakNummer}");
-            await Expect(Page.GetByText($"Contactverzoek {internetaakNummer}")).ToBeVisibleAsync();
+            await Step("Verify dropdown contains options");
+            var options = dropdown.Locator("option");
+            var optionCount = await options.CountAsync();
+            Assert.IsTrue(optionCount > 1, "Dropdown should contain at least one selectable option besides the default");
         }
-
-        private async Task NavigateToContactmomentRegistrerenTab()
-        {
-            await Step("Navigate to Contactmoment Registreren tab");
-            await Page.GetContactmomentRegistrerenTab().ClickAsync();
-        }
-
-    // Verification Helpers
-
-        private async Task VerifyBasicContactverzoekFields(string onderwerp)
-        {
-            await Step("Verify contactverzoek is visible");
-            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
-
-            await Step("Verify contact information fields");
-            await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();
-            await Expect(Page.GetKlantnaamValue()).ToHaveTextAsync("-");
-
-            await Expect(Page.GetTelefoonnummerLabel()).ToBeVisibleAsync();
-            await Expect(Page.GetTelefoonnummerValue()).ToHaveTextAsync("-");
-
-            await Expect(Page.GetEmailLabel()).ToBeVisibleAsync();
-            await Expect(Page.GetEmailValue()).ToHaveTextAsync("-");
-
-            await Step("Verify question and information fields");
-            await Expect(Page.GetVraagLabel()).ToBeVisibleAsync();
-            await Expect(Page.GetVraagValue(onderwerp)).ToHaveTextAsync(onderwerp);
-
-            await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible });
-            await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(
-                "This is a test contact request created during an end-to-end test run.", new() { Timeout = 10000 });
-        }
-
-        private async Task VerifyZaakIsVisible(string zaakIdentificatie)
-        {
-            await Step($"Verify ZAAK '{zaakIdentificatie}' is visible");
-            await Expect(Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie })).ToBeVisibleAsync();
-        }
-
-        private async Task VerifyActionTabsArePresent()
-        {
-            await Step("Verify action tabs are present");
-            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
-            await Expect(Page.GetDoorsturenTab()).ToBeVisibleAsync();
-            await Expect(Page.GetAlleenToelichtingTab()).ToBeVisibleAsync();
-        }
-
-        private async Task VerifyMetadataFields()
-        {
-            await Step("Verify metadata fields");
-            await Expect(Page.GetAangemaaktDoorLabel()).ToBeVisibleAsync();
-            await Expect(Page.GetAangemaaktDoorValue()).ToBeVisibleAsync();
-
-            await Expect(Page.GetBehandelaarLabel()).ToBeVisibleAsync();
-            await Expect(Page.GetBehandelaarValue()).ToBeVisibleAsync();
-
-            await Expect(Page.GetStatusLabel()).ToBeVisibleAsync();
-            await Expect(Page.GetStatusValue()).ToBeVisibleAsync();
-
-            await Expect(Page.GetKanaalLabel()).ToBeVisibleAsync();
-            await Expect(Page.GetKanaalValue()).ToBeVisibleAsync();
-
-            await Expect(Page.GetInterneToelichtingLabel()).ToBeVisibleAsync();
-            var toelichtingValue = Page.GetInterneToelichtingValue();
-            if (await toelichtingValue.CountAsync() > 0)
-            {
-                await Expect(toelichtingValue).ToBeVisibleAsync();
-            }
-        }
-
-    // Form Validation & Filling Helpers
-
-        private async Task VerifyValidationErrors_ContactGelukt()
-        {
-            await Step("Verify validation: Afsluiten question is required");
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-
-            var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
-            await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
-
-            await Step("Select 'Nee' for afsluiten");
-            await Page.GetByLabel("Nee").ClickAsync();
-
-            await Step("Verify validation: Kanaal is required");
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-            var kanaalSelect = Page.Locator("#kanalen");
-            await Expect(kanaalSelect).ToHaveJSPropertyAsync("validity.valueMissing", true);
-            await Step("Select Kanaal");
-            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
-
-            await Step("Verify validation: Informatie field is required for 'Contact gelukt'");
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-            var informatieField = Page.Locator("#informatie-burger");
-           await Expect(informatieField).ToHaveJSPropertyAsync("validity.valueMissing", true);
-        }
-
-        private async Task VerifyValidationErrors_ContactNietGelukt()
-        {
-            await Step("Verify validation: Afsluiten question is required");
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
-           await Expect(radioButton).ToHaveJSPropertyAsync("validationMessage", "Please select one of these options.");
-
-            await Step("Select 'Nee' for afsluiten");
-            await Page.GetByLabel("Nee").ClickAsync();
-            
-            await Step("Verify validation: Kanaal is required");
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-            var kanaalSelect = Page.Locator("#kanalen");
-            await Expect(kanaalSelect).ToHaveJSPropertyAsync("validity.valueMissing", true);
-
-            await Step("Select Kanaal");
-            await kanaalSelect.SelectOptionAsync(new[] { "Telefoon" });
-
-            await Step("Verify Informatie field is NOT required for 'Contact niet gelukt'");
-            var informatieField = Page.Locator("#informatie-burger");
-            var isRequired = await informatieField.GetAttributeAsync("required");
-            Assert.IsNull(isRequired, "Informatie field should not be required for 'Contact opnemen niet gelukt'");
-        }
-
-        private async Task FillContactmomentForm_ContactGelukt()
-        {
-            await Step("Fill form for 'Contact gelukt'");
-            var informatieField = Page.Locator("#informatie-burger");
-            await informatieField.FillAsync("Test information for contactmoment");
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-        }
-
-        private async Task FillContactmomentForm_ContactNietGelukt()
-        {
-            await Step("Save form for 'Contact niet gelukt' (no informatie required)");
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-        }
-
-        private async Task VerifyContactmomentSavedSuccessfully(string logboekText, string? expectedInformatieText = null)
-        {
-            await Step("Verify success message");
-            await Expect(Page.GetByText("Contactmoment succesvol bijgewerkt")).ToBeVisibleAsync();
-
-            await Step("Wait and refresh to load Logboek");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            await Step($"Verify '{logboekText}' is displayed in Logboek");
-            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" })).ToBeVisibleAsync();
-            await Expect(Page.GetByText(logboekText)).ToBeVisibleAsync();
-
-            if (expectedInformatieText != null)
-            {
-                await Step("Verify entered information is visible in Logboek");
-                await Expect(Page.GetByRole(AriaRole.Paragraph)
-                    .Filter(new() { HasText = expectedInformatieText })).ToBeVisibleAsync();
-            }
-        }
-
-        private async Task VerifyInternetaakStatusInOpenKlant(Guid internetaakUuid, string expectedStatus, bool shouldHaveAfgehandeldOp = false)
-        {
-            await Step($"Verify status in OpenKlant is '{expectedStatus}'");
-            var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid);
-            
-            Assert.IsNotNull(internetaak, "Internetaak should exist in OpenKlant");
-            Assert.AreEqual(expectedStatus, internetaak.Status, $"Status should be '{expectedStatus}'");
-            
-            if (shouldHaveAfgehandeldOp)
-            {
-                await Step("Verify afgehandeldOp is set to current date and time");
-                Assert.IsNotNull(internetaak.AfgehandeldOp, "AfgehandeldOp should be set");
-                
-                var timeDifference = Math.Abs((DateTimeOffset.UtcNow - internetaak.AfgehandeldOp.Value).TotalMinutes);
-                Assert.IsTrue(timeDifference < 5, 
-                    $"AfgehandeldOp should be close to current time. Difference: {timeDifference} minutes");
-            }
-        }
-
     }
 }

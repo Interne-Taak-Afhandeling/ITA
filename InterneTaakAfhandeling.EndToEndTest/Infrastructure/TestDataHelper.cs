@@ -89,7 +89,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public async Task<Guid> CreateContactverzoek(
             string onderwerp, 
-            bool attachZaak = true)
+            bool attachZaak = true,
+            string? internetaakNummer = null)
         {
             var contactverzoekNummer = attachZaak 
                 ? TestDataConstants.ContactverzoekNummers.WithZaak 
@@ -116,10 +117,37 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     Guid.Parse(afdelingActor.Uuid) 
                 });
 
+            var contactverzoekNummer = internetaakNummer ?? (attachZaak
+                ? TestDataConstants.ContactverzoekNummers.WithZaak
+                : TestDataConstants.ContactverzoekNummers.WithoutZaak);
+
+            var contactmoment = await GetOrCreateContactmoment(
+                onderwerp, 
+                "This is a test contact request created during an end-to-end test run.");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            
+            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+
+            await CreateInternetaakIfNotExists(
+                contactverzoekNummer,
+                contactmoment.Uuid,
+                new List<Guid> 
+                { 
+                    Guid.Parse(medewerkerActor.Uuid), 
+                    Guid.Parse(afdelingActor.Uuid) 
+                });
+
             if (attachZaak)
             {
                 await AttachZaakToContactmomentAsync(contactmoment.Uuid, TestDataConstants.Zaken.TestZaakIdentificatie);
             }
+
+            return contactmoment.Uuid;
 
             return contactmoment.Uuid;
         }
@@ -462,17 +490,41 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
     //   Internetaak Operations
 
+        private static string GenerateUniqueInternetaakNummer()
+        {
+            var millisPart = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() % 100_000_000;
+            var randomPart = Random.Shared.Next(0, 100);
+            return $"{millisPart:00000000}{randomPart:00}";
+        }
+
         private async Task CreateInternetaakIfNotExists(
             string nummer,
             Guid contactmomentUuid,
             List<Guid> actorUuids)
         {
-            var internetaken = await OpenKlantApiClient.QueryInterneTakenAsync(
-                new InterneTaakQuery { Nummer = nummer });
+            var currentNummer = nummer;
 
-            if (internetaken.Count > 1)
+            for (var attempt = 1; attempt <= 3; attempt++)
             {
-                throw new InvalidOperationException($"Found {internetaken.Count} internetaken with nummer '{nummer}', expected at most 1.");
+                try
+                {
+                    await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
+                    {
+                        AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmomentUuid },
+                        GevraagdeHandeling = "terugbellen svp",
+                        Nummer = currentNummer,
+                        Status = KnownInternetaakStatussen.TeVerwerken,
+                        ToegewezenAanActoren = actorUuids.Select(id => new UuidObject { Uuid = id }).ToList(),
+                        Toelichting = "Test contactverzoek from ITA E2E test"
+                    });
+
+                    return;
+                }
+                catch (Exception) when (attempt < 3)
+                {
+                    currentNummer = GenerateUniqueInternetaakNummer();
+                    await Task.Delay(50);
+                }
             }
 
             if (internetaken.Count > 0)
