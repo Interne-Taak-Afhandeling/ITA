@@ -155,5 +155,22 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetContactOpnemenNietGeluktRadio(this IPage page) =>
             page.GetByRole(AriaRole.Radio, new() { Name = "Contact opnemen niet gelukt" });
+
+        public static ILocator GetOpslaanEnAfrondenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Opslaan & afronden" });
+
+        // Assignment button locators
+        public static ILocator GetToewijzenAanMezelfButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Toewijzen aan mezelf" });
+
+        public static ILocator GetToewijzenAanMezelfDialogButton(this IPage page) =>
+            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Toewijzen aan mezelf" });
+
+        public static ILocator GetAnnulerenDialogButton(this IPage page) =>
+            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Annuleren" });
+
+        // Message locators
+        public static ILocator GetContactverzoekToegewezenMessage(this IPage page) =>
+            page.GetByText("Contactverzoek toegewezen");
     }
 }

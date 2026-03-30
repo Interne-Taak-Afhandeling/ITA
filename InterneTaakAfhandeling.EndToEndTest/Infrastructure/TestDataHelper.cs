@@ -18,6 +18,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         private ObjectApiClient ObjectApiClient { get; }
         private ZakenApiClient ZakenApiClient { get; }
         private string Username { get; }
+        private ILogger<TestDataHelper> Logger { get; }
 
         public TestDataHelper(
             string openKlantBaseUrl, 
@@ -35,6 +36,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             Username = username;
 
             var loggerFactory = new LoggerFactory();
+            Logger = loggerFactory.CreateLogger<TestDataHelper>();
 
             OpenKlantApiClient = CreateOpenKlantApiClient(openKlantBaseUrl, openKlantApiKey, loggerFactory);
             ObjectApiClient = CreateObjectApiClient(objectenApiBaseUrl, objectenApiKey, loggerFactory, l, a, g);
@@ -98,9 +100,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 "This is a test contact request created during an end-to-end test run.");
 
             var submitterActor = await GetOrCreateSubmitterActor();
+            
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            
             var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
 
             await CreateInternetaakIfNotExists(
@@ -181,7 +185,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to get ZAAK identificatie for klantcontact {klantcontactUuid}: {ex.Message}");
+                Logger.LogWarning(ex, "Failed to get zaak identificatie from klantcontact {KlantcontactUuid}", klantcontactUuid);
                 return null;
             }
         }
@@ -197,6 +201,31 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             {
                 // Silent catch for deletion errors
             }
+        }
+
+        public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)
+        {
+            return await OpenKlantApiClient.GetInternetaakByIdAsync(uuid);
+        }
+
+        public async Task<Guid?> GetInternetaakUuidFromContactmomentAsync(Guid contactmomentUuid)
+        {
+            var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
+            var internetaak = contactmoment?.Expand?.LeiddeTotInterneTaken?.FirstOrDefault();
+            
+            if (internetaak?.Uuid == null)
+            {
+                return null;
+            }
+
+            if (Guid.TryParse(internetaak.Uuid, out var parsedGuid))
+            {
+                return parsedGuid;
+            }
+
+            Logger.LogWarning("Invalid UUID string received for internetaak: '{UuidString}' from contactmoment {ContactmomentUuid}", 
+                internetaak.Uuid, contactmomentUuid);
+            return null;
         }
 
   
@@ -450,7 +479,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             {
                 return; // Already exists
             }
-
+            
             await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
             {
                 AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmomentUuid },
