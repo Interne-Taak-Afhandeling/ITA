@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.1
+
+- fix vulnerable dependencies
+
 ## v2.1.0
 
 - [ITA communicatie met e-Suite mogelijk maken (Oost Gelre)](https://dimpact.atlassian.net/browse/ITA-429)
