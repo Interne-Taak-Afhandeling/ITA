@@ -17,6 +17,10 @@ spec:
             - name: internetaakafhandeling-poller
               image: "{{ .Values.poller.image.repository }}:{{ .Values.poller.image.tag }}"
               imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
+              {{- with .Values.poller.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
               envFrom:
                 - configMapRef:
                     name: {{ include "internetaakafhandeling.fullname" . }}-config
