@@ -26,12 +26,12 @@ data:
   OIDC_EMAIL_CLAIM_TYPE: {{ .Values.web.oidc.emailClaimType }}
   {{- end }}
   
-  # Resource configuration
-  {{- if .Values.web.branding.logoUrl }}
-  RESOURCES__LOGO_URL: {{ .Values.web.branding.logoUrl | toString | quote }}
-  RESOURCES__FAVICON_URL: {{ .Values.web.branding.faviconUrl | toString | quote }}
-  RESOURCES__DESIGN_TOKENS_URL: {{ .Values.web.branding.designTokensUrl | toString | quote }}
-  RESOURCES__WEB_FONT_SOURCES: {{ join " " .Values.web.branding.webFontSources | quote }}
+  # Styling configuration
+  {{- if .Values.web.styling.logoUrl }}
+  RESOURCES__LOGO_URL: {{ .Values.web.styling.logoUrl | toString | quote }}
+  RESOURCES__FAVICON_URL: {{ .Values.web.styling.faviconUrl | toString | quote }}
+  RESOURCES__DESIGN_TOKENS_URL: {{ .Values.web.styling.designTokensUrl | toString | quote }}
+  RESOURCES__WEB_FONT_SOURCES: {{ join " " .Values.web.styling.webFontSources | quote }}
   {{- end }}
   
   # SMTP Configuration
