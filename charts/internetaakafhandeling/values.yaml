@@ -118,7 +118,7 @@ web:
     objectregisterMedewerkerIdClaimType: ""
     emailClaimType: ""
   
-  branding:
+  styling:
     logoUrl: ""
     faviconUrl: ""
     designTokensUrl: ""
