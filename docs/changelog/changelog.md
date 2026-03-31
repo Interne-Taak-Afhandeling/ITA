@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.0.0
+
+- **breaking**: `web.resources` hernoemd naar `web.styling` voor branding config (logoUrl, faviconUrl etc)
+- `web.resources` is nu beschikbaar voor kubernetes pod resource limits/requests
+- `poller.resources` toegevoegd voor kubernetes pod resource limits/requests
+
 ## v2.1.1
 
 - fix vulnerable dependencies
