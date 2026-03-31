@@ -11,6 +11,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             public const string WithZaak = "8001321008";
             public const string WithoutZaak = "8001321009";
             public const string WithPartij = "8001321010";
+            public const string HistorieFirst = "8001321011";
+            public const string HistorieSecond = "8001321012";
+            public const string UnassignedForReassignment = "8001321013";
         }
 
          public static class Zaken
