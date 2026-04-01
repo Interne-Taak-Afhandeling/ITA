@@ -118,12 +118,20 @@ web:
     objectregisterMedewerkerIdClaimType: ""
     emailClaimType: ""
   
-  resources:
+  styling:
     logoUrl: ""
     faviconUrl: ""
     designTokensUrl: ""
     webFontSources: []
-  
+
+  resources: {}
+  # limits:
+  #   cpu: 200m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
   appsettings:
     setting1: ""
     setting2: ""
@@ -137,6 +145,14 @@ poller:
     tag: "latest"
     pullPolicy: Always
   
+  resources: {}
+  # limits:
+  #   cpu: 200m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
   notification:
     pollerMessage: "Poller uitgevoerd om:"
-    hourThreshold: "-24"  
+    hourThreshold: "-24"
