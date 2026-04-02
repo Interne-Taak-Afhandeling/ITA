@@ -12,6 +12,15 @@ description: "Task list template for feature implementation"
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
+> **⚠ NO HORIZONTAL SLICES (Constitution §II — Vertical Slice Delivery Rule)**
+>
+> Each user story's tasks MUST include **only** what that story
+> needs to work end-to-end. Do NOT pre-build DTO fields,
+> configuration classes, types, or abstractions that serve future
+> stories — defer them to the story that actually requires them.
+> If in doubt, leave it out; it can be added when the dependent
+> story is implemented.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
