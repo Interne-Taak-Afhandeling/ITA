@@ -87,6 +87,16 @@ const router = createRouter({
       }
     },
     {
+      path: "/werklijst",
+      name: "werklijst",
+      component: () => import("@/views/WerklijstView.vue"),
+      meta: {
+        title: "Werklijst",
+        requiresITAAccess: true,
+        requiresCoordinatorAccess: true
+      }
+    },
+    {
       path: "/beheer",
       name: "beheer",
       component: BeheerView,

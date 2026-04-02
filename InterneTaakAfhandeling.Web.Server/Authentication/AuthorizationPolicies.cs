@@ -9,4 +9,9 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
     {
         public const string Name = "FunctioneelBeheerderPolicy";
     }
+
+    public static class CoordinatorPolicy
+    {
+        public const string Name = "CoordinatorPolicy";
+    }
 }

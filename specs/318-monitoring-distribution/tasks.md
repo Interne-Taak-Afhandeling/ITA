@@ -23,49 +23,47 @@
 
 ### Setup
 
-- [ ] T001 [US1] Create backend feature directories `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` and `InterneTaakAfhandeling.Web.Server/Features/Werkverdeling/`
-- [ ] T002 [P] [US1] Create frontend component directory `InterneTaakAfhandeling.Web.Client/src/components/werklijst/`
+- [x] T001 [US1] Create backend feature directories `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` and `InterneTaakAfhandeling.Web.Server/Features/Werkverdeling/`
+- [x] T002 [P] [US1] Create frontend component directory `InterneTaakAfhandeling.Web.Client/src/components/werklijst/`
 
 ### Backend Auth & Config
 
-- [ ] T003 [US1] Add coordinator role constants and boolean properties (`HasOrganisatieCoordinatorAccess`, `HasTeamCoordinatorAccess`, `HasCoordinatorAccess`) to `InterneTaakAfhandeling.Web.Server/Authentication/ITAUser.cs` following existing `HasITASystemAccess`/`HasFunctioneelBeheerderAccess` pattern
-- [ ] T004 [US1] Add coordinator OIDC claim resolution logic in `InterneTaakAfhandeling.Web.Server/Authentication/AuthenticationExtensions.cs` — map new role claims to ITAUser properties, following existing claim-to-property mapping pattern
-- [ ] T005 [P] [US1] Add `CoordinatorPolicy` authorization policy (requires either coordinator role) in `InterneTaakAfhandeling.Web.Server/Authentication/AuthorizationPolicies.cs` following existing `ITAPolicy`/`FunctioneelBeheerderPolicy` pattern
-- [ ] T006 [P] [US1] Create `AfhandeltermijnOptions.cs` in `InterneTaakAfhandeling.Web.Server/Config/` with `WerkdagenTermijn` (int, default 5) and `SectionName` constant, using `IOptions<T>` pattern with `ValidateDataAnnotations()` and `ValidateOnStart()` per constitution §II
-- [ ] T007 [P] [US1] Add `Afhandeltermijn` section with `WerkdagenTermijn: 5` to `InterneTaakAfhandeling.Web.Server/appsettings.json` and `appsettings.Development.json`
-- [ ] T008 [US1] Extend `/api/me` endpoint in `InterneTaakAfhandeling.Web.Server/Authentication/AuthenticationExtensions.cs` to include `hasOrganisatieCoordinatorAccess`, `hasTeamCoordinatorAccess`, and `hasCoordinatorAccess` in the response
+- [x] T003 [US1] Add coordinator role constants and boolean properties (`HasOrganisatieCoordinatorAccess`, `HasTeamCoordinatorAccess`, `HasCoordinatorAccess`) to `InterneTaakAfhandeling.Web.Server/Authentication/ITAUser.cs` following existing `HasITASystemAccess`/`HasFunctioneelBeheerderAccess` pattern
+- [x] T004 [US1] Add coordinator OIDC claim resolution logic in `InterneTaakAfhandeling.Web.Server/Authentication/AuthenticationExtensions.cs` — map new role claims to ITAUser properties, following existing claim-to-property mapping pattern
+- [x] T005 [P] [US1] Add `CoordinatorPolicy` authorization policy (requires either coordinator role) in `InterneTaakAfhandeling.Web.Server/Authentication/AuthorizationPolicies.cs` following existing `ITAPolicy`/`FunctioneelBeheerderPolicy` pattern
+- [x] T008 [US1] Extend `/api/me` endpoint in `InterneTaakAfhandeling.Web.Server/Authentication/AuthenticationExtensions.cs` to include `hasOrganisatieCoordinatorAccess`, `hasTeamCoordinatorAccess`, and `hasCoordinatorAccess` in the response
 
 ### Backend Werklijst API
 
-- [ ] T009 [P] [US1] Create `WerklijstModels.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` with `WerklijstQuery`, `WerklijstOverzichtItem`, and `WerklijstResponse` records per data-model.md — follow `InterneTakenOverzichtModel.cs` pattern
-- [ ] T010 [P] [US1] Create `IWerklijstService.cs` interface in `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` with `GetWerklijstAsync(WerklijstQuery query, ITAUser user)` method signature
-- [ ] T011 [US1] Implement `WerklijstService.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` — inject `OpenKlantApiClient` + `ObjectApiClient`, query internetaken with `Status = te_verwerken`, apply role-based scoping (organisatie-coördinator: all; team-coördinator: resolve own afdelingen/groepen from `ObjectregisterMedewerkerId`; dual-role: broadest scope takes precedence per spec edge case), enrich with klantcontact + actor names into flat DTOs, add Serilog structured logging with `SecureLogging.SanitizeAndTruncate()` for PII — follow `InterneTakenOverzichtService.cs` pattern
-- [ ] T012 [US1] Create `WerklijstController.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` — `GET /api/werklijst` with `[Authorize(Policy = "CoordinatorPolicy")]`, bind `WerklijstQuery` from query string, return `WerklijstResponse` — follow `AlleOverzichtController.cs` pattern with `[ProducesResponseType]` attributes
-- [ ] T013 [US1] Register `IWerklijstService`/`WerklijstService` and bind `AfhandeltermijnOptions` from configuration in `InterneTaakAfhandeling.Web.Server/Config/ServiceCollectionExtensions.cs`
+- [x] T009 [P] [US1] Create `WerklijstModels.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` with `WerklijstQuery`, `WerklijstOverzichtItem`, and `WerklijstResponse` records per data-model.md (US1 scope: exclude `AfhandeltermijnDatum`, `VerstrekenWerkdagen`, `IsOverschreden`, `AlleenOverschreden` — deferred to US3) — follow `InterneTakenOverzichtModel.cs` pattern
+- [x] T010 [P] [US1] Create `IWerklijstService.cs` interface in `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` with `GetWerklijstAsync(WerklijstQuery query, ITAUser user)` method signature
+- [x] T011 [US1] Implement `WerklijstService.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` — inject `OpenKlantApiClient` + `ObjectApiClient`, query internetaken with `Status = te_verwerken`, apply role-based scoping (organisatie-coördinator: all; team-coördinator: resolve own afdelingen/groepen from `ObjectregisterMedewerkerId`; dual-role: broadest scope takes precedence per spec edge case), enrich with klantcontact + actor names into flat DTOs, add Serilog structured logging with `SecureLogging.SanitizeAndTruncate()` for PII — follow `InterneTakenOverzichtService.cs` pattern
+- [x] T012 [US1] Create `WerklijstController.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` — `GET /api/werklijst` with `[Authorize(Policy = "CoordinatorPolicy")]`, bind `WerklijstQuery` from query string, return `WerklijstResponse` — follow `AlleOverzichtController.cs` pattern with `[ProducesResponseType]` attributes
+- [x] T013 [US1] Register `IWerklijstService`/`WerklijstService` in `InterneTaakAfhandeling.Web.Server/Config/ServiceCollectionExtensions.cs`
 
 ### Frontend Auth & Types
 
-- [ ] T014 [P] [US1] Add `hasOrganisatieCoordinatorAccess`, `hasTeamCoordinatorAccess`, and `hasCoordinatorAccess` boolean fields to the `User` interface in `InterneTaakAfhandeling.Web.Client/src/types/user.ts`
-- [ ] T015 [P] [US1] Add coordinator computed properties to auth store in `InterneTaakAfhandeling.Web.Client/src/stores/auth.ts` — `isCoordinator`, `isOrganisatieCoordinator`, `isTeamCoordinator`
-- [ ] T016 [P] [US1] Create werklijst TypeScript types (`WerklijstOverzichtItem`, `WerkverdelingRequest`, `WerkverdelingResponse`, `WerkverdelingItemResult`) in `InterneTaakAfhandeling.Web.Client/src/types/werklijst.ts` per data-model.md
+- [x] T014 [P] [US1] Add `hasOrganisatieCoordinatorAccess`, `hasTeamCoordinatorAccess`, and `hasCoordinatorAccess` boolean fields to the `User` interface in `InterneTaakAfhandeling.Web.Client/src/types/user.ts`
+- [x] T015 [P] [US1] Add coordinator computed properties to auth store in `InterneTaakAfhandeling.Web.Client/src/stores/auth.ts` — `isCoordinator`, `isOrganisatieCoordinator`, `isTeamCoordinator`
+- [x] T016 [P] [US1] Create werklijst TypeScript types (`WerklijstOverzichtItem`) in `InterneTaakAfhandeling.Web.Client/src/types/werklijst.ts` per data-model.md (US1 scope only — werkverdeling types deferred to US4)
 
 ### Frontend Werklijst View
 
-- [ ] T017 [P] [US1] Create `werklijstService.ts` in `InterneTaakAfhandeling.Web.Client/src/services/` — `fetchWerklijst(params)` function using `fetchWrapper` with pagination query params, returning `PaginationResponse<WerklijstOverzichtItem>` — follow existing service pattern (e.g., `interneTakenService.ts` or equivalent)
-- [ ] T018 [US1] Create `WerklijstTable.vue` in `InterneTaakAfhandeling.Web.Client/src/components/werklijst/` — `<utrecht-table>` displaying columns: onderwerp, afdeling/groep, medewerker, datum klantcontact, kanaal — follow `AllInterneTakenTable.vue` flat DTO pattern, accept `items` prop
-- [ ] T019 [US1] Create `WerklijstView.vue` in `InterneTaakAfhandeling.Web.Client/src/views/` — use `usePagination` composable with `fetchWerklijst`, `<simple-spinner>` for loading, `<utrecht-alert>` for errors, `<utrecht-pagination>` for page nav — follow `AllContactverzoekenView.vue` layout pattern
+- [x] T017 [P] [US1] Create `werklijstService.ts` in `InterneTaakAfhandeling.Web.Client/src/services/` — `fetchWerklijst(params)` function using `fetchWrapper` with pagination query params, returning `PaginationResponse<WerklijstOverzichtItem>` — follow existing service pattern (e.g., `interneTakenService.ts` or equivalent)
+- [x] T018 [US1] Create `WerklijstTable.vue` in `InterneTaakAfhandeling.Web.Client/src/components/werklijst/` — `<utrecht-table>` displaying columns: onderwerp, afdeling/groep, medewerker, datum klantcontact, kanaal — follow `AllInterneTakenTable.vue` flat DTO pattern, accept `items` prop
+- [x] T019 [US1] Create `WerklijstView.vue` in `InterneTaakAfhandeling.Web.Client/src/views/` — use `usePagination` composable with `fetchWerklijst`, `<simple-spinner>` for loading, `<utrecht-alert>` for errors, `<utrecht-pagination>` for page nav — follow `AllContactverzoekenView.vue` layout pattern
 
 ### Frontend Routing & Navigation
 
-- [ ] T020 [US1] Add `/werklijst` route entry with `requiresCoordinatorAccess: true` meta to `InterneTaakAfhandeling.Web.Client/src/router/index.ts` pointing to lazy-loaded `WerklijstView.vue`
-- [ ] T021 [US1] Add coordinator route guard logic in `InterneTaakAfhandeling.Web.Client/src/plugins/routerGuards.ts` — redirect non-coordinators, following existing `requiresITAAccess`/`requiresFunctioneelBeheerderAccess` guard pattern
-- [ ] T022 [US1] Add werklijst navigation link (visible only to coordinators) to `InterneTaakAfhandeling.Web.Client/src/components/TheHeader.vue` — follow existing nav item pattern for role-scoped items (cf. Beheer link conditional on `hasFunctioneelBeheerderAccess`)
+- [x] T020 [US1] Add `/werklijst` route entry with `requiresCoordinatorAccess: true` meta to `InterneTaakAfhandeling.Web.Client/src/router/index.ts` pointing to lazy-loaded `WerklijstView.vue`
+- [x] T021 [US1] Add coordinator route guard logic in `InterneTaakAfhandeling.Web.Client/src/plugins/routerGuards.ts` — redirect non-coordinators, following existing `requiresITAAccess`/`requiresFunctioneelBeheerderAccess` guard pattern
+- [x] T022 [US1] Add werklijst navigation link (visible only to coordinators) to `InterneTaakAfhandeling.Web.Client/src/components/TheHeader.vue` — follow existing nav item pattern for role-scoped items (cf. Beheer link conditional on `hasFunctioneelBeheerderAccess`)
 
 ### E2E Tests & Documentation
 
-- [ ] T023 [P] [US1] Create E2E test locators in `InterneTaakAfhandeling.EndToEndTest/Werklijst/WerklijstLocators.cs` — define locators for werklijst table, filter controls, assignment dialog, pagination, overdue indicators
-- [ ] T024 [P] [US1] Create E2E werklijst scenarios in `InterneTaakAfhandeling.EndToEndTest/Werklijst/WerklijstScenarios.cs` — test coordinator login → werklijst visible, role-scoped data, pagination — follow existing `{Feature}Scenarios` naming and Page Object pattern
-- [ ] T025 [US1] Update `docs/domain-glossary.md` with new terms: werklijst, werkverdeling, afhandeltermijn, coördinator roles
+- [x] T023 [P] [US1] Create E2E test locators in `InterneTaakAfhandeling.EndToEndTest/Werklijst/WerklijstLocators.cs` — define locators for werklijst table, pagination
+- [x] T024 [P] [US1] Create E2E werklijst scenarios in `InterneTaakAfhandeling.EndToEndTest/Werklijst/WerklijstScenarios.cs` — test coordinator login → werklijst visible, role-scoped data, pagination — follow existing `{Feature}Scenarios` naming and Page Object pattern
+- [x] T025 [US1] Update `docs/domain-glossary.md` with new terms: werklijst, coördinator roles
 
 **Checkpoint**: User Story 1 complete — coordinators see a paginated, role-scoped werklijst. This is the MVP. Auth, types, routing, backend API, frontend view, and E2E tests all delivered as one vertical slice.
 
@@ -82,6 +80,7 @@
 ### Backend
 
 - [ ] T026 [P] [US4] Create `WerkverdelingModels.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werkverdeling/` with `WerkverdelingRequest` (with `MedewerkerEmail` instead of UUID), `WerkverdelingResponse`, and `WerkverdelingItemResult` records per data-model.md
+- [ ] T026b [P] [US4] Add werkverdeling TypeScript types (`WerkverdelingRequest`, `WerkverdelingResponse`, `WerkverdelingItemResult`) to `InterneTaakAfhandeling.Web.Client/src/types/werklijst.ts` per data-model.md
 - [ ] T027 [P] [US4] Create `IWerkverdelingService.cs` interface in `InterneTaakAfhandeling.Web.Server/Features/Werkverdeling/` with `AssignInternetakenAsync(WerkverdelingRequest request, ITAUser user)` method signature
 - [ ] T028 [US4] Implement `WerkverdelingService.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werkverdeling/` — iterate `InternetaakUuids`, get/create Actor for target, PATCH each internetaak via `OpenKlantApiClient.PatchInternetaakActorAsync`, resolve optional `MedewerkerEmail` to actor (following `ForwardContactRequestService` pattern), collect per-item success/failure results, add Serilog structured logging with PII sanitization — follow `AssignInternetaakToMeService` pattern
 - [ ] T029 [US4] Create `WerkverdelingController.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werkverdeling/` — `POST /api/werkverdeling` with `[Authorize(Policy = "CoordinatorPolicy")]`, validate request (non-empty UUIDs, max 20, at least one of afdelingUuid/groepUuid required, medewerkerEmail optional with email format validation), return `WerkverdelingResponse` — follow existing controller pattern with `[ProducesResponseType]`
@@ -130,7 +129,16 @@
 
 **Depends on**: US1 (werklijst must exist to show afhandeltermijn columns)
 
+### Config (moved from US1 — these are prerequisites for afhandeltermijn logic)
+
+- [ ] T006 [P] [US3] Create `AfhandeltermijnOptions.cs` in `InterneTaakAfhandeling.Web.Server/Config/` with `WerkdagenTermijn` (int, default 5) and `SectionName` constant, using `IOptions<T>` pattern with `ValidateDataAnnotations()` and `ValidateOnStart()` per constitution §II
+- [ ] T007 [P] [US3] Add `Afhandeltermijn` section with `WerkdagenTermijn: 5` to `InterneTaakAfhandeling.Web.Server/appsettings.json` and `appsettings.Development.json`
+- [ ] T007b [US3] Register `AfhandeltermijnOptions` binding in `InterneTaakAfhandeling.Web.Server/Config/ServiceCollectionExtensions.cs` and inject `IOptions<AfhandeltermijnOptions>` into `WerklijstService`
+
+### Implementation
+
 - [ ] T043 [US3] Implement werkdagen calculation logic in `WerklijstService.cs` in `InterneTaakAfhandeling.Web.Server/Features/Werklijst/` — count business days (Mon–Fri) from `klantcontact.plaatsgevondenOp` to today, compute `AfhandeltermijnDatum`, `VerstrekenWerkdagen`, and `IsOverschreden` using injected `IOptions<AfhandeltermijnOptions>` — populate these fields on each `WerklijstOverzichtItem`
+- [ ] T043b [US3] Add `AfhandeltermijnDatum` (DateOnly?), `VerstrekenWerkdagen` (int), and `IsOverschreden` (bool) fields to `WerklijstOverzichtItem` in `WerklijstModels.cs` and `werklijst.ts`, plus `AlleenOverschreden` (bool?) to `WerklijstQuery`
 - [ ] T044 [US3] Add `alleenOverschreden` filter support to `WerklijstService.cs` — when `AlleenOverschreden = true` in query, post-filter results to only include items where `IsOverschreden == true`
 - [ ] T045 [US3] Add afhandeltermijn columns to `WerklijstTable.vue` in `InterneTaakAfhandeling.Web.Client/src/components/werklijst/` — display `verstrekenWerkdagen` / `afhandeltermijnDatum`, add visual overdue indicator (color/icon) when `isOverschreden` is true — follow Utrecht component styling conventions
 
@@ -145,7 +153,7 @@
 - **US1 (Phase 1)**: No dependencies — complete vertical slice including auth, types, routing, backend API, frontend view, E2E tests, and docs. MVP target
 - **US4 (Phase 2)**: Depends on US1 (werklijst must exist for selection UI). Includes E2E tests + build validation
 - **US2 (Phase 3)**: Depends on US1 (werklijst must exist to add filters)
-- **US3 (Phase 4)**: Depends on US1 (werklijst must exist to add columns)
+- **US3 (Phase 4)**: Depends on US1 (werklijst must exist to add columns). Includes AfhandeltermijnOptions config (T006/T007/T007b moved from US1)
 
 ### User Story Dependencies
 

@@ -33,6 +33,8 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                 var roles = user?.FindAll(roleClaimType).Select(x=> x.Value).ToArray() ?? [];
                 var hasITASystemAccess = roles.Contains(authOptions.ITASystemAccessRole);
                 var hasFunctioneelBeheerderAccess = roles.Contains(authOptions.FunctioneelBeheerderRole);
+                var hasOrganisatieCoordinatorAccess = !string.IsNullOrEmpty(authOptions.OrganisatieCoordinatorRole) && roles.Contains(authOptions.OrganisatieCoordinatorRole);
+                var hasTeamCoordinatorAccess = !string.IsNullOrEmpty(authOptions.TeamCoordinatorRole) && roles.Contains(authOptions.TeamCoordinatorRole);
 
                 if(isLoggedIn && !string.IsNullOrWhiteSpace(objectregisterMedewerkerIdClaimType) && string.IsNullOrWhiteSpace(objectregisterMedewerkerId))
                 {
@@ -40,7 +42,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                 }
 
 
-                return new ITAUser {ObjectregisterMedewerkerId= objectregisterMedewerkerId , IsLoggedIn = isLoggedIn, Name = name, Email = email, Roles = roles, HasITASystemAccess = hasITASystemAccess, HasFunctioneelBeheerderAccess = hasFunctioneelBeheerderAccess };
+                return new ITAUser {ObjectregisterMedewerkerId= objectregisterMedewerkerId , IsLoggedIn = isLoggedIn, Name = name, Email = email, Roles = roles, HasITASystemAccess = hasITASystemAccess, HasFunctioneelBeheerderAccess = hasFunctioneelBeheerderAccess, HasOrganisatieCoordinatorAccess = hasOrganisatieCoordinatorAccess, HasTeamCoordinatorAccess = hasTeamCoordinatorAccess };
             });
 
             var authBuilder = services.AddAuthentication(options =>
@@ -110,9 +112,21 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                     };
                 });
             }
+            var coordinatorRoles = new[] { authOptions.OrganisatieCoordinatorRole, authOptions.TeamCoordinatorRole }
+                .Where(r => !string.IsNullOrEmpty(r))
+                .Cast<string>()
+                .ToArray();
+
             services.AddAuthorizationBuilder()
                 .AddPolicy(ITAPolicy.Name, policy => policy.RequireRole(authOptions.ITASystemAccessRole))
                 .AddPolicy(FunctioneelBeheerderPolicy.Name, policy => policy.RequireRole(authOptions.FunctioneelBeheerderRole))
+                .AddPolicy(CoordinatorPolicy.Name, policy =>
+                {
+                    if (coordinatorRoles.Length > 0)
+                        policy.RequireRole(coordinatorRoles);
+                    else
+                        policy.RequireAssertion(_ => false);
+                })
                 .AddFallbackPolicy("LoggedIn", policy => policy.RequireAuthenticatedUser());
             services.AddDistributedMemoryCache();
             services.AddOpenIdConnectAccessTokenManagement();

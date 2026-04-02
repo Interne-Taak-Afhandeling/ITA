@@ -1,16 +1,18 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 1.1.2 → 1.1.3
+  Version change: 1.1.3 → 1.2.0
   Modified principles:
-    - II. Codebase Architecture & Pattern Adherence — promoted
-      pattern-reuse rule to a standalone callout block
+    - II. Codebase Architecture & Pattern Adherence — added Vertical
+      Slice Delivery Rule requiring features with multiple user stories
+      to be planned, implemented, and delivered as independent vertical
+      slices. Motivated by scope-creep observed during #318/#320.
   Added sections: none
   Removed sections: none
   Templates requiring updates:
     - .specify/templates/plan-template.md        ⚠ pending (Constitution Check section is generic)
     - .specify/templates/spec-template.md         ✅ compatible
-    - .specify/templates/tasks-template.md        ✅ compatible
+    - .specify/templates/tasks-template.md        ✅ updated (anti-pattern callout added)
     - .specify/templates/checklist-template.md    ✅ compatible
     - .specify/templates/agent-file-template.md   ✅ compatible
   Follow-up TODOs: none
@@ -59,6 +61,20 @@ New features MUST follow the established architecture.
 > components), conventions, and typings. If the duplicated logic
 > is substantial, extract it into a shared module after proper
 > research into the existing implementation.
+
+> **⚠ Vertical Slice Delivery Rule (NON-NEGOTIABLE)**
+>
+> Features with multiple user stories MUST be planned,
+> implemented, and delivered as **independent vertical slices** —
+> each slice covers exactly one user story end-to-end (auth →
+> types → API → UI → tests → docs). Tasks for a given story
+> MUST NOT include models, configuration, DTO fields, or types
+> that only serve a future story; defer those to their respective
+> slice. No horizontal layers across stories.
+>
+> *Rationale*: During #318/#320, config and type definitions for
+> US3/US4 leaked into the US1 task list, causing scope creep that
+> had to be cleaned up mid-implementation.
 
 **Back-end patterns**
 
@@ -275,4 +291,4 @@ and informal conventions.
   templates (`plan-template.md`, `spec-template.md`,
   `tasks-template.md`) MUST be reviewed and updated if affected.
 
-**Version**: 1.1.3 | **Ratified**: 2026-03-25 | **Last Amended**: 2026-03-25
+**Version**: 1.2.0 | **Ratified**: 2026-03-25 | **Last Amended**: 2026-04-02

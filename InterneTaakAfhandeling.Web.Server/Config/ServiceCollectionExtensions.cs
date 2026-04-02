@@ -10,6 +10,7 @@ using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
+using InterneTaakAfhandeling.Web.Server.Features.Werklijst;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
@@ -41,6 +42,8 @@ namespace InterneTaakAfhandeling.Web.Server.Config
               options.ClientSecret = GetRequiredConfigValue(configuration, "OIDC_CLIENT_SECRET");
               options.ITASystemAccessRole = GetRequiredConfigValue(configuration, "OIDC_ITA_SYSTEM_ACCESS_ROLE");
               options.FunctioneelBeheerderRole = GetRequiredConfigValue(configuration, "OIDC_FUNCTIONEEL_BEHEERDER_ROLE");
+              options.OrganisatieCoordinatorRole = configuration["OIDC_ORGANISATIE_COORDINATOR_ROLE"];
+              options.TeamCoordinatorRole = configuration["OIDC_TEAM_COORDINATOR_ROLE"];
               options.NameClaimType = configuration["OIDC_NAME_CLAIM_TYPE"];
               options.RoleClaimType = configuration["OIDC_ROLE_CLAIM_TYPE"];
               options.ObjectregisterMedewerkerIdClaimType = configuration["OIDC_OBJECTREGISTER_MEDEWERKER_ID_CLAIM_TYPE"];
@@ -59,8 +62,9 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
+            services.AddScoped<IWerklijstService, WerklijstService>();
             services.AddSmtpClients(configuration);
-            
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
          

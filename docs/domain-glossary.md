@@ -29,6 +29,9 @@ in the project constitution).
 | **Groep** | Groep | An organisational group of medewerkers, stored in the Objecten API |
 | **Afdeling** | Afdeling | A department within the municipality, stored in the Objecten API |
 | **Activiteit** | Activiteit | A single audit-log entry within a logboek |
+| **Werklijst** | Werklijst | Coordinator overview of all `te_verwerken` internetaken within their scope (organisation or team) |
+| **Coördinator (organisatie)** | Organisatiecoördinator | A user with the organisation-wide coordinator role — sees all internetaken across the municipality |
+| **Coördinator (team)** | Teamcoördinator | A user with the team coordinator role — sees only internetaken assigned to their own afdelingen/groepen |
 
 ## Status Values
 
