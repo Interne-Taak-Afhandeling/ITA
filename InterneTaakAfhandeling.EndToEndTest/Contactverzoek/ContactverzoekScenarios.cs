@@ -10,6 +10,39 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
     [DoNotParallelize]
     public partial class ContactverzoekScenarios : ITAPlaywrightTest
     {
+        // Helper method for logbook verification
+        private async Task VerifyLogbookEntry(string expectedAction, string expectedUserName = "ICATT Integratie Test", bool verifyTimestamp = true)
+        {
+            await Step($"Verify contact request history/logbook contains action with '{expectedAction}'");
+            await Expect(Page.GetByText(expectedAction, new() { Exact = true })).ToBeVisibleAsync();
+
+            await Step($"Verify logbook entry contains '{expectedAction}' description");
+            var logbookEntry = Page.GetByText(expectedAction, new() { Exact = true }).Locator("..");
+            var logbookText = await logbookEntry.InnerTextAsync();
+            Assert.IsTrue(logbookText.Contains(expectedAction), $"Logbook entry should contain description '{expectedAction}'");
+
+            await Step("Verify the user name is visible within the logbook section");
+            var logbookSection = Page.Locator("ol");
+            var logbookSectionText = await logbookSection.InnerTextAsync();
+            var hasUserName = logbookSectionText.Contains(expectedUserName);
+            Assert.IsTrue(hasUserName, $"Logbook section should contain user name '{expectedUserName}'. Actual text: '{logbookSectionText}'");
+
+            if (verifyTimestamp)
+            {
+                await Step("Verify datetime pattern exists in the logbook section");
+                var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
+                var dateTimeMatch = Regex.Match(logbookSectionText, dateTimePattern);
+                Assert.IsTrue(dateTimeMatch.Success, $"Logbook section should contain date/time in DD-MM-YYYY HH:MM format. Actual text: '{logbookSectionText}'");
+
+                if (dateTimeMatch.Success)
+                {
+                    var displayedDateTime = dateTimeMatch.Value;
+                    await Step($"Verify datetime '{displayedDateTime}' is visible in logbook section");
+                    await Expect(logbookSection.GetByText(displayedDateTime)).ToBeVisibleAsync();
+                }
+            }
+        }
+
         // Test Methods
 
         [TestMethod("Detail validation of Contactverzoek detail page")]
@@ -660,15 +693,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task User_AssignContactverzoekToSelf_VerifyLogbookEntry()
         {
             var testOnderwerp = "Test_Contact_Opgepakt_Logbook";
-            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
-
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
             await NavigateToContactverzoekDetails(testOnderwerp);
 
             await Step("Click on 'Toewijzen aan mezelf' button");
-            await Page.GetByRole(AriaRole.Button, new() { Name = "Toewijzen aan mezelf" }).ClickAsync();
+            await Page.GetToewijzenAanMezelfButton().ClickAsync();
             
             await Step("Confirm assignment in dialog");
-            await Page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Toewijzen aan mezelf" }).ClickAsync();
+            await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
 
             await Step("Verify success message is displayed");
             await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
@@ -679,41 +711,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify the current user is now shown as Behandelaar");
             await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("E2E test contactverzoek creator");
 
-            await Step("Verify contact request history/logbook contains assignment action with 'Opgepakt'");
-            await Expect(Page.GetByText("Opgepakt", new() { Exact = true })).ToBeVisibleAsync();
-
-            await Step("Verify logbook entry contains 'Opgepakt' description");
-            var logbookEntry = Page.GetByText("Opgepakt", new() { Exact = true }).Locator("..");
-            var logbookText = await logbookEntry.InnerTextAsync();
-            Assert.IsTrue(logbookText.Contains("Opgepakt"), "Logbook entry should contain description 'Opgepakt'");
-
-            await Step("Verify the user name is specifically visible within the logbook section");
-            var logbookSection = Page.Locator("ol");
-            
-            var logbookSectionText = await logbookSection.InnerTextAsync();
-            var hasUserName = logbookSectionText.Contains("ICATT") && 
-                             logbookSectionText.Contains("Integratie") && 
-                             logbookSectionText.Contains("Test");
-            Assert.IsTrue(hasUserName, $"Logbook section should contain user name parts. Actual text: '{logbookSectionText}'");
-
-            await Step("Verify datetime pattern exists somewhere in the logbook section");
-            var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
-            var dateTimeMatch = Regex.Match(logbookSectionText, dateTimePattern);
-            Assert.IsTrue(dateTimeMatch.Success, $"Logbook section should contain date/time in DD-MM-YYYY HH:MM format. Actual text: '{logbookSectionText}'");
-
-            if (dateTimeMatch.Success)
-            {
-                var displayedDateTime = dateTimeMatch.Value;
-                await Step($"Verify datetime '{displayedDateTime}' is visible in logbook section");
-                await Expect(logbookSection.GetByText(displayedDateTime)).ToBeVisibleAsync();
-            }
+            await VerifyLogbookEntry("Opgepakt");
         }
 
         [TestMethod("Assigning a Zaak to contact request - with logbook verification")]
         public async Task User_AssignZaakToContactverzoek_VerifyLogbookEntry()
         {
             var testOnderwerp = "Test_Contact_Zaak_Gekoppeld_Logbook";
-            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
             await NavigateToContactverzoekDetails(testOnderwerp);
 
@@ -735,40 +740,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify the zaak is now visible");
             await VerifyZaakIsVisible("ZAAK-2023-009");
 
-            await Step("Verify contact request history/logbook contains zaak linking action with 'zaak gekoppeld'");
-            await Expect(Page.GetByText("Zaak gekoppeld", new() { Exact = true })).ToBeVisibleAsync();
-
-            await Step("Verify logbook entry contains 'zaak gekoppeld' description");
-            var logbookEntry = Page.GetByText("Zaak gekoppeld", new() { Exact = true }).Locator("..");
-            var logbookText = await logbookEntry.InnerTextAsync();
-            Assert.IsTrue(logbookText.Contains("Zaak gekoppeld"), "Logbook entry should contain description 'zaak gekoppeld'");
-
-            await Step("Verify the user name is specifically visible within the logbook section");
-            var logbookSection = Page.Locator("ol");
-            var logbookSectionText = await logbookSection.InnerTextAsync();
-            var hasUserName = logbookSectionText.Contains("ICATT") && 
-                             logbookSectionText.Contains("Integratie") && 
-                             logbookSectionText.Contains("Test");
-            Assert.IsTrue(hasUserName, $"Logbook section should contain user name parts. Actual text: '{logbookSectionText}'");
-
-            await Step("Verify datetime pattern exists somewhere in the logbook section");
-            var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
-            var dateTimeMatch = Regex.Match(logbookSectionText, dateTimePattern);
-            Assert.IsTrue(dateTimeMatch.Success, $"Logbook section should contain date/time in DD-MM-YYYY HH:MM format. Actual text: '{logbookSectionText}'");
-
-            if (dateTimeMatch.Success)
-            {
-                var displayedDateTime = dateTimeMatch.Value;
-                await Step($"Verify datetime '{displayedDateTime}' is visible in logbook section");
-                await Expect(logbookSection.GetByText(displayedDateTime)).ToBeVisibleAsync();
-            }
+            await VerifyLogbookEntry("Zaak gekoppeld");
         }
 
         [TestMethod("Replacing existing Zaak on contact request - with logbook verification")]
         public async Task User_ReplaceZaakOnContactverzoek_VerifyLogbookEntry()
         {
             var testOnderwerp = "Test_Contact_Zaak_Gewijzigd_Logbook";
-            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: true); // Start with a zaak already attached
+            await SetupContactverzoek(testOnderwerp, attachZaak: true); // Start with a zaak already attached
 
             await NavigateToContactverzoekDetails(testOnderwerp);
 
@@ -796,43 +775,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify the old zaak is no longer visible");
             await Expect(Page.Locator($"text={TestDataConstants.Zaken.TestZaakIdentificatie}")).Not.ToBeVisibleAsync();
 
-            await Step("Verify contact request history/logbook contains zaak change action with 'Zaak gewijzigd'");
-            await Expect(Page.GetByText("Zaak gewijzigd", new() { Exact = true })).ToBeVisibleAsync();
-
-            await Step("Verify logbook entry contains 'Zaak gewijzigd' description");
-            var logbookEntry = Page.GetByText("Zaak gewijzigd", new() { Exact = true }).Locator("..");
-            var logbookText = await logbookEntry.InnerTextAsync();
-            Assert.IsTrue(logbookText.Contains("Zaak gewijzigd"), "Logbook entry should contain description 'Zaak gewijzigd'");
-
-            await Step("Verify the user name is specifically visible within the logbook section");
-            var logbookSection = Page.Locator("ol"); // The logbook is typically in an ordered list
-            
-            // Check for user name with more flexibility
-            var logbookSectionText = await logbookSection.InnerTextAsync();
-            var hasUserName = logbookSectionText.Contains("ICATT") && 
-                             logbookSectionText.Contains("Integratie") && 
-                             logbookSectionText.Contains("Test");
-            Assert.IsTrue(hasUserName, $"Logbook section should contain user name parts. Actual text: '{logbookSectionText}'");
-
-            await Step("Verify datetime pattern exists somewhere in the logbook section");
-            // var logbookSectionText = await logbookSection.InnerTextAsync();
-            var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
-            var dateTimeMatch = Regex.Match(logbookSectionText, dateTimePattern);
-            Assert.IsTrue(dateTimeMatch.Success, $"Logbook section should contain date/time in DD-MM-YYYY HH:MM format. Actual text: '{logbookSectionText}'");
-
-            if (dateTimeMatch.Success)
-            {
-                var displayedDateTime = dateTimeMatch.Value;
-                await Step($"Verify datetime '{displayedDateTime}' is visible in logbook section");
-                await Expect(logbookSection.GetByText(displayedDateTime)).ToBeVisibleAsync();
-            }
+            await VerifyLogbookEntry("Zaak gewijzigd");
         }
 
         [TestMethod("Contact opnemen gelukt - with logbook verification")]
         public async Task User_RegisterContactOpnemenGelukt_VerifyLogbookEntry()
         {
             var testOnderwerp = "Test_Contact_Gelukt_Logbook";
-            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
             await NavigateToContactverzoekDetails(testOnderwerp);
             await NavigateToContactmomentRegistrerenTab();
@@ -857,42 +807,18 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetContactmomentSuccesvolBijgewerktMessage()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("Verify contact request history/logbook contains contact action with 'Contact gelukt'");
-            await Expect(Page.GetByText("Contact gelukt", new() { Exact = true })).ToBeVisibleAsync();
-
-            await Step("Verify logbook entry contains 'Contact gelukt' description");
-            var logbookEntry = Page.GetByText("Contact gelukt", new() { Exact = true }).Locator("..");
-            var logbookText = await logbookEntry.InnerTextAsync();
-            Assert.IsTrue(logbookText.Contains("Contact gelukt"), "Logbook entry should contain description 'Contact gelukt'");
-
-            await Step("Verify the user name is specifically visible within the logbook section");
-            var logbookSection = Page.Locator("ol");
-            
-            var logbookSectionText = await logbookSection.InnerTextAsync();
-            var hasUserName = logbookSectionText.Contains("ICATT Integratie Test"); 
-            Assert.IsTrue(hasUserName, $"Logbook section should contain user name parts. Actual text: '{logbookSectionText}'");
+            await VerifyLogbookEntry("Contact gelukt");
 
             await Step("Verify the information 'test logboek' is visible in the logbook section");
+            var logbookSection = Page.Locator("ol");
             await Expect(logbookSection.GetByText("test logboek")).ToBeVisibleAsync();
-
-            await Step("Verify datetime pattern exists somewhere in the logbook section");
-            var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
-            var dateTimeMatch = Regex.Match(logbookSectionText, dateTimePattern);
-            Assert.IsTrue(dateTimeMatch.Success, $"Logbook section should contain date/time in DD-MM-YYYY HH:MM format. Actual text: '{logbookSectionText}'");
-
-            if (dateTimeMatch.Success)
-            {
-                var displayedDateTime = dateTimeMatch.Value;
-                await Step($"Verify datetime '{displayedDateTime}' is visible in logbook section");
-                await Expect(logbookSection.GetByText(displayedDateTime)).ToBeVisibleAsync();
-            }
         }
 
         [TestMethod("Close contactmoment, navigate to Mijn historie and verify logbook entry")]
         public async Task User_CloseContactmoment_NavigateToHistorieAndVerifyLogbookAfgerond()
         {
             var testOnderwerp = $"Test_Contact_Historie_Afgerond_{Guid.NewGuid().ToString().Substring(0, 8)}";
-            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
             await NavigateToContactverzoekDetails(testOnderwerp);
             await NavigateToContactmomentRegistrerenTab();
@@ -931,33 +857,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
 
             await Step("Click on the contactverzoek from the historie list");
-            var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = testOnderwerp });
-            var detailsLink = contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" });
-            await detailsLink.ClickAsync();
+            await Page.GetDetailsLink(testOnderwerp).ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify contactverzoek details page is displayed");
             await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
 
-            await Step("Verify contact request history/logbook contains close action with 'Afgerond'");
-            await Expect(Page.GetByText("Afgerond", new() { Exact = true })).ToBeVisibleAsync();
-
-            await Step("Verify logbook entry contains 'Afgerond' description");
-            var logbookEntry = Page.GetByText("Afgerond", new() { Exact = true }).Locator("..");
-            var logbookText = await logbookEntry.InnerTextAsync();
-            Assert.IsTrue(logbookText.Contains("Afgerond"), "Logbook entry should contain description 'Afgerond'");
-
-            await Step("Verify the user name is specifically visible within the logbook section");
-            var logbookSection = Page.Locator("ol"); 
-            
-            var logbookSectionText = await logbookSection.InnerTextAsync();
-            var hasUserName = logbookSectionText.Contains("ICATT Integratie Test");
-
-            Assert.IsTrue(hasUserName, $"Logbook section should contain user name. Actual text: '{logbookSectionText}'");
+            await VerifyLogbookEntry("Afgerond", verifyTimestamp: false);
 
             await Step("Verify the information 'test logboek' is visible in the logbook section");
+            var logbookSection = Page.Locator("ol");
             await Expect(logbookSection.GetByText("test logboek")).ToBeVisibleAsync();
-
         }
     }
 }
