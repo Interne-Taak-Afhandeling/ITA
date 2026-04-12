@@ -14,6 +14,30 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task VerifyLogbookEntry(string expectedAction, string expectedUserName = "ICATT Integratie Test", bool verifyTimestamp = true)
         {
             await Step($"Verify contact request history/logbook contains action with '{expectedAction}'");
+        //    var logbookHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" });
+        //     await Expect(logbookHeading).ToBeVisibleAsync();
+        //     await Step($"Verify logbook entry contains '{expectedAction}' description");
+        //     var logbookSection = logbookHeading.Locator("..");
+        //     var logbookList = logbookSection.Locator("ol");
+        //     var logbookEntry = logbookList.Locator("li").Filter(new() { HasText = expectedAction }).First;
+        //     await Expect(logbookEntry).ToBeVisibleAsync();
+        //     var logbookText = await logbookEntry.InnerTextAsync();
+        //     Assert.IsTrue(logbookText.Contains(expectedAction), $"Logbook entry should contain description '{expectedAction}'");
+        //     await Step("Verify the user name is visible within the matching logbook entry");
+        //     var hasUserName = logbookText.Contains(expectedUserName);
+        //     Assert.IsTrue(hasUserName, $"Logbook entry should contain user name '{expectedUserName}'. Actual text: '{logbookText}'");
+        //     if (verifyTimestamp)
+        //     {
+        //         await Step("Verify datetime pattern exists in the matching logbook entry");
+        //         var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
+        //         var dateTimeMatch = Regex.Match(logbookText, dateTimePattern);
+        //         Assert.IsTrue(dateTimeMatch.Success, $"Logbook entry should contain date/time in DD-MM-YYYY HH:MM format. Actual text: '{logbookText}'");
+        //         if (dateTimeMatch.Success)
+        //         {
+        //             var displayedDateTime = dateTimeMatch.Value;
+        //             await Step($"Verify datetime '{displayedDateTime}' is visible in matching logbook entry");
+        //             await Expect(logbookEntry.GetByText(displayedDateTime)).ToBeVisibleAsync();
+        //         }
             await Expect(Page.GetByText(expectedAction, new() { Exact = true })).ToBeVisibleAsync();
 
             await Step($"Verify logbook entry contains '{expectedAction}' description");
