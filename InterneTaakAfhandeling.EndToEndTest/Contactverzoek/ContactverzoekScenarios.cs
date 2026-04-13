@@ -2,6 +2,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using ITA.InterneTaakAfhandeling.EndToEndTest.Helpers;
 using Microsoft.Playwright;
+using System.Text.RegularExpressions;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 {
@@ -9,6 +10,63 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
     [DoNotParallelize]
     public partial class ContactverzoekScenarios : ITAPlaywrightTest
     {
+        // Helper method for logbook verification
+        private async Task VerifyLogbookEntry(string expectedAction, string expectedUserName = "ICATT Integratie Test", bool verifyTimestamp = true)
+        {
+            await Step($"Verify contact request history/logbook contains action with '{expectedAction}'");
+        //    var logbookHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" });
+        //     await Expect(logbookHeading).ToBeVisibleAsync();
+        //     await Step($"Verify logbook entry contains '{expectedAction}' description");
+        //     var logbookSection = logbookHeading.Locator("..");
+        //     var logbookList = logbookSection.Locator("ol");
+        //     var logbookEntry = logbookList.Locator("li").Filter(new() { HasText = expectedAction }).First;
+        //     await Expect(logbookEntry).ToBeVisibleAsync();
+        //     var logbookText = await logbookEntry.InnerTextAsync();
+        //     Assert.IsTrue(logbookText.Contains(expectedAction), $"Logbook entry should contain description '{expectedAction}'");
+        //     await Step("Verify the user name is visible within the matching logbook entry");
+        //     var hasUserName = logbookText.Contains(expectedUserName);
+        //     Assert.IsTrue(hasUserName, $"Logbook entry should contain user name '{expectedUserName}'. Actual text: '{logbookText}'");
+        //     if (verifyTimestamp)
+        //     {
+        //         await Step("Verify datetime pattern exists in the matching logbook entry");
+        //         var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
+        //         var dateTimeMatch = Regex.Match(logbookText, dateTimePattern);
+        //         Assert.IsTrue(dateTimeMatch.Success, $"Logbook entry should contain date/time in DD-MM-YYYY HH:MM format. Actual text: '{logbookText}'");
+        //         if (dateTimeMatch.Success)
+        //         {
+        //             var displayedDateTime = dateTimeMatch.Value;
+        //             await Step($"Verify datetime '{displayedDateTime}' is visible in matching logbook entry");
+        //             await Expect(logbookEntry.GetByText(displayedDateTime)).ToBeVisibleAsync();
+        //         }
+            await Expect(Page.GetByText(expectedAction, new() { Exact = true })).ToBeVisibleAsync();
+
+            await Step($"Verify logbook entry contains '{expectedAction}' description");
+            var logbookEntry = Page.GetByText(expectedAction, new() { Exact = true }).Locator("..");
+            var logbookText = await logbookEntry.InnerTextAsync();
+            Assert.IsTrue(logbookText.Contains(expectedAction), $"Logbook entry should contain description '{expectedAction}'");
+
+            await Step("Verify the user name is visible within the logbook section");
+            var logbookSection = Page.Locator("ol");
+            var logbookSectionText = await logbookSection.InnerTextAsync();
+            var hasUserName = logbookSectionText.Contains(expectedUserName);
+            Assert.IsTrue(hasUserName, $"Logbook section should contain user name '{expectedUserName}'. Actual text: '{logbookSectionText}'");
+
+            if (verifyTimestamp)
+            {
+                await Step("Verify datetime pattern exists in the logbook section");
+                var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
+                var dateTimeMatch = Regex.Match(logbookSectionText, dateTimePattern);
+                Assert.IsTrue(dateTimeMatch.Success, $"Logbook section should contain date/time in DD-MM-YYYY HH:MM format. Actual text: '{logbookSectionText}'");
+
+                if (dateTimeMatch.Success)
+                {
+                    var displayedDateTime = dateTimeMatch.Value;
+                    await Step($"Verify datetime '{displayedDateTime}' is visible in logbook section");
+                    await Expect(logbookSection.GetByText(displayedDateTime)).ToBeVisibleAsync();
+                }
+            }
+        }
+
         // Test Methods
 
         [TestMethod("Detail validation of Contactverzoek detail page")]
@@ -653,6 +711,187 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
             Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
             await VerifyInternetaakStatusInOpenKlant(internetaakUuid.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
+        }
+
+        [TestMethod("Assigning a Contactverzoek to yourself - with logbook verification")]
+        public async Task User_AssignContactverzoekToSelf_VerifyLogbookEntry()
+        {
+            var testOnderwerp = "Test_Contact_Opgepakt_Logbook";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Click on 'Toewijzen aan mezelf' button");
+            await Page.GetToewijzenAanMezelfButton().ClickAsync();
+            
+            await Step("Confirm assignment in dialog");
+            await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
+
+            await Step("Verify success message is displayed");
+            await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
+
+            await Step("Wait for the contactverzoek to be assigned");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify the current user is now shown as Behandelaar");
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("E2E test contactverzoek creator");
+
+            await VerifyLogbookEntry("Opgepakt");
+        }
+
+        [TestMethod("Assigning a Zaak to contact request - with logbook verification")]
+        public async Task User_AssignZaakToContactverzoek_VerifyLogbookEntry()
+        {
+            var testOnderwerp = "Test_Contact_Zaak_Gekoppeld_Logbook";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Click on the Pen-icon next to label 'Gekoppelde zaak'");
+            await Page.GetGekoppeldeZaakKoppelenButton().ClickAsync();
+
+            await Step("Enter valid Zaaknummer");
+            await Page.GetZaaknummerTextbox().FillAsync("ZAAK-2023-009");
+
+            await Step("Click on button 'Koppelen'");
+            await Page.GetKoppelenButton().ClickAsync();
+
+            await Step("Verify success message for zaak linking");
+            await Expect(Page.GetZaakSuccesvolGekoppeldMessage()).ToBeVisibleAsync();
+
+            await Step("Wait for the zaak to be connected");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify the zaak is now visible");
+            await VerifyZaakIsVisible("ZAAK-2023-009");
+
+            await VerifyLogbookEntry("Zaak gekoppeld");
+        }
+
+        [TestMethod("Replacing existing Zaak on contact request - with logbook verification")]
+        public async Task User_ReplaceZaakOnContactverzoek_VerifyLogbookEntry()
+        {
+            var testOnderwerp = "Test_Contact_Zaak_Gewijzigd_Logbook";
+            await SetupContactverzoek(testOnderwerp, attachZaak: true); // Start with a zaak already attached
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Verify initial zaak is visible");
+            await VerifyZaakIsVisible(TestDataConstants.Zaken.TestZaakIdentificatie);
+
+            await Step("Click on the Edit zaak to change the existing zaak");
+            await Page.GetGekoppeldeZaakWijzigenButton().ClickAsync();
+
+            await Step("Enter different valid Zaaknummer");
+            await Page.GetZaaknummerTextbox().FillAsync("ZAAK-2023-009");
+
+            await Step("Click on button 'Koppelen'");
+            await Page.GetKoppelenButton().ClickAsync();
+
+            await Step("Verify success message for zaak linking");
+            await Expect(Page.GetZaakSuccesvolGekoppeldMessage()).ToBeVisibleAsync();
+
+            await Step("Wait for the new zaak to be connected");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify the new zaak is now visible");
+            await VerifyZaakIsVisible("ZAAK-2023-009");
+
+            await Step("Verify the old zaak is no longer visible");
+            await Expect(Page.Locator($"text={TestDataConstants.Zaken.TestZaakIdentificatie}")).Not.ToBeVisibleAsync();
+
+            await VerifyLogbookEntry("Zaak gewijzigd");
+        }
+
+        [TestMethod("Contact opnemen gelukt - with logbook verification")]
+        public async Task User_RegisterContactOpnemenGelukt_VerifyLogbookEntry()
+        {
+            var testOnderwerp = "Test_Contact_Gelukt_Logbook";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactmomentRegistrerenTab();
+
+            await Step("Verify 'Contact opnemen gelukt' is selected by default");
+            await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Select 'Nee' for afsluiten question");
+            await Page.GetNeeLabel().ClickAsync();
+
+            await Step("Select kanaal as 'Balie'");
+            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Balie" });
+
+            await Step("Enter details in field 'Informatie voor burger / bedrijf' as 'test logboek'");
+            await Page.GetInformatieBurgerTextbox().FillAsync("test logboek");
+
+            await Step("Click on contactmoment opslaan");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("Verify contactmoment was saved successfully");
+            await Expect(Page.GetContactmomentSuccesvolBijgewerktMessage()).ToBeVisibleAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await VerifyLogbookEntry("Contact gelukt");
+
+            await Step("Verify the information 'test logboek' is visible in the logbook section");
+            var logbookSection = Page.Locator("ol");
+            await Expect(logbookSection.GetByText("test logboek")).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Close contactmoment, navigate to Mijn historie and verify logbook entry")]
+        public async Task User_CloseContactmoment_NavigateToHistorieAndVerifyLogbookAfgerond()
+        {
+            var testOnderwerp = $"Test_Contact_Historie_Afgerond_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactmomentRegistrerenTab();
+
+            await Step("Verify 'Contact opnemen gelukt' is selected by default");
+            await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Select 'Ja' for afsluiten question");
+            await Page.GetJaLabel().ClickAsync();
+
+            await Step("Select kanaal as 'Balie'");
+            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Balie" });
+
+            await Step("Enter details in field 'Informatie voor burger / bedrijf' as 'test logboek'");
+            await Page.GetInformatieBurgerTextbox().FillAsync("test logboek");
+
+            await Step("Click on 'Contactmoment opslaan' button");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("Verify confirmation dialog is shown");
+            await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
+
+            await Step("Click on 'Opslaan & afronden' in the confirmation dialog");
+            await Page.GetOpslaanEnAfrondenButton().ClickAsync();
+
+            await Step("Verify contactverzoek was closed successfully");
+            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+ 
+            await Step("Navigate to Mijn historie tab");
+            await SafeGotoAsync("/historie");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify the closed contactverzoek appears in historie");
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+
+            await Step("Click on the contactverzoek from the historie list");
+            await Page.GetDetailsLink(testOnderwerp).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify contactverzoek details page is displayed");
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+
+            await VerifyLogbookEntry("Afgerond", verifyTimestamp: false);
+
+            await Step("Verify the information 'test logboek' is visible in the logbook section");
+            var logbookSection = Page.Locator("ol");
+            await Expect(logbookSection.GetByText("test logboek")).ToBeVisibleAsync();
         }
     }
 }
