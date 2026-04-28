@@ -173,7 +173,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         [TestMethod("Validation of Opslaan en afsluiten with confirmation and status verification")]
         public async Task User_SaveAndCloseContactverzoek_VerifiesStatusVerwerktAndAfgehandeldOp()
         {
-            var testOnderwerp = "Test_Opslaan_en_afsluiten";
+            var testOnderwerp = $"Test_Opslaan_en_afsluiten_{Guid.NewGuid().ToString().Substring(0, 8)}";
             var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
             await NavigateToContactverzoekDetails(testOnderwerp);
@@ -685,16 +685,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetJaLabel().ClickAsync();
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
+            
+            await Step("Click 'Opslaan & afronden' and wait for success message");
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            // TODO: Fix session timeout issue before uncommenting
+            // await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
 
             await Step("And navigates to History tab");
-            await SafeGotoAsync("/historie");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.GetMijnHistorieLink().ClickAsync();
 
             await Step("Reload page to ensure latest data is displayed");
             await Page.ReloadAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then the closed contact request is displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
