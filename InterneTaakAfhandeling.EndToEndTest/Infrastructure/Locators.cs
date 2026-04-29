@@ -153,7 +153,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         
         public static ILocator GetNeeLabel(this IPage page) => page.GetByLabel("Nee");
         
+        // Navigation link locators
+        public static ILocator GetMijnHistorieLink(this IPage page) =>
+            page.GetByRole(AriaRole.Link, new() { Name = "Mijn historie", Exact = true });
+        
         // Success/Error message locators
+        public static ILocator GetSuccessToast(this IPage page, string? text = null) =>
+            text == null 
+                ? page.Locator("output[role='status']")
+                : page.GetByRole(AriaRole.Status).Filter(new() { HasText = text });
+
         public static ILocator GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage(this IPage page) =>
             page.GetByText("Contactmoment succesvol opgeslagen en afgerond");
             
