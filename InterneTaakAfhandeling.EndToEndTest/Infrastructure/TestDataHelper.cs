@@ -272,19 +272,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(
                 new KlantcontactQuery { Onderwerp = onderwerp });
 
-            // If multiple exist (from failed previous runs), clean them up
+            // If multiple exist (from failed previous runs), clean them all up
             if (contactmomenten.Count > 1)
             {
-                foreach (var contactmoment in contactmomenten)
+                try
                 {
-                    try
-                    {
-                        await CleanupExistingContactmomenten(onderwerp);
-                    }
-                    catch
-                    {
-                        // Ignore cleanup failures
-                    }
+                    await CleanupExistingContactmomenten(onderwerp);
+                }
+                catch
+                {
+                    // Ignore cleanup failures
                 }
                 return null; // Force creation of a fresh one
             }
