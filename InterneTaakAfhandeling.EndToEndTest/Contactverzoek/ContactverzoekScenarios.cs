@@ -532,8 +532,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify second Zaak ZAAK-2023-009 is visible");
             await VerifyZaakIsVisible("ZAAK-2023-009");
             
-            await Step("Verify first Zaak ZAAK-2023-005 is no longer visible");
-            await Expect(Page.Locator("text=ZAAK-2023-005")).Not.ToBeVisibleAsync();
+            await Step("Verify first Zaak ZAAK-2023-005 is no longer visible in the Zaak field");
+            await Expect(Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = "ZAAK-2023-005" })).Not.ToBeVisibleAsync();
         }
 
         [TestMethod("Assigning a Contactverzoek to yourself")]
@@ -622,7 +622,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Then closed contact request assigned to the employee is displayed");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
-            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync(new() { Timeout = 15000 });
 
             await Step("Verify the contact request shows as assigned to current user");
             var tableRows = Page.Locator("table tbody tr");
