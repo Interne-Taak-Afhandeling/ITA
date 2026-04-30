@@ -18,42 +18,42 @@ assignees: ""
 
 ---
 
-## Bounded Context
+## Werkdomein
 
-## <!-- Which domain context(s) does this initiative live in? If it spans multiple contexts, name each and describe the seam. -->
+<!-- In welk deel van het systeem / welk werkproces valt dit initiatief? Als het meerdere onderdelen raakt, benoem elk onderdeel en beschrijf het raakvlak. -->
 
 ---
 
 ## Context
 
-<!-- Why does this exist? What problem does it solve? Use domain language — no tech jargon. -->
+<!-- Waarom bestaat dit? Welk probleem lost het op? Schrijf vanuit het perspectief van de gebruiker, geen technisch jargon. -->
 
-## Goal
+## Doel
 
-<!-- What outcome are we driving toward? Be specific enough to know when we're done. -->
+<!-- Welk resultaat willen we bereiken? Concreet genoeg om te weten wanneer het af is. -->
 
-## Success Metrics
+## Succesindicatoren
 
-<!-- How do we measure that we've achieved the goal? -->
+<!-- Hoe meten we dat het doel bereikt is? -->
 
 - [ ]
 
 ---
 
-## Design Artifacts
+## Ontwerpdocumenten
 
-## <!-- Link Figma files, prototypes, or research documents -->
+<!-- Link Figma bestanden, prototypes of onderzoeksdocumenten -->
 
-## Out of Scope
+## Buiten scope
 
-## <!-- Explicitly list what this epic does NOT cover -->
+<!-- Benoem expliciet wat dit epic NIET omvat -->
 
-## Risks
+## Risico's
 
 - ***
 
-## Feature Breakdown
+## Features
 
-<!-- Child features — link issues as they are created -->
+<!-- Gekoppelde features worden hier toegevoegd zodra ze zijn aangemaakt -->
 
 - [ ]
