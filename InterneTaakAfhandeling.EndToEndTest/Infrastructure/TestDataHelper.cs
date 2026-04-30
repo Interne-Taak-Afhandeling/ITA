@@ -272,12 +272,21 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(
                 new KlantcontactQuery { Onderwerp = onderwerp });
 
-             if (contactmomenten.Count > 1)
-         {
-             throw new InvalidOperationException($"Found {contactmomenten.Count} contactmomenten with onderwerp '{onderwerp}', expected at most 1.");
-         }
+            // If multiple exist (from failed previous runs), clean them all up
+            if (contactmomenten.Count > 1)
+            {
+                try
+                {
+                    await CleanupExistingContactmomenten(onderwerp);
+                }
+                catch
+                {
+                    // Ignore cleanup failures
+                }
+                return null; // Force creation of a fresh one
+            }
     
-    return contactmomenten.FirstOrDefault();
+            return contactmomenten.FirstOrDefault();
         }
 
         private async Task CleanupExistingContactmomenten(string onderwerp)
