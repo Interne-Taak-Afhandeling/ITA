@@ -184,7 +184,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var actualClassName = TestContext.FullyQualifiedTestClassName?.Split('.').LastOrDefault() ?? "Unknown";
             // Enhanced HTML report with descriptive test name and error handling
             var traceSection = !string.IsNullOrEmpty(fileName)
-                ? $"""<p><strong>Trace:</strong> <a target="_blank" href="https://trace.playwright.dev/?trace=./{fileName}">View Playwright Trace</a></p>"""
+                ? $"""<p><strong>Trace:</strong> <a target="_blank" href="https://trace.playwright.dev/?trace=https://interne-taak-afhandeling.github.io/ITA/{fileName}">View Playwright Trace</a></p>"""
                 : $"""<p><strong>Trace:</strong> <em>Not available (test failed during initialization)</em></p>""";
             // For failed tests, we'll show basic failure info
             var errorSection = TestContext.CurrentTestOutcome == UnitTestOutcome.Failed
