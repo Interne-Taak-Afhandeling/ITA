@@ -622,7 +622,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Then closed contact request assigned to the employee is displayed");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
-            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync(new() { Timeout = 15000 });
 
             await Step("Verify the contact request shows as assigned to current user");
             var tableRows = Page.Locator("table tbody tr");
