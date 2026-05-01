@@ -698,6 +698,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             // TODO: Fix session timeout issue before uncommenting
             // await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
 
+            await Step("Wait for backend to process the close");
+            await VerifyInternetaakStatusInOpenKlant(internetaakUuidForNav.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
+
             await Step("And navigates to History tab");
             await Page.GetMijnHistorieLink().ClickAsync();
 
