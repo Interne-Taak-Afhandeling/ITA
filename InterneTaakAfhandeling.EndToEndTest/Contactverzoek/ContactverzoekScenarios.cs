@@ -657,14 +657,20 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var testOnderwerp = $"Test_Unassigned_Reassignment_{Guid.NewGuid().ToString().Substring(0, 8)}";
             
             await Step("Given user is on ITA - Create contactverzoek for another employee (not assigned to current user)");
-            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false, TestDataConstants.ContactverzoekNummers.UnassignedForReassignment);
+            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await Step("Look up the internetaak nummer from the created contactmoment");
+            var internetaakUuidForNav = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
+            Assert.IsNotNull(internetaakUuidForNav, "Internetaak UUID should be found after setup");
+            var internetaakForNav = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuidForNav.Value);
+            Assert.IsNotNull(internetaakForNav.Nummer, "Internetaak nummer should be found after setup");
 
             await Step("And navigates to a contactverzoek that is created for another employee");
-            await SafeGotoAsync($"/contactverzoek/{TestDataConstants.ContactverzoekNummers.UnassignedForReassignment}");
+            await SafeGotoAsync($"/contactverzoek/{internetaakForNav.Nummer}");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify contactverzoek page is loaded");
-            await Expect(Page.GetByText($"Contactverzoek {TestDataConstants.ContactverzoekNummers.UnassignedForReassignment}")).ToBeVisibleAsync();
+            await Expect(Page.GetByText($"Contactverzoek {internetaakForNav.Nummer}")).ToBeVisibleAsync();
             await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
 
             await Step("And assign the contactverzoek to self");
@@ -709,9 +715,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             Assert.IsTrue(firstRowText.Contains(testOnderwerp), $"Expected to find reassigned and closed contactverzoek '{testOnderwerp}' in the history table");
 
             await Step("Verify status in OpenKlant is verwerkt with AfgehandeldOp set");
-            var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
-            Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
-            await VerifyInternetaakStatusInOpenKlant(internetaakUuid.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
+            await VerifyInternetaakStatusInOpenKlant(internetaakUuidForNav.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
         }
 
         [TestMethod("Assigning a Contactverzoek to yourself - with logbook verification")]
@@ -835,8 +839,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await VerifyLogbookEntry("Contact gelukt");
 
             await Step("Verify the information 'test logboek' is visible in the logbook section");
-            var logbookSection = Page.Locator("ol");
-            await Expect(logbookSection.GetByText("test logboek")).ToBeVisibleAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var logbookHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" });
+            await Expect(logbookHeading).ToBeVisibleAsync();
+            var logbookSection = logbookHeading.Locator("xpath=ancestor::section");
+            await Expect(logbookSection.GetByRole(AriaRole.Paragraph).Filter(new() { HasText = "test logboek" })).ToBeVisibleAsync(new() { Timeout = 10000 });
         }
 
         [TestMethod("Close contactmoment, navigate to Mijn historie and verify logbook entry")]
@@ -891,8 +898,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await VerifyLogbookEntry("Afgerond", verifyTimestamp: false);
 
             await Step("Verify the information 'test logboek' is visible in the logbook section");
-            var logbookSection = Page.Locator("ol");
-            await Expect(logbookSection.GetByText("test logboek")).ToBeVisibleAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var logbookHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" });
+            await Expect(logbookHeading).ToBeVisibleAsync();
+            var logbookSection = logbookHeading.Locator("xpath=ancestor::section");
+            await Expect(logbookSection.GetByRole(AriaRole.Paragraph).Filter(new() { HasText = "test logboek" })).ToBeVisibleAsync(new() { Timeout = 10000 });
         }
     }
 }
