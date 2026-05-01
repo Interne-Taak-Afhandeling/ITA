@@ -35,6 +35,7 @@ public interface IOpenKlantApiClient
     Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters);
     Task<Internetaak> PatchInternetaakStatusAsync(InternetakenPatchStatusRequest internetakenUpdateRequest, string uuid);
     Task<Internetaak> PatchInternetaakActorAsync(InternetakenPatchActorsRequest internetakenUpdateRequest, string uuid);
+    Task DeleteInterneTaakAsync(Guid uuid);
 
     Task<Onderwerpobject> CreateOnderwerpobjectAsync(KlantcontactOnderwerpobjectRequest request);
     Task<Onderwerpobject> UpdateOnderwerpobjectAsync(Guid uuid, KlantcontactOnderwerpobjectRequest request);
@@ -320,6 +321,11 @@ public partial class OpenKlantApiClient(
     public async Task DeleteKlantcontactAsync(Guid uuid)
     {
         await _httpClient.DeleteAsync($"klantcontacten/{uuid}");
+    }
+
+    public async Task DeleteInterneTaakAsync(Guid uuid)
+    {
+        await _httpClient.DeleteAsync($"internetaken/{uuid}");
     }
 
     public async Task<Actor?> QueryActorAsync(ActorQuery query)
