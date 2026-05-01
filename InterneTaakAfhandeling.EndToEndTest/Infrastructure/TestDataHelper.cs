@@ -198,12 +198,19 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var uuid = Guid.Parse(klantcontactUuid);
             try
             {
+                var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(uuid);
+                if (internetaakUuid.HasValue)
+                {
+                    await OpenKlantApiClient.DeleteInterneTaakAsync(internetaakUuid.Value);
+                }
+            }
+            catch (Exception) { }
+
+            try
+            {
                 await OpenKlantApiClient.DeleteKlantcontactAsync(uuid);
             }
-            catch (Exception)
-            {
-                // Silent catch for deletion errors
-            }
+            catch (Exception) { }
         }
 
         public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)

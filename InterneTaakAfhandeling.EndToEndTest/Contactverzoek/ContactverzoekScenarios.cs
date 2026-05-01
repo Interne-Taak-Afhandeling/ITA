@@ -694,8 +694,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             
             await Step("Click 'Opslaan & afronden' and wait for success message");
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // TODO: Fix session timeout issue before uncommenting
             // await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
+
+            await Step("Wait for backend to process the close");
+            await VerifyInternetaakStatusInOpenKlant(internetaakUuidForNav.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
 
             await Step("And navigates to History tab");
             await Page.GetMijnHistorieLink().ClickAsync();
