@@ -694,6 +694,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             
             await Step("Click 'Opslaan & afronden' and wait for success message");
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // TODO: Fix session timeout issue before uncommenting
             // await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
 
