@@ -7,21 +7,6 @@ assignees: ""
 ---
 
 # 🎯 Epic: {{title}}
-
-## Stakeholders
-
-<!-- Who is involved and accountable -->
-
-- Product Owner:
-- Lead Designer:
-- Tech Lead:
-
----
-
-## Werkdomein
-
-<!-- In welk deel van het systeem / welk werkproces valt dit initiatief? Als het meerdere onderdelen raakt, benoem elk onderdeel en beschrijf het raakvlak. -->
-
 ---
 
 ## Context
@@ -32,28 +17,16 @@ assignees: ""
 
 <!-- Welk resultaat willen we bereiken? Concreet genoeg om te weten wanneer het af is. -->
 
+## Werkdomein
+
+<!-- In welk deel van het systeem / welk werkproces valt dit initiatief? Als het meerdere onderdelen raakt, benoem elk onderdeel en beschrijf het raakvlak. -->
+
 ## Succesindicatoren
 
 <!-- Hoe meten we dat het doel bereikt is? -->
 
 - [ ]
 
----
-
-## Ontwerpdocumenten
-
-<!-- Link Figma bestanden, prototypes of onderzoeksdocumenten -->
-
 ## Buiten scope
 
-<!-- Benoem expliciet wat dit epic NIET omvat -->
-
-## Risico's
-
-- ***
-
-## Features
-
-<!-- Gekoppelde features worden hier toegevoegd zodra ze zijn aangemaakt -->
-
-- [ ]
+<!-- Benoem expliciet wat dit epic NIET omvat. Beperk dit tot functies waarover absoluut verwarring zou ontstaan als het niet expliciet genoemd wordt. -->
