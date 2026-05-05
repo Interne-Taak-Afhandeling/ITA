@@ -481,7 +481,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetGekoppeldeZaakKoppelenButton().ClickAsync();
             
             await Step("Enter valid Zaaknummer");
-            await Page.GetZaaknummerTextbox().FillAsync("ZAAK-2023-009");
+            await Page.GetZaaknummerTextbox().FillAsync("253-2015");
             
             await Step("Click on button 'Koppelen'");
             await Page.GetKoppelenButton().ClickAsync();
@@ -489,7 +489,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Wait for the zaak to be connected");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             
-            await VerifyZaakIsVisible("ZAAK-2023-009");
+            await VerifyZaakIsVisible("253-2015");
         }
 
         [TestMethod("Only one Zaak can be connected at once - replacing existing Zaak")]
@@ -759,7 +759,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetGekoppeldeZaakKoppelenButton().ClickAsync();
 
             await Step("Enter valid Zaaknummer");
-            await Page.GetZaaknummerTextbox().FillAsync("ZAAK-2023-009");
+            await Page.GetZaaknummerTextbox().FillAsync("4619-2020");
 
             await Step("Click on button 'Koppelen'");
             await Page.GetKoppelenButton().ClickAsync();
@@ -771,7 +771,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify the zaak is now visible");
-            await VerifyZaakIsVisible("ZAAK-2023-009");
+            await VerifyZaakIsVisible("4619-2020");
 
             await VerifyLogbookEntry("Zaak gekoppeld");
         }
@@ -791,7 +791,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetGekoppeldeZaakWijzigenButton().ClickAsync();
 
             await Step("Enter different valid Zaaknummer");
-            await Page.GetZaaknummerTextbox().FillAsync("ZAAK-2023-009");
+            await Page.GetZaaknummerTextbox().FillAsync("");
 
             await Step("Click on button 'Koppelen'");
             await Page.GetKoppelenButton().ClickAsync();
