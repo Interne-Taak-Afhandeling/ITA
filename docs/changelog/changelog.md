@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.2
+
+- fix vulnerable dependencies
+  
 ## v2.1.1
 
 - fix vulnerable dependencies
