@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.0.1
+
+- vulnerability patches
+  
 ## v3.0.0
 
 ### Helm chart breaking changes
