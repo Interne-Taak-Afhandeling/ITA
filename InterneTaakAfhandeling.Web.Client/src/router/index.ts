@@ -29,7 +29,8 @@ const router = createRouter({
       component: AllContactverzoekenView,
       meta: {
         title: "Alle contactverzoeken",
-        requiresITAAccess: true
+        requiresITAAccess: true,
+        requiresFunctioneelBeheerderAccess: true
       }
     },
     //Historie
