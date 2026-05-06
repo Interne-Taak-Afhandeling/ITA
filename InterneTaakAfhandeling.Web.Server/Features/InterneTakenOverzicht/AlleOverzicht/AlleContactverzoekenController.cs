@@ -8,7 +8,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.AlleO
 {
     [Route("api/internetaken")]
     [ApiController]
-    [Authorize(Policy = ITAPolicy.Name)]
+    [Authorize(Policy = FunctioneelBeheerderPolicy.Name)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public class AlleOverzichtController(
