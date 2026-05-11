@@ -21,6 +21,7 @@ public class ForwardContactRequestService(
     IEmailContentService emailContentService,
     ILogger<ForwardContactRequestService> logger,
     IInterneTaakEmailInputService emailInputService,
+    IKlantcontactService klantcontactService,
     IConfiguration configuration) : IForwardContactRequestService
 {
     private readonly string _itaBaseUrl = configuration.GetValue<string>("Ita:BaseUrl")
@@ -38,6 +39,8 @@ public class ForwardContactRequestService(
         };
 
         var updatedInternetaak = await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid);
+
+        await ResolveOrigineleContactmomentNummerAsync(updatedInternetaak);
 
         var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
 
@@ -63,7 +66,8 @@ public class ForwardContactRequestService(
                 return GetResultMessageWhenNoEmails(actorEmailResult);
 
             var emailContent = emailContentService.BuildInternetakenEmailContent(internetaken, _itaBaseUrl);
-            var subject = $"Contactverzoek Doorgestuurd - {internetaken.Nummer}";
+            var nummer = internetaken.OrigineleContactmomentNummer ?? internetaken.Nummer;
+            var subject = $"Contactverzoek Doorgestuurd - {nummer}";
 
             var sendResults = await SendEmailsAsync(actorEmailResult.FoundEmails, subject, emailContent);
 
@@ -231,5 +235,27 @@ public class ForwardContactRequestService(
         };
 
         return await openKlantApiClient.CreateActorAsync(actorRequest);
+    }
+
+    private async Task ResolveOrigineleContactmomentNummerAsync(Internetaak internetaak)
+    {
+        if (internetaak.AanleidinggevendKlantcontact == null)
+            return;
+
+        try
+        {
+            var eersteKlantcontact = await klantcontactService.GetEersteKlantcontactInKetenAsync(
+                internetaak.AanleidinggevendKlantcontact.Uuid);
+
+            internetaak.OrigineleContactmomentNummer = eersteKlantcontact?.Nummer
+                ?? internetaak.AanleidinggevendKlantcontact.Nummer;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex,
+                "Kon originele contactmoment-nummer niet bepalen voor internetaak {Nummer}, fallback naar aanleidinggevend klantcontact",
+                internetaak.Nummer);
+            internetaak.OrigineleContactmomentNummer = internetaak.AanleidinggevendKlantcontact.Nummer;
+        }
     }
 }
