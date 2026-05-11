@@ -28,6 +28,7 @@ public class InterneTaakOverzichtItem
 
     public string Uuid { get; set; } = string.Empty;
     public string? Nummer { get; set; } = string.Empty;
+    public string? OrigineleContactmomentNummer { get; set; }
     public string? GevraagdeHandeling { get; set; } = string.Empty;
     public string? Status { get; set; } = string.Empty;
     public DateTimeOffset? ToegewezenOp { get; init; }

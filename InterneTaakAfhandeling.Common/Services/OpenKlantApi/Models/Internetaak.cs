@@ -20,6 +20,8 @@ public class Internetaak
 
     public string? Nummer { get; set; }
 
+    public string? OrigineleContactmomentNummer { get; set; }
+
     public string? GevraagdeHandeling { get; set; }
 
     public Klantcontact AanleidinggevendKlantcontact { get; set; }
