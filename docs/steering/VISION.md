@@ -5,27 +5,27 @@
 Last updated: 2026-05-07
 
 ## Product Purpose
-
-ITA (Interne Taak Afhandeling) stelt vakafdelingen van gemeenten in staat om contactverzoeken van inwoners eenvoudig en gestructureerd af te handelen. Het systeem verbindt binnenkomende contactverzoeken — aangeleverd via de Klantinteracties API (Open Klant) — met interne taken die medewerkers oppakken, opvolgen en afsluiten. ITA elimineert de situatie waarin contactverzoeken onopgemerkt blijven of termijnen verlopen doordat inzicht en sturing ontbreken.
+Bij veel gemeenten blijven contactverzoeken te lang liggen. Ze blijven onopgemerkt of termijnen verlopen doordat inzicht en sturing ontbreken.
+ITA (Interne Taak Afhandeling) stelt vakafdelingen van gemeenten in staat om contactverzoeken van inwoners eenvoudig en gestructureerd af te handelen. ITA helpt gemeenten om de afhandeling van contactverzoeken onder controle te krijgen. 
 
 ## Target Users
 
 | Actor | Context | Primaire doelen |
 |---|---|---|
-| Medewerker | Behandelt dagelijks toegewezen contactverzoeken | Contactverzoek inzien, notitie toevoegen, zaak koppelen, afhandelen |
-| Coördinator | Bewaakt of het team contactverzoeken tijdig oppakt | Openstaande voorraad per medewerker inzien, werkverdeling bijsturen |
-| Functioneel beheerder | Beheert systeeminstellingen | Afhandeltermijnen instellen, communicatiekanalen configureren, rollen beheren |
+| Medewerker | Behandelt toegewezen contactverzoeken | Contactverzoek inzien, notitie toevoegen, zaak koppelen, afhandelen |
+| Coördinator | Bewaakt of teams contactverzoeken tijdig oppakken | Openstaande voorraad per team en per medewerker inzien, werkverdeling bijsturen |
+| Functioneel beheerder | Beheert systeeminstellingen | Afhandeltermijnen instellen, communicatiekanalen configureren |
 
 ## Core Principles
 
-1. **Eenvoud voor vakafdelingen** — De primaire gebruiker is de medewerker van een vakafdeling. Interface en proces zijn op hem geoptimaliseerd — niet op KCC-medewerkers of generieke workflow-engines.
-2. **Common Ground standaarden** — ITA implementeert de Klantinteracties API (Open Klant) voor contactverzoeken, activiteiten en audittrail. Geen eigen datamodellen buiten de standaard.
-3. **Scoped toegang** — Medewerkers zien alleen hun eigen werk. Coördinatoren zien hun team. Beheerders zien de hele organisatie. Toegang volgt de organisatiestructuur.
-4. **Minimale eigenverantwoordelijkheid** — ITA beheert geen medewerkers, afdelingen of zaken. Het hergebruikt bestaande registraties via de Objecten API en ZGW-compliant zaaksystemen.
+1. **Eenvoud voor vakafdelingen** — De primaire gebruiker is de medewerker van een vakafdeling. Interface en proces zijn op hem geoptimaliseerd.
+2. **Common Ground standaarden** — ITA implementeert de Klantinteracties API (Open Klant) voor contactverzoeken.
 
 ## Strategic Goals
 
 - [ ] Volwassen functionele oplossing voor vakafdelingen: coördinatorwerklijst en werkverdeling operationeel, procesintegriteit geborgd via statusbewaking, audittrail volledig in Open Klant.
+- [ ] Meerdere gemeenten hebben ITA in gebruik genomen.
+- [ ] Gemeenten hebben de afhandeltijd voor contactverzoeken verkort.
 
 ## Bounded Contexts
 
@@ -43,7 +43,7 @@ ITA (Interne Taak Afhandeling) stelt vakafdelingen van gemeenten in staat om con
 - Eigen zaakbeheer — delegeert aan ZGW-systemen (OpenZaak, e-Suite)
 - Geautomatiseerde werkverdeling — alleen handmatige bulk-toewijzing
 - Historische trendanalyse — valt onder Rapportage (#331), apart domein
-- BI-tool integraties — gebruikers koppelen eigen BI direct aan Open Klant API
+- BI-tool integraties — gebruikers koppelen eigen BI direct aan Open Klant en Objecten
 - Low-code workflowconfiguratie of aanpasbare statusovergangen
 
 ## Open Questions
