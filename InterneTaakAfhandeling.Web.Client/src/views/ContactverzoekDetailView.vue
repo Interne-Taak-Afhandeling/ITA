@@ -3,7 +3,9 @@
     <div>
       <back-link class="back-link" />
     </div>
-    <utrecht-heading :level="1">Contactverzoek {{ displayNummer }}</utrecht-heading>
+    <utrecht-heading :level="1"
+      >Contactverzoek {{ taak?.origineleContactmomentNummer ?? cvId }}</utrecht-heading
+    >
     <utrecht-button-group v-if="taak?.uuid">
       <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
     </utrecht-button-group>
@@ -69,10 +71,6 @@ const route = useRoute();
 const cvId = computed(() => first(route.params.number));
 const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
-const displayNummer = computed(() => {
-  if (isLoadingTaak.value) return "";
-  return taak.value?.origineleContactmomentNummer ?? cvId.value;
-});
 
 const handleZaakGekoppeld = () => {
   fetchInternetaken();
