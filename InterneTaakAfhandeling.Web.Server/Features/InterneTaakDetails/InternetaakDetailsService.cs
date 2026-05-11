@@ -1,8 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
-using Microsoft.Extensions.Logging;
-
 namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 {
     public interface IInternetaakService
@@ -13,8 +11,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
         IOpenKlantApiClient openKlantApiClient,
         IZakenApiClient zakenApiClient,
         IContactmomentenService contactmomentenService,
-        IKlantcontactService klantcontactService,
-        ILogger<InternetaakDetailsService> logger) : IInternetaakService
+        IKlantcontactService klantcontactService) : IInternetaakService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
