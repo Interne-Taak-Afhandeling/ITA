@@ -28,11 +28,12 @@ public class EmailContentService : IEmailContentService
 
     public string BuildInternetakenEmailContent(Internetaak internetaak, string itaBaseUrl)
     {
-        var deeplink = $"{itaBaseUrl.TrimEnd('/')}/contactverzoek/{internetaak.Nummer}";
+        var nummer = internetaak.OrigineleContactmomentNummer ?? internetaak.Nummer;
+        var deeplink = $"{itaBaseUrl.TrimEnd('/')}/contactverzoek/{nummer}";
 
         var sb = new StringBuilder(EmailTemplate);
         sb.Replace("{Link}", deeplink)
-          .Replace("{Nummer}", internetaak.Nummer);
+          .Replace("{Nummer}", nummer);
 
         return sb.ToString();
     }
