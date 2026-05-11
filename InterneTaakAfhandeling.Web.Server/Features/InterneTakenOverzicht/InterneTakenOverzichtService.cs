@@ -72,6 +72,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
                     item.Onderwerp = klantcontact.Onderwerp;
                     item.ContactDatum = klantcontact.PlaatsgevondenOp;
                     item.KlantNaam = ExtractKlantNaamFromKlantcontact(klantcontact);
+                    item.OrigineleContactmomentNummer = klantcontact.Nummer;
                 }
             }
             catch (Exception ex)
