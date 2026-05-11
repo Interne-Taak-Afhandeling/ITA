@@ -1,8 +1,8 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using Microsoft.Extensions.Logging;
 
-namespace InterneTaakAfhandeling.Web.Server.Services
+namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi
 {
     public interface IKlantcontactService
     {

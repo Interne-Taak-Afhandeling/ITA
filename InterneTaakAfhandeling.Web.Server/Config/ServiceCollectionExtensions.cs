@@ -11,7 +11,6 @@ using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Middleware;
-using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.EntityFrameworkCore;
 

@@ -3,7 +3,6 @@ using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;
-using InterneTaakAfhandeling.Web.Server.Services;
 using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
 using InterneTaakAfhandeling.Common.Services;
 
