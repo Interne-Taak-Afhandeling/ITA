@@ -8,6 +8,7 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi
     {
         Task<Klantcontact?> GetEersteKlantcontactInKetenAsync(Guid klantcontactUuid);
         Task<List<Klantcontact>> BouwKlantcontactKetenAsync(Guid startKlantcontactUuid);
+        Task ResolveOrigineleContactmomentNummerAsync(Internetaak internetaak);
     }
 
     public class KlantcontactService : IKlantcontactService
@@ -53,6 +54,28 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi
             await VoegKlantcontactenToeAanKeten(aanleidinggevendKlantcontact.Uuid, keten, verwerkte_uuids);
 
             return keten;
+        }
+
+        public async Task ResolveOrigineleContactmomentNummerAsync(Internetaak internetaak)
+        {
+            if (internetaak.AanleidinggevendKlantcontact == null)
+                return;
+
+            try
+            {
+                var eersteKlantcontact = await GetEersteKlantcontactInKetenAsync(
+                    internetaak.AanleidinggevendKlantcontact.Uuid);
+
+                internetaak.OrigineleContactmomentNummer = eersteKlantcontact?.Nummer
+                    ?? internetaak.AanleidinggevendKlantcontact.Nummer;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Kon originele contactmoment-nummer niet bepalen voor internetaak {Nummer}, fallback naar aanleidinggevend klantcontact",
+                    internetaak.Nummer);
+                internetaak.OrigineleContactmomentNummer = internetaak.AanleidinggevendKlantcontact.Nummer;
+            }
         }
 
         private async Task VoegKlantcontactenToeAanKeten(

@@ -40,7 +40,7 @@ public class ForwardContactRequestService(
 
         var updatedInternetaak = await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid);
 
-        await ResolveOrigineleContactmomentNummerAsync(updatedInternetaak);
+        await klantcontactService.ResolveOrigineleContactmomentNummerAsync(updatedInternetaak);
 
         var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
 
@@ -235,27 +235,5 @@ public class ForwardContactRequestService(
         };
 
         return await openKlantApiClient.CreateActorAsync(actorRequest);
-    }
-
-    private async Task ResolveOrigineleContactmomentNummerAsync(Internetaak internetaak)
-    {
-        if (internetaak.AanleidinggevendKlantcontact == null)
-            return;
-
-        try
-        {
-            var eersteKlantcontact = await klantcontactService.GetEersteKlantcontactInKetenAsync(
-                internetaak.AanleidinggevendKlantcontact.Uuid);
-
-            internetaak.OrigineleContactmomentNummer = eersteKlantcontact?.Nummer
-                ?? internetaak.AanleidinggevendKlantcontact.Nummer;
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex,
-                "Kon originele contactmoment-nummer niet bepalen voor internetaak {Nummer}, fallback naar aanleidinggevend klantcontact",
-                internetaak.Nummer);
-            internetaak.OrigineleContactmomentNummer = internetaak.AanleidinggevendKlantcontact.Nummer;
-        }
     }
 }

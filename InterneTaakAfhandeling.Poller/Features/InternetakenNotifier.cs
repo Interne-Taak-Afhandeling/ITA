@@ -103,7 +103,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         {
             _logger.LogInformation("Processing internetaken: {Number}", internetaak.Nummer);
 
-            await ResolveOrigineleContactmomentNummerAsync(internetaak);
+            await _klantcontactService.ResolveOrigineleContactmomentNummerAsync(internetaak);
 
             var actors = await GetActorsAsync(internetaak);
             var actorEmailsResult = await _emailInputService.ResolveActorsEmailAsync(actors);
@@ -150,28 +150,6 @@ public class InternetakenNotifier : IInternetakenProcessor
         }
 
         return actoren;
-    }
-
-    private async Task ResolveOrigineleContactmomentNummerAsync(Internetaak internetaak)
-    {
-        if (internetaak.AanleidinggevendKlantcontact == null)
-            return;
-
-        try
-        {
-            var eersteKlantcontact = await _klantcontactService.GetEersteKlantcontactInKetenAsync(
-                internetaak.AanleidinggevendKlantcontact.Uuid);
-
-            internetaak.OrigineleContactmomentNummer = eersteKlantcontact?.Nummer
-                ?? internetaak.AanleidinggevendKlantcontact.Nummer;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex,
-                "Kon originele contactmoment-nummer niet bepalen voor internetaak {Nummer}, fallback naar aanleidinggevend klantcontact",
-                internetaak.Nummer);
-            internetaak.OrigineleContactmomentNummer = internetaak.AanleidinggevendKlantcontact.Nummer;
-        }
     }
 
 

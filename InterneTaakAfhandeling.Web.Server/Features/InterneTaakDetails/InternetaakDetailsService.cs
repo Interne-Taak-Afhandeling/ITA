@@ -19,8 +19,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
         private readonly IContactmomentenService _contactmomentenService = contactmomentenService;
-        private readonly IKlantcontactService _klantcontactService = klantcontactService;
-        private readonly ILogger<InternetaakDetailsService> _logger = logger;
 
         public async Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters)
         {
@@ -48,30 +46,11 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                     interntaak.Zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
                 }
 
-                await ResolveOrigineleContactmomentNummerAsync(interntaak);
+                await klantcontactService.ResolveOrigineleContactmomentNummerAsync(interntaak);
             }
 
 
             return interntaak;
-        }
-
-        private async Task ResolveOrigineleContactmomentNummerAsync(Internetaak internetaak)
-        {
-            try
-            {
-                var eersteKlantcontact = await _klantcontactService.GetEersteKlantcontactInKetenAsync(
-                    internetaak.AanleidinggevendKlantcontact.Uuid);
-
-                internetaak.OrigineleContactmomentNummer = eersteKlantcontact?.Nummer
-                    ?? internetaak.AanleidinggevendKlantcontact.Nummer;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex,
-                    "Kon originele contactmoment-nummer niet bepalen voor internetaak {Nummer}, fallback naar aanleidinggevend klantcontact",
-                    internetaak.Nummer);
-                internetaak.OrigineleContactmomentNummer = internetaak.AanleidinggevendKlantcontact.Nummer;
-            }
         }
     }
 }
