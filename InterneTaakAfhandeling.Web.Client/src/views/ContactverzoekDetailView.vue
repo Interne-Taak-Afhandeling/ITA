@@ -3,7 +3,9 @@
     <div>
       <back-link class="back-link" />
     </div>
-    <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
+    <utrecht-heading :level="1"
+      >Contactverzoek {{ taak?.origineleContactmomentNummer ?? cvId }}</utrecht-heading
+    >
     <utrecht-button-group v-if="taak?.uuid">
       <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
     </utrecht-button-group>

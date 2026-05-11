@@ -5,6 +5,7 @@ export interface Internetaken {
   uuid: string;
   url: string;
   nummer: string;
+  origineleContactmomentNummer?: string;
   gevraagdeHandeling: string;
   aanleidinggevendKlantcontact?: Klantcontact;
   toegewezenAanActor?: Actor;
