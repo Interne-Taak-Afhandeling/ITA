@@ -23,6 +23,7 @@ public class InternetakenNotifier : IInternetakenProcessor
     private readonly IEmailContentService _emailContentService;
     private readonly INotifierStateService _notifierStateService;
     private readonly IInterneTaakEmailInputService _emailInputService;
+    private readonly IKlantcontactService _klantcontactService;
 
     public InternetakenNotifier(
         IOpenKlantApiClient openKlantApiClient,
@@ -31,7 +32,8 @@ public class InternetakenNotifier : IInternetakenProcessor
         ILogger<InternetakenNotifier> logger,
         IEmailContentService emailContentService,
         INotifierStateService notifierStateService,
-        IInterneTaakEmailInputService emailInputService)
+        IInterneTaakEmailInputService emailInputService,
+        IKlantcontactService klantcontactService)
     {
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
@@ -43,6 +45,7 @@ public class InternetakenNotifier : IInternetakenProcessor
         _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
         _notifierStateService = notifierStateService ?? throw new ArgumentNullException(nameof(notifierStateService));
         _emailInputService = emailInputService;
+        _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
     }
 
     public async Task NotifyAboutNewInternetakenAsync()
@@ -100,6 +103,8 @@ public class InternetakenNotifier : IInternetakenProcessor
         {
             _logger.LogInformation("Processing internetaken: {Number}", internetaak.Nummer);
 
+            await ResolveOrigineleContactmomentNummerAsync(internetaak);
+
             var actors = await GetActorsAsync(internetaak);
             var actorEmailsResult = await _emailInputService.ResolveActorsEmailAsync(actors);
             var actorEmails = actorEmailsResult.FoundEmails;
@@ -144,6 +149,28 @@ public class InternetakenNotifier : IInternetakenProcessor
         }
 
         return actoren;
+    }
+
+    private async Task ResolveOrigineleContactmomentNummerAsync(Internetaak internetaak)
+    {
+        if (internetaak.AanleidinggevendKlantcontact == null)
+            return;
+
+        try
+        {
+            var eersteKlantcontact = await _klantcontactService.GetEersteKlantcontactInKetenAsync(
+                internetaak.AanleidinggevendKlantcontact.Uuid);
+
+            internetaak.OrigineleContactmomentNummer = eersteKlantcontact?.Nummer
+                ?? internetaak.AanleidinggevendKlantcontact.Nummer;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Kon originele contactmoment-nummer niet bepalen voor internetaak {Nummer}, fallback naar aanleidinggevend klantcontact",
+                internetaak.Nummer);
+            internetaak.OrigineleContactmomentNummer = internetaak.AanleidinggevendKlantcontact.Nummer;
+        }
     }
 
 
