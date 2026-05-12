@@ -8,7 +8,12 @@
         >Contactverzoek {{ taak.aanleidinggevendKlantcontact?.nummer }}</utrecht-heading
       >
       <utrecht-button-group>
-        <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
+        <assign-contactverzoek-to-me
+        :id="taak.uuid"
+        :user-email="userEmail"
+        :actoren="taak.toegewezenAanActoren ?? []"
+        @assignmentSuccess="fetchInternetaken"
+      />
       </utrecht-button-group>
     </template>
   </div>
@@ -67,6 +72,7 @@ import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
 import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
 import ContactverzoekActies from "@/components/ContactverzoekActies.vue";
 import DetailSection from "@/components/DetailSection.vue";
+import { useAuthStore } from "@/stores/auth";
 
 const props = defineProps<{
   contactmomentNumber?: string;
