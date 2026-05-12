@@ -100,6 +100,11 @@ public class InternetakenNotifier : IInternetakenProcessor
         {
             _logger.LogInformation("Processing internetaken: {Number}", internetaak.Nummer);
 
+            if (internetaak.AanleidinggevendKlantcontact?.Uuid != null)
+            {
+                internetaak.AanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+            }
+
             var actors = await GetActorsAsync(internetaak);
             var actorEmailsResult = await _emailInputService.ResolveActorsEmailAsync(actors);
             var actorEmails = actorEmailsResult.FoundEmails;
