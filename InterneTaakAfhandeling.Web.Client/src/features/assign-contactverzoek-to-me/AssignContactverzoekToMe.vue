@@ -24,17 +24,22 @@ import { toast } from "@/components/toast/toast";
 import { ref, computed, defineEmits } from "vue";
 import { userService } from "@/services/userService";
 import type { Actor } from "@/types/internetaken";
-const props = defineProps<{
-  id: string;
-  userEmail: string;
-  actoren: Actor[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    id: string;
+    userEmail: string;
+    actoren: Actor[];
+  }>(),
+  { actoren: () => [] },
+);
 const emit = defineEmits(["assignmentSuccess"]);
 
 const isAlreadyAssigned = computed(() =>
   props.actoren.some(
     (actor) =>
       actor.soortActor === "medewerker" &&
+      actor.actoridentificator?.codeObjecttype === "mdw" &&
+      actor.actoridentificator?.codeSoortObjectId === "email" &&
       actor.actoridentificator?.objectId?.toLowerCase() === props.userEmail.toLowerCase(),
   ),
 );
