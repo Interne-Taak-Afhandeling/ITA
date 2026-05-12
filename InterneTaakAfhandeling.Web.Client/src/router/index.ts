@@ -61,6 +61,15 @@ const router = createRouter({
       }
     },
     {
+      path: "/contactmoment/:number",
+      name: "contactmomentDetail",
+      component: ContactverzoekDetailView,
+      meta: {
+        title: "Contactverzoek",
+        requiresITAAccess: true
+      }
+    },
+    {
       path: "/contactverzoek/:number",
       name: "contactverzoekDetail",
       component: ContactverzoekDetailView,
