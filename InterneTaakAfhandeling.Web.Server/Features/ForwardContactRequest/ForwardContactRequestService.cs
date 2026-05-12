@@ -63,7 +63,9 @@ public class ForwardContactRequestService(
                 return GetResultMessageWhenNoEmails(actorEmailResult);
 
             var emailContent = emailContentService.BuildInternetakenEmailContent(internetaken, _itaBaseUrl);
-            var subject = $"Contactverzoek Doorgestuurd - {internetaken.Nummer}";
+            var contactmomentNummer = internetaken.AanleidinggevendKlantcontact?.Nummer
+                ?? throw new InvalidOperationException($"AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {internetaken.Nummer}");
+            var subject = $"Contactverzoek Doorgestuurd - {contactmomentNummer}";
 
             var sendResults = await SendEmailsAsync(actorEmailResult.FoundEmails, subject, emailContent);
 

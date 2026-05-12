@@ -28,11 +28,14 @@ public class EmailContentService : IEmailContentService
 
     public string BuildInternetakenEmailContent(Internetaak internetaak, string itaBaseUrl)
     {
-        var deeplink = $"{itaBaseUrl.TrimEnd('/')}/contactverzoek/{internetaak.Nummer}";
+        var contactmomentNummer = internetaak.AanleidinggevendKlantcontact?.Nummer
+            ?? throw new InvalidOperationException($"AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {internetaak.Nummer}");
+
+        var deeplink = $"{itaBaseUrl.TrimEnd('/')}/contactmoment/{contactmomentNummer}";
 
         var sb = new StringBuilder(EmailTemplate);
         sb.Replace("{Link}", deeplink)
-          .Replace("{Nummer}", internetaak.Nummer);
+          .Replace("{Nummer}", contactmomentNummer);
 
         return sb.ToString();
     }
