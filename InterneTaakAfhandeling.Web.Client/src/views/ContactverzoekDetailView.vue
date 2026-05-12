@@ -3,17 +3,15 @@
     <div>
       <back-link class="back-link" />
     </div>
-    <utrecht-heading :level="1">Contactverzoek {{ contactmomentNummer }}</utrecht-heading>
-    <utrecht-button-group v-if="taak?.uuid">
-      <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
-    </utrecht-button-group>
+    <template v-if="taak">
+      <utrecht-heading :level="1">Contactverzoek {{ taak.aanleidinggevendKlantcontact?.nummer }}</utrecht-heading>
+      <utrecht-button-group>
+        <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
+      </utrecht-button-group>
+    </template>
   </div>
 
   <simple-spinner v-if="isLoadingTaak" />
-
-  <utrecht-alert v-else-if="contactmomentNummerOntbreekt" type="error">
-    Het contactmoment-nummer ontbreekt. Dit is een foutsituatie.
-  </utrecht-alert>
 
   <utrecht-alert v-else-if="!taak && !isLoadingTaak" type="error">
     Dit contactverzoek bestaat niet of is niet meer beschikbaar.
@@ -74,11 +72,6 @@ const routeNummer = computed(() => first(route.params.number));
 const isContactmomentRoute = computed(() => route.name === "contactmomentDetail");
 const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
-const contactmomentNummerOntbreekt = ref(false);
-
-const contactmomentNummer = computed(
-  () => taak.value?.aanleidinggevendKlantcontact?.nummer ?? routeNummer.value
-);
 
 const handleZaakGekoppeld = () => {
   fetchInternetaken();
@@ -90,16 +83,11 @@ onMounted(async () => {
 
 const fetchInternetaken = async () => {
   isLoadingTaak.value = true;
-  contactmomentNummerOntbreekt.value = false;
   try {
     taak.value = isContactmomentRoute.value
       ? await internetakenService.getByKlantcontactNummer(routeNummer.value)
       : await internetakenService.getInternetaak(routeNummer.value);
   } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : "";
-    if (errorMsg.includes("geen nummer")) {
-      contactmomentNummerOntbreekt.value = true;
-    }
     console.error("Error loading contactverzoek:", err);
   } finally {
     isLoadingTaak.value = false;
