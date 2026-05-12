@@ -48,7 +48,7 @@
                 >Afdelingshistorie</router-link
               >
             </li>
-            <li class="utrecht-nav-list__item">
+            <li v-if="hasFunctioneelBeheerderAccess" class="utrecht-nav-list__item">
               <router-link
                 :to="{ name: 'alleContactverzoeken' }"
                 class="utrecht-link utrecht-link--html-a utrecht-nav-list__link"
