@@ -1,5 +1,8 @@
 # Changelog
 
+## Latest version
+- beheerder kan exclusief alle contactverzoeken raadplegen
+
 ## v3.0.0
 
 ### Helm chart breaking changes
