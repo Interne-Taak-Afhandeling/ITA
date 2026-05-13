@@ -8,19 +8,19 @@ assignees: ""
 
 # 🚀 Feature: {{title}}
 
-## Werkdomein
+## Bounded Context
 
 <!-- In welk deel van het systeem / werkproces valt deze feature? Beschrijf kort het raakvlak met andere onderdelen als dat van toepassing is. -->
 
 ---
 
-## Gebruikersverhalen
+## User Stories
 
 <!-- Geschreven door de Product Owner -->
 
-- Als **[rol]** wil ik **[wat]** zodat **[waarom]**
+- Als **_, wil ik _** zodat \_\_\_
 
-## Ontwerp
+## Design Handoff
 
 <!-- Link naar Figma frames, componentspecificaties of geannoteerde mockups -->
 
@@ -30,17 +30,18 @@ assignees: ""
 
 ---
 
-## Acceptatiecriteria
+## Acceptance Criteria
 
-<!-- Elk criterium leidt tot één of meer testscenario's in de taken. -->
+<!-- Deze vormen direct de basis voor Gherkin-scenario's in onderliggende taken. Eén acceptatiecriterium →
+één of meer scenario's. -->
 
 - [ ]
 
-## Randgevallen
+## Edge Cases
 
-<!-- Benoem grens- en uitzonderingssituaties expliciet, zodat taken deze kunnen afdekken. -->
+<!-- Benoem ze hier expliciet zodat taken ze in Gherkin kunnen afdekken. Gebruik domeintaal. -->
 
-## Gegevensuitwisseling
+## Domain Events
 
 <!-- Welke gegevens verstuurt of verwerkt deze feature vanuit andere onderdelen? -->
 
@@ -49,19 +50,19 @@ assignees: ""
 
 ---
 
-## Klaar voor ontwikkeling
+## Definition of Ready
 
 <!-- Deze feature is klaar om in taken op te splitsen wanneer: -->
 
-- [ ] Gebruikersverhalen akkoord bij PO
+- [ ] User stories goedgekeurd door PO
 - [ ] Ontwerp afgerond
-- [ ] Acceptatiecriteria geschreven en beoordeeld
-- [ ] Randgevallen geïdentificeerd
+- [ ] Acceptance criteria geschreven en beoordeeld
+- [ ] Edge cases geïdentificeerd
 
 ---
 
-## Geplande taken
+## Proposed Tasks
 
-<!-- Taken worden hier toegevoegd zodra ze zijn aangemaakt -->
+<!-- Onderliggende taken — link issues zodra ze aangemaakt worden. -->
 
 - [ ]
