@@ -2,6 +2,14 @@
 nameOverride: ""
 fullnameOverride: ""
 
+# Pod scheduling controls applied to both poller-cronjob and web-deployment.
+# Defaults are empty so behavior is unchanged on single-nodepool clusters.
+# Useful for multi-nodepool clusters (e.g. AKS system/user pool separation)
+# where workloads must be pinned to specific nodes.
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
 # Global PostgreSQL configuration
 postgresql:
   enabled: true
