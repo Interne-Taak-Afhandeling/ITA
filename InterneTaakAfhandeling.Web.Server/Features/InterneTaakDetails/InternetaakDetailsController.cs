@@ -15,6 +15,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
 
         [ProducesResponseType(typeof(Internetaak), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("{internetaakNummer}")]
         public async Task<IActionResult> Get([FromRoute] string internetaakNummer)
         {
@@ -46,6 +47,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
 
         [ProducesResponseType(typeof(Internetaak), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("by-klantcontact/{nummer}")]
         public async Task<IActionResult> GetByKlantcontactNummer([FromRoute] string nummer)
         {
