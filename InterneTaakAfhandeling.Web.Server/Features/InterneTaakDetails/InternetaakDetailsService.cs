@@ -7,6 +7,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
     public interface IInternetaakService
     {
         Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters);
+        Task<Internetaak?> GetByKlantcontactNummer(string klantcontactNummer);
     }
     public class InternetaakDetailsService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient, IContactmomentenService contactmomentenService) : IInternetaakService
     {
@@ -31,6 +32,34 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 
             var interntaak = internetaken.Single();
 
+            await EnrichWithZaakAsync(interntaak);
+
+            return interntaak;
+        }
+
+        public async Task<Internetaak?> GetByKlantcontactNummer(string klantcontactNummer)
+        {
+            var query = new InterneTaakQuery
+            {
+                Klantcontact__Nummer = klantcontactNummer
+            };
+
+            var internetaken = await _openKlantApiClient.QueryInterneTakenAsync(query);
+
+            if (internetaken == null || internetaken.Count == 0)
+            {
+                return null;
+            }
+
+            var interntaak = internetaken.First();
+
+            await EnrichWithZaakAsync(interntaak);
+
+            return interntaak;
+        }
+
+        private async Task EnrichWithZaakAsync(Internetaak? interntaak)
+        {
             if (interntaak?.AanleidinggevendKlantcontact != null)
             {
                 var onderwerpObjectId = _contactmomentenService.GetZaakOnderwerpObject(interntaak.AanleidinggevendKlantcontact);
@@ -40,9 +69,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                     interntaak.Zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
                 }
             }
-
-
-            return interntaak;
         }
     }
 }
