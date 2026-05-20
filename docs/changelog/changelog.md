@@ -1,6 +1,15 @@
 # Changelog
 
 ## Latest version
+
+### Helm chart additions
+- `nodeSelector`, `tolerations` en `affinity` toegevoegd op chart root (geldt voor zowel `poller-cronjob` als `web-deployment`). Backwards compatible: defaults zijn leeg, bestaand gedrag op single-nodepool clusters ongewijzigd. Voor multi-nodepool clusters (bv AKS systempool/userpool) kan een operator nu workloads pinnen op specifieke nodes, bv:
+  ```yaml
+  ita:
+    nodeSelector:
+      agentpool: userpool
+  ```
+
 - beheerder kan exclusief alle contactverzoeken raadplegen
 
 ## v3.0.0
