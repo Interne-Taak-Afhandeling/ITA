@@ -3,10 +3,12 @@
     <div>
       <back-link class="back-link" />
     </div>
-    <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
-    <utrecht-button-group v-if="taak?.uuid">
-      <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
-    </utrecht-button-group>
+    <template v-if="taak">
+      <utrecht-heading :level="1">Contactverzoek {{ taak.aanleidinggevendKlantcontact?.nummer }}</utrecht-heading>
+      <utrecht-button-group>
+        <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
+      </utrecht-button-group>
+    </template>
   </div>
 
   <simple-spinner v-if="isLoadingTaak" />
@@ -66,7 +68,8 @@ import DetailSection from "@/components/DetailSection.vue";
 
 const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
 const route = useRoute();
-const cvId = computed(() => first(route.params.number));
+const routeNummer = computed(() => first(route.params.number));
+const isContactmomentRoute = computed(() => route.name === "contactmomentDetail");
 const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
 
@@ -81,7 +84,9 @@ onMounted(async () => {
 const fetchInternetaken = async () => {
   isLoadingTaak.value = true;
   try {
-    taak.value = await internetakenService.getInternetaak(cvId.value);
+    taak.value = isContactmomentRoute.value
+      ? await internetakenService.getByKlantcontactNummer(routeNummer.value)
+      : await internetakenService.getInternetaak(routeNummer.value);
   } catch (err: unknown) {
     console.error("Error loading contactverzoek:", err);
   } finally {

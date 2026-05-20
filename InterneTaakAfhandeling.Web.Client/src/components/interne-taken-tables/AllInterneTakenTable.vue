@@ -39,7 +39,7 @@
           {{ taak.behandelaarNaam || "-" }}
         </utrecht-table-cell>
         <utrecht-table-cell>
-          <router-link :to="`/contactverzoek/${taak.nummer}`">Klik hier</router-link>
+          <router-link :to="`/contactmoment/${taak.contactmomentNummer}`">Klik hier</router-link>
         </utrecht-table-cell>
       </utrecht-table-row>
     </utrecht-table-body>
@@ -63,6 +63,7 @@ export interface InterneTaakOverviewItem {
   afdelingNaam?: string;
   behandelaarNaam?: string;
   heeftBehandelaar: boolean;
+  contactmomentNummer?: string;
 }
 </script>
 
