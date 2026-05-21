@@ -119,7 +119,7 @@ public class InternetakenNotifier : IInternetakenProcessor
                 var contactmomentNummer = internetaak.AanleidinggevendKlantcontact?.Nummer;
                 if (string.IsNullOrEmpty(contactmomentNummer))
                 {
-                    _logger.LogError("AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {Number}", internetaak.Nummer);
+                    _logger.LogWarning("AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {Number}", internetaak.Nummer);
                     return new ProcessingResult(false, Guid.Parse(internetaak.Uuid), internetaak.ToegewezenOp ?? DateTimeOffset.MinValue, "AanleidinggevendKlantcontact.Nummer ontbreekt");
                 }
 
