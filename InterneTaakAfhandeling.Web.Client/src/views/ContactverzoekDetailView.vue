@@ -57,7 +57,6 @@ import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import BackLink from "@/components/BackLink.vue";
 import { computed, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
 import ContactverzoekLogboek from "@/components/ContactverzoekLogboek.vue";
 
 import type { Internetaken } from "@/types/internetaken";
@@ -68,10 +67,13 @@ import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
 import ContactverzoekActies from "@/components/ContactverzoekActies.vue";
 import DetailSection from "@/components/DetailSection.vue";
 
-const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
-const route = useRoute();
-const routeNummer = computed(() => first(route.params.number));
-const isContactmomentRoute = computed(() => route.name === "contactmomentDetail");
+const props = defineProps<{
+  contactmomentNumber?: string;
+  contactverzoekId?: string;
+}>();
+
+const isContactmomentRoute = computed(() => !!props.contactmomentNumber);
+const routeNummer = computed(() => props.contactmomentNumber ?? props.contactverzoekId ?? "");
 const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
 
