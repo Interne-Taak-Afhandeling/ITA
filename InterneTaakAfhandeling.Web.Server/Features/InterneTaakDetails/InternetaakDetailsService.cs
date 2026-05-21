@@ -46,12 +46,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 
             var internetaken = await _openKlantApiClient.QueryInterneTakenAsync(query);
 
-            if (internetaken == null || internetaken.Count == 0)
+            if (internetaken == null || internetaken.Count != 1)
             {
                 return null;
             }
 
-            var interntaak = internetaken.First();
+            var interntaak = internetaken.Single();
 
             await EnrichWithZaakAsync(interntaak);
 
