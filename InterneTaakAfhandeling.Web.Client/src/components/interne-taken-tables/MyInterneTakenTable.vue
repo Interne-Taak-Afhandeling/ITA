@@ -25,7 +25,9 @@
         }}</utrecht-table-cell>
         <utrecht-table-cell>{{ taak.aanleidinggevendKlantcontact?.onderwerp }}</utrecht-table-cell>
         <utrecht-table-cell>
-          <router-link :to="`/contactmoment/${taak?.aanleidinggevendKlantcontact?.nummer}`">Klik hier</router-link>
+          <router-link :to="`/contactmoment/${taak?.aanleidinggevendKlantcontact?.nummer}`"
+            >Klik hier</router-link
+          >
         </utrecht-table-cell>
       </utrecht-table-row>
     </utrecht-table-body>

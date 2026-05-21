@@ -4,7 +4,9 @@
       <back-link class="back-link" />
     </div>
     <template v-if="taak">
-      <utrecht-heading :level="1">Contactverzoek {{ taak.aanleidinggevendKlantcontact?.nummer }}</utrecht-heading>
+      <utrecht-heading :level="1"
+        >Contactverzoek {{ taak.aanleidinggevendKlantcontact?.nummer }}</utrecht-heading
+      >
       <utrecht-button-group>
         <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
       </utrecht-button-group>
