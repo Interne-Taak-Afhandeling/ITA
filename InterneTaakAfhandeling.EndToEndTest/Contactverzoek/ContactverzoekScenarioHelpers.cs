@@ -129,9 +129,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step($"Navigate to contactverzoek by nummer: {internetaakNummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaakNummer}");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            await Step($"Verify contactverzoek page loaded with nummer: {internetaakNummer}");
-            await Expect(Page.GetByText($"Contactverzoek {internetaakNummer}")).ToBeVisibleAsync();
+            // Heading now shows AanleidinggevendKlantcontact.Nummer (contactmoment number), not the
+            // interne-taaknummer. Use the action tab as a reliable page-loaded indicator instead.
+            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync(new() { Timeout = 10000 });
         }
 
         private async Task NavigateToContactmomentRegistrerenTab()

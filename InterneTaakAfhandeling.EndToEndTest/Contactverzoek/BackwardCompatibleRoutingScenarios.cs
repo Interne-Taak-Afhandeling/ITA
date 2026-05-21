@@ -16,33 +16,33 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
     [DoNotParallelize]
     public class BackwardCompatibleRoutingScenarios : ITAPlaywrightTest
     {
-        // [TestMethod("Navigatie via oud interne-taaknummer op oude route /contactverzoek werkt")]
-        // public async Task OudeRoute_MetInterneTaaknummer_ToontContactverzoekMetContactmomentNummer()
-        // {
-        //     await Step("Given een internetaak met een aanleidinggevend klantcontact");
-        //     var testOnderwerp = $"Test_BackwardRoute_{Guid.NewGuid().ToString()[..8]}";
-        //     var contactmomentUuid = await TestDataHelper.CreateContactverzoek(testOnderwerp, attachZaak: false);
-        //     RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
-        //
-        //     await Step("Look up the internetaak nummer and klantcontact nummer");
-        //     var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
-        //     Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
-        //
-        //     var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
-        //     Assert.IsNotNull(internetaak.Nummer, "Internetaak nummer should be found");
-        //
-        //     var klantcontact = await TestDataHelper.OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
-        //     Assert.IsNotNull(klantcontact.Nummer, "Klantcontact nummer should be found");
-        //
-        //     await Step($"When de medewerker navigeert naar /contactverzoek/{internetaak.Nummer} via een oude e-maillink");
-        //     await Page.GotoAsync($"/contactverzoek/{internetaak.Nummer}");
-        //     await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-        //
-        //     await Step("Then wordt het contactverzoek correct getoond");
-        //     await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
-        //
-        //     await Step($"And de heading toont 'Contactverzoek {klantcontact.Nummer}'");
-        //     await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Contactverzoek {klantcontact.Nummer}" })).ToBeVisibleAsync();
-        // }
+        [TestMethod("Navigatie via oud interne-taaknummer op oude route /contactverzoek werkt")]
+        public async Task OudeRoute_MetInterneTaaknummer_ToontContactverzoekMetContactmomentNummer()
+        {
+            await Step("Given een internetaak met een aanleidinggevend klantcontact");
+            var testOnderwerp = $"Test_BackwardRoute_{Guid.NewGuid().ToString()[..8]}";
+            var contactmomentUuid = await TestDataHelper.CreateContactverzoek(testOnderwerp, attachZaak: false);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
+
+            await Step("Look up the internetaak nummer and contactmoment nummer");
+            var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
+            Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
+
+            var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
+            Assert.IsNotNull(internetaak.Nummer, "Internetaak nummer should be found");
+
+            var contactmomentNummer = internetaak.AanleidinggevendKlantcontact?.Nummer;
+            Assert.IsNotNull(contactmomentNummer, "AanleidinggevendKlantcontact.Nummer should be available");
+
+            await Step($"When de medewerker navigeert naar /contactverzoek/{internetaak.Nummer} via een oude e-maillink");
+            await Page.GotoAsync($"/contactverzoek/{internetaak.Nummer}");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Then wordt het contactverzoek correct getoond");
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+
+            await Step($"And de heading toont 'Contactverzoek {contactmomentNummer}'");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Contactverzoek {contactmomentNummer}" })).ToBeVisibleAsync();
+        }
     }
 }
