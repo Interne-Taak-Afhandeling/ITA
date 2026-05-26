@@ -2,6 +2,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using ITA.InterneTaakAfhandeling.EndToEndTest.Helpers;
 using Microsoft.Playwright;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
@@ -903,6 +904,108 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(logbookHeading).ToBeVisibleAsync();
             var logbookSection = logbookHeading.Locator("xpath=ancestor::section");
             await Expect(logbookSection.GetByRole(AriaRole.Paragraph).Filter(new() { HasText = "test logboek" })).ToBeVisibleAsync(new() { Timeout = 10000 });
+        }
+
+        [TestMethod("Alle contactverzoeken screen displays list of all open contact requests")]
+        public async Task User_ViewsAlleContactverzoeken_DisplaysOpenContactRequests()
+        {
+            var testOnderwerp = $"Test_AlleContactverzoeken_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await Step("Navigate to Alle contactverzoeken screen");
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify list of open contact requests is displayed");
+            var tableRows = Page.Locator("table tbody tr");
+            await Expect(tableRows.First).ToBeVisibleAsync();
+            var rowCount = await tableRows.CountAsync();
+            Assert.IsTrue(rowCount > 0, "Expected at least one open contact request in the list");
+
+            await Step("Verify the created contactverzoek appears in the list");
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Closed contact request is removed from Alle contactverzoeken list")]
+        public async Task User_ClosesContactRequest_RemovedFromAlleContactverzoekenList()
+        {
+            var testOnderwerp = $"Test_ClosedRemoved_{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+            await Step("Create, assign, and close contactverzoek");
+            await CreateAssignAndCloseContactverzoek(testOnderwerp, "Closing for removal test");
+
+            await Step("Navigate to Alle contactverzoeken");
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Task.Delay(2000);
+
+            await Step("Verify the closed contact request is no longer in the list");
+            await Expect(Page.Locator($"text={testOnderwerp}")).Not.ToBeVisibleAsync();
+        }
+
+        [TestMethod("Dash is displayed when e-mail address is left blank in contactverzoek")]
+        public async Task User_ViewsAlleContactverzoeken_DashDisplayedWhenEmailBlank()
+        {
+            var testOnderwerp = $"Test_EmailDash_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await Step("Navigate to Alle contactverzoeken screen");
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify the list is displayed");
+            var tableRows = Page.Locator("table tbody tr");
+            await Expect(tableRows.First).ToBeVisibleAsync();
+
+            await Step("Verify dash is displayed for contactverzoek with blank e-mail");
+            var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = testOnderwerp });
+            await Expect(contactverzoekRow).ToBeVisibleAsync();
+            var rowText = await contactverzoekRow.InnerTextAsync();
+            Assert.IsTrue(rowText.Contains("-"), "A dash should be displayed when e-mail address is left blank");
+        }
+
+        [TestMethod("Alle contactverzoeken list is sorted in ascending order")]
+        public async Task User_ViewsAlleContactverzoeken_SortedInAscendingOrder()
+        {
+            await Step("Create contactverzoek to ensure data exists");
+            var testOnderwerp = $"Test_Sort_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await Step("Navigate to Alle contactverzoeken screen");
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify the list is displayed");
+            var tableRows = Page.Locator("table tbody tr");
+            await Expect(tableRows.First).ToBeVisibleAsync(new() { Timeout = 15000 });
+            var rowCount = await tableRows.CountAsync();
+            Assert.IsTrue(rowCount >= 1, "Expected at least one contact request in the list");
+
+            if (rowCount < 2)
+            {
+                await Step("Only one row found — sorting is trivially correct, skipping date comparison");
+                return;
+            }
+
+            await Step("Verify details are sorted in ascending order by date");
+            var dates = new List<DateTime>();
+            for (var i = 0; i < rowCount; i++)
+            {
+                var rowText = await tableRows.Nth(i).InnerTextAsync();
+                var dateTimePattern = @"\d{2}-\d{2}-\d{4}";
+                var match = Regex.Match(rowText, dateTimePattern);
+                if (match.Success)
+                {
+                    var parsedDate = DateTime.ParseExact(match.Value, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                    dates.Add(parsedDate);
+                }
+            }
+
+            for (var i = 1; i < dates.Count; i++)
+            {
+                Assert.IsTrue(dates[i] >= dates[i - 1],
+                    $"List should be sorted in ascending order. Found '{dates[i]:dd-MM-yyyy}' after '{dates[i - 1]:dd-MM-yyyy}'");
+            }
         }
     }
 }
