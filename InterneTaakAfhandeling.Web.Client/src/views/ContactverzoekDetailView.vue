@@ -3,16 +3,20 @@
     <div>
       <back-link class="back-link" />
     </div>
-    <utrecht-heading :level="1">Contactverzoek {{ cvId }}</utrecht-heading>
-    <utrecht-button-group v-if="taak?.uuid">
-      <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
-    </utrecht-button-group>
+    <template v-if="taak">
+      <utrecht-heading :level="1"
+        >Contactverzoek {{ taak.aanleidinggevendKlantcontact?.nummer }}</utrecht-heading
+      >
+      <utrecht-button-group>
+        <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
+      </utrecht-button-group>
+    </template>
   </div>
 
   <simple-spinner v-if="isLoadingTaak" />
 
-  <utrecht-alert v-else-if="!taak && !isLoadingTaak" type="error">
-    Dit contactverzoek bestaat niet of is niet meer beschikbaar.
+  <utrecht-alert v-else-if="errorMessage" type="error">
+    {{ errorMessage }}
   </utrecht-alert>
 
   <div v-else-if="taak" class="ita-cv-detail-sections">
@@ -53,22 +57,27 @@ import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import BackLink from "@/components/BackLink.vue";
 import { computed, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
 import ContactverzoekLogboek from "@/components/ContactverzoekLogboek.vue";
 
 import type { Internetaken } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
+import { knownErrorMessages } from "@/utils/fetchWrapper";
 import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
 import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
 import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
 import ContactverzoekActies from "@/components/ContactverzoekActies.vue";
 import DetailSection from "@/components/DetailSection.vue";
 
-const first = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
-const route = useRoute();
-const cvId = computed(() => first(route.params.number));
+const props = defineProps<{
+  contactmomentNumber?: string;
+  contactverzoekId?: string;
+}>();
+
+const isContactmomentRoute = computed(() => !!props.contactmomentNumber);
+const routeNummer = computed(() => props.contactmomentNumber ?? props.contactverzoekId ?? "");
 const isLoadingTaak = ref(false);
 const taak = ref<Internetaken | null>(null);
+const errorMessage = ref<string | null>(null);
 
 const handleZaakGekoppeld = () => {
   fetchInternetaken();
@@ -80,10 +89,19 @@ onMounted(async () => {
 
 const fetchInternetaken = async () => {
   isLoadingTaak.value = true;
+  errorMessage.value = null;
   try {
-    taak.value = await internetakenService.getInternetaak(cvId.value);
+    taak.value = isContactmomentRoute.value
+      ? await internetakenService.getByKlantcontactNummer(routeNummer.value)
+      : await internetakenService.getInternetaak(routeNummer.value);
   } catch (err: unknown) {
     console.error("Error loading contactverzoek:", err);
+    if (err instanceof Error && err.message === knownErrorMessages.notFound) {
+      errorMessage.value = "Dit contactverzoek bestaat niet of is niet meer beschikbaar.";
+    } else {
+      errorMessage.value =
+        "Er is iets misgegaan bij het ophalen van dit contactverzoek. Neem contact op met de beheerder als dit probleem zich blijft voordoen.";
+    }
   } finally {
     isLoadingTaak.value = false;
   }

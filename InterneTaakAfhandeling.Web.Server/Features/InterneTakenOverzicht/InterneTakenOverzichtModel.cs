@@ -40,4 +40,6 @@ public class InterneTaakOverzichtItem
 
     public string? AfdelingNaam { get; set; }
     public string? BehandelaarNaam { get; set; }
+
+    public string? ContactmomentNummer { get; set; }
 }

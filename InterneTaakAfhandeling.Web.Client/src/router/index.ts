@@ -61,9 +61,20 @@ const router = createRouter({
       }
     },
     {
-      path: "/contactverzoek/:number",
+      path: "/contactmoment/:contactmomentNumber",
+      name: "contactmomentDetail",
+      component: ContactverzoekDetailView,
+      props: true,
+      meta: {
+        title: "Contactverzoek",
+        requiresITAAccess: true
+      }
+    },
+    {
+      path: "/contactverzoek/:contactverzoekId",
       name: "contactverzoekDetail",
       component: ContactverzoekDetailView,
+      props: true,
       meta: {
         title: "Contactverzoek",
         requiresITAAccess: true

@@ -100,6 +100,11 @@ public class InternetakenNotifier : IInternetakenProcessor
         {
             _logger.LogInformation("Processing internetaken: {Number}", internetaak.Nummer);
 
+            if (internetaak.AanleidinggevendKlantcontact?.Uuid != null)
+            {
+                internetaak.AanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+            }
+
             var actors = await GetActorsAsync(internetaak);
             var actorEmailsResult = await _emailInputService.ResolveActorsEmailAsync(actors);
             var actorEmails = actorEmailsResult.FoundEmails;
@@ -111,9 +116,16 @@ public class InternetakenNotifier : IInternetakenProcessor
 
             if (actorEmails.Count > 0)
             {
+                var contactmomentNummer = internetaak.AanleidinggevendKlantcontact?.Nummer;
+                if (string.IsNullOrEmpty(contactmomentNummer))
+                {
+                    _logger.LogWarning("AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {Number}", internetaak.Nummer);
+                    return new ProcessingResult(false, Guid.Parse(internetaak.Uuid), internetaak.ToegewezenOp ?? DateTimeOffset.MinValue, "AanleidinggevendKlantcontact.Nummer ontbreekt");
+                }
+
                 var emailContent = _emailContentService.BuildInternetakenEmailContent(internetaak, _itaBaseUrl);
 
-                await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {internetaak.Nummer}", emailContent)));
+                await Task.WhenAll(actorEmails.Select(email => _emailService.SendEmailAsync(email, $"Nieuw contactverzoek - {contactmomentNummer}", emailContent)));
 
                 _logger.LogInformation("Successfully processed internetaken: {Number}", internetaak.Nummer);
             }
