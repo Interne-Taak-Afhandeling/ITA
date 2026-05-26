@@ -9,11 +9,11 @@
       >
       <utrecht-button-group>
         <assign-contactverzoek-to-me
-        :id="taak.uuid"
-        :user-email="userEmail"
-        :actoren="taak.toegewezenAanActoren ?? []"
-        @assignmentSuccess="fetchInternetaken"
-      />
+          :id="taak.uuid"
+          :user-email="userEmail"
+          :actoren="taak.toegewezenAanActoren ?? []"
+          @assignmentSuccess="fetchInternetaken"
+        />
       </utrecht-button-group>
     </template>
   </div>

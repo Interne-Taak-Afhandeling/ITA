@@ -30,7 +30,7 @@ const props = withDefaults(
     userEmail: string;
     actoren: Actor[];
   }>(),
-  { actoren: () => [] },
+  { actoren: () => [] }
 );
 
 const emit = defineEmits(["assignmentSuccess"]);
@@ -41,8 +41,8 @@ const isAlreadyAssigned = computed(() =>
       actor.soortActor === "medewerker" &&
       actor.actoridentificator?.codeObjecttype === "mdw" &&
       actor.actoridentificator?.codeSoortObjectId === "email" &&
-      actor.actoridentificator?.objectId?.toLowerCase() === props.userEmail.toLowerCase(),
-  ),
+      actor.actoridentificator?.objectId?.toLowerCase() === props.userEmail.toLowerCase()
+  )
 );
 
 const toewijzenAlertRef = ref<{ dialogRef?: HTMLDialogElement }>();
