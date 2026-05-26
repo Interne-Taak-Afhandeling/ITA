@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -51,7 +52,21 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
         [HttpGet("by-klantcontact/{nummer}")]
         public async Task<IActionResult> GetByKlantcontactNummer([FromRoute] string nummer)
         {
-            var internetaak = await _internetakenService.GetByKlantcontactNummer(nummer);
+            Internetaak? internetaak;
+
+            try
+            {
+                internetaak = await _internetakenService.GetByKlantcontactNummer(nummer);
+            }
+            catch (ConflictException ex)
+            {
+                return Conflict(new ProblemDetails
+                {
+                    Title = "Meerdere interne taken gevonden. Dit is een foutsituatie.",
+                    Detail = ex.Message,
+                    Status = StatusCodes.Status409Conflict
+                });
+            }
 
             if (internetaak == null)
             {

@@ -1,6 +1,8 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
+using Microsoft.Extensions.Logging;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 {
@@ -9,11 +11,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
         Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters);
         Task<Internetaak?> GetByKlantcontactNummer(string klantcontactNummer);
     }
-    public class InternetaakDetailsService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient, IContactmomentenService contactmomentenService) : IInternetaakService
+    public class InternetaakDetailsService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient, IContactmomentenService contactmomentenService, ILogger<InternetaakDetailsService> logger) : IInternetaakService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
         private readonly IContactmomentenService _contactmomentenService = contactmomentenService;
+        private readonly ILogger<InternetaakDetailsService> _logger = logger;
 
         public async Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters)
         {
@@ -46,9 +49,20 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 
             var internetaken = await _openKlantApiClient.QueryInterneTakenAsync(query);
 
-            if (internetaken == null || internetaken.Count != 1)
+            if (internetaken == null || internetaken.Count == 0)
             {
                 return null;
+            }
+
+            if (internetaken.Count == 1)
+            {
+                _logger.LogWarning(
+                    "Meerdere interne taken ({Count}) gevonden voor klantcontact nummer {KlantcontactNummer}. Kan niet bepalen welke de juiste is.",
+                    internetaken.Count,
+                    klantcontactNummer);
+
+                throw new ConflictException(
+                    $"Meerdere interne taken gevonden voor klantcontact met nummer: {klantcontactNummer}. Kan niet bepalen welke de juiste is.");
             }
 
             var interntaak = internetaken.Single();
