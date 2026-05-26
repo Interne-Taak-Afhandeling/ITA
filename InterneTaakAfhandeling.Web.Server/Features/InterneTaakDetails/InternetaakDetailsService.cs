@@ -54,12 +54,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 return null;
             }
 
-            if (internetaken.Count == 1)
+            if (internetaken.Count > 1)
             {
+                var uuids = internetaken.Select(t => t.Uuid).ToList();
+
                 _logger.LogWarning(
-                    "Meerdere interne taken ({Count}) gevonden voor klantcontact nummer {KlantcontactNummer}. Kan niet bepalen welke de juiste is.",
+                    "Meerdere interne taken ({Count}) gevonden voor klantcontact nummer. Kan niet bepalen welke de juiste is. Interne taak UUID's: {Uuids}",
                     internetaken.Count,
-                    klantcontactNummer);
+                    uuids);
 
                 throw new ConflictException(
                     $"Meerdere interne taken gevonden voor klantcontact met nummer: {klantcontactNummer}. Kan niet bepalen welke de juiste is.");
