@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import { toast } from "@/components/toast/toast";
-import { ref, computed, defineEmits } from "vue";
+import { ref, computed } from "vue";
 import { userService } from "@/services/userService";
 import type { Actor } from "@/types/internetaken";
 const props = withDefaults(
@@ -32,6 +32,7 @@ const props = withDefaults(
   }>(),
   { actoren: () => [] },
 );
+
 const emit = defineEmits(["assignmentSuccess"]);
 
 const isAlreadyAssigned = computed(() =>

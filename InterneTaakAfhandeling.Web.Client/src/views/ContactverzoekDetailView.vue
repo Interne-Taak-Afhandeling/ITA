@@ -79,11 +79,15 @@ const props = defineProps<{
   contactverzoekId?: string;
 }>();
 
+const authStore = useAuthStore();
+
+const taak = ref<Internetaken | null>(null);
+const isLoadingTaak = ref(false);
+const errorMessage = ref<string | null>(null);
+
 const isContactmomentRoute = computed(() => !!props.contactmomentNumber);
 const routeNummer = computed(() => props.contactmomentNumber ?? props.contactverzoekId ?? "");
-const isLoadingTaak = ref(false);
-const taak = ref<Internetaken | null>(null);
-const errorMessage = ref<string | null>(null);
+const userEmail = computed(() => authStore.user?.email ?? "");
 
 const handleZaakGekoppeld = () => {
   fetchInternetaken();
