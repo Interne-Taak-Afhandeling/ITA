@@ -7,7 +7,7 @@ public class InternetaakGuardService(
     IOpenKlantApiClient openKlantApiClient,
     ILogger<InternetaakGuardService> logger) : IInternetaakGuardService
 {
-    public async Task<ObjectResult?> EnsureNotVerwerktAsync(Guid internetaakId)
+    public async Task<ObjectResult?> EnsureNotVerwerktAsync(Guid internetaakId, string actionType)
     {
         var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
 
@@ -17,7 +17,8 @@ public class InternetaakGuardService(
         }
 
         logger.LogWarning(
-            "Mutation blocked: interne taak {InternetaakId} has status 'verwerkt'",
+            "Mutation blocked: action {ActionType} on interne taak {InternetaakId} has status 'verwerkt'",
+            actionType,
             internetaakId);
 
         var problemDetails = new ProblemDetails

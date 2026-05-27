@@ -26,7 +26,7 @@ public class ForwardContactRequestController(
     public async Task<IActionResult> ForwardContactRequestAsync([FromRoute] Guid id,
         [FromBody] ForwardContactRequestModel request)
     {
-        var blocked = await internetaakGuardService.EnsureNotVerwerktAsync(id);
+        var blocked = await internetaakGuardService.EnsureNotVerwerktAsync(id, "forward");
         if (blocked != null) return blocked;
 
         var response = await forwardContactRequestService.ForwardAsync(id, request);

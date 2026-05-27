@@ -30,7 +30,7 @@ public class AddNotitieToInternetaakController(
     [HttpPost("{internetaakId}/notitie")]
     public async Task<IActionResult> AddNote([FromRoute] Guid internetaakId, [FromBody] AddNotitieRequest request)
     {
-        var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakId);
+        var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakId, "notitie");
         if (blocked != null) return blocked;
 
         var notitieAction = KnownContactAction.Note(request.Notitie, _user);

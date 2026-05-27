@@ -60,7 +60,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                     Status = StatusCodes.Status400BadRequest
                 });
 
-            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakGuid);
+            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakGuid, "koppel-zaak");
             if (blocked != null) return blocked;
 
             if (string.IsNullOrWhiteSpace(request.ZaakIdentificatie))
