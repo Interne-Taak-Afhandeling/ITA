@@ -1,6 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
+using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,24 +20,32 @@ public class CreateKlantContactController : Controller
     private readonly ITAUser _user;
 
 
+    private readonly IInternetaakGuardService _internetaakGuardService;
+
     public CreateKlantContactController(
         ITAUser user,
         ICreateKlantContactService createKlantContactService,
         ILogger<CreateKlantContactController> logger,
-        ILogboekService logboekService)
+        ILogboekService logboekService,
+        IInternetaakGuardService internetaakGuardService)
     {
         _user = user ?? throw new ArgumentNullException(nameof(user));
         _createKlantContactService = createKlantContactService ??
                                      throw new ArgumentNullException(nameof(createKlantContactService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
+        _internetaakGuardService = internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
     }
 
     [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [HttpPost("add-klantcontact")] //todo refactor, route should be api/klantcontacten/[klantcontactUuid]/klantcontacten
     public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequestModel request)
     {
+        var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(request.InterneTaakId, "add-klantcontact");
+        if (blocked != null) return blocked;
+
         try
         {
             _logger.LogInformation(
