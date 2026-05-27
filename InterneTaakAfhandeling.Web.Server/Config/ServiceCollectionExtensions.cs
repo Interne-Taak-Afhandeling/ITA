@@ -12,6 +12,7 @@ using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Services;
+using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,6 +59,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IAssignInternetaakToMeService, AssignInternetaakToMeService>();
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<ILogboekService, LogboekService>();
+            services.AddScoped<IInternetaakGuardService, InternetaakGuardService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
             services.AddSmtpClients(configuration);
             

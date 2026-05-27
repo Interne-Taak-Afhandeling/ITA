@@ -3,6 +3,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Exceptions;
+using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ public class CloseInterneTaakWithKlantContactController(
     ICreateKlantContactService createKlantContactService,
     ILogger<CloseInterneTaakWithKlantContactController> logger,
     IOpenKlantApiClient openKlantApiClient,
+    IInternetaakGuardService internetaakGuardService,
     ILogboekService logboekService) : Controller
 {
     private readonly ICreateKlantContactService _createKlantContactService =
@@ -34,13 +36,20 @@ public class CloseInterneTaakWithKlantContactController(
     private readonly IOpenKlantApiClient openKlantApiClient =
         openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
 
+    private readonly IInternetaakGuardService _internetaakGuardService =
+        internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
+
     [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [HttpPost("close-with-klantcontact")] //todo: refactor to "HttpPost("[internetaakUuid]/close-with-klantcontact)" and consider making it a PUT
     public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] RequestModel request)
     {
         try
         {
+            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(request.InterneTaakId, "close-with-klantcontact");
+            if (blocked != null) return blocked;
+
             _logger.LogInformation(
                 "Closing Interne taak and creating related klantcontact with aanleidinggevendKlantcontact UUID: {AanleidinggevendKlantcontactUuid}",
                 request.AanleidinggevendKlantcontactUuid);
