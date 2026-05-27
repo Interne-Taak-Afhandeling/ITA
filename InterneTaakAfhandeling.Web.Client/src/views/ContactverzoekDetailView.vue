@@ -49,7 +49,7 @@
     <detail-section title="Acties">
       <contactverzoek-acties v-if="!isAfgehandeld" :taak="taak" @success="fetchInternetaken" />
 
-      <utrecht-paragraph v-else class="same-margin-as-datalist" role="alert">
+      <utrecht-paragraph v-else class="same-margin-as-datalist">
         Dit contactverzoek is afgehandeld en kan niet meer worden gewijzigd.
       </utrecht-paragraph>
     </detail-section>
