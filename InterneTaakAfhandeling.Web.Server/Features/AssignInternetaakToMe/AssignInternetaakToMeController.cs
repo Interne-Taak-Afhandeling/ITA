@@ -28,11 +28,11 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         [HttpPost("{internetaakId}/aan-mij-toewijzen")]
         public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetaakId)
         {
-            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakId, "aan-mij-toewijzen");
-            if (blocked != null) return blocked;
-
             try
             {
+                var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakId, "aan-mij-toewijzen");
+                if (blocked != null) return blocked;
+
                 var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetaakId, user);
 
                 var assignedAction = KnownContactAction.AssignedToSelf(currentUserActor.Uuid, _user);
