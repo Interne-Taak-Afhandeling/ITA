@@ -536,6 +536,57 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = "ZAAK-2023-005" })).Not.ToBeVisibleAsync();
         }
 
+        [TestMethod("Scenario 1: Knop verborgen bij individuele toewijzing — button hidden when current user is individually assigned")]
+        public async Task ToewijzenKnop_IsHidden_WhenCurrentUserIndividuallyAssigned()
+        {
+            var testOnderwerp = "Test_ToewijzenKnop_Verborgen_IndividueleToewijzing";
+            var uuid = await TestDataHelper.CreateContactverzoekWithCurrentUserAssigned(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Verify 'Toewijzen aan mezelf' button is NOT visible");
+            await Expect(Page.GetToewijzenAanMezelfButton()).Not.ToBeVisibleAsync();
+        }
+
+        [TestMethod("Scenario 2: Knop zichtbaar zonder individuele toewijzing — button visible when current user is not individually assigned")]
+        public async Task ToewijzenKnop_IsVisible_WhenCurrentUserNotIndividuallyAssigned()
+        {
+            var testOnderwerp = "Test_ToewijzenKnop_Zichtbaar_GeenIndividueleToewijzing";
+            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Verify 'Toewijzen aan mezelf' button is visible");
+            await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Scenario 3: Teamtoewijzing telt niet als individuele toewijzing — button visible when user is only team-assigned")]
+        public async Task ToewijzenKnop_IsVisible_WhenCurrentUserOnlyTeamAssigned()
+        {
+            var testOnderwerp = "Test_ToewijzenKnop_Zichtbaar_AlleenTeamToewijzing";
+            var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentOnly(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Verify 'Toewijzen aan mezelf' button is visible (team assignment does not count as individual)");
+            await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Scenario 4: Geen toewijzingen — button visible when contact request has no assignments")]
+        public async Task ToewijzenKnop_IsVisible_WhenNoAssignmentsExist()
+        {
+            var testOnderwerp = "Test_ToewijzenKnop_Zichtbaar_GeenToewijzingen";
+            var uuid = await TestDataHelper.CreateContactverzoekWithNoAssignments(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Verify 'Toewijzen aan mezelf' button is visible");
+            await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
+        }
+
         [TestMethod("Assigning a Contactverzoek to yourself")]
         public async Task Assigning_Contactverzoek_To_Yourself()
         {

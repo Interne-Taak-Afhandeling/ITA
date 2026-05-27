@@ -163,6 +163,75 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return contactmoment.Uuid;
         }
 
+        public async Task<Guid> CreateContactverzoekWithCurrentUserAssigned(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await GetOrCreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+
+            await CreateInternetaakIfNotExists(
+                TestDataConstants.ContactverzoekNummers.WithCurrentUserAssigned,
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(submitterActor.Uuid),
+                    Guid.Parse(afdelingActor.Uuid)
+                },
+                isExplicitNummer: true);
+
+            return contactmoment.Uuid;
+        }
+
+        public async Task<Guid> CreateContactverzoekWithTeamAssignmentOnly(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await GetOrCreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+
+            await CreateInternetaakIfNotExists(
+                TestDataConstants.ContactverzoekNummers.WithTeamAssignmentOnly,
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(afdelingActor.Uuid) },
+                isExplicitNummer: true);
+
+            return contactmoment.Uuid;
+        }
+
+        public async Task<Guid> CreateContactverzoekWithNoAssignments(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await GetOrCreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            await CreateInternetaakIfNotExists(
+                TestDataConstants.ContactverzoekNummers.WithNoAssignments,
+                contactmoment.Uuid,
+                new List<Guid>(),
+                isExplicitNummer: true);
+
+            return contactmoment.Uuid;
+        }
+
+
         public async Task<string?> GetZaakIdentificatieFromContactverzoek(Guid klantcontactUuid)
         {
             try

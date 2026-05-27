@@ -8,7 +8,12 @@
         >Contactverzoek {{ taak.aanleidinggevendKlantcontact?.nummer }}</utrecht-heading
       >
       <utrecht-button-group>
-        <assign-contactverzoek-to-me :id="taak.uuid" @assignmentSuccess="fetchInternetaken" />
+        <assign-contactverzoek-to-me
+          :id="taak.uuid"
+          :user-email="userEmail"
+          :actoren="taak.toegewezenAanActoren ?? []"
+          @assignmentSuccess="fetchInternetaken"
+        />
       </utrecht-button-group>
     </template>
   </div>
@@ -67,17 +72,22 @@ import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
 import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
 import ContactverzoekActies from "@/components/ContactverzoekActies.vue";
 import DetailSection from "@/components/DetailSection.vue";
+import { useAuthStore } from "@/stores/auth";
 
 const props = defineProps<{
   contactmomentNumber?: string;
   contactverzoekId?: string;
 }>();
 
+const authStore = useAuthStore();
+
+const taak = ref<Internetaken | null>(null);
+const isLoadingTaak = ref(false);
+const errorMessage = ref<string | null>(null);
+
 const isContactmomentRoute = computed(() => !!props.contactmomentNumber);
 const routeNummer = computed(() => props.contactmomentNumber ?? props.contactverzoekId ?? "");
-const isLoadingTaak = ref(false);
-const taak = ref<Internetaken | null>(null);
-const errorMessage = ref<string | null>(null);
+const userEmail = computed(() => authStore.user?.email ?? "");
 
 const handleZaakGekoppeld = () => {
   fetchInternetaken();
