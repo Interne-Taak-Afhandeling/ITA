@@ -6,6 +6,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,12 +24,14 @@ public class KoppelZaakAanKlantcontactController : Controller
     private readonly IOpenKlantApiClient _openKlantApiClient;
     private readonly IZakenApiClient _zakenApiClient;
     private readonly ITAUser _user;
+    private readonly IInternetaakGuardService _internetaakGuardService;
 
     public KoppelZaakAanKlantcontactController(
         IZakenApiClient zakenApiClient,
         IOpenKlantApiClient openKlantApiClient,
         ILogger<KoppelZaakAanKlantcontactController> logger,
         ILogboekService logboekService,
+        IInternetaakGuardService internetaakGuardService,
         ITAUser user
         )
     {
@@ -36,6 +39,7 @@ public class KoppelZaakAanKlantcontactController : Controller
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
+        _internetaakGuardService = internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
         _user = user;
     }
 
@@ -48,6 +52,17 @@ public class KoppelZaakAanKlantcontactController : Controller
     {
         try
         {
+            if (!Guid.TryParse(request.InternetaakId, out var internetaakGuid))
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Ongeldige aanvraag",
+                    Detail = "InternetaakId is geen geldig UUID",
+                    Status = StatusCodes.Status400BadRequest
+                });
+
+            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakGuid);
+            if (blocked != null) return blocked;
+
             if (string.IsNullOrWhiteSpace(request.ZaakIdentificatie))
                 return BadRequest(new ProblemDetails
                 {

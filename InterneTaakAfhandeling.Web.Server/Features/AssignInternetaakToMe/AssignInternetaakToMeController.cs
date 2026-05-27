@@ -1,5 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,16 +15,22 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         IAssignInternetaakToMeService AssignInternetakenService,
         ITAUser user,
         ILogboekService logboekService,
+        IInternetaakGuardService internetaakGuardService,
         ILogger<AssignInternetaakToMeController> logger) : Controller
     {
         private readonly IAssignInternetaakToMeService _AssignInternetakenService = AssignInternetakenService;
         private readonly ITAUser _user = user;
         private readonly ILogboekService _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
+        private readonly IInternetaakGuardService _internetaakGuardService = internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
         private readonly ILogger<AssignInternetaakToMeController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpPost("{internetaakId}/aan-mij-toewijzen")]
         public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetaakId)
         {
+            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakId);
+            if (blocked != null) return blocked;
+
             try
             {
                 var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetaakId, user);
@@ -44,6 +51,3 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         }
     }
 }
-
-
-
