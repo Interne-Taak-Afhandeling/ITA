@@ -21,7 +21,7 @@
         Gekoppelde zaak
 
         <koppel-zaak-modal
-          v-if="taak?.aanleidinggevendKlantcontact?.uuid"
+          v-if="taak?.aanleidinggevendKlantcontact?.uuid && !isAfgehandeld"
           :aanleidinggevendKlantcontactUuid="taak.aanleidinggevendKlantcontact.uuid"
           :zaakIdentificatie="taak?.zaak?.identificatie"
           :internetaak-id="taak.uuid"
@@ -50,7 +50,7 @@ import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 import type { Internetaken, Zaak } from "@/types/internetaken";
 import KoppelZaakModal from "@/components/KoppelZaakModal.vue";
 
-defineProps<{ taak: Internetaken; zaak: Zaak | undefined }>();
+defineProps<{ taak: Internetaken; zaak: Zaak | undefined; isAfgehandeld?: boolean }>();
 
 const labelId = useId();
 </script>

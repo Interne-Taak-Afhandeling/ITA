@@ -7,7 +7,7 @@
       <utrecht-heading :level="1"
         >Contactverzoek {{ taak.aanleidinggevendKlantcontact?.nummer }}</utrecht-heading
       >
-      <utrecht-button-group>
+      <utrecht-button-group v-if="!isAfgehandeld">
         <assign-contactverzoek-to-me
           :id="taak.uuid"
           :user-email="userEmail"
@@ -29,6 +29,7 @@
       <contactverzoek-details
         :taak="taak"
         :zaak="taak.zaak"
+        :is-afgehandeld="isAfgehandeld"
         @zaak-gekoppeld="handleZaakGekoppeld"
       />
     </detail-section>
@@ -46,7 +47,11 @@
     </detail-section>
 
     <detail-section title="Acties">
-      <contactverzoek-acties :taak="taak" @success="fetchInternetaken" />
+      <contactverzoek-acties v-if="!isAfgehandeld" :taak="taak" @success="fetchInternetaken" />
+
+      <utrecht-paragraph v-else class="same-margin-as-datalist" role="alert">
+        Dit contactverzoek is afgehandeld en kan niet meer worden gewijzigd.
+      </utrecht-paragraph>
     </detail-section>
 
     <detail-section title="Logboek contactverzoek" class="ita-detail-section--compact">
@@ -88,6 +93,7 @@ const errorMessage = ref<string | null>(null);
 const isContactmomentRoute = computed(() => !!props.contactmomentNumber);
 const routeNummer = computed(() => props.contactmomentNumber ?? props.contactverzoekId ?? "");
 const userEmail = computed(() => authStore.user?.email ?? "");
+const isAfgehandeld = computed(() => taak.value?.status === "verwerkt");
 
 const handleZaakGekoppeld = () => {
   fetchInternetaken();
