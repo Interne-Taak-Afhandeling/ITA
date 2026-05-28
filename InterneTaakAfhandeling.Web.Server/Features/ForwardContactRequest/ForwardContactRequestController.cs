@@ -14,7 +14,8 @@ public class ForwardContactRequestController(
     IForwardContactRequestService forwardContactRequestService,
     ILogboekService logboekService,
     IInternetaakGuardService internetaakGuardService,
-    ITAUser user) : Controller
+    ITAUser user,
+    ILogger<ForwardContactRequestController> logger) : Controller
 {
     private readonly ITAUser _user = user ?? throw new ArgumentNullException(nameof(user));
 
@@ -26,12 +27,20 @@ public class ForwardContactRequestController(
     public async Task<IActionResult> ForwardContactRequestAsync([FromRoute] Guid id,
         [FromBody] ForwardContactRequestModel request)
     {
-        var blocked = await internetaakGuardService.EnsureNotVerwerktAsync(id, "forward");
-        if (blocked != null) return blocked;
+        try
+        {
+            var blocked = await internetaakGuardService.EnsureNotVerwerktAsync(id, "forward");
+            if (blocked != null) return blocked;
 
-        var response = await forwardContactRequestService.ForwardAsync(id, request);
-        await logboekService.LogContactRequestAction(KnownContactAction.ForwardKlantContact(request, _user), id);
+            var response = await forwardContactRequestService.ForwardAsync(id, request);
+            await logboekService.LogContactRequestAction(KnownContactAction.ForwardKlantContact(request, _user), id);
 
-        return Ok(response);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error forwarding internetaak {InternetaakId}", id);
+            throw;
+        }
     }
 }

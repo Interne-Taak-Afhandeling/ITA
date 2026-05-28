@@ -13,7 +13,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AddNotitieToInternetaak;
 public class AddNotitieToInternetaakController(
     ITAUser user,
     ILogboekService logboekService,
-    IInternetaakGuardService internetaakGuardService) : Controller
+    IInternetaakGuardService internetaakGuardService,
+    ILogger<AddNotitieToInternetaakController> logger) : Controller
 {
     private readonly ILogboekService _logboekService =
         logboekService ?? throw new ArgumentNullException(nameof(logboekService));
@@ -23,6 +24,9 @@ public class AddNotitieToInternetaakController(
     private readonly IInternetaakGuardService _internetaakGuardService =
         internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
 
+    private readonly ILogger<AddNotitieToInternetaakController> _logger =
+        logger ?? throw new ArgumentNullException(nameof(logger));
+
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -30,13 +34,21 @@ public class AddNotitieToInternetaakController(
     [HttpPost("{internetaakId}/notitie")]
     public async Task<IActionResult> AddNote([FromRoute] Guid internetaakId, [FromBody] AddNotitieRequest request)
     {
-        var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakId, "notitie");
-        if (blocked != null) return blocked;
+        try
+        {
+            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakId, "notitie");
+            if (blocked != null) return blocked;
 
-        var notitieAction = KnownContactAction.Note(request.Notitie, _user);
-        await _logboekService.LogContactRequestAction(notitieAction, internetaakId);
+            var notitieAction = KnownContactAction.Note(request.Notitie, _user);
+            await _logboekService.LogContactRequestAction(notitieAction, internetaakId);
 
-        return Ok(new { Message = "Notitie succesvol toegevoegd" });
+            return Ok(new { Message = "Notitie succesvol toegevoegd" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding notitie to internetaak {InternetaakId}", internetaakId);
+            throw;
+        }
     }
 }
 
