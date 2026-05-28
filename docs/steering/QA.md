@@ -37,9 +37,62 @@ No coverage thresholds are enforced — only E2E tests exist and no coverage too
 - **Mock boundary:** No mocks — all tests hit real external APIs. Keep it this way.
 - **Database:** Not applicable — ITA uses external APIs as source of truth
 
+## Feature Verification Workflow (Two-Phase)
+
+Features are verified in two phases because E2E tests require a deployed environment that is only available after merging to main.
+
+### Phase 1: Implementation Verification (feature branch, pre-merge)
+
+Triggered by: `wtf.verify-task` at feature level.
+
+Verify that the implementation code matches all Gherkin scenarios and edge cases through **code inspection** — without running E2E tests. This phase gates the feature PR merge to main.
+
+**What is verified:**
+- Each Gherkin scenario's logic is correctly implemented (code walkthrough)
+- Edge cases from the Feature are handled
+- Linting, formatting, and type-checks pass
+- No regressions in existing behavior
+
+**Verdict:** ✅ Implementation Verified / ❌ Needs fixes
+
+**On completion:**
+- Implementation tasks receive the `verified` label
+- Feature PR is approved and merged to main
+- The verify skill offers to create the **E2E Test Task** (see below)
+
+### Phase 2: E2E Verification (post-deploy to test environment)
+
+Triggered by: picking up the E2E Test Task after the feature is deployed to `ita.test.icatt.nl`.
+
+**E2E Test Task:**
+- Created as a sub-issue of the Feature at the end of Phase 1
+- References all Gherkin scenarios from implementation tasks (by issue number, not copied) and edge cases from the Feature
+- Scope: write Playwright E2E tests, run against test env, report pass/fail
+- Label: `e2e-test`
+- Depends on: all implementation tasks `verified` + merged + deployed
+
+**What is verified:**
+- All Gherkin scenarios pass as automated Playwright tests
+- Edge cases pass as automated tests
+- No flaky tests introduced
+
+**Verdict:** ✅ E2E Passed / ❌ Regression found (file bugs)
+
+**On completion:**
+- E2E test task receives the `verified` label
+- Feature is considered fully done
+
+### Feature Completion
+
+A Feature is only considered **fully complete** when both phases are done:
+1. ✅ Phase 1 — implementation verified and merged to main
+2. ✅ Phase 2 — E2E tests written, passing, and committed
+
+---
+
 ## Gherkin → Test Mapping
 
-Every Gherkin scenario from a Task issue must map to at least one Playwright E2E test. E2E tests are written and verified at **feature level** — after all task PRs are merged to the feature branch — so the complete vertical slice can be tested as an integrated whole.
+Every Gherkin scenario from a Task issue must map to at least one Playwright E2E test. E2E tests are written as part of the **Phase 2 E2E Test Task** — after the feature is deployed to the test environment.
 
 - Each Gherkin scenario maps to at least one `[TestMethod]` in the corresponding `{Feature}Scenarios.cs`
 - Test method descriptions must reference the scenario name so failures are traceable
@@ -48,25 +101,35 @@ Every Gherkin scenario from a Task issue must map to at least one Playwright E2E
 - Then steps → assertion (`Expect(...).ToBeVisibleAsync()`, `Expect(...).Not.ToBeVisibleAsync()`)
 - Scenarios describe observable behavior, not implementation details
 - **Role-based scenarios** require separate test methods: one logged in with the role, one without
-- Tests may be committed as part of a task PR or added to the feature branch after all tasks land — as long as full coverage exists before the feature PR merges to main
+- E2E tests are committed in a separate PR (the E2E test task PR) so CI can run them against the deployed environment
 
 ## Definition of Done
 
 ### Task-level DoD (task PR → feature branch)
 
-Tasks are reviewed and merged into the feature branch. Testing happens at feature level.
+Tasks are reviewed and merged into the feature branch. E2E testing happens at feature level in Phase 2.
 
 - [ ] Linting passes (`npm run lint:ci`)
 - [ ] Formatting passes (`npm run format:ci`)
 - [ ] PR approved by at least one reviewer
 - [ ] No unrelated changes or scope creep
 
-### Feature-level DoD (feature PR → main)
+### Feature-level DoD — Phase 1 (feature PR → main)
 
-After all tasks are merged to the feature branch, the complete vertical slice is verified.
+After all tasks are merged to the feature branch, the implementation is verified via code inspection.
+
+- [ ] All Gherkin scenarios are correctly implemented (code inspection)
+- [ ] Edge cases from the Feature are handled in code
+- [ ] Linting and formatting pass
+- [ ] PR approved by at least one reviewer
+- [ ] E2E Test Task created for Phase 2
+
+### Feature-level DoD — Phase 2 (E2E test PR → main)
+
+After the feature is deployed to the test environment, E2E tests are written and executed.
 
 - [ ] All Gherkin scenarios from the Feature's tasks are covered by automated E2E tests
-- [ ] E2E tests pass against the feature branch deployment
+- [ ] E2E tests pass against the test environment
 - [ ] No new flaky tests introduced
 - [ ] Regression test added for any bug fix
 - [ ] Edge cases listed in the Feature are covered by E2E tests
