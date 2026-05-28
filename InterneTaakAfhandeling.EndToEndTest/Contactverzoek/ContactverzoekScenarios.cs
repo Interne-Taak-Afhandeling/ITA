@@ -568,7 +568,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentOnly(testOnderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentOnly);
 
             await Step("Verify 'Toewijzen aan mezelf' button is visible (team assignment does not count as individual)");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
@@ -581,7 +581,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var uuid = await TestDataHelper.CreateContactverzoekWithNoAssignments(testOnderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithNoAssignments);
 
             await Step("Verify 'Toewijzen aan mezelf' button is visible");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
