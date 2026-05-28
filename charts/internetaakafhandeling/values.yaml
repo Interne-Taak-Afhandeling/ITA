@@ -91,6 +91,12 @@ groep:
   # -- De versie van het groep objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
   typeVersion: 1
 
+medewerker:
+  # -- De url van het medewerker objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie
+  type: ""
+  # -- De versie van het medewerker objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
+  typeVersion: 1
+
 smtp:
   host: ""
   port: "25"

@@ -56,3 +56,6 @@ data:
 
   GroepOptions__Type: {{ .Values.groep.type | quote }}
   GroepOptions__TypeVersion: {{ .Values.groep.typeVersion | toString | quote }}
+
+  MedewerkerOptions__Type: {{ .Values.medewerker.type | quote }}
+  MedewerkerOptions__TypeVersion: {{ .Values.medewerker.typeVersion | toString | quote }}

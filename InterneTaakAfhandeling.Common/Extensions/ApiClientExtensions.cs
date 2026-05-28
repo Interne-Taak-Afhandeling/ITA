@@ -65,6 +65,11 @@ namespace InterneTaakAfhandeling.Common.Extensions
              .ValidateDataAnnotations()
              .ValidateOnStart();
 
+            services.AddOptions<MedewerkerOptions>()
+             .Bind(configuration.GetSection("MedewerkerOptions"))
+             .ValidateDataAnnotations()
+             .ValidateOnStart();
+
             return services;
         }
     }
