@@ -120,19 +120,36 @@ public class KnownContactAction
 
         List<ObjectIdentificator> objectIdentificators = [];
 
-        ObjectIdentificator objectIdentificator = request.ActorType switch
+        switch (request.ActorType)
         {
-            KnownActorType.Afdeling => CreateIdentificator(KnownAfdelingIdentificators.ObjectRegisterId, request.ActorIdentifier),
-            KnownActorType.Groep => CreateIdentificator(KnownGroepIdentificators.ObjectRegisterId, request.ActorIdentifier),
-            _ => throw new InvalidOperationException($"Unknown ActorType: {request.ActorType}")
-        };
+            case KnownActorType.Medewerker:
+                objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.ObjectRegisterId, request.ActorIdentifier));
+                if (request.AfdelingOfGroep != null)
+                {
+                    IObjectRegisterId orgEenheidId = request.AfdelingOfGroep.Type switch
+                    {
+                        KnownActorType.Afdeling => KnownAfdelingIdentificators.ObjectRegisterId,
+                        KnownActorType.Groep => KnownGroepIdentificators.ObjectRegisterId,
+                        _ => throw new InvalidOperationException($"Unknown AfdelingOfGroep.Type: {request.AfdelingOfGroep.Type}")
+                    };
+                    objectIdentificators.Add(CreateIdentificator(orgEenheidId, request.AfdelingOfGroep.Identifier));
+                }
+                break;
 
-        objectIdentificators.Add(objectIdentificator);
+            case KnownActorType.Afdeling:
+                objectIdentificators.Add(CreateIdentificator(KnownAfdelingIdentificators.ObjectRegisterId, request.ActorIdentifier));
+                if (!string.IsNullOrWhiteSpace(request.MedewerkerEmail))
+                    objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.EmailHandmatig, request.MedewerkerEmail));
+                break;
 
-        bool shouldCreateEmailIdentificator = !string.IsNullOrWhiteSpace(request.MedewerkerEmail);
+            case KnownActorType.Groep:
+                objectIdentificators.Add(CreateIdentificator(KnownGroepIdentificators.ObjectRegisterId, request.ActorIdentifier));
+                if (!string.IsNullOrWhiteSpace(request.MedewerkerEmail))
+                    objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.EmailHandmatig, request.MedewerkerEmail));
+                break;
 
-        if (shouldCreateEmailIdentificator) {
-            objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.EmailHandmatig, request.MedewerkerEmail));
+            default:
+                throw new InvalidOperationException($"Unknown ActorType: {request.ActorType}");
         }
 
         return new KnownContactAction
