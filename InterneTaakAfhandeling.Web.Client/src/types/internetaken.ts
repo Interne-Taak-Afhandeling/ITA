@@ -227,7 +227,10 @@ export interface CreateRelatedKlantcontactRequest {
 export interface ForwardKlantcontactRequest {
   actorType: string;
   actorIdentifier: string;
-  medewerkerEmail?: string;
+  afdelingOfGroep?: {
+    type: string;
+    identifier: string;
+  };
   interneNotitie?: string;
 }
 
