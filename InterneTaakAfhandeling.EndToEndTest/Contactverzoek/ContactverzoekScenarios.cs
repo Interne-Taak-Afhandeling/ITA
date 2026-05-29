@@ -1000,9 +1000,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Make direct API call to forward endpoint on verwerkt contactverzoek");
+            // ActorType must be "Afdeling" or "Groep" to pass ForwardContactRequestModel.Validate()
             var response = await Page.Context.APIRequest.PostAsync(
                 $"/api/internetaken/{internetaakUuid}/forward",
-                new() { DataObject = new { ActorType = "Medewerker", ActorIdentifier = "test@test.nl" } });
+                new() { DataObject = new { ActorType = "Afdeling", ActorIdentifier = "Burgerzaken_ibz" } });
 
             Assert.AreEqual(409, response.Status, "Expected HTTP 409 when forwarding verwerkt contactverzoek");
             var body = await response.TextAsync();
@@ -1020,9 +1021,18 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Make direct API call to koppel-zaak endpoint on verwerkt contactverzoek");
+            // All required fields must be present for the body to deserialize before the guard can run
             var response = await Page.Context.APIRequest.PostAsync(
                 "/api/internetaken/koppel-zaak",
-                new() { DataObject = new { InternetaakId = internetaakUuid.ToString() } });
+                new()
+                {
+                    DataObject = new
+                    {
+                        InternetaakId = internetaakUuid.ToString(),
+                        ZaakIdentificatie = "ZAAK-GUARD-TEST",
+                        AanleidinggevendKlantcontactUuid = contactmomentUuid
+                    }
+                });
 
             Assert.AreEqual(409, response.Status, "Expected HTTP 409 when linking zaak to verwerkt contactverzoek");
             var body = await response.TextAsync();
@@ -1040,9 +1050,27 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Make direct API call to close-with-klantcontact on verwerkt contactverzoek");
+            // All required fields must be present for deserialization to succeed before the guard runs
             var response = await Page.Context.APIRequest.PostAsync(
                 "/api/internetaken/close-with-klantcontact",
-                new() { DataObject = new { InterneTaakId = internetaakUuid } });
+                new()
+                {
+                    DataObject = new
+                    {
+                        InterneTaakId = internetaakUuid,
+                        AanleidinggevendKlantcontactUuid = contactmomentUuid,
+                        KlantcontactRequest = new
+                        {
+                            IndicatieContactGelukt = true,
+                            Onderwerp = "guard-test",
+                            Inhoud = "guard-test",
+                            Kanaal = "e-mail",
+                            PlaatsgevondenOp = DateTime.UtcNow,
+                            Taal = "nl",
+                            Vertrouwelijk = false
+                        }
+                    }
+                });
 
             Assert.AreEqual(409, response.Status, "Expected HTTP 409 when registering contactmoment on verwerkt contactverzoek");
             var body = await response.TextAsync();
