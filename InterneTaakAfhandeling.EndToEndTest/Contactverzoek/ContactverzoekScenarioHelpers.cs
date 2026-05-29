@@ -134,6 +134,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync(new() { Timeout = 10000 });
         }
 
+        private async Task NavigateToVerwerktContactverzoekByNummer(string internetaakNummer)
+        {
+            await Step($"Navigate to verwerkt contactverzoek by nummer: {internetaakNummer}");
+            await SafeGotoAsync($"/contactverzoek/{internetaakNummer}");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            // Verwerkt contactverzoeken hide the action tabs; wait for the afgehandeld message instead.
+            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
+        }
+
         private async Task NavigateToContactmomentRegistrerenTab()
         {
             await Step("Navigate to Contactmoment Registreren tab");
