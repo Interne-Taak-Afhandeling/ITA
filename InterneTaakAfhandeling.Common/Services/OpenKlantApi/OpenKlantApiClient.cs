@@ -490,11 +490,6 @@ public partial class OpenKlantApiClient(
 
         var result = await response.Content.ReadFromJsonAsync<Internetaak>();
 
-        if (result?.AanleidinggevendKlantcontact?.Uuid != null && result.AanleidinggevendKlantcontact.Uuid != Guid.Empty)
-        {
-            result.AanleidinggevendKlantcontact = await GetKlantcontactAsync(result.AanleidinggevendKlantcontact.Uuid);
-        }
-
         return result!;
 
     }
