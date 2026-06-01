@@ -20,6 +20,39 @@
         </utrecht-form-field>
       </utrecht-fieldset>
 
+      <!-- MODE: Medewerker — server-side search combobox -->
+      <template v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.medewerker">
+        <utrecht-form-field>
+          <utrecht-form-label for="medewerker-combobox">Medewerker</utrecht-form-label>
+          <UtrechtCombobox
+            id="medewerker-combobox"
+            :options="medewerkerSearchOptions"
+            v-model="forwardContactmomentForm.medewerker"
+            placeholder="Begin met typen om te zoeken..."
+            aria-label="Medewerker zoeken"
+            :server-side="true"
+            :required="true"
+            :loading="isMedewerkerSearchLoading"
+            @search="onMedewerkerSearch"
+            @selected="onMedewerkerDirectSelected"
+          />
+        </utrecht-form-field>
+
+        <!-- Secondary afdeling/groep picker after medewerker selection -->
+        <utrecht-form-field
+          v-if="forwardContactmomentForm.medewerker && secondaryOptions.length > 1"
+        >
+          <utrecht-form-label for="secondaryPicker">Afdeling of groep</utrecht-form-label>
+          <utrecht-select
+            required
+            id="secondaryPicker"
+            v-model="forwardContactmomentForm.afdelingOfGroep"
+            :options="secondaryOptions"
+          />
+        </utrecht-form-field>
+      </template>
+
+      <!-- MODE: Afdeling -->
       <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.afdeling">
         <utrecht-form-label for="afdelingSelect">Afdeling</utrecht-form-label>
         <utrecht-select
@@ -27,10 +60,10 @@
           id="afdelingSelect"
           v-model="forwardContactmomentForm.afdeling"
           :options="afdelingen"
-          @change="onAfdelingGroepChange"
         />
       </utrecht-form-field>
 
+      <!-- MODE: Groep -->
       <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.groep">
         <utrecht-form-label for="groepSelect">Groep</utrecht-form-label>
         <utrecht-select
@@ -38,27 +71,24 @@
           id="groepSelect"
           v-model="forwardContactmomentForm.groep"
           :options="groepen"
-          @change="onAfdelingGroepChange"
         />
       </utrecht-form-field>
 
-      <template v-if="showMedewerkerPicker">
-        <utrecht-form-field v-if="isMedewerkerLoading">
+      <!-- Optional medewerker picker for Afdeling/Groep modes -->
+      <template v-if="showAfdelingGroepMedewerkerPicker">
+        <utrecht-form-field v-if="isAfdelingGroepMedewerkerLoading">
           <SimpleSpinner />
         </utrecht-form-field>
-        <utrecht-form-field v-else-if="medewerkerOptions.length === 0">
-          <utrecht-alert type="info"> Geen medewerkers gevonden voor deze selectie. </utrecht-alert>
-        </utrecht-form-field>
-        <utrecht-form-field v-else>
-          <utrecht-form-label :for="`medewerker-combobox`"
+        <utrecht-form-field v-else-if="afdelingGroepMedewerkerOptions.length > 0">
+          <utrecht-form-label for="afdeling-groep-medewerker-combobox"
             >Medewerker (optioneel)</utrecht-form-label
           >
           <UtrechtCombobox
-            id="medewerker-combobox"
-            :options="medewerkerOptions"
-            v-model="forwardContactmomentForm.medewerker"
+            id="afdeling-groep-medewerker-combobox"
+            :options="afdelingGroepMedewerkerOptions"
+            v-model="forwardContactmomentForm.afdelingGroepMedewerker"
             placeholder="Zoek op naam..."
-            aria-label="Medewerker zoeken"
+            aria-label="Medewerker zoeken binnen selectie"
           />
         </utrecht-form-field>
       </template>
@@ -93,6 +123,7 @@ const emit = defineEmits<{ success: [] }>();
 const { taak } = defineProps<{ taak: Internetaken }>();
 
 const FORWARD_OPTIONS = {
+  medewerker: "Medewerker",
   afdeling: "Afdeling",
   groep: "Groep"
 } as const;
@@ -104,17 +135,23 @@ interface MedewerkerData {
   groepen: { groepsnaam: string }[];
 }
 
-const medewerkers = ref<MedewerkerData[]>([]);
+const medewerkerSearchResults = ref<MedewerkerData[]>([]);
+const afdelingGroepMedewerkers = ref<MedewerkerData[]>([]);
 const afdelingen = ref<{ label: string; value: string }[]>([]);
 const groepen = ref<{ label: string; value: string }[]>([]);
 
 const isLoading = ref(false);
-const isMedewerkerLoading = ref(false);
+const isAfdelingGroepMedewerkerLoading = ref(false);
+const isMedewerkerSearchLoading = ref(false);
 const error = ref<string | null>(null);
 
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
 const createForm = () => ({
-  forwardTo: FORWARD_OPTIONS.afdeling as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
+  forwardTo: FORWARD_OPTIONS.medewerker as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
   medewerker: "",
+  afdelingOfGroep: "",
+  afdelingGroepMedewerker: "",
   groep: "",
   afdeling: "",
   interneNotitie: ""
@@ -122,23 +159,53 @@ const createForm = () => ({
 
 const forwardContactmomentForm = ref(createForm());
 
+// Mode 1: combobox options from server-side search
+const medewerkerSearchOptions = computed<ComboboxOption[]>(() =>
+  medewerkerSearchResults.value.map((m) => ({
+    label: m.naam,
+    value: m.identificatie
+  }))
+);
+
+// Mode 1: secondary picker (afdeling/groep of selected medewerker)
+const secondaryOptions = computed(() => {
+  const selected = medewerkerSearchResults.value.find(
+    (m) => m.identificatie === forwardContactmomentForm.value.medewerker
+  );
+  if (!selected) return [];
+
+  const options: { label: string; value: string }[] = [
+    { label: "Selecteer een afdeling of groep", value: "" }
+  ];
+  for (const afd of selected.afdelingen ?? []) {
+    options.push({ label: afd.afdelingnaam, value: `Afdeling:${afd.afdelingnaam}` });
+  }
+  for (const grp of selected.groepen ?? []) {
+    options.push({ label: grp.groepsnaam, value: `Groep:${grp.groepsnaam}` });
+  }
+  return options;
+});
+
+// Modes 2/3: show medewerker picker after afdeling/groep selected
 const selectedAfdelingOfGroepNaam = computed(() => {
   const form = forwardContactmomentForm.value;
   if (form.forwardTo === FORWARD_OPTIONS.afdeling && form.afdeling) {
-    const afd = afdelingen.value.find((a) => a.value === form.afdeling);
-    return afd?.label ?? "";
+    return afdelingen.value.find((a) => a.value === form.afdeling)?.label ?? "";
   }
   if (form.forwardTo === FORWARD_OPTIONS.groep && form.groep) {
-    const grp = groepen.value.find((g) => g.value === form.groep);
-    return grp?.label ?? "";
+    return groepen.value.find((g) => g.value === form.groep)?.label ?? "";
   }
   return "";
 });
 
-const showMedewerkerPicker = computed(() => selectedAfdelingOfGroepNaam.value !== "");
+const showAfdelingGroepMedewerkerPicker = computed(
+  () =>
+    forwardContactmomentForm.value.forwardTo !== FORWARD_OPTIONS.medewerker &&
+    selectedAfdelingOfGroepNaam.value !== ""
+);
 
-const medewerkerOptions = computed<ComboboxOption[]>(() =>
-  medewerkers.value.map((m) => ({
+const afdelingGroepMedewerkerOptions = computed<ComboboxOption[]>(() =>
+  afdelingGroepMedewerkers.value.map((m) => ({
     label: m.naam,
     value: m.identificatie
   }))
@@ -146,38 +213,72 @@ const medewerkerOptions = computed<ComboboxOption[]>(() =>
 
 function resetForm() {
   forwardContactmomentForm.value = createForm();
-  medewerkers.value = [];
+  medewerkerSearchResults.value = [];
+  afdelingGroepMedewerkers.value = [];
 }
 
 function onModeChange() {
   forwardContactmomentForm.value.medewerker = "";
+  forwardContactmomentForm.value.afdelingOfGroep = "";
+  forwardContactmomentForm.value.afdelingGroepMedewerker = "";
   forwardContactmomentForm.value.afdeling = "";
   forwardContactmomentForm.value.groep = "";
-  medewerkers.value = [];
+  medewerkerSearchResults.value = [];
+  afdelingGroepMedewerkers.value = [];
 }
 
-function onAfdelingGroepChange() {
-  forwardContactmomentForm.value.medewerker = "";
-}
-
-watch(selectedAfdelingOfGroepNaam, async (naam) => {
-  if (!naam) {
-    medewerkers.value = [];
+// Mode 1: debounced server-side search
+function onMedewerkerSearch(query: string) {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+  if (!query || query.length < 2) {
+    medewerkerSearchResults.value = [];
+    isMedewerkerSearchLoading.value = false;
     return;
   }
-  await fetchMedewerkersForAfdelingOfGroep(naam);
+  isMedewerkerSearchLoading.value = true;
+  searchDebounceTimer = setTimeout(async () => {
+    try {
+      const response = await get<MedewerkerData[]>("/api/medewerkers", { search: query });
+      medewerkerSearchResults.value = response;
+    } catch {
+      medewerkerSearchResults.value = [];
+    } finally {
+      isMedewerkerSearchLoading.value = false;
+    }
+  }, 300);
+}
+
+function onMedewerkerDirectSelected() {
+  forwardContactmomentForm.value.afdelingOfGroep = "";
+}
+
+// Modes 2/3: fetch medewerkers when afdeling/groep changes
+watch(selectedAfdelingOfGroepNaam, async (naam) => {
+  forwardContactmomentForm.value.afdelingGroepMedewerker = "";
+  if (!naam) {
+    afdelingGroepMedewerkers.value = [];
+    return;
+  }
+  isAfdelingGroepMedewerkerLoading.value = true;
+  try {
+    const response = await get<MedewerkerData[]>("/api/medewerkers", {
+      afdelingOfGroep: naam,
+      type: forwardContactmomentForm.value.forwardTo
+    });
+    afdelingGroepMedewerkers.value = response;
+  } catch {
+    afdelingGroepMedewerkers.value = [];
+  } finally {
+    isAfdelingGroepMedewerkerLoading.value = false;
+  }
 });
 
 async function forwardContactverzoek() {
   isLoading.value = true;
-
   try {
     const payload = getForwardContactVerzoekPayload();
-    const forwardKlantContactResponse = await klantcontactService.forwardKlantContact(
-      taak.uuid,
-      payload
-    );
-    toast.add({ text: forwardKlantContactResponse.notificationResult, type: "ok", timeout: 5000 });
+    const response = await klantcontactService.forwardKlantContact(taak.uuid, payload);
+    toast.add({ text: response.notificationResult, type: "ok", timeout: 5000 });
     resetForm();
     emit("success");
   } catch (err: unknown) {
@@ -189,13 +290,29 @@ async function forwardContactverzoek() {
 
 function getForwardContactVerzoekPayload(): ForwardKlantcontactRequest {
   const form = forwardContactmomentForm.value;
-  const afdelingOfGroepIdentifier =
-    form.forwardTo === FORWARD_OPTIONS.afdeling ? form.afdeling : form.groep;
 
-  if (form.medewerker) {
+  // Mode 1: Medewerker direct
+  if (form.forwardTo === FORWARD_OPTIONS.medewerker) {
+    const secondaryValue = form.afdelingOfGroep;
+    const [type, identifier] = secondaryValue.includes(":")
+      ? [secondaryValue.split(":")[0], secondaryValue.split(":").slice(1).join(":")]
+      : ["", ""];
     return {
       actorType: "Medewerker",
       actorIdentifier: form.medewerker,
+      afdelingOfGroep: { type, identifier },
+      interneNotitie: form.interneNotitie || undefined
+    };
+  }
+
+  // Modes 2/3: Afdeling/Groep, optionally with medewerker
+  const afdelingOfGroepIdentifier =
+    form.forwardTo === FORWARD_OPTIONS.afdeling ? form.afdeling : form.groep;
+
+  if (form.afdelingGroepMedewerker) {
+    return {
+      actorType: "Medewerker",
+      actorIdentifier: form.afdelingGroepMedewerker,
       afdelingOfGroep: {
         type: form.forwardTo,
         identifier: afdelingOfGroepIdentifier
@@ -227,21 +344,6 @@ function handleLoadingError(err: unknown) {
 function sortListByNaam<T extends { naam: string }>(list: T[]): T[] {
   return list.sort((a, b) => a.naam.localeCompare(b.naam, undefined, { sensitivity: "base" }));
 }
-
-const fetchMedewerkersForAfdelingOfGroep = async (naam: string) => {
-  isMedewerkerLoading.value = true;
-  try {
-    const response = await get<MedewerkerData[]>("/api/medewerkers", {
-      afdelingOfGroep: naam,
-      type: forwardContactmomentForm.value.forwardTo
-    });
-    medewerkers.value = sortListByNaam(response);
-  } catch {
-    medewerkers.value = [];
-  } finally {
-    isMedewerkerLoading.value = false;
-  }
-};
 
 const fetchAfdelingen = async () => {
   const response = await get<{ naam: string; identificatie: string }[]>("/api/afdelingen");

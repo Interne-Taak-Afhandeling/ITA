@@ -19,8 +19,7 @@ public interface IObjectApiClient
     Task<ObjectModels<Afdeling>> GetAfdelingen(int page);
     Task<ObjectModels<Afdeling>> FindAfdelingen(string query);
     Task<ObjectModels<Groep>> GetGroepen(int page);
-    Task<ObjectModels<MedewerkerObjectData>> GetMedewerkers(int page);
-    Task<ObjectModels<MedewerkerObjectData>> FindMedewerkers(string query);
+    Task<ObjectModels<MedewerkerObjectData>> FindMedewerkers(string query, int page = 1);
 }
 
 public class ObjectApiClient(
@@ -268,32 +267,13 @@ public class ObjectApiClient(
         }
     }
 
-    public async Task<ObjectModels<MedewerkerObjectData>> GetMedewerkers(int page)
+    public async Task<ObjectModels<MedewerkerObjectData>> FindMedewerkers(string query, int page = 1)
     {
         HttpResponseMessage? response = null;
 
         try
         {
-            response = await _httpClient.GetAsync($"objects?type={medewerkerOptions.Value.Type}&typeVersion={medewerkerOptions.Value.TypeVersion}&page={page}");
-            response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<ObjectModels<MedewerkerObjectData>>();
-            return result!;
-        }
-        catch (HttpRequestException ex)
-        {
-            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
-            _logger.LogError(ex, "Error retrieving medewerkers from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
-            throw;
-        }
-    }
-
-    public async Task<ObjectModels<MedewerkerObjectData>> FindMedewerkers(string query)
-    {
-        HttpResponseMessage? response = null;
-
-        try
-        {
-            response = await _httpClient.GetAsync($"objects?type={medewerkerOptions.Value.Type}&typeVersion={medewerkerOptions.Value.TypeVersion}&data_icontains={Uri.EscapeDataString(query)}");
+            response = await _httpClient.GetAsync($"objects?type={medewerkerOptions.Value.Type}&typeVersion={medewerkerOptions.Value.TypeVersion}&data_icontains={Uri.EscapeDataString(query)}&page={page}");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<ObjectModels<MedewerkerObjectData>>();
             return result!;

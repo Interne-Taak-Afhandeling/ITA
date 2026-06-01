@@ -1,13 +1,17 @@
 <template>
-  <div class="utrecht-combobox" role="combobox" :aria-expanded="expanded" aria-haspopup="listbox">
+  <div class="utrecht-combobox">
     <input
       ref="inputRef"
       class="utrecht-combobox__input utrecht-textbox utrecht-textbox--html-input"
-      type="text"
+      type="search"
+      role="combobox"
       :id="id"
       :placeholder="placeholder"
       :value="query"
       :aria-label="ariaLabel"
+      :required="required"
+      :aria-expanded="expanded"
+      aria-haspopup="listbox"
       aria-autocomplete="list"
       :aria-controls="`${id}-listbox`"
       :aria-activedescendant="activeDescendant"
@@ -17,16 +21,18 @@
       @focus="onFocus"
       @blur="onBlur"
     />
+    <simple-spinner v-if="loading" class="utrecht-combobox__spinner" />
     <ul
+      v-if="!loading && expanded && displayOptions.length > 0"
       :id="`${id}-listbox`"
       role="listbox"
       class="utrecht-combobox__popover utrecht-combobox__popover--block-end utrecht-listbox"
-      :class="{ 'utrecht-combobox__popover--hidden': !expanded || filteredOptions.length === 0 }"
       :aria-label="ariaLabel"
-      tabindex="-1"
+      :aria-required="required ? 'true' : undefined"
+      ref="listRef"
     >
       <li
-        v-for="(option, index) in filteredOptions"
+        v-for="(option, index) in displayOptions"
         :key="option.value"
         :id="`${id}-option-${index}`"
         role="option"
@@ -34,6 +40,7 @@
         :class="{ 'utrecht-listbox__option--active': index === activeIndex }"
         :aria-selected="option.value === modelValue"
         @mousedown.prevent="selectOption(option)"
+        @mouseover="activeIndex = index"
       >
         {{ option.label }}
       </li>
@@ -42,32 +49,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from "vue";
+import { ref, computed, watch } from "vue";
+import SimpleSpinner from "@/components/SimpleSpinner.vue";
 
 export interface ComboboxOption {
   label: string;
   value: string;
 }
 
-const props = defineProps<{
-  id: string;
-  options: ComboboxOption[];
-  modelValue: string;
-  placeholder?: string;
-  ariaLabel?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    id: string;
+    options: ComboboxOption[];
+    modelValue: string;
+    placeholder?: string;
+    ariaLabel?: string;
+    serverSide?: boolean;
+    required?: boolean;
+    loading?: boolean;
+  }>(),
+  { serverSide: false, required: false, loading: false }
+);
 
 const emit = defineEmits<{
   "update:modelValue": [value: string];
   selected: [option: ComboboxOption];
+  search: [query: string];
 }>();
 
 const inputRef = ref<HTMLInputElement | null>(null);
+const listRef = ref<HTMLUListElement | null>(null);
 const query = ref("");
 const expanded = ref(false);
 const activeIndex = ref(-1);
+let blurTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-const filteredOptions = computed(() => {
+const displayOptions = computed(() => {
+  if (props.serverSide) return props.options;
   if (!query.value) return props.options;
   const q = query.value.toLowerCase();
   return props.options.filter((o) => o.label.toLowerCase().includes(q));
@@ -76,6 +94,18 @@ const filteredOptions = computed(() => {
 const activeDescendant = computed(() =>
   activeIndex.value >= 0 ? `${props.id}-option-${activeIndex.value}` : undefined
 );
+
+const validity = computed(() => {
+  if (!query.value && props.required) return "";
+  if (query.value && !props.modelValue) return "Kies een optie uit de lijst.";
+  return "";
+});
+
+watch([inputRef, validity], ([el, v]) => {
+  if (el instanceof HTMLInputElement) {
+    el.setCustomValidity(v);
+  }
+});
 
 watch(
   () => props.modelValue,
@@ -92,6 +122,13 @@ watch(
   { immediate: true }
 );
 
+watch(
+  () => props.options,
+  () => {
+    activeIndex.value = Math.max(-1, Math.min(activeIndex.value, props.options.length - 1));
+  }
+);
+
 function onInput(event: Event) {
   const target = event.target as HTMLInputElement;
   query.value = target.value;
@@ -100,16 +137,24 @@ function onInput(event: Event) {
   if (!target.value) {
     emit("update:modelValue", "");
   }
+  if (props.serverSide) {
+    emit("search", target.value);
+  }
 }
 
 function onFocus() {
+  if (blurTimeoutId) {
+    clearTimeout(blurTimeoutId);
+    blurTimeoutId = null;
+  }
   expanded.value = true;
 }
 
 function onBlur() {
-  setTimeout(() => {
+  blurTimeoutId = setTimeout(() => {
     expanded.value = false;
     activeIndex.value = -1;
+    blurTimeoutId = null;
   }, 150);
 }
 
@@ -118,16 +163,22 @@ function onKeydown(event: KeyboardEvent) {
     case "ArrowDown":
       event.preventDefault();
       expanded.value = true;
-      activeIndex.value = Math.min(activeIndex.value + 1, filteredOptions.value.length - 1);
+      if (activeIndex.value < displayOptions.value.length - 1) {
+        activeIndex.value++;
+      }
+      scrollActiveIntoView();
       break;
     case "ArrowUp":
       event.preventDefault();
-      activeIndex.value = Math.max(activeIndex.value - 1, 0);
+      if (activeIndex.value > 0) {
+        activeIndex.value--;
+      }
+      scrollActiveIntoView();
       break;
     case "Enter":
       event.preventDefault();
-      if (activeIndex.value >= 0 && activeIndex.value < filteredOptions.value.length) {
-        selectOption(filteredOptions.value[activeIndex.value]);
+      if (activeIndex.value >= 0 && activeIndex.value < displayOptions.value.length) {
+        selectOption(displayOptions.value[activeIndex.value]);
       }
       break;
     case "Escape":
@@ -144,6 +195,23 @@ function selectOption(option: ComboboxOption) {
   emit("selected", option);
   expanded.value = false;
   activeIndex.value = -1;
-  nextTick(() => inputRef.value?.focus());
+  inputRef.value?.focus();
+}
+
+function scrollActiveIntoView() {
+  const list = listRef.value;
+  if (!list) return;
+  const activeLi = list.querySelector(`#${props.id}-option-${activeIndex.value}`);
+  if (activeLi) {
+    activeLi.scrollIntoView({ block: "nearest" });
+  }
 }
 </script>
+
+<style scoped>
+/* Override Utrecht 7.x :invalid styling — only show invalid state after user interaction */
+.utrecht-combobox__input:invalid:not(:user-invalid) {
+  border-color: var(--utrecht-textbox-border-color, var(--utrecht-form-control-border-color));
+  background-color: var(--utrecht-textbox-background-color, var(--utrecht-form-control-background-color));
+}
+</style>

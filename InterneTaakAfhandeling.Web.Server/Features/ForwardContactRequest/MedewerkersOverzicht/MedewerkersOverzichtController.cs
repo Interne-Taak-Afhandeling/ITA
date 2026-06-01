@@ -18,25 +18,40 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
     private readonly ILogger<MedewerkersOverzichtController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IObjectApiClient _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient));
 
+    /// <summary>
+    /// Search medewerkers by free text (data_icontains) or filter by afdeling/groep name.
+    /// Usage:
+    ///   GET /api/medewerkers?search=Jan                           → free text search
+    ///   GET /api/medewerkers?afdelingOfGroep=Burgerzaken&amp;type=Afdeling → filtered by afdeling
+    /// </summary>
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [HttpGet("medewerkers")]
     public async Task<IActionResult> GetMedewerkersOverzicht(
-        [FromQuery] string afdelingOfGroep,
-        [FromQuery] string type)
+        [FromQuery] string? search = null,
+        [FromQuery] string? afdelingOfGroep = null,
+        [FromQuery] string? type = null)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(afdelingOfGroep) || string.IsNullOrWhiteSpace(type))
-            {
-                return BadRequest("Both 'afdelingOfGroep' and 'type' query parameters are required.");
-            }
+            IEnumerable<MedewerkerObjectData> medewerkers;
 
-            var medewerkers = await FindMedewerkersByAfdelingOfGroep(afdelingOfGroep, type);
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                medewerkers = await SearchMedewerkers(search);
+            }
+            else if (!string.IsNullOrWhiteSpace(afdelingOfGroep) && !string.IsNullOrWhiteSpace(type))
+            {
+                medewerkers = await FindMedewerkersByAfdelingOfGroep(afdelingOfGroep, type);
+            }
+            else
+            {
+                return BadRequest("Either 'search' or both 'afdelingOfGroep' and 'type' query parameters are required.");
+            }
 
             var result = medewerkers.Select(x => new
             {
-                Naam = x.VolledigeNaam ?? $"{x.Voornaam} {x.VoorvoegselAchternaam} {x.Achternaam}".Trim(),
+                Naam = x.VolledigeNaam ?? string.Join(" ", new[] { x.Voornaam, x.VoorvoegselAchternaam, x.Achternaam }.Where(s => !string.IsNullOrWhiteSpace(s))),
                 x.Identificatie,
                 Afdelingen = x.Afdelingen?.Select(a => new { a.Afdelingnaam }).ToList() ?? [],
                 Groepen = x.Groepen?.Select(g => new { g.Groepsnaam }).ToList() ?? []
@@ -51,13 +66,31 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
         }
     }
 
+    private async Task<IEnumerable<MedewerkerObjectData>> SearchMedewerkers(string query)
+    {
+        return await GetMedewerkersRecursive(query, 1);
+    }
+
     private async Task<IEnumerable<MedewerkerObjectData>> FindMedewerkersByAfdelingOfGroep(string afdelingOfGroep, string type)
     {
-        var searchResult = await _objectApiClient.FindMedewerkers(afdelingOfGroep);
-        var candidates = searchResult.Results.Select(x => x.Record.Data).ToList();
+        var candidates = await GetMedewerkersRecursive(afdelingOfGroep, 1);
 
         return type.Equals(KnownActorType.Afdeling, StringComparison.OrdinalIgnoreCase)
             ? candidates.Where(m => m.Afdelingen?.Any(a => a.Afdelingnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true)
             : candidates.Where(m => m.Groepen?.Any(g => g.Groepsnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true);
+    }
+
+    private async Task<List<MedewerkerObjectData>> GetMedewerkersRecursive(string query, int page)
+    {
+        var result = await _objectApiClient.FindMedewerkers(query, page);
+        var medewerkers = result.Results.Select(x => x.Record.Data).ToList();
+
+        if (result.Next != null)
+        {
+            var nextPageResult = await GetMedewerkersRecursive(query, page + 1);
+            medewerkers.AddRange(nextPageResult);
+        }
+
+        return medewerkers;
     }
 }
