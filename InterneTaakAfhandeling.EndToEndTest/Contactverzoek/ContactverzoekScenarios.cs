@@ -587,6 +587,19 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
         }
 
+        [TestMethod("Regression #425: Knop verborgen wanneer gebruiker is toegewezen via objectregister medewerker ID")]
+        public async Task ToewijzenKnop_IsHidden_WhenCurrentUserAssignedViaObjectRegisterId()
+        {
+            var testOnderwerp = "Test_ToewijzenKnop_Verborgen_ObjectRegisterId";
+            var uuid = await TestDataHelper.CreateContactverzoekWithCurrentUserAssignedViaObjectRegisterId(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await NavigateToContactverzoekDetails(testOnderwerp);
+
+            await Step("Verify 'Toewijzen aan mezelf' button is NOT visible when assigned via ObjectRegisterId");
+            await Expect(Page.GetToewijzenAanMezelfButton()).Not.ToBeVisibleAsync();
+        }
+
         [TestMethod("Assigning a Contactverzoek to yourself")]
         public async Task Assigning_Contactverzoek_To_Yourself()
         {
