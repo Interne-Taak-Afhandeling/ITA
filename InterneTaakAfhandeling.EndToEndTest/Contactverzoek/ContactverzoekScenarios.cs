@@ -850,6 +850,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Contactverzoek {contactmomentNummer}" })).ToBeVisibleAsync();
         }
 
+        // Task #423 — deferred edge cases (marked "indien testdata beschikbaar" in the task spec):
+        //
+        // 1. Meerdere klantcontacten in keten → heading toont altijd originele nummer
+        //    Not attempted: no chain-of-klantcontact test data was available at implementation time.
+        //    Planned as follow-up once suitable test data exists.
+        //
+        // 2. Meerdere internetaken voor zelfde klantcontact-nummer → 409
+        //    Not attempted: creating the required duplicate-internetaak state reliably was not
+        //    possible with the current test-data helpers. Planned as follow-up.
+
         [TestMethod("Assigning a Contactverzoek to yourself - with logbook verification")]
         public async Task User_AssignContactverzoekToSelf_VerifyLogbookEntry()
         {
