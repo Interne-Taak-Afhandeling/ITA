@@ -23,7 +23,10 @@
 import { toast } from "@/components/toast/toast";
 import { ref, computed } from "vue";
 import { userService } from "@/services/userService";
-import { KnownMedewerkerIdentificators } from "@/constants/medewerkerIdentificators";
+import {
+  KnownMedewerkerIdentificators,
+  matchesIdentificator
+} from "@/constants/medewerkerIdentificators";
 import type { Actor } from "@/types/internetaken";
 const props = withDefaults(
   defineProps<{
@@ -41,22 +44,28 @@ const isMedewerkerActor = (actor: Actor) =>
   actor.soortActor === "medewerker" &&
   actor.actoridentificator?.codeObjecttype === KnownMedewerkerIdentificators.codeObjecttype;
 
-const matchesEmail = (actor: Actor) =>
-  (actor.actoridentificator?.codeSoortObjectId ===
-    KnownMedewerkerIdentificators.emailFromEntraId.codeSoortObjectId ||
-    actor.actoridentificator?.codeSoortObjectId ===
-      KnownMedewerkerIdentificators.emailHandmatig.codeSoortObjectId) &&
-  actor.actoridentificator?.objectId?.toLowerCase() === props.userEmail.toLowerCase();
-
-const matchesObjectRegisterId = (actor: Actor) =>
-  !!props.objectregisterMedewerkerId &&
-  actor.actoridentificator?.codeSoortObjectId ===
-    KnownMedewerkerIdentificators.objectRegisterId.codeSoortObjectId &&
-  actor.actoridentificator?.objectId === props.objectregisterMedewerkerId;
-
 const isAlreadyAssigned = computed(() =>
   props.actoren.some(
-    (actor) => isMedewerkerActor(actor) && (matchesEmail(actor) || matchesObjectRegisterId(actor))
+    (actor) =>
+      isMedewerkerActor(actor) &&
+      (matchesIdentificator(
+        actor.actoridentificator,
+        KnownMedewerkerIdentificators.emailFromEntraId,
+        props.userEmail,
+        { caseInsensitive: true }
+      ) ||
+        matchesIdentificator(
+          actor.actoridentificator,
+          KnownMedewerkerIdentificators.emailHandmatig,
+          props.userEmail,
+          { caseInsensitive: true }
+        ) ||
+        (!!props.objectregisterMedewerkerId &&
+          matchesIdentificator(
+            actor.actoridentificator,
+            KnownMedewerkerIdentificators.objectRegisterId,
+            props.objectregisterMedewerkerId
+          )))
   )
 );
 
