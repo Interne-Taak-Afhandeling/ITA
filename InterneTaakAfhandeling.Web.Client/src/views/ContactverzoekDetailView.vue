@@ -11,6 +11,7 @@
         <assign-contactverzoek-to-me
           :id="taak.uuid"
           :user-email="userEmail"
+          :objectregister-medewerker-id="objectregisterMedewerkerId"
           :actoren="taak.toegewezenAanActoren ?? []"
           @assignmentSuccess="fetchInternetaken"
         />
@@ -93,6 +94,7 @@ const errorMessage = ref<string | null>(null);
 const isContactmomentRoute = computed(() => !!props.contactmomentNumber);
 const routeNummer = computed(() => props.contactmomentNumber ?? props.contactverzoekId ?? "");
 const userEmail = computed(() => authStore.user?.email ?? "");
+const objectregisterMedewerkerId = computed(() => authStore.user?.objectregisterMedewerkerId ?? "");
 const isAfgehandeld = computed(() => taak.value?.status === "verwerkt");
 
 const handleZaakGekoppeld = () => {

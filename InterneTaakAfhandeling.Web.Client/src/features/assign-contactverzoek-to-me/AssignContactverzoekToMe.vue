@@ -23,25 +23,49 @@
 import { toast } from "@/components/toast/toast";
 import { ref, computed } from "vue";
 import { userService } from "@/services/userService";
+import {
+  KnownMedewerkerIdentificators,
+  matchesIdentificator
+} from "@/constants/medewerkerIdentificators";
 import type { Actor } from "@/types/internetaken";
 const props = withDefaults(
   defineProps<{
     id: string;
     userEmail: string;
+    objectregisterMedewerkerId: string;
     actoren: Actor[];
   }>(),
-  { actoren: () => [] }
+  { objectregisterMedewerkerId: "", actoren: () => [] }
 );
 
 const emit = defineEmits(["assignmentSuccess"]);
 
+const isMedewerkerActor = (actor: Actor) =>
+  actor.soortActor === "medewerker" &&
+  actor.actoridentificator?.codeObjecttype === KnownMedewerkerIdentificators.codeObjecttype;
+
 const isAlreadyAssigned = computed(() =>
   props.actoren.some(
     (actor) =>
-      actor.soortActor === "medewerker" &&
-      actor.actoridentificator?.codeObjecttype === "mdw" &&
-      actor.actoridentificator?.codeSoortObjectId === "email" &&
-      actor.actoridentificator?.objectId?.toLowerCase() === props.userEmail.toLowerCase()
+      isMedewerkerActor(actor) &&
+      (matchesIdentificator(
+        actor.actoridentificator,
+        KnownMedewerkerIdentificators.emailFromEntraId,
+        props.userEmail,
+        { caseInsensitive: true }
+      ) ||
+        matchesIdentificator(
+          actor.actoridentificator,
+          KnownMedewerkerIdentificators.emailHandmatig,
+          props.userEmail,
+          { caseInsensitive: true }
+        ) ||
+        (!!props.objectregisterMedewerkerId &&
+          matchesIdentificator(
+            actor.actoridentificator,
+            KnownMedewerkerIdentificators.objectRegisterId,
+            props.objectregisterMedewerkerId
+          )))
   )
 );
 
