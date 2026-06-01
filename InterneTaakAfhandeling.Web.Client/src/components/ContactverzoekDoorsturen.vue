@@ -14,67 +14,54 @@
             :value="label"
             v-model="forwardContactmomentForm.forwardTo"
             required
+            @change="onModeChange"
           />
           <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
         </utrecht-form-field>
       </utrecht-fieldset>
 
-      <template v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.medewerker">
-        <utrecht-form-field v-if="medewerkerOptions.length === 0 && !isLoading">
-          <utrecht-alert type="warning"> Er zijn geen medewerkers beschikbaar. </utrecht-alert>
+      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.afdeling">
+        <utrecht-form-label for="afdelingSelect">Afdeling</utrecht-form-label>
+        <utrecht-select
+          required
+          id="afdelingSelect"
+          v-model="forwardContactmomentForm.afdeling"
+          :options="afdelingen"
+          @change="onAfdelingGroepChange"
+        />
+      </utrecht-form-field>
+
+      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.groep">
+        <utrecht-form-label for="groepSelect">Groep</utrecht-form-label>
+        <utrecht-select
+          required
+          id="groepSelect"
+          v-model="forwardContactmomentForm.groep"
+          :options="groepen"
+          @change="onAfdelingGroepChange"
+        />
+      </utrecht-form-field>
+
+      <template v-if="showMedewerkerPicker">
+        <utrecht-form-field v-if="isMedewerkerLoading">
+          <SimpleSpinner />
+        </utrecht-form-field>
+        <utrecht-form-field v-else-if="medewerkerOptions.length === 0">
+          <utrecht-alert type="info"> Geen medewerkers gevonden voor deze selectie. </utrecht-alert>
         </utrecht-form-field>
         <utrecht-form-field v-else>
-          <utrecht-form-label :for="`medewerker-combobox`">Medewerker</utrecht-form-label>
+          <utrecht-form-label :for="`medewerker-combobox`"
+            >Medewerker (optioneel)</utrecht-form-label
+          >
           <UtrechtCombobox
             id="medewerker-combobox"
             :options="medewerkerOptions"
             v-model="forwardContactmomentForm.medewerker"
             placeholder="Zoek op naam..."
             aria-label="Medewerker zoeken"
-            @selected="onMedewerkerSelected"
           />
-        </utrecht-form-field>
-
-        <utrecht-form-field
-          v-if="forwardContactmomentForm.medewerker && secondaryOptions.length > 0"
-        >
-          <utrecht-form-label for="secondaryPicker">Afdeling of groep</utrecht-form-label>
-          <utrecht-select
-            required
-            id="secondaryPicker"
-            v-model="forwardContactmomentForm.afdelingOfGroep"
-            :options="secondaryOptions"
-          />
-        </utrecht-form-field>
-
-        <utrecht-form-field
-          v-if="forwardContactmomentForm.medewerker && secondaryOptions.length <= 1"
-        >
-          <utrecht-alert type="warning">
-            Geen afdelingen of groepen beschikbaar voor deze medewerker.
-          </utrecht-alert>
         </utrecht-form-field>
       </template>
-
-      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.afdeling">
-        <utrecht-form-label for="forwardTo">Afdeling</utrecht-form-label>
-        <utrecht-select
-          required
-          id="forwardTo"
-          v-model="forwardContactmomentForm.afdeling"
-          :options="afdelingen"
-        />
-      </utrecht-form-field>
-
-      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.groep">
-        <utrecht-form-label for="forwardTo">Groep</utrecht-form-label>
-        <utrecht-select
-          required
-          id="forwardTo"
-          v-model="forwardContactmomentForm.groep"
-          :options="groepen"
-        />
-      </utrecht-form-field>
 
       <interne-toelichting-field
         v-model="forwardContactmomentForm.interneNotitie"
@@ -91,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { toast } from "./toast/toast";
 import InterneToelichtingField from "./InterneToelichtingField.vue";
 import UtrechtCombobox from "./UtrechtCombobox.vue";
@@ -106,7 +93,6 @@ const emit = defineEmits<{ success: [] }>();
 const { taak } = defineProps<{ taak: Internetaken }>();
 
 const FORWARD_OPTIONS = {
-  medewerker: "Medewerker",
   afdeling: "Afdeling",
   groep: "Groep"
 } as const;
@@ -123,18 +109,33 @@ const afdelingen = ref<{ label: string; value: string }[]>([]);
 const groepen = ref<{ label: string; value: string }[]>([]);
 
 const isLoading = ref(false);
+const isMedewerkerLoading = ref(false);
 const error = ref<string | null>(null);
 
 const createForm = () => ({
-  forwardTo: FORWARD_OPTIONS.medewerker as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
+  forwardTo: FORWARD_OPTIONS.afdeling as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
   medewerker: "",
-  afdelingOfGroep: "",
   groep: "",
   afdeling: "",
   interneNotitie: ""
 });
 
 const forwardContactmomentForm = ref(createForm());
+
+const selectedAfdelingOfGroepNaam = computed(() => {
+  const form = forwardContactmomentForm.value;
+  if (form.forwardTo === FORWARD_OPTIONS.afdeling && form.afdeling) {
+    const afd = afdelingen.value.find((a) => a.value === form.afdeling);
+    return afd?.label ?? "";
+  }
+  if (form.forwardTo === FORWARD_OPTIONS.groep && form.groep) {
+    const grp = groepen.value.find((g) => g.value === form.groep);
+    return grp?.label ?? "";
+  }
+  return "";
+});
+
+const showMedewerkerPicker = computed(() => selectedAfdelingOfGroepNaam.value !== "");
 
 const medewerkerOptions = computed<ComboboxOption[]>(() =>
   medewerkers.value.map((m) => ({
@@ -143,33 +144,29 @@ const medewerkerOptions = computed<ComboboxOption[]>(() =>
   }))
 );
 
-const secondaryOptions = computed(() => {
-  const selected = medewerkers.value.find(
-    (m) => m.identificatie === forwardContactmomentForm.value.medewerker
-  );
-  if (!selected) return [];
-
-  const options: { label: string; value: string }[] = [
-    { label: "Selecteer een afdeling of groep", value: "" }
-  ];
-
-  for (const afd of selected.afdelingen ?? []) {
-    options.push({ label: afd.afdelingnaam, value: `Afdeling:${afd.afdelingnaam}` });
-  }
-  for (const grp of selected.groepen ?? []) {
-    options.push({ label: grp.groepsnaam, value: `Groep:${grp.groepsnaam}` });
-  }
-
-  return options;
-});
-
 function resetForm() {
   forwardContactmomentForm.value = createForm();
+  medewerkers.value = [];
 }
 
-function onMedewerkerSelected() {
-  forwardContactmomentForm.value.afdelingOfGroep = "";
+function onModeChange() {
+  forwardContactmomentForm.value.medewerker = "";
+  forwardContactmomentForm.value.afdeling = "";
+  forwardContactmomentForm.value.groep = "";
+  medewerkers.value = [];
 }
+
+function onAfdelingGroepChange() {
+  forwardContactmomentForm.value.medewerker = "";
+}
+
+watch(selectedAfdelingOfGroepNaam, async (naam) => {
+  if (!naam) {
+    medewerkers.value = [];
+    return;
+  }
+  await fetchMedewerkersForAfdelingOfGroep(naam);
+});
 
 async function forwardContactverzoek() {
   isLoading.value = true;
@@ -192,24 +189,24 @@ async function forwardContactverzoek() {
 
 function getForwardContactVerzoekPayload(): ForwardKlantcontactRequest {
   const form = forwardContactmomentForm.value;
+  const afdelingOfGroepIdentifier =
+    form.forwardTo === FORWARD_OPTIONS.afdeling ? form.afdeling : form.groep;
 
-  if (form.forwardTo === FORWARD_OPTIONS.medewerker) {
-    const secondaryValue = form.afdelingOfGroep;
-    const [type, identifier] = secondaryValue.includes(":")
-      ? [secondaryValue.split(":")[0], secondaryValue.split(":").slice(1).join(":")]
-      : ["", ""];
-
+  if (form.medewerker) {
     return {
       actorType: "Medewerker",
       actorIdentifier: form.medewerker,
-      afdelingOfGroep: { type, identifier },
+      afdelingOfGroep: {
+        type: form.forwardTo,
+        identifier: afdelingOfGroepIdentifier
+      },
       interneNotitie: form.interneNotitie || undefined
     };
   }
 
   return {
     actorType: form.forwardTo,
-    actorIdentifier: form.forwardTo === FORWARD_OPTIONS.afdeling ? form.afdeling : form.groep,
+    actorIdentifier: afdelingOfGroepIdentifier,
     interneNotitie: form.interneNotitie || undefined
   };
 }
@@ -231,9 +228,18 @@ function sortListByNaam<T extends { naam: string }>(list: T[]): T[] {
   return list.sort((a, b) => a.naam.localeCompare(b.naam, undefined, { sensitivity: "base" }));
 }
 
-const fetchMedewerkers = async () => {
-  const response = await get<MedewerkerData[]>("/api/medewerkers");
-  medewerkers.value = sortListByNaam(response);
+const fetchMedewerkersForAfdelingOfGroep = async (naam: string) => {
+  isMedewerkerLoading.value = true;
+  try {
+    const response = await get<MedewerkerData[]>("/api/medewerkers", {
+      afdelingOfGroep: naam
+    });
+    medewerkers.value = sortListByNaam(response);
+  } catch {
+    medewerkers.value = [];
+  } finally {
+    isMedewerkerLoading.value = false;
+  }
 };
 
 const fetchAfdelingen = async () => {
@@ -264,7 +270,7 @@ onMounted(async () => {
   try {
     isLoading.value = true;
     error.value = null;
-    await Promise.all([fetchMedewerkers(), fetchAfdelingen(), fetchGroepen()]);
+    await Promise.all([fetchAfdelingen(), fetchGroepen()]);
   } catch (err: unknown) {
     handleLoadingError(err);
   } finally {

@@ -20,11 +20,20 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [HttpGet("medewerkers")]
-    public async Task<IActionResult> GetMedewerkersOverzicht()
+    public async Task<IActionResult> GetMedewerkersOverzicht([FromQuery] string? afdelingOfGroep = null)
     {
         try
         {
-            var medewerkers = await GetMedewerkersRecursive(1);
+            IEnumerable<MedewerkerObjectData> medewerkers;
+
+            if (!string.IsNullOrWhiteSpace(afdelingOfGroep))
+            {
+                medewerkers = await FindMedewerkersByAfdelingOfGroep(afdelingOfGroep);
+            }
+            else
+            {
+                medewerkers = await GetMedewerkersRecursive(1);
+            }
 
             var result = medewerkers.Select(x => new
             {
@@ -38,9 +47,21 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching all medewerkers");
+            _logger.LogError(ex, "Error fetching medewerkers");
             return Problem("Er is een fout opgetreden bij het ophalen van de lijst met medewerkers");
         }
+    }
+
+    private async Task<IEnumerable<MedewerkerObjectData>> FindMedewerkersByAfdelingOfGroep(string afdelingOfGroep)
+    {
+        var searchResult = await _objectApiClient.FindMedewerkers(afdelingOfGroep);
+        var candidates = searchResult.Results.Select(x => x.Record.Data).ToList();
+
+        // Post-filter: only keep medewerkers that actually belong to the given afdeling or groep
+        return candidates.Where(m =>
+            (m.Afdelingen?.Any(a => a.Afdelingnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true) ||
+            (m.Groepen?.Any(g => g.Groepsnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true)
+        );
     }
 
     private async Task<IEnumerable<MedewerkerObjectData>> GetMedewerkersRecursive(int page)
