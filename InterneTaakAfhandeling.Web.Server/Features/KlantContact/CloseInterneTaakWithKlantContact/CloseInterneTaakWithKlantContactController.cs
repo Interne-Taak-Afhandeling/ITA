@@ -47,8 +47,7 @@ public class CloseInterneTaakWithKlantContactController(
     {
         try
         {
-            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(request.InterneTaakId, "close-with-klantcontact");
-            if (blocked != null) return blocked;
+            await _internetaakGuardService.GuardAgainstVerwerktAsync(request.InterneTaakId);
 
             _logger.LogInformation(
                 "Closing Interne taak and creating related klantcontact with aanleidinggevendKlantcontact UUID: {AanleidinggevendKlantcontactUuid}",

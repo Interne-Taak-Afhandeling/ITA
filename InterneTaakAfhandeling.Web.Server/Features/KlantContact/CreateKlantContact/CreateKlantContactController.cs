@@ -45,8 +45,7 @@ public class CreateKlantContactController : Controller
     {
         try
         {
-            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(request.InterneTaakId, "add-klantcontact");
-            if (blocked != null) return blocked;
+            await _internetaakGuardService.GuardAgainstVerwerktAsync(request.InterneTaakId);
             
             _logger.LogInformation(
                 "Creating related klantcontact with aanleidinggevendKlantcontact UUID: {aanleidinggevendKlantcontactUuid}",

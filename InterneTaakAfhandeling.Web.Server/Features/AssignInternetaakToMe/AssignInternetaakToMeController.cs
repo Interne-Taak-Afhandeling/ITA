@@ -30,8 +30,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         {
             try
             {
-                var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakId, "aan-mij-toewijzen");
-                if (blocked != null) return blocked;
+                await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakId);
 
                 var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetaakId, user);
 

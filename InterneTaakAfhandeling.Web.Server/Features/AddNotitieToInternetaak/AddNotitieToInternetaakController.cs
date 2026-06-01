@@ -36,8 +36,7 @@ public class AddNotitieToInternetaakController(
     {
         try
         {
-            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(internetaakId, "notitie");
-            if (blocked != null) return blocked;
+            await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakId);
 
             var notitieAction = KnownContactAction.Note(request.Notitie, _user);
             await _logboekService.LogContactRequestAction(notitieAction, internetaakId);

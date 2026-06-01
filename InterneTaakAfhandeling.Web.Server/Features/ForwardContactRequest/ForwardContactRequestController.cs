@@ -29,8 +29,7 @@ public class ForwardContactRequestController(
     {
         try
         {
-            var blocked = await internetaakGuardService.EnsureNotVerwerktAsync(id, "forward");
-            if (blocked != null) return blocked;
+            await internetaakGuardService.GuardAgainstVerwerktAsync(id);
 
             var response = await forwardContactRequestService.ForwardAsync(id, request);
             await logboekService.LogContactRequestAction(KnownContactAction.ForwardKlantContact(request, _user), id);
