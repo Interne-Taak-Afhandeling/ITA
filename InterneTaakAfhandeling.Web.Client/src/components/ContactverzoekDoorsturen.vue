@@ -232,7 +232,8 @@ const fetchMedewerkersForAfdelingOfGroep = async (naam: string) => {
   isMedewerkerLoading.value = true;
   try {
     const response = await get<MedewerkerData[]>("/api/medewerkers", {
-      afdelingOfGroep: naam
+      afdelingOfGroep: naam,
+      type: forwardContactmomentForm.value.forwardTo
     });
     medewerkers.value = sortListByNaam(response);
   } catch {

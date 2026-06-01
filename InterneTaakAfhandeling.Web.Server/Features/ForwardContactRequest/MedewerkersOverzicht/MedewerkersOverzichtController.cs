@@ -1,5 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,20 +21,18 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [HttpGet("medewerkers")]
-    public async Task<IActionResult> GetMedewerkersOverzicht([FromQuery] string? afdelingOfGroep = null)
+    public async Task<IActionResult> GetMedewerkersOverzicht(
+        [FromQuery] string afdelingOfGroep,
+        [FromQuery] string type)
     {
         try
         {
-            IEnumerable<MedewerkerObjectData> medewerkers;
+            if (string.IsNullOrWhiteSpace(afdelingOfGroep) || string.IsNullOrWhiteSpace(type))
+            {
+                return BadRequest("Both 'afdelingOfGroep' and 'type' query parameters are required.");
+            }
 
-            if (!string.IsNullOrWhiteSpace(afdelingOfGroep))
-            {
-                medewerkers = await FindMedewerkersByAfdelingOfGroep(afdelingOfGroep);
-            }
-            else
-            {
-                medewerkers = await GetMedewerkersRecursive(1);
-            }
+            var medewerkers = await FindMedewerkersByAfdelingOfGroep(afdelingOfGroep, type);
 
             var result = medewerkers.Select(x => new
             {
@@ -52,36 +51,13 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
         }
     }
 
-    private async Task<IEnumerable<MedewerkerObjectData>> FindMedewerkersByAfdelingOfGroep(string afdelingOfGroep)
+    private async Task<IEnumerable<MedewerkerObjectData>> FindMedewerkersByAfdelingOfGroep(string afdelingOfGroep, string type)
     {
         var searchResult = await _objectApiClient.FindMedewerkers(afdelingOfGroep);
         var candidates = searchResult.Results.Select(x => x.Record.Data).ToList();
 
-        // Post-filter: only keep medewerkers that actually belong to the given afdeling or groep
-        return candidates.Where(m =>
-            (m.Afdelingen?.Any(a => a.Afdelingnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true) ||
-            (m.Groepen?.Any(g => g.Groepsnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true)
-        );
-    }
-
-    private async Task<IEnumerable<MedewerkerObjectData>> GetMedewerkersRecursive(int page)
-    {
-        var medewerkers = new List<MedewerkerObjectData>();
-
-        var result = await _objectApiClient.GetMedewerkers(page);
-
-        medewerkers = [.. result.Results.Select(x => x.Record.Data)];
-
-        if (result.Next != null)
-        {
-            var nextPageResult = await GetMedewerkersRecursive(page + 1);
-
-            if (nextPageResult != null)
-            {
-                medewerkers.AddRange(nextPageResult);
-            }
-        }
-
-        return medewerkers;
+        return type.Equals(KnownActorType.Afdeling, StringComparison.OrdinalIgnoreCase)
+            ? candidates.Where(m => m.Afdelingen?.Any(a => a.Afdelingnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true)
+            : candidates.Where(m => m.Groepen?.Any(g => g.Groepsnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true);
     }
 }
