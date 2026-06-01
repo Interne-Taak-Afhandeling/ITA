@@ -27,10 +27,10 @@ public class ForwardContactRequestController(
     public async Task<IActionResult> ForwardContactRequestAsync([FromRoute] Guid id,
         [FromBody] ForwardContactRequestModel request)
     {
+        await internetaakGuardService.GuardAgainstVerwerktAsync(id);
+
         try
         {
-            await internetaakGuardService.GuardAgainstVerwerktAsync(id);
-
             var response = await forwardContactRequestService.ForwardAsync(id, request);
             await logboekService.LogContactRequestAction(KnownContactAction.ForwardKlantContact(request, _user), id);
 

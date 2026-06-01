@@ -28,10 +28,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         [HttpPost("{internetaakId}/aan-mij-toewijzen")]
         public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetaakId)
         {
+            await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakId);
+
             try
             {
-                await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakId);
-
                 var (updatedInterneTaak, currentUserActor) = await _AssignInternetakenService.ToSelfAsync(internetaakId, user);
 
                 var assignedAction = KnownContactAction.AssignedToSelf(currentUserActor.Uuid, _user);

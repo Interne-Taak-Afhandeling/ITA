@@ -19,7 +19,7 @@ public class InternetaakGuardService(
 
             throw new ConflictException(
                 "Dit contactverzoek heeft status 'verwerkt' en kan niet meer worden gewijzigd.",
-                "internetaak-verwerkt");
+                "INTERNETAAK_VERWERKT");
         }
     }
 }

@@ -50,18 +50,18 @@ public class KoppelZaakAanKlantcontactController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> KoppelZaakAanKlantcontact([FromBody] KoppelZaakAanKlantcontactRequest request)
     {
+        if (!Guid.TryParse(request.InternetaakId, out var internetaakGuid))
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Ongeldige aanvraag",
+                Detail = "InternetaakId is geen geldig UUID",
+                Status = StatusCodes.Status400BadRequest
+            });
+
+        await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakGuid);
+
         try
         {
-            if (!Guid.TryParse(request.InternetaakId, out var internetaakGuid))
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Ongeldige aanvraag",
-                    Detail = "InternetaakId is geen geldig UUID",
-                    Status = StatusCodes.Status400BadRequest
-                });
-
-            await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakGuid);
-
             if (string.IsNullOrWhiteSpace(request.ZaakIdentificatie))
                 return BadRequest(new ProblemDetails
                 {

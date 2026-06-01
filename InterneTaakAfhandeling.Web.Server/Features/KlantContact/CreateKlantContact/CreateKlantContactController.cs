@@ -43,10 +43,10 @@ public class CreateKlantContactController : Controller
     [HttpPost("add-klantcontact")] //todo refactor, route should be api/klantcontacten/[klantcontactUuid]/klantcontacten
     public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequestModel request)
     {
+        await _internetaakGuardService.GuardAgainstVerwerktAsync(request.InterneTaakId);
+
         try
         {
-            await _internetaakGuardService.GuardAgainstVerwerktAsync(request.InterneTaakId);
-            
             _logger.LogInformation(
                 "Creating related klantcontact with aanleidinggevendKlantcontact UUID: {aanleidinggevendKlantcontactUuid}",
                 request.AanleidinggevendKlantcontactUuid);
