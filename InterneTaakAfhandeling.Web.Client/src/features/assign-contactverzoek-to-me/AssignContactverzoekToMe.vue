@@ -23,25 +23,40 @@
 import { toast } from "@/components/toast/toast";
 import { ref, computed } from "vue";
 import { userService } from "@/services/userService";
+import { KnownMedewerkerIdentificators } from "@/constants/medewerkerIdentificators";
 import type { Actor } from "@/types/internetaken";
 const props = withDefaults(
   defineProps<{
     id: string;
     userEmail: string;
+    objectregisterMedewerkerId: string;
     actoren: Actor[];
   }>(),
-  { actoren: () => [] }
+  { objectregisterMedewerkerId: "", actoren: () => [] }
 );
 
 const emit = defineEmits(["assignmentSuccess"]);
 
+const isMedewerkerActor = (actor: Actor) =>
+  actor.soortActor === "medewerker" &&
+  actor.actoridentificator?.codeObjecttype === KnownMedewerkerIdentificators.codeObjecttype;
+
+const matchesEmail = (actor: Actor) =>
+  (actor.actoridentificator?.codeSoortObjectId ===
+    KnownMedewerkerIdentificators.emailFromEntraId.codeSoortObjectId ||
+    actor.actoridentificator?.codeSoortObjectId ===
+      KnownMedewerkerIdentificators.emailHandmatig.codeSoortObjectId) &&
+  actor.actoridentificator?.objectId?.toLowerCase() === props.userEmail.toLowerCase();
+
+const matchesObjectRegisterId = (actor: Actor) =>
+  !!props.objectregisterMedewerkerId &&
+  actor.actoridentificator?.codeSoortObjectId ===
+    KnownMedewerkerIdentificators.objectRegisterId.codeSoortObjectId &&
+  actor.actoridentificator?.objectId === props.objectregisterMedewerkerId;
+
 const isAlreadyAssigned = computed(() =>
   props.actoren.some(
-    (actor) =>
-      actor.soortActor === "medewerker" &&
-      actor.actoridentificator?.codeObjecttype === "mdw" &&
-      actor.actoridentificator?.codeSoortObjectId === "email" &&
-      actor.actoridentificator?.objectId?.toLowerCase() === props.userEmail.toLowerCase()
+    (actor) => isMedewerkerActor(actor) && (matchesEmail(actor) || matchesObjectRegisterId(actor))
   )
 );
 

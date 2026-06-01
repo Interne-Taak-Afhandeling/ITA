@@ -11,6 +11,7 @@ class AuthService {
           isLoggedIn: data.isLoggedIn,
           email: data.email || "",
           name: data.name || "",
+          objectregisterMedewerkerId: data.objectregisterMedewerkerId || "",
           roles: data.roles || [],
           hasITASystemAccess: data.hasITASystemAccess || false,
           hasFunctioneelBeheerderAccess: data.hasFunctioneelBeheerderAccess || false
