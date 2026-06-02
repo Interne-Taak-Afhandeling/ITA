@@ -91,6 +91,15 @@
             :options="secondaryOptions"
           />
         </utrecht-form-field>
+
+        <utrecht-form-field
+          v-if="forwardContactmomentForm.medewerker && secondaryOptions.length <= 1"
+        >
+          <utrecht-alert type="warning">
+            Geen afdelingen of groepen beschikbaar voor deze medewerker. Kies een andere
+            medewerker.
+          </utrecht-alert>
+        </utrecht-form-field>
       </template>
 
       <interne-toelichting-field
@@ -100,7 +109,10 @@
     </utrecht-fieldset>
 
     <utrecht-button-group>
-      <utrecht-button type="submit" appearance="primary-action-button"
+      <utrecht-button
+        type="submit"
+        appearance="primary-action-button"
+        :disabled="medewerkerMissingAfdelingGroep"
         >Contactverzoek doorsturen</utrecht-button
       >
     </utrecht-button-group>
@@ -210,6 +222,13 @@ const afdelingGroepMedewerkerOptions = computed<ComboboxOption[]>(() =>
     label: m.naam,
     value: m.identificatie
   }))
+);
+
+const medewerkerMissingAfdelingGroep = computed(
+  () =>
+    forwardContactmomentForm.value.forwardTo === FORWARD_OPTIONS.medewerker &&
+    forwardContactmomentForm.value.medewerker !== "" &&
+    secondaryOptions.value.length <= 1
 );
 
 function resetForm() {
