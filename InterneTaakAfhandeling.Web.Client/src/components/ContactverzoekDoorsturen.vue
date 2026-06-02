@@ -203,10 +203,16 @@ const secondaryOptions = computed(() => {
     { label: "Selecteer een afdeling of groep", value: "" }
   ];
   for (const afd of selected.afdelingen ?? []) {
-    options.push({ label: afd.afdelingnaam, value: `Afdeling:${afd.afdelingnaam}` });
+    const match = afdelingen.value.find((a) => a.label === afd.afdelingnaam);
+    if (match) {
+      options.push({ label: afd.afdelingnaam, value: `Afdeling:${match.value}` });
+    }
   }
   for (const grp of selected.groepen ?? []) {
-    options.push({ label: grp.groepsnaam, value: `Groep:${grp.groepsnaam}` });
+    const match = groepen.value.find((g) => g.label === grp.groepsnaam);
+    if (match) {
+      options.push({ label: grp.groepsnaam, value: `Groep:${match.value}` });
+    }
   }
   return options;
 });
