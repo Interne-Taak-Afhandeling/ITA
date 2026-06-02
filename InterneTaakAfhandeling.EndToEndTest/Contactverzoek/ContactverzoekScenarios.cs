@@ -553,9 +553,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task ToewijzenKnop_IsVisible_WhenCurrentUserNotIndividuallyAssigned()
         {
             var testOnderwerp = "Test_ToewijzenKnop_Zichtbaar_GeenIndividueleToewijzing";
-            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentNotCurrentUser(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentNotCurrentUser);
 
             await Step("Verify 'Toewijzen aan mezelf' button is visible");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
@@ -568,7 +569,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentOnly(testOnderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentOnly);
 
             await Step("Verify 'Toewijzen aan mezelf' button is visible (team assignment does not count as individual)");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
@@ -581,7 +582,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var uuid = await TestDataHelper.CreateContactverzoekWithNoAssignments(testOnderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithNoAssignments);
 
             await Step("Verify 'Toewijzen aan mezelf' button is visible");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();

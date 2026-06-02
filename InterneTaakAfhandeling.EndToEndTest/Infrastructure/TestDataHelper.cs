@@ -231,6 +231,28 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return contactmoment.Uuid;
         }
 
+        public async Task<Guid> CreateContactverzoekWithTeamAssignmentNotCurrentUser(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await GetOrCreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+
+            await CreateInternetaakIfNotExists(
+                TestDataConstants.ContactverzoekNummers.WithTeamAssignmentNotCurrentUser,
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(afdelingActor.Uuid) },
+                isExplicitNummer: true);
+
+            return contactmoment.Uuid;
+        }
+
         public async Task<Guid> CreateContactverzoekWithCurrentUserAssignedViaObjectRegisterId(string onderwerp)
         {
             await CleanupExistingContactmomenten(onderwerp);

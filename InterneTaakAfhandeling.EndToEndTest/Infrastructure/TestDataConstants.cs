@@ -18,6 +18,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             public const string WithTeamAssignmentOnly = "8001321015";
             public const string WithNoAssignments = "8001321016";
             public const string WithCurrentUserAssignedViaObjectRegisterId = "8001321017";
+            public const string WithTeamAssignmentNotCurrentUser = "8001321018";
         }
 
          public static class Zaken
