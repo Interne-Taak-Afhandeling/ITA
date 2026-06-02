@@ -1,6 +1,4 @@
-﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +10,11 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.Medew
 [Authorize(Policy = ITAPolicy.Name)]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
-public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtController> logger, IObjectApiClient objectApiClient)
+public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtController> logger, IMedewerkersOverzichtService medewerkersOverzichtService)
     : Controller
 {
     private readonly ILogger<MedewerkersOverzichtController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private readonly IObjectApiClient _objectApiClient = objectApiClient ?? throw new ArgumentNullException(nameof(objectApiClient));
+    private readonly IMedewerkersOverzichtService _medewerkersOverzichtService = medewerkersOverzichtService ?? throw new ArgumentNullException(nameof(medewerkersOverzichtService));
 
     /// <summary>
     /// Search medewerkers by free text (data_icontains) or filter by afdeling/groep name.
@@ -38,11 +36,11 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                medewerkers = await SearchMedewerkers(search);
+                medewerkers = await _medewerkersOverzichtService.SearchMedewerkers(search);
             }
             else if (!string.IsNullOrWhiteSpace(afdelingOfGroep) && !string.IsNullOrWhiteSpace(type))
             {
-                medewerkers = await FindMedewerkersByAfdelingOfGroep(afdelingOfGroep, type);
+                medewerkers = await _medewerkersOverzichtService.FindMedewerkersByAfdelingOfGroep(afdelingOfGroep, type);
             }
             else
             {
@@ -66,40 +64,5 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
             _logger.LogError(ex, "Error fetching medewerkers");
             return Problem("Er is een fout opgetreden bij het ophalen van de lijst met medewerkers");
         }
-    }
-
-    private async Task<IEnumerable<MedewerkerObjectData>> SearchMedewerkers(string query)
-    {
-        var candidates = await GetMedewerkersRecursive(query, 1);
-        var q = query.Trim();
-
-        return candidates.Where(m =>
-            (m.Voornaam?.Contains(q, StringComparison.OrdinalIgnoreCase) == true) ||
-            (m.Achternaam?.Contains(q, StringComparison.OrdinalIgnoreCase) == true) ||
-            (m.VolledigeNaam?.Contains(q, StringComparison.OrdinalIgnoreCase) == true) ||
-            (m.VoorvoegselAchternaam?.Contains(q, StringComparison.OrdinalIgnoreCase) == true));
-    }
-
-    private async Task<IEnumerable<MedewerkerObjectData>> FindMedewerkersByAfdelingOfGroep(string afdelingOfGroep, string type)
-    {
-        var candidates = await GetMedewerkersRecursive(afdelingOfGroep, 1);
-
-        return type.Equals(KnownActorType.Afdeling, StringComparison.OrdinalIgnoreCase)
-            ? candidates.Where(m => m.Afdelingen?.Any(a => a.Afdelingnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true)
-            : candidates.Where(m => m.Groepen?.Any(g => g.Groepsnaam.Equals(afdelingOfGroep, StringComparison.OrdinalIgnoreCase)) == true);
-    }
-
-    private async Task<List<MedewerkerObjectData>> GetMedewerkersRecursive(string query, int page)
-    {
-        var result = await _objectApiClient.FindMedewerkers(query, page);
-        var medewerkers = result.Results.Select(x => x.Record.Data).ToList();
-
-        if (result.Next != null)
-        {
-            var nextPageResult = await GetMedewerkersRecursive(query, page + 1);
-            medewerkers.AddRange(nextPageResult);
-        }
-
-        return medewerkers;
     }
 }
