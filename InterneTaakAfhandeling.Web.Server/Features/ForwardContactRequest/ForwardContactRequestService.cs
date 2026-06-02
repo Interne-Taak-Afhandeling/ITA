@@ -165,8 +165,13 @@ public class ForwardContactRequestService(
             return actor;
 
         var medewerkers = await objectApiClient.GetMedewerkersByIdentificatie(identificatie);
-        var medewerker = medewerkers.FirstOrDefault()
-            ?? throw new InvalidOperationException($"Medewerker met identificatie '{identificatie}' niet gevonden in het objectenregister.");
+
+        var medewerker = medewerkers.Count switch
+        {
+            0 => throw new InvalidOperationException($"Medewerker met identificatie '{identificatie}' niet gevonden in het objectenregister."),
+            > 1 => throw new InvalidOperationException($"Meerdere medewerkers gevonden voor identificatie '{identificatie}' in het objectenregister."),
+            _ => medewerkers.Single()
+        };
 
         var actorRequest = new ActorRequest
         {
