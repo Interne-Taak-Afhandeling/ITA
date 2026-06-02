@@ -51,7 +51,9 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
 
             var result = medewerkers.Select(x => new
             {
-                Naam = x.VolledigeNaam ?? string.Join(" ", new[] { x.Voornaam, x.VoorvoegselAchternaam, x.Achternaam }.Where(s => !string.IsNullOrWhiteSpace(s))),
+                Naam = string.IsNullOrWhiteSpace(x.VolledigeNaam)
+                    ? string.Join(" ", new[] { x.Voornaam, x.VoorvoegselAchternaam, x.Achternaam }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                    : x.VolledigeNaam,
                 x.Identificatie,
                 Afdelingen = x.Afdelingen?.Select(a => new { a.Afdelingnaam }).ToList() ?? [],
                 Groepen = x.Groepen?.Select(g => new { g.Groepsnaam }).ToList() ?? []

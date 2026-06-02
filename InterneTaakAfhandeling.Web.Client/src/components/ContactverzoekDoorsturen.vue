@@ -96,8 +96,7 @@
           v-if="forwardContactmomentForm.medewerker && secondaryOptions.length <= 1"
         >
           <utrecht-alert type="warning">
-            Geen afdelingen of groepen beschikbaar voor deze medewerker. Kies een andere
-            medewerker.
+            Geen afdelingen of groepen beschikbaar voor deze medewerker. Kies een andere medewerker.
           </utrecht-alert>
         </utrecht-form-field>
       </template>
@@ -159,6 +158,7 @@ const isMedewerkerSearchLoading = ref(false);
 const error = ref<string | null>(null);
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+let searchAbortController: AbortController | null = null;
 
 const createForm = () => ({
   forwardTo: FORWARD_OPTIONS.afdeling as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
@@ -274,9 +274,10 @@ watch(selectedAfdelingOfGroepNaam, async (naam) => {
   }
 });
 
-// Mode 3: debounced server-side search
+// Mode 3: debounced server-side search with AbortController to cancel stale requests
 function onMedewerkerSearch(query: string) {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+  if (searchAbortController) searchAbortController.abort();
   if (!query || query.length < 2) {
     medewerkerSearchResults.value = [];
     isMedewerkerSearchLoading.value = false;
@@ -284,10 +285,16 @@ function onMedewerkerSearch(query: string) {
   }
   isMedewerkerSearchLoading.value = true;
   searchDebounceTimer = setTimeout(async () => {
+    searchAbortController = new AbortController();
     try {
-      const response = await get<MedewerkerData[]>("/api/medewerkers", { search: query });
+      const response = await get<MedewerkerData[]>(
+        "/api/medewerkers",
+        { search: query },
+        { signal: searchAbortController.signal }
+      );
       medewerkerSearchResults.value = response;
-    } catch {
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
       medewerkerSearchResults.value = [];
     } finally {
       isMedewerkerSearchLoading.value = false;
