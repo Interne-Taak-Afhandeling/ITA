@@ -30,6 +30,11 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
             _logger.LogError(exception, "An unhandled exception has occurred");
              
             var statusCode = GetStatusCode(exception);
+            if (httpContext.Response.HasStarted)
+            {
+                return false;
+            }
+
             httpContext.Response.StatusCode = statusCode;
              
             var problemDetails = _problemDetailsFactory.CreateProblemDetails(
