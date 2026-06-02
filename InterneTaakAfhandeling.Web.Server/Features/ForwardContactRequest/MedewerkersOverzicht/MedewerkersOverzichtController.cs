@@ -68,7 +68,14 @@ public class MedewerkersOverzichtController(ILogger<MedewerkersOverzichtControll
 
     private async Task<IEnumerable<MedewerkerObjectData>> SearchMedewerkers(string query)
     {
-        return await GetMedewerkersRecursive(query, 1);
+        var candidates = await GetMedewerkersRecursive(query, 1);
+        var q = query.Trim();
+
+        return candidates.Where(m =>
+            (m.Voornaam?.Contains(q, StringComparison.OrdinalIgnoreCase) == true) ||
+            (m.Achternaam?.Contains(q, StringComparison.OrdinalIgnoreCase) == true) ||
+            (m.VolledigeNaam?.Contains(q, StringComparison.OrdinalIgnoreCase) == true) ||
+            (m.VoorvoegselAchternaam?.Contains(q, StringComparison.OrdinalIgnoreCase) == true));
     }
 
     private async Task<IEnumerable<MedewerkerObjectData>> FindMedewerkersByAfdelingOfGroep(string afdelingOfGroep, string type)
