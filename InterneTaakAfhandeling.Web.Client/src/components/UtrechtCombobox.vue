@@ -21,7 +21,7 @@
       @focus="onFocus"
       @blur="onBlur"
     />
-    <simple-spinner v-if="loading" class="utrecht-combobox__spinner" />
+    <small-spinner v-if="loading" class="utrecht-combobox__spinner" />
     <ul
       v-if="!loading && expanded && displayOptions.length > 0"
       :id="`${id}-listbox`"
@@ -29,7 +29,6 @@
       class="utrecht-combobox__popover utrecht-combobox__popover--block-end utrecht-listbox"
       :aria-label="ariaLabel"
       :aria-required="required ? 'true' : undefined"
-      ref="listRef"
     >
       <li
         v-for="(option, index) in displayOptions"
@@ -50,7 +49,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import SmallSpinner from "@/components/SmallSpinner.vue";
 
 export interface ComboboxOption {
   label: string;
@@ -78,7 +77,6 @@ const emit = defineEmits<{
 }>();
 
 const inputRef = ref<HTMLInputElement | null>(null);
-const listRef = ref<HTMLUListElement | null>(null);
 const query = ref("");
 const expanded = ref(false);
 const activeIndex = ref(-1);
@@ -166,14 +164,12 @@ function onKeydown(event: KeyboardEvent) {
       if (activeIndex.value < displayOptions.value.length - 1) {
         activeIndex.value++;
       }
-      scrollActiveIntoView();
       break;
     case "ArrowUp":
       event.preventDefault();
       if (activeIndex.value > 0) {
         activeIndex.value--;
       }
-      scrollActiveIntoView();
       break;
     case "Enter":
       event.preventDefault();
@@ -197,21 +193,19 @@ function selectOption(option: ComboboxOption) {
   activeIndex.value = -1;
   inputRef.value?.focus();
 }
-
-function scrollActiveIntoView() {
-  const list = listRef.value;
-  if (!list) return;
-  const activeLi = list.querySelector(`#${props.id}-option-${activeIndex.value}`);
-  if (activeLi) {
-    activeLi.scrollIntoView({ block: "nearest" });
-  }
-}
 </script>
 
 <style scoped>
+.utrecht-combobox {
+  --utrecht-textbox-max-inline-size: 100%;
+}
+
 /* Override Utrecht 7.x :invalid styling — only show invalid state after user interaction */
 .utrecht-combobox__input:invalid:not(:user-invalid) {
   border-color: var(--utrecht-textbox-border-color, var(--utrecht-form-control-border-color));
-  background-color: var(--utrecht-textbox-background-color, var(--utrecht-form-control-background-color));
+  background-color: var(
+    --utrecht-textbox-background-color,
+    var(--utrecht-form-control-background-color)
+  );
 }
 </style>

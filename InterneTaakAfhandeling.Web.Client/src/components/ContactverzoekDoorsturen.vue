@@ -20,6 +20,47 @@
         </utrecht-form-field>
       </utrecht-fieldset>
 
+      <!-- MODE: Afdeling -->
+      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.afdeling">
+        <utrecht-form-label for="afdelingSelect">Afdeling</utrecht-form-label>
+        <utrecht-select
+          required
+          id="afdelingSelect"
+          v-model="forwardContactmomentForm.afdeling"
+          :options="afdelingen"
+        />
+      </utrecht-form-field>
+
+      <!-- MODE: Groep -->
+      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.groep">
+        <utrecht-form-label for="groepSelect">Groep</utrecht-form-label>
+        <utrecht-select
+          required
+          id="groepSelect"
+          v-model="forwardContactmomentForm.groep"
+          :options="groepen"
+        />
+      </utrecht-form-field>
+
+      <!-- Optional medewerker picker for Afdeling/Groep modes -->
+      <template v-if="showAfdelingGroepMedewerkerPicker">
+        <utrecht-form-field v-if="isAfdelingGroepMedewerkerLoading">
+          <small-spinner />
+        </utrecht-form-field>
+        <utrecht-form-field v-else-if="afdelingGroepMedewerkerOptions.length > 0">
+          <utrecht-form-label for="afdeling-groep-medewerker-combobox"
+            >Medewerker (optioneel)</utrecht-form-label
+          >
+          <UtrechtCombobox
+            id="afdeling-groep-medewerker-combobox"
+            :options="afdelingGroepMedewerkerOptions"
+            v-model="forwardContactmomentForm.afdelingGroepMedewerker"
+            placeholder="Zoek op naam..."
+            aria-label="Medewerker zoeken binnen selectie"
+          />
+        </utrecht-form-field>
+      </template>
+
       <!-- MODE: Medewerker — server-side search combobox -->
       <template v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.medewerker">
         <utrecht-form-field>
@@ -52,47 +93,6 @@
         </utrecht-form-field>
       </template>
 
-      <!-- MODE: Afdeling -->
-      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.afdeling">
-        <utrecht-form-label for="afdelingSelect">Afdeling</utrecht-form-label>
-        <utrecht-select
-          required
-          id="afdelingSelect"
-          v-model="forwardContactmomentForm.afdeling"
-          :options="afdelingen"
-        />
-      </utrecht-form-field>
-
-      <!-- MODE: Groep -->
-      <utrecht-form-field v-if="forwardContactmomentForm.forwardTo === FORWARD_OPTIONS.groep">
-        <utrecht-form-label for="groepSelect">Groep</utrecht-form-label>
-        <utrecht-select
-          required
-          id="groepSelect"
-          v-model="forwardContactmomentForm.groep"
-          :options="groepen"
-        />
-      </utrecht-form-field>
-
-      <!-- Optional medewerker picker for Afdeling/Groep modes -->
-      <template v-if="showAfdelingGroepMedewerkerPicker">
-        <utrecht-form-field v-if="isAfdelingGroepMedewerkerLoading">
-          <SimpleSpinner />
-        </utrecht-form-field>
-        <utrecht-form-field v-else-if="afdelingGroepMedewerkerOptions.length > 0">
-          <utrecht-form-label for="afdeling-groep-medewerker-combobox"
-            >Medewerker (optioneel)</utrecht-form-label
-          >
-          <UtrechtCombobox
-            id="afdeling-groep-medewerker-combobox"
-            :options="afdelingGroepMedewerkerOptions"
-            v-model="forwardContactmomentForm.afdelingGroepMedewerker"
-            placeholder="Zoek op naam..."
-            aria-label="Medewerker zoeken binnen selectie"
-          />
-        </utrecht-form-field>
-      </template>
-
       <interne-toelichting-field
         v-model="forwardContactmomentForm.interneNotitie"
         placeholder="Optioneel"
@@ -115,6 +115,7 @@ import UtrechtCombobox from "./UtrechtCombobox.vue";
 import type { ComboboxOption } from "./UtrechtCombobox.vue";
 import type { Internetaken, ForwardKlantcontactRequest } from "@/types/internetaken";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
+import SmallSpinner from "@/components/SmallSpinner.vue";
 import { get } from "@/utils/fetchWrapper";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import { klantcontactService } from "@/services/klantcontactService";
@@ -123,9 +124,9 @@ const emit = defineEmits<{ success: [] }>();
 const { taak } = defineProps<{ taak: Internetaken }>();
 
 const FORWARD_OPTIONS = {
-  medewerker: "Medewerker",
   afdeling: "Afdeling",
-  groep: "Groep"
+  groep: "Groep",
+  medewerker: "Medewerker"
 } as const;
 
 interface MedewerkerData {
@@ -148,7 +149,7 @@ const error = ref<string | null>(null);
 let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 const createForm = () => ({
-  forwardTo: FORWARD_OPTIONS.medewerker as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
+  forwardTo: FORWARD_OPTIONS.afdeling as (typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS],
   medewerker: "",
   afdelingOfGroep: "",
   afdelingGroepMedewerker: "",
@@ -159,7 +160,19 @@ const createForm = () => ({
 
 const forwardContactmomentForm = ref(createForm());
 
-// Mode 1: combobox options from server-side search
+// Modes 1/2: show medewerker picker after afdeling/groep selected
+const selectedAfdelingOfGroepNaam = computed(() => {
+  const form = forwardContactmomentForm.value;
+  if (form.forwardTo === FORWARD_OPTIONS.afdeling && form.afdeling) {
+    return afdelingen.value.find((a) => a.value === form.afdeling)?.label ?? "";
+  }
+  if (form.forwardTo === FORWARD_OPTIONS.groep && form.groep) {
+    return groepen.value.find((g) => g.value === form.groep)?.label ?? "";
+  }
+  return "";
+});
+
+// Mode 3: combobox options from server-side search
 const medewerkerSearchOptions = computed<ComboboxOption[]>(() =>
   medewerkerSearchResults.value.map((m) => ({
     label: m.naam,
@@ -167,7 +180,7 @@ const medewerkerSearchOptions = computed<ComboboxOption[]>(() =>
   }))
 );
 
-// Mode 1: secondary picker (afdeling/groep of selected medewerker)
+// Mode 3: secondary picker (afdeling/groep of selected medewerker)
 const secondaryOptions = computed(() => {
   const selected = medewerkerSearchResults.value.find(
     (m) => m.identificatie === forwardContactmomentForm.value.medewerker
@@ -184,18 +197,6 @@ const secondaryOptions = computed(() => {
     options.push({ label: grp.groepsnaam, value: `Groep:${grp.groepsnaam}` });
   }
   return options;
-});
-
-// Modes 2/3: show medewerker picker after afdeling/groep selected
-const selectedAfdelingOfGroepNaam = computed(() => {
-  const form = forwardContactmomentForm.value;
-  if (form.forwardTo === FORWARD_OPTIONS.afdeling && form.afdeling) {
-    return afdelingen.value.find((a) => a.value === form.afdeling)?.label ?? "";
-  }
-  if (form.forwardTo === FORWARD_OPTIONS.groep && form.groep) {
-    return groepen.value.find((g) => g.value === form.groep)?.label ?? "";
-  }
-  return "";
 });
 
 const showAfdelingGroepMedewerkerPicker = computed(
@@ -227,7 +228,28 @@ function onModeChange() {
   afdelingGroepMedewerkers.value = [];
 }
 
-// Mode 1: debounced server-side search
+// Modes 1/2: fetch medewerkers when afdeling/groep changes
+watch(selectedAfdelingOfGroepNaam, async (naam) => {
+  forwardContactmomentForm.value.afdelingGroepMedewerker = "";
+  if (!naam) {
+    afdelingGroepMedewerkers.value = [];
+    return;
+  }
+  isAfdelingGroepMedewerkerLoading.value = true;
+  try {
+    const response = await get<MedewerkerData[]>("/api/medewerkers", {
+      afdelingOfGroep: naam,
+      type: forwardContactmomentForm.value.forwardTo
+    });
+    afdelingGroepMedewerkers.value = response;
+  } catch {
+    afdelingGroepMedewerkers.value = [];
+  } finally {
+    isAfdelingGroepMedewerkerLoading.value = false;
+  }
+});
+
+// Mode 3: debounced server-side search
 function onMedewerkerSearch(query: string) {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
   if (!query || query.length < 2) {
@@ -252,27 +274,6 @@ function onMedewerkerDirectSelected() {
   forwardContactmomentForm.value.afdelingOfGroep = "";
 }
 
-// Modes 2/3: fetch medewerkers when afdeling/groep changes
-watch(selectedAfdelingOfGroepNaam, async (naam) => {
-  forwardContactmomentForm.value.afdelingGroepMedewerker = "";
-  if (!naam) {
-    afdelingGroepMedewerkers.value = [];
-    return;
-  }
-  isAfdelingGroepMedewerkerLoading.value = true;
-  try {
-    const response = await get<MedewerkerData[]>("/api/medewerkers", {
-      afdelingOfGroep: naam,
-      type: forwardContactmomentForm.value.forwardTo
-    });
-    afdelingGroepMedewerkers.value = response;
-  } catch {
-    afdelingGroepMedewerkers.value = [];
-  } finally {
-    isAfdelingGroepMedewerkerLoading.value = false;
-  }
-});
-
 async function forwardContactverzoek() {
   isLoading.value = true;
   try {
@@ -291,21 +292,7 @@ async function forwardContactverzoek() {
 function getForwardContactVerzoekPayload(): ForwardKlantcontactRequest {
   const form = forwardContactmomentForm.value;
 
-  // Mode 1: Medewerker direct
-  if (form.forwardTo === FORWARD_OPTIONS.medewerker) {
-    const secondaryValue = form.afdelingOfGroep;
-    const [type, identifier] = secondaryValue.includes(":")
-      ? [secondaryValue.split(":")[0], secondaryValue.split(":").slice(1).join(":")]
-      : ["", ""];
-    return {
-      actorType: "Medewerker",
-      actorIdentifier: form.medewerker,
-      afdelingOfGroep: { type, identifier },
-      interneNotitie: form.interneNotitie || undefined
-    };
-  }
-
-  // Modes 2/3: Afdeling/Groep, optionally with medewerker
+  // Modes 1/2: Afdeling/Groep, optionally with medewerker
   const afdelingOfGroepIdentifier =
     form.forwardTo === FORWARD_OPTIONS.afdeling ? form.afdeling : form.groep;
 
@@ -317,6 +304,20 @@ function getForwardContactVerzoekPayload(): ForwardKlantcontactRequest {
         type: form.forwardTo,
         identifier: afdelingOfGroepIdentifier
       },
+      interneNotitie: form.interneNotitie || undefined
+    };
+  }
+
+  // Mode 3: Medewerker direct
+  if (form.forwardTo === FORWARD_OPTIONS.medewerker) {
+    const secondaryValue = form.afdelingOfGroep;
+    const [type, identifier] = secondaryValue.includes(":")
+      ? [secondaryValue.split(":")[0], secondaryValue.split(":").slice(1).join(":")]
+      : ["", ""];
+    return {
+      actorType: "Medewerker",
+      actorIdentifier: form.medewerker,
+      afdelingOfGroep: { type, identifier },
       interneNotitie: form.interneNotitie || undefined
     };
   }
