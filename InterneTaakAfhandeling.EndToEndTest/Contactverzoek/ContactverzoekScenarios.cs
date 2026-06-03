@@ -775,9 +775,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("And navigates to History tab");
             await Page.GetMijnHistorieLink().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Reload page to ensure latest data is displayed");
-            await Page.ReloadAsync();
+            await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
 
             await Step("Then the closed contact request is displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
