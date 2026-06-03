@@ -259,72 +259,75 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         }
 
 
-        [TestMethod("Validation that closed contactverzoek can still be updated")]
-        public async Task User_UpdateClosedContactverzoek_CanStillAddContactmoment()
-        {
-            var testOnderwerp = $"Test_Update_Closed_{Guid.NewGuid().ToString().Substring(0, 8)}";
-            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
-
-            await NavigateToContactverzoekDetails(testOnderwerp);
-            await NavigateToContactmomentRegistrerenTab();
-
-            await Step("Fill form and close the contactverzoek");
-            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Telefoon" });
-            await Page.GetInformatieBurgerTextbox().FillAsync("Initial contactmoment before closing");
-
-            await Step("Select 'Ja' for afsluiten to close the contactverzoek");
-            await Page.GetJaLabel().ClickAsync();
-
-            await Step("Click 'Contactmoment opslaan' button to trigger confirmation");
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-
-            await Step("Verify confirmation dialog is displayed");
-            await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
-
-            await Step("Click 'Opslaan & afronden' on confirmation dialog");
-            await Page.GetOpslaanEnAfrondenButton().ClickAsync();
-
-            await Step("Wait for close confirmation");
-            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            await Step("Get internetaak UUID and nummer for navigation");
-            var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
-            Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
-            
-            var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
-            Assert.AreEqual(KnownInternetaakStatussen.Verwerkt, internetaak.Status, "Status should be verwerkt after closing");
-            var internetaakNummer = internetaak.Nummer;
-
-            await Step($"Navigate back to closed contactverzoek using nummer: {internetaakNummer}");
-            await NavigateToContactverzoekByNummer(internetaakNummer!);
-
-            await Step("Verify contactverzoek details page is displayed");
-            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
-            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
-
-            await Step("Navigate to Contactmoment Registreren tab to add another contactmoment");
-            await NavigateToContactmomentRegistrerenTab();
-
-            await Step("Verify 'Contact opnemen gelukt' is selected by default");
-            await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            await Step("Fill and save a new contactmoment on the closed contactverzoek");
-            await Page.GetKanalenSelect().SelectOptionAsync(new[] { "E-mail" });
-            await Page.GetInformatieBurgerTextbox().FillAsync("Follow-up contactmoment on closed request");
-            
-            await Step("Select 'Nee' for afsluiten (don't close it again)");
-            await Page.GetNeeLabel().ClickAsync();
-            await Page.GetContactmomentOpslaanButton().ClickAsync();
-
-            await Step("Verify new contactmoment was saved successfully");
-            await Expect(Page.GetContactmomentSuccesvolBijgewerktMessage()).ToBeVisibleAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            await Step("Verify the new contactmoment appears in Logboek");
-            await Expect(Page.GetByText("Follow-up contactmoment on closed request")).ToBeVisibleAsync();
-        }
+        // Disabled: Closed (verwerkt) contactverzoeken are read-only. Once a contactverzoek is
+        // afgerond, the action controls (Contactmoment registreren, Doorsturen, Toewijzen, Zaak koppelen)
+        // are hidden and no further modifications are allowed. This is by design (Feature #344).
+        // [TestMethod("Validation that closed contactverzoek can still be updated")]
+        // public async Task User_UpdateClosedContactverzoek_CanStillAddContactmoment()
+        // {
+        //     var testOnderwerp = $"Test_Update_Closed_{Guid.NewGuid().ToString().Substring(0, 8)}";
+        //     var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+        //
+        //     await NavigateToContactverzoekDetails(testOnderwerp);
+        //     await NavigateToContactmomentRegistrerenTab();
+        //
+        //     await Step("Fill form and close the contactverzoek");
+        //     await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Telefoon" });
+        //     await Page.GetInformatieBurgerTextbox().FillAsync("Initial contactmoment before closing");
+        //
+        //     await Step("Select 'Ja' for afsluiten to close the contactverzoek");
+        //     await Page.GetJaLabel().ClickAsync();
+        //
+        //     await Step("Click 'Contactmoment opslaan' button to trigger confirmation");
+        //     await Page.GetContactmomentOpslaanButton().ClickAsync();
+        //
+        //     await Step("Verify confirmation dialog is displayed");
+        //     await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
+        //
+        //     await Step("Click 'Opslaan & afronden' on confirmation dialog");
+        //     await Page.GetOpslaanEnAfrondenButton().ClickAsync();
+        //
+        //     await Step("Wait for close confirmation");
+        //     await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
+        //     await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        //
+        //     await Step("Get internetaak UUID and nummer for navigation");
+        //     var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
+        //     Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
+        //
+        //     var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
+        //     Assert.AreEqual(KnownInternetaakStatussen.Verwerkt, internetaak.Status, "Status should be verwerkt after closing");
+        //     var internetaakNummer = internetaak.Nummer;
+        //
+        //     await Step($"Navigate back to closed contactverzoek using nummer: {internetaakNummer}");
+        //     await NavigateToContactverzoekByNummer(internetaakNummer!);
+        //
+        //     await Step("Verify contactverzoek details page is displayed");
+        //     await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+        //     await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
+        //
+        //     await Step("Navigate to Contactmoment Registreren tab to add another contactmoment");
+        //     await NavigateToContactmomentRegistrerenTab();
+        //
+        //     await Step("Verify 'Contact opnemen gelukt' is selected by default");
+        //     await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
+        //     await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        //
+        //     await Step("Fill and save a new contactmoment on the closed contactverzoek");
+        //     await Page.GetKanalenSelect().SelectOptionAsync(new[] { "E-mail" });
+        //     await Page.GetInformatieBurgerTextbox().FillAsync("Follow-up contactmoment on closed request");
+        //
+        //     await Step("Select 'Nee' for afsluiten (don't close it again)");
+        //     await Page.GetNeeLabel().ClickAsync();
+        //     await Page.GetContactmomentOpslaanButton().ClickAsync();
+        //
+        //     await Step("Verify new contactmoment was saved successfully");
+        //     await Expect(Page.GetContactmomentSuccesvolBijgewerktMessage()).ToBeVisibleAsync();
+        //     await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        //
+        //     await Step("Verify the new contactmoment appears in Logboek");
+        //     await Expect(Page.GetByText("Follow-up contactmoment on closed request")).ToBeVisibleAsync();
+        // }
 
         [TestMethod("Validation that closed contactverzoek assigned to user appears in Mijn historie")]
         public async Task User_ViewClosedContactverzoekInMijnHistorie()
@@ -553,9 +556,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task ToewijzenKnop_IsVisible_WhenCurrentUserNotIndividuallyAssigned()
         {
             var testOnderwerp = "Test_ToewijzenKnop_Zichtbaar_GeenIndividueleToewijzing";
-            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentNotCurrentUser(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentNotCurrentUser);
 
             await Step("Verify 'Toewijzen aan mezelf' button is visible");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
@@ -568,7 +572,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentOnly(testOnderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentOnly);
 
             await Step("Verify 'Toewijzen aan mezelf' button is visible (team assignment does not count as individual)");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
@@ -581,19 +585,33 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var uuid = await TestDataHelper.CreateContactverzoekWithNoAssignments(testOnderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithNoAssignments);
 
             await Step("Verify 'Toewijzen aan mezelf' button is visible");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Regression #425: Knop verborgen wanneer gebruiker is toegewezen via objectregister medewerker ID")]
+        public async Task ToewijzenKnop_IsHidden_WhenCurrentUserAssignedViaObjectRegisterId()
+        {
+            var testOnderwerp = "Test_ToewijzenKnop_Verborgen_ObjectRegisterId";
+            var uuid = await TestDataHelper.CreateContactverzoekWithCurrentUserAssignedViaObjectRegisterId(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithCurrentUserAssignedViaObjectRegisterId);
+
+            await Step("Verify 'Toewijzen aan mezelf' button is NOT visible when assigned via ObjectRegisterId");
+            await Expect(Page.GetToewijzenAanMezelfButton()).Not.ToBeVisibleAsync();
         }
 
         [TestMethod("Assigning a Contactverzoek to yourself")]
         public async Task Assigning_Contactverzoek_To_Yourself()
         {
             var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
-            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentOnly(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentOnly);
             
             await Step("Click on 'Toewijzen aan mezelf' button");
             await Page.GetToewijzenAanMezelfButton().ClickAsync();
@@ -613,9 +631,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task Assigning_Contactverzoek_To_Yourself_Annuleren()
         {
             var testOnderwerp = "Test_Contact_from_ITA_E2E_test_without_ZAAK";
-            await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentOnly(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentOnly);
             
             await Step("Capture initial Behandelaar value");
             var initialBehandelaar = await Page.GetBehandelaarValue().InnerTextAsync();
@@ -687,16 +706,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await detailsLink.ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("Then the detail screen of the contact request is the same as the 'Alle contactverzoeken' page");
+            await Step("Then the detail screen of the contact request shows read-only mode for closed contactverzoek");
             await VerifyBasicContactverzoekFields(testOnderwerp);
-            await VerifyActionTabsArePresent();
             await VerifyMetadataFields();
 
-            await Step("Verify the contactverzoek detail page elements are present");
+            await Step("Verify action tabs are NOT visible (read-only mode for verwerkt contactverzoek - Feature #344)");
             await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
-            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
-            await Expect(Page.GetDoorsturenTab()).ToBeVisibleAsync();
-            await Expect(Page.GetAlleenToelichtingTab()).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentRegistrerenTab()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetDoorsturenTab()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetAlleenToelichtingTab()).Not.ToBeVisibleAsync();
 
             await Step("Verify the contactverzoek shows as verwerkt status");
             await Expect(Page.GetStatusValue()).ToHaveTextAsync("verwerkt");
@@ -707,8 +725,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             var testOnderwerp = $"Test_Unassigned_Reassignment_{Guid.NewGuid().ToString().Substring(0, 8)}";
             
-            await Step("Given user is on ITA - Create contactverzoek for another employee (not assigned to current user)");
-            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+            await Step("Given user is on ITA - Create contactverzoek without individual assignment");
+            var contactmomentUuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentOnly(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
 
             await Step("Look up the internetaak nummer from the created contactmoment");
             var internetaakUuidForNav = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
@@ -716,7 +735,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var internetaakForNav = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuidForNav.Value);
             Assert.IsNotNull(internetaakForNav.Nummer, "Internetaak nummer should be found after setup");
 
-            await Step("And navigates to a contactverzoek that is created for another employee");
+            await Step("And navigates to a contactverzoek that is not individually assigned to current user");
             await SafeGotoAsync($"/contactverzoek/{internetaakForNav.Nummer}");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
@@ -731,8 +750,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step("Verify the current user is now shown as Behandelaar");
-            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("E2E test contactverzoek creator");
+            await Step("Verify assignment success message is shown");
+            await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
 
             await Step("When user closes the contact request");
             await NavigateToContactmomentRegistrerenTab();
@@ -756,9 +775,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("And navigates to History tab");
             await Page.GetMijnHistorieLink().ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Reload page to ensure latest data is displayed");
-            await Page.ReloadAsync();
+            await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
 
             await Step("Then the closed contact request is displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
@@ -832,8 +852,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task User_AssignContactverzoekToSelf_VerifyLogbookEntry()
         {
             var testOnderwerp = "Test_Contact_Opgepakt_Logbook";
-            await SetupContactverzoek(testOnderwerp, attachZaak: false);
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentOnly(testOnderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentOnly);
 
             await Step("Click on 'Toewijzen aan mezelf' button");
             await Page.GetToewijzenAanMezelfButton().ClickAsync();
@@ -988,7 +1010,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
 
             await Step("Verify contactverzoek was closed successfully");
-            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync(new() { Timeout = 15000 });
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
  
             await Step("Navigate to Mijn historie tab");
