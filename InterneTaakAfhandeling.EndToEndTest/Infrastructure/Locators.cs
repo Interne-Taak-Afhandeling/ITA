@@ -172,5 +172,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         // Message locators
         public static ILocator GetContactverzoekToegewezenMessage(this IPage page) =>
             page.GetByText("Contactverzoek toegewezen");
+
+        public static ILocator GetAfgehandeldMessage(this IPage page) =>
+            page.GetByText("Dit contactverzoek is afgehandeld en kan niet meer worden gewijzigd.");
     }
 }
