@@ -25,7 +25,7 @@ public class ForwardContactRequestModel : IValidatableObject
         if (ActorType is not (KnownActorType.Medewerker or KnownActorType.Afdeling or KnownActorType.Groep))
         {
             yield return new ValidationResult(
-                "ActorType must be 'Medewerker', 'Afdeling', or 'Groep'.",
+                $"ActorType must be '{KnownActorType.Medewerker}', '{KnownActorType.Afdeling}', or '{KnownActorType.Groep}'.",
                 [nameof(ActorType)]);
             yield break;
         }
@@ -41,14 +41,14 @@ public class ForwardContactRequestModel : IValidatableObject
                 if (AfdelingOfGroep == null)
                 {
                     yield return new ValidationResult(
-                        "AfdelingOfGroep is required when ActorType is 'Medewerker'.",
+                        $"AfdelingOfGroep is required when ActorType is '{KnownActorType.Medewerker}'.",
                         [nameof(AfdelingOfGroep)]);
                 }
                 else
                 {
                     if (AfdelingOfGroep.Type is not (KnownActorType.Afdeling or KnownActorType.Groep))
                         yield return new ValidationResult(
-                            "AfdelingOfGroep.Type must be 'Afdeling' or 'Groep'.",
+                            $"AfdelingOfGroep.Type must be '{KnownActorType.Afdeling}' or '{KnownActorType.Groep}'.",
                             [nameof(AfdelingOfGroep)]);
 
                     if (string.IsNullOrWhiteSpace(AfdelingOfGroep.Identifier))
