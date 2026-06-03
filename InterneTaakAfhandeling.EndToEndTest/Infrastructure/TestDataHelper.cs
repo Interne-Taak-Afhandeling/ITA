@@ -243,11 +243,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            var otherMedewerkerActor = await GetOrCreateMedewerkerActorDirectly("surbhi@info.nl");
 
             await CreateInternetaakIfNotExists(
                 TestDataConstants.ContactverzoekNummers.WithTeamAssignmentNotCurrentUser,
                 contactmoment.Uuid,
-                new List<Guid> { Guid.Parse(afdelingActor.Uuid) },
+                new List<Guid>
+                {
+                    Guid.Parse(otherMedewerkerActor.Uuid),
+                    Guid.Parse(afdelingActor.Uuid)
+                },
                 isExplicitNummer: true);
 
             return contactmoment.Uuid;
@@ -536,6 +541,36 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     Actoridentificator = new Actoridentificator
                     {
                         ObjectId = medewerker.Identificatie!,
+                        CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
+                        CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
+                        CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId
+                    }
+                });
+        }
+
+        /// <summary>
+        /// Creates or gets a medewerker actor directly in OpenKlant without requiring the medewerker to exist in the Object API.
+        /// </summary>
+        private async Task<Actor> GetOrCreateMedewerkerActorDirectly(string identifier)
+        {
+            return await GetOrCreateActor(
+                query: new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.medewerker,
+                    ActoridentificatorObjectId = identifier
+                },
+                request: new ActorRequest
+                {
+                    Naam = "Other Medewerker (Test)",
+                    SoortActor = SoortActor.medewerker,
+                    IndicatieActief = true,
+                    Actoridentificator = new Actoridentificator
+                    {
+                        ObjectId = identifier,
                         CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
                         CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
                         CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId

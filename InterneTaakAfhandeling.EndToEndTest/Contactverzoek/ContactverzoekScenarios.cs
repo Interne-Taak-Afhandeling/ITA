@@ -598,7 +598,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var uuid = await TestDataHelper.CreateContactverzoekWithCurrentUserAssignedViaObjectRegisterId(testOnderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(testOnderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithCurrentUserAssignedViaObjectRegisterId);
 
             await Step("Verify 'Toewijzen aan mezelf' button is NOT visible when assigned via ObjectRegisterId");
             await Expect(Page.GetToewijzenAanMezelfButton()).Not.ToBeVisibleAsync();
