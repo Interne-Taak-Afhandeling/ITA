@@ -333,7 +333,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)
         {
-            return await OpenKlantApiClient.GetInternetaakByIdAsync(uuid);
+            var internetaak = await OpenKlantApiClient.GetInternetaakByIdAsync(uuid);
+
+            if (internetaak.AanleidinggevendKlantcontact?.Uuid != null && internetaak.AanleidinggevendKlantcontact.Uuid != Guid.Empty)
+            {
+                internetaak.AanleidinggevendKlantcontact = await OpenKlantApiClient.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+            }
+
+            return internetaak;
         }
 
         public async Task<Guid?> GetInternetaakUuidFromContactmomentAsync(Guid contactmomentUuid)

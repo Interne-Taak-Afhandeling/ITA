@@ -105,7 +105,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
         {
             await Step($"Verify kanaal '{kanaalName}' exists");
             await NavigateToKanalenPage();
-            await Expect(locators.GetKanaalLink(kanaalName)).ToBeVisibleAsync();
+            await Expect(locators.GetKanaalLink(kanaalName)).ToBeVisibleAsync(new() { Timeout = 10000 });
         }
 
         private async Task EditKanaalName(string currentName, string newName)

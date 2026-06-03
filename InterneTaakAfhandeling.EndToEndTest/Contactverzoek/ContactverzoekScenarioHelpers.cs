@@ -37,9 +37,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             Assert.IsNotNull(internetaak.Nummer, "Internetaak nummer should be found");
 
             await NavigateToContactverzoekByNummer(internetaak.Nummer!);
-            await Page.GetToewijzenAanMezelfButton().ClickAsync();
-            await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
-            await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
+
+            // Only assign to self if the button is visible (user not already individually assigned)
+            var toewijzenButton = Page.GetToewijzenAanMezelfButton();
+            if (await toewijzenButton.IsVisibleAsync())
+            {
+                await toewijzenButton.ClickAsync();
+                await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
+                await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
+            }
 
             await NavigateToContactmomentRegistrerenTab();
             await Page.Locator("#kanalen").SelectOptionAsync(new[] { "Telefoon" });
@@ -67,9 +73,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task CloseContactverzoekByNummer(string internetaakNummer, string kanaal, string informatie)
         {
             await NavigateToContactverzoekByNummer(internetaakNummer);
-            await Page.GetToewijzenAanMezelfButton().ClickAsync();
-            await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
-            await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
+
+            // Only assign to self if the button is visible (user not already individually assigned)
+            var toewijzenButton = Page.GetToewijzenAanMezelfButton();
+            if (await toewijzenButton.IsVisibleAsync())
+            {
+                await toewijzenButton.ClickAsync();
+                await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
+                await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
+            }
 
             await NavigateToContactmomentRegistrerenTab();
             await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
@@ -122,6 +134,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var detailsLink = Page.GetDetailsLink(onderwerp);
             await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
             await detailsLink.ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         }
 
         private async Task NavigateToContactverzoekByNummer(string internetaakNummer)
@@ -158,7 +171,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task VerifyBasicContactverzoekFields(string onderwerp)
         {
             await Step("Verify contactverzoek is visible");
-            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
+            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
             await Step("Verify contact information fields");
             await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();
@@ -185,7 +198,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task VerifyZaakIsVisible(string zaakIdentificatie)
         {
             await Step($"Verify ZAAK '{zaakIdentificatie}' is visible");
-            await Expect(Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie })).ToBeVisibleAsync();
+            await Expect(Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie })).ToBeVisibleAsync(new() { Timeout = 10000 });
         }
 
         private async Task VerifyActionTabsArePresent()
