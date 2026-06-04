@@ -1,6 +1,6 @@
 <template>
   <utrecht-form-field>
-    <utrecht-form-label for="afdelingSelect">Groep</utrecht-form-label>
+    <utrecht-form-label for="groepSelect">Groep</utrecht-form-label>
     <utrecht-select
       required
       name="groep"

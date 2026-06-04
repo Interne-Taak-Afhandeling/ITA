@@ -93,10 +93,12 @@ const secondaryOptions = computed(() =>
 );
 
 const hiddenAfdelingOfGroepInput = computed(() => {
-  if (!afdelingOfGroep.value) return null;
-  const index = afdelingOfGroep.value.indexOf(":");
-  const type = afdelingOfGroep.value.substring(0, index);
-  const id = afdelingOfGroep.value.substring(index + 1);
+  const value =
+    secondaryOptions.value.length === 1 ? secondaryOptions.value[0].value : afdelingOfGroep.value;
+  if (!value) return null;
+  const index = value.indexOf(":");
+  const type = value.substring(0, index);
+  const id = value.substring(index + 1);
   return { name: type, value: id };
 });
 

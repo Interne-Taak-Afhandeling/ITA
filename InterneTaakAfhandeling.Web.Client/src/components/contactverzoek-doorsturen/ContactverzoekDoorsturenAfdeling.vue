@@ -7,13 +7,14 @@
       id="afdelingSelect"
       :options="afdelingen"
       v-model="selectedAfdeling"
+      @change="selectedMedewerker = ''"
     />
   </utrecht-form-field>
   <template v-if="selectedAfdeling">
     <utrecht-form-field v-if="medewerkerLoading">
       <small-spinner />
     </utrecht-form-field>
-    <utrecht-form-field v-if="medewerkerOptions?.length">
+    <utrecht-form-field v-else-if="medewerkerOptions?.length">
       <utrecht-form-label for="afdeling-groep-medewerker-combobox"
         >Medewerker (optioneel)</utrecht-form-label
       >

@@ -3,12 +3,18 @@
   <utrecht-alert v-else-if="error" type="error">
     {{ error }}
   </utrecht-alert>
-  <form v-else @submit.prevent="forwardContactverzoek">
+  <form v-else @submit.prevent="forwardContactverzoek" ref="forwardForm">
     <utrecht-fieldset>
       <utrecht-fieldset>
         <utrecht-legend>Contactmoment doorzetten naar</utrecht-legend>
         <utrecht-form-field v-for="(label, key) in FORWARD_OPTIONS" :key="key" type="radio">
-          <utrecht-radiobutton :id="key" :value="label" v-model="forwardTo" required />
+          <utrecht-radiobutton
+            name="forwardTo"
+            :id="key"
+            :value="label"
+            v-model="forwardTo"
+            required
+          />
           <utrecht-form-label :for="key" type="radio">{{ label }}</utrecht-form-label>
         </utrecht-form-field>
       </utrecht-fieldset>
@@ -41,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, useTemplateRef } from "vue";
 import { toast } from "@/components/toast/toast.ts";
 import InterneToelichtingField from "../InterneToelichtingField.vue";
 import type { Internetaken } from "@/types/internetaken";
@@ -63,6 +69,8 @@ const FORWARD_OPTIONS = {
 } as const;
 type FORWARD_OPTIONS = typeof FORWARD_OPTIONS;
 
+const formRef = useTemplateRef("forwardForm");
+
 const afdelingen = ref<{ label: string; value: string }[]>([]);
 const groepen = ref<{ label: string; value: string }[]>([]);
 
@@ -76,6 +84,7 @@ const forwardTo = ref<(typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS]>(
 
 function resetForm() {
   forwardTo.value = FORWARD_OPTIONS.afdeling;
+  formRef.value?.reset();
 }
 
 function mapFormDataToObj<K extends string>(formData: FormData, keys: K[]): { [k in K]: string } {

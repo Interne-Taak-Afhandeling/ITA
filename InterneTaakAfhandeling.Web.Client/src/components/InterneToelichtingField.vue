@@ -22,5 +22,5 @@ import { useId } from "vue";
 import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 const id = `interne-toelichting-text${useId()}`;
 defineProps<{ required?: boolean; placeholder?: string; name?: string }>();
-const model = defineModel<string>();
+const model = defineModel<string>({ default: "" });
 </script>
