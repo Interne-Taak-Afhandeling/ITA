@@ -239,6 +239,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 onderwerp,
                 "Test contactverzoek for readonly guard verification",
                 klantnaam: null);
+        public async Task<Guid> CreateContactverzoekWithTeamAssignmentNotCurrentUser(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await GetOrCreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.");
 
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
@@ -259,6 +266,47 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
             return (contactmoment.Uuid, internetaakUuid, internetaak.Nummer
                 ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            var otherMedewerkerActor = await GetOrCreateMedewerkerActorDirectly("surbhi@info.nl");
+
+            await CreateInternetaakIfNotExists(
+                TestDataConstants.ContactverzoekNummers.WithTeamAssignmentNotCurrentUser,
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(otherMedewerkerActor.Uuid),
+                    Guid.Parse(afdelingActor.Uuid)
+                },
+                isExplicitNummer: true);
+
+            return contactmoment.Uuid;
+        }
+
+        public async Task<Guid> CreateContactverzoekWithCurrentUserAssignedViaObjectRegisterId(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await GetOrCreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            var medewerkerActorViaObjectRegisterId = await GetOrCreateMedewerkerActor(Username);
+
+            await CreateInternetaakIfNotExists(
+                TestDataConstants.ContactverzoekNummers.WithCurrentUserAssignedViaObjectRegisterId,
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(afdelingActor.Uuid),
+                    Guid.Parse(medewerkerActorViaObjectRegisterId.Uuid)
+                },
+                isExplicitNummer: true);
+
+            return contactmoment.Uuid;
         }
 
 
@@ -314,7 +362,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)
         {
-            return await OpenKlantApiClient.GetInternetaakByIdAsync(uuid);
+            var internetaak = await OpenKlantApiClient.GetInternetaakByIdAsync(uuid);
+
+            if (internetaak.AanleidinggevendKlantcontact?.Uuid != null && internetaak.AanleidinggevendKlantcontact.Uuid != Guid.Empty)
+            {
+                internetaak.AanleidinggevendKlantcontact = await OpenKlantApiClient.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+            }
+
+            return internetaak;
         }
 
         public async Task<Guid?> GetInternetaakUuidFromContactmomentAsync(Guid contactmomentUuid)
@@ -510,6 +565,36 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     Actoridentificator = new Actoridentificator
                     {
                         ObjectId = medewerker.Identificatie!,
+                        CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
+                        CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
+                        CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId
+                    }
+                });
+        }
+
+        /// <summary>
+        /// Creates or gets a medewerker actor directly in OpenKlant without requiring the medewerker to exist in the Object API.
+        /// </summary>
+        private async Task<Actor> GetOrCreateMedewerkerActorDirectly(string identifier)
+        {
+            return await GetOrCreateActor(
+                query: new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.medewerker,
+                    ActoridentificatorObjectId = identifier
+                },
+                request: new ActorRequest
+                {
+                    Naam = "Other Medewerker (Test)",
+                    SoortActor = SoortActor.medewerker,
+                    IndicatieActief = true,
+                    Actoridentificator = new Actoridentificator
+                    {
+                        ObjectId = identifier,
                         CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
                         CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
                         CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId

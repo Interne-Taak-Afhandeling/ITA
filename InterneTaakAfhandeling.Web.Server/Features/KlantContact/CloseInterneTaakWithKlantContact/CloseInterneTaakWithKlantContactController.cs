@@ -45,11 +45,10 @@ public class CloseInterneTaakWithKlantContactController(
     [HttpPost("close-with-klantcontact")] //todo: refactor to "HttpPost("[internetaakUuid]/close-with-klantcontact)" and consider making it a PUT
     public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] RequestModel request)
     {
+        await _internetaakGuardService.GuardAgainstVerwerktAsync(request.InterneTaakId);
+
         try
         {
-            var blocked = await _internetaakGuardService.EnsureNotVerwerktAsync(request.InterneTaakId, "close-with-klantcontact");
-            if (blocked != null) return blocked;
-
             _logger.LogInformation(
                 "Closing Interne taak and creating related klantcontact with aanleidinggevendKlantcontact UUID: {AanleidinggevendKlantcontactUuid}",
                 request.AanleidinggevendKlantcontactUuid);
