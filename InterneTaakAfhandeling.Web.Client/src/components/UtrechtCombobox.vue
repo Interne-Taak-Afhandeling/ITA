@@ -60,14 +60,14 @@ const props = withDefaults(
   defineProps<{
     id: string;
     options: ComboboxOption[];
-    modelValue: string;
+    modelValue?: string;
     placeholder?: string;
     ariaLabel?: string;
     serverSide?: boolean;
     required?: boolean;
     loading?: boolean;
   }>(),
-  { serverSide: false, required: false, loading: false }
+  { serverSide: false, required: false, loading: false, modelValue: "" }
 );
 
 const emit = defineEmits<{

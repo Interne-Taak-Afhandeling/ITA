@@ -7,6 +7,7 @@
         v-model.trim="model"
         :placeholder="placeholder"
         :required="required"
+        :name="name"
       />
       <div class="small">
         Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
@@ -20,6 +21,6 @@
 import { useId } from "vue";
 import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 const id = `interne-toelichting-text${useId()}`;
-defineProps<{ required?: boolean; placeholder?: string }>();
-const model = defineModel<string>({ required: true });
+defineProps<{ required?: boolean; placeholder?: string; name?: string }>();
+const model = defineModel<string>();
 </script>

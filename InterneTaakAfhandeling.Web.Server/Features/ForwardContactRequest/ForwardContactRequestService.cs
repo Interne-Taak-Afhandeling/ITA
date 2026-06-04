@@ -5,7 +5,6 @@ using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using Microsoft.Extensions.Configuration;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
@@ -112,38 +111,19 @@ public class ForwardContactRequestService(
     {
         var actors = new List<Actor>();
 
-        switch (request.ActorType)
+        if(!string.IsNullOrWhiteSpace(request.Medewerker))
         {
-            case KnownActorType.Medewerker:
-            {
-                var medewerkerActor = await GetOrCreateMedewerkerActorByObjectRegisterId(request.ActorIdentifier);
-                actors.Add(medewerkerActor);
+            actors.Add(await GetOrCreateMedewerkerActorByObjectRegisterId(request.Medewerker));
+        }
 
-                var orgEenheidActor = request.AfdelingOfGroep!.Type switch
-                {
-                    KnownActorType.Afdeling => await GetOrCreateAfdelingActor(request.AfdelingOfGroep.Identifier),
-                    KnownActorType.Groep => await GetOrCreateGroepActor(request.AfdelingOfGroep.Identifier),
-                    _ => throw new ArgumentException($"Invalid AfdelingOfGroep type: {request.AfdelingOfGroep.Type}")
-                };
-                actors.Add(orgEenheidActor);
-                break;
-            }
-            case KnownActorType.Afdeling:
-            {
-                actors.Add(await GetOrCreateAfdelingActor(request.ActorIdentifier));
-                if (!string.IsNullOrWhiteSpace(request.MedewerkerEmail))
-                    actors.Add(await GetOrCreateMedewerkerActor(request.MedewerkerEmail));
-                break;
-            }
-            case KnownActorType.Groep:
-            {
-                actors.Add(await GetOrCreateGroepActor(request.ActorIdentifier));
-                if (!string.IsNullOrWhiteSpace(request.MedewerkerEmail))
-                    actors.Add(await GetOrCreateMedewerkerActor(request.MedewerkerEmail));
-                break;
-            }
-            default:
-                throw new ArgumentException($"Invalid actor type: {request.ActorType}");
+        if(!string.IsNullOrWhiteSpace(request.Afdeling))
+        {
+            actors.Add(await GetOrCreateAfdelingActor(request.Afdeling));
+        }
+
+        if(!string.IsNullOrWhiteSpace(request.Groep))
+        {
+            actors.Add(await GetOrCreateGroepActor(request.Groep));
         }
 
         return actors;
