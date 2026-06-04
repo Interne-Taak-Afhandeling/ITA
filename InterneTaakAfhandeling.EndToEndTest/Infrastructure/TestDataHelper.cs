@@ -31,6 +31,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             IOptions<LogboekOptions> l,
             IOptions<AfdelingOptions> a,
             IOptions<GroepOptions> g,
+            IOptions<MedewerkerOptions> m,
             string username)
         {
             Username = username;
@@ -39,7 +40,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             Logger = loggerFactory.CreateLogger<TestDataHelper>();
 
             OpenKlantApiClient = CreateOpenKlantApiClient(openKlantBaseUrl, openKlantApiKey, loggerFactory);
-            ObjectApiClient = CreateObjectApiClient(objectenApiBaseUrl, objectenApiKey, loggerFactory, l, a, g);
+            ObjectApiClient = CreateObjectApiClient(objectenApiBaseUrl, objectenApiKey, loggerFactory, l, a, g, m);
             ZakenApiClient = CreateZakenApiClient(zakenApiBaseUrl, zakenApiKey, zakenApiClientId, loggerFactory);
         }
 
@@ -61,12 +62,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             ILoggerFactory loggerFactory,
             IOptions<LogboekOptions> l,
             IOptions<AfdelingOptions> a,
-            IOptions<GroepOptions> g)
+            IOptions<GroepOptions> g,
+            IOptions<MedewerkerOptions> m)
         {
             var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", apiKey);
             httpClient.DefaultRequestHeaders.Add("Content-Crs", "EPSG:4326");
-            return new ObjectApiClient(httpClient, loggerFactory.CreateLogger<ObjectApiClient>(), l, a, g);
+            return new ObjectApiClient(httpClient, loggerFactory.CreateLogger<ObjectApiClient>(), l, a, g, m);
         }
 
         private static ZakenApiClient CreateZakenApiClient(

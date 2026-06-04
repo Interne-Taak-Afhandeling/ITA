@@ -54,10 +54,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             services.Configure<AfdelingOptions>(s_configuration.GetSection("TestSettings:AfdelingOptions"));
             services.Configure<GroepOptions>(s_configuration.GetSection("TestSettings:GroepOptions"));
             services.Configure<LogboekOptions>(s_configuration.GetSection("TestSettings:LogboekOptions"));
+            services.Configure<MedewerkerOptions>(s_configuration.GetSection("TestSettings:MedewerkerOptions"));
             var serviceProvider = services.BuildServiceProvider();
             var afdelingOptions = serviceProvider.GetRequiredService<IOptions<AfdelingOptions>>();
             var groepOptions = serviceProvider.GetRequiredService<IOptions<GroepOptions>>();
             var logboekOptions = serviceProvider.GetRequiredService<IOptions<LogboekOptions>>();
+            var medewerkerOptions = serviceProvider.GetRequiredService<IOptions<MedewerkerOptions>>();
 
             var username = s_configuration["TestSettings:TEST_USERNAME"] ?? throw new InvalidOperationException("TEST_USERNAME is missing from the configuration");
 
@@ -72,6 +74,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 logboekOptions,
                 afdelingOptions,
                 groepOptions,
+                medewerkerOptions,
                 username);
 
         }
