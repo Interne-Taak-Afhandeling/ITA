@@ -970,6 +970,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetContactmomentSuccesvolBijgewerktMessage()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
+            await Step("Reload page to ensure logbook is updated");
+            await Page.ReloadAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
             await VerifyLogbookEntry("Contact gelukt");
 
             await Step("Verify the information 'test logboek' is visible in the logbook section");
@@ -1212,9 +1216,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task ActionControls_AreAvailable_WhenTeVerwerken()
         {
             var onderwerp = $"Test_Open_Controls_{Guid.NewGuid().ToString().Substring(0, 8)}";
-            await SetupContactverzoek(onderwerp, attachZaak: false);
+            var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentNotCurrentUser(onderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
-            await NavigateToContactverzoekDetails(onderwerp);
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentNotCurrentUser);
 
             await Step("Verify action controls are visible for te_verwerken contactverzoek");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
