@@ -80,3 +80,11 @@ public class GroepOptions
     [Required]
     public required string TypeVersion { get; init; }
 }
+
+public class MedewerkerOptions
+{
+    [Required]
+    public required string Type { get; init; }
+    [Required]
+    public required string TypeVersion { get; init; }
+}

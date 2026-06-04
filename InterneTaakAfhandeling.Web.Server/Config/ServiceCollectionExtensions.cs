@@ -6,6 +6,7 @@ using InterneTaakAfhandeling.Web.Server.Data;
 using InterneTaakAfhandeling.Web.Server.Features;
 using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe;
 using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
+using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.MedewerkersOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
@@ -58,6 +59,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IKlantcontactService, KlantcontactService>();     
             services.AddScoped<IAssignInternetaakToMeService, AssignInternetaakToMeService>();
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
+            services.AddScoped<IMedewerkersOverzichtService, MedewerkersOverzichtService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IInternetaakGuardService, InternetaakGuardService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();

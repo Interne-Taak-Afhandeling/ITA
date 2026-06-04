@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import ContactverzoekInterneNotitie from "./ContactverzoekInterneNotitie.vue";
-import ContactverzoekDoorsturen from "./ContactverzoekDoorsturen.vue";
+import ContactverzoekDoorsturen from "./contactverzoek-doorsturen/ContactverzoekDoorsturen.vue";
 import ContactverzoekRegisteren from "./ContactverzoekRegistreren.vue";
 import type { Internetaken } from "@/types/internetaken";
 import ItaRadioTabs from "./ItaRadioTabs.vue";

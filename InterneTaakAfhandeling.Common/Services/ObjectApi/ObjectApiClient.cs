@@ -19,6 +19,7 @@ public interface IObjectApiClient
     Task<ObjectModels<Afdeling>> GetAfdelingen(int page);
     Task<ObjectModels<Afdeling>> FindAfdelingen(string query);
     Task<ObjectModels<Groep>> GetGroepen(int page);
+    Task<ObjectModels<MedewerkerObjectData>> FindMedewerkers(string query, int page = 1);
 }
 
 public class ObjectApiClient(
@@ -26,7 +27,8 @@ public class ObjectApiClient(
     ILogger<ObjectApiClient> logger,
     IOptions<LogboekOptions> logboekOptions,
     IOptions<AfdelingOptions> afdelingOptions,
-    IOptions<GroepOptions> groepOptions
+    IOptions<GroepOptions> groepOptions,
+    IOptions<MedewerkerOptions> medewerkerOptions
     ) : IObjectApiClient
 {
     private const int TruncatedLength = 3;
@@ -35,6 +37,7 @@ public class ObjectApiClient(
     private readonly ILogger<ObjectApiClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IOptions<AfdelingOptions> afdelingOptions = afdelingOptions ?? throw new ArgumentNullException(nameof(afdelingOptions));
     private readonly IOptions<GroepOptions> groepOptions = groepOptions ?? throw new ArgumentNullException(nameof(groepOptions));
+    private readonly IOptions<MedewerkerOptions> medewerkerOptions = medewerkerOptions ?? throw new ArgumentNullException(nameof(medewerkerOptions));
 
     public Task<List<MedewerkerObjectData>> GetMedewerkersByIdentificatie(string identificatie)
         => GetObjectsByIdentificatie<MedewerkerObjectData>(identificatie, null);
@@ -260,6 +263,25 @@ public class ObjectApiClient(
         {
             var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
             _logger.LogError(ex, "Error retrieving groepen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
+            throw;
+        }
+    }
+
+    public async Task<ObjectModels<MedewerkerObjectData>> FindMedewerkers(string query, int page = 1)
+    {
+        HttpResponseMessage? response = null;
+
+        try
+        {
+            response = await _httpClient.GetAsync($"objects?type={medewerkerOptions.Value.Type}&typeVersion={medewerkerOptions.Value.TypeVersion}&data_icontains={Uri.EscapeDataString(query)}&page={page}");
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<ObjectModels<MedewerkerObjectData>>();
+            return result!;
+        }
+        catch (HttpRequestException ex)
+        {
+            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
+            _logger.LogError(ex, "Error searching medewerkers from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
             throw;
         }
     }

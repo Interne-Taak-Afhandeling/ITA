@@ -1,4 +1,4 @@
-using InterneTaakAfhandeling.Common.Services;
+﻿using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -120,36 +120,19 @@ public class KnownContactAction
 
         List<ObjectIdentificator> objectIdentificators = [];
 
-        switch (request.ActorType)
+        if(!string.IsNullOrWhiteSpace(request.Medewerker))
         {
-            case KnownActorType.Medewerker:
-                objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.ObjectRegisterId, request.ActorIdentifier));
-                if (request.AfdelingOfGroep != null)
-                {
-                    IObjectRegisterId orgEenheidId = request.AfdelingOfGroep.Type switch
-                    {
-                        KnownActorType.Afdeling => KnownAfdelingIdentificators.ObjectRegisterId,
-                        KnownActorType.Groep => KnownGroepIdentificators.ObjectRegisterId,
-                        _ => throw new InvalidOperationException($"Unknown AfdelingOfGroep.Type: {request.AfdelingOfGroep.Type}")
-                    };
-                    objectIdentificators.Add(CreateIdentificator(orgEenheidId, request.AfdelingOfGroep.Identifier));
-                }
-                break;
+            objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.ObjectRegisterId, request.Medewerker));
+        }
 
-            case KnownActorType.Afdeling:
-                objectIdentificators.Add(CreateIdentificator(KnownAfdelingIdentificators.ObjectRegisterId, request.ActorIdentifier));
-                if (!string.IsNullOrWhiteSpace(request.MedewerkerEmail))
-                    objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.EmailHandmatig, request.MedewerkerEmail));
-                break;
+        if(!string.IsNullOrWhiteSpace(request.Afdeling))
+        {
+            objectIdentificators.Add(CreateIdentificator(KnownAfdelingIdentificators.ObjectRegisterId, request.Afdeling));
+        }
 
-            case KnownActorType.Groep:
-                objectIdentificators.Add(CreateIdentificator(KnownGroepIdentificators.ObjectRegisterId, request.ActorIdentifier));
-                if (!string.IsNullOrWhiteSpace(request.MedewerkerEmail))
-                    objectIdentificators.Add(CreateIdentificator(KnownMedewerkerIdentificators.EmailHandmatig, request.MedewerkerEmail));
-                break;
-
-            default:
-                throw new InvalidOperationException($"Unknown ActorType: {request.ActorType}");
+        if (!string.IsNullOrWhiteSpace(request.Groep))
+        {
+            objectIdentificators.Add(CreateIdentificator(KnownGroepIdentificators.ObjectRegisterId, request.Groep));
         }
 
         return new KnownContactAction
