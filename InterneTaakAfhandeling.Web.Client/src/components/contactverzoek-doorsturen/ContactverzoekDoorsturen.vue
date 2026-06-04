@@ -39,7 +39,7 @@
     </utrecht-fieldset>
 
     <utrecht-button-group>
-      <utrecht-button type="submit" appearance="primary-action-button"
+      <utrecht-button type="submit" appearance="primary-action-button" :disabled="isSubmitting"
         >Contactverzoek doorsturen</utrecht-button
       >
     </utrecht-button-group>
@@ -75,6 +75,7 @@ const afdelingen = ref<{ label: string; value: string }[]>([]);
 const groepen = ref<{ label: string; value: string }[]>([]);
 
 const isLoading = ref(false);
+const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 
 // Form state
@@ -99,7 +100,7 @@ async function forwardContactverzoek(submitEvent: Event) {
   const formData = new FormData(formElement);
   const payload = mapFormDataToObj(formData, ["medewerker", "afdeling", "groep", "interneNotitie"]);
 
-  isLoading.value = true;
+  isSubmitting.value = true;
   try {
     const response = await klantcontactService.forwardKlantContact(taak.uuid, payload);
     toast.add({ text: response.notificationResult, type: "ok", timeout: 5000 });
@@ -108,7 +109,7 @@ async function forwardContactverzoek(submitEvent: Event) {
   } catch (err: unknown) {
     handleSubmitError(err);
   } finally {
-    isLoading.value = false;
+    isSubmitting.value = false;
   }
 }
 
