@@ -24,7 +24,7 @@
       required
       id="secondaryPicker"
       v-model="afdelingOfGroep"
-      :options="secondaryOptions"
+      :options="[{ label: 'Selecteer een afdeling of groep', value: '' }, ...secondaryOptions]"
     />
   </utrecht-form-field>
 
