@@ -112,21 +112,82 @@ public class ForwardContactRequestService(
     {
         var actors = new List<Actor>();
 
-        var primaryActor = request.ActorType switch
+        switch (request.ActorType)
         {
-            KnownActorType.Afdeling => await GetOrCreateAfdelingActor(request.ActorIdentifier),
-            KnownActorType.Groep => await GetOrCreateGroepActor(request.ActorIdentifier),
-            _ => throw new ArgumentException($"Invalid actor type: {request.ActorType}")
-        };
+            case KnownActorType.Medewerker:
+            {
+                var medewerkerActor = await GetOrCreateMedewerkerActorByObjectRegisterId(request.ActorIdentifier);
+                actors.Add(medewerkerActor);
 
-        actors.Add(primaryActor);
-
-        if (string.IsNullOrWhiteSpace(request.MedewerkerEmail)) return actors;
-
-        var medewerkerActor = await GetOrCreateMedewerkerActor(request.MedewerkerEmail);
-        actors.Add(medewerkerActor);
+                var orgEenheidActor = request.AfdelingOfGroep!.Type switch
+                {
+                    KnownActorType.Afdeling => await GetOrCreateAfdelingActor(request.AfdelingOfGroep.Identifier),
+                    KnownActorType.Groep => await GetOrCreateGroepActor(request.AfdelingOfGroep.Identifier),
+                    _ => throw new ArgumentException($"Invalid AfdelingOfGroep type: {request.AfdelingOfGroep.Type}")
+                };
+                actors.Add(orgEenheidActor);
+                break;
+            }
+            case KnownActorType.Afdeling:
+            {
+                actors.Add(await GetOrCreateAfdelingActor(request.ActorIdentifier));
+                if (!string.IsNullOrWhiteSpace(request.MedewerkerEmail))
+                    actors.Add(await GetOrCreateMedewerkerActor(request.MedewerkerEmail));
+                break;
+            }
+            case KnownActorType.Groep:
+            {
+                actors.Add(await GetOrCreateGroepActor(request.ActorIdentifier));
+                if (!string.IsNullOrWhiteSpace(request.MedewerkerEmail))
+                    actors.Add(await GetOrCreateMedewerkerActor(request.MedewerkerEmail));
+                break;
+            }
+            default:
+                throw new ArgumentException($"Invalid actor type: {request.ActorType}");
+        }
 
         return actors;
+    }
+
+    private async Task<Actor> GetOrCreateMedewerkerActorByObjectRegisterId(string identificatie)
+    {
+        var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
+        {
+            ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
+            ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
+            ActoridentificatorCodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId,
+            IndicatieActief = true,
+            SoortActor = SoortActor.medewerker,
+            ActoridentificatorObjectId = identificatie
+        });
+
+        if (actor != null)
+            return actor;
+
+        var medewerkers = await objectApiClient.GetMedewerkersByIdentificatie(identificatie);
+
+        var medewerker = medewerkers.Count switch
+        {
+            0 => throw new InvalidOperationException($"Medewerker met identificatie '{identificatie}' niet gevonden in het objectenregister."),
+            > 1 => throw new InvalidOperationException($"Meerdere medewerkers gevonden voor identificatie '{identificatie}' in het objectenregister."),
+            _ => medewerkers.Single()
+        };
+
+        var actorRequest = new ActorRequest
+        {
+            SoortActor = SoortActor.medewerker,
+            Naam = medewerker.VolledigeNaam ?? $"{medewerker.Voornaam} {medewerker.Achternaam}".Trim(),
+            IndicatieActief = true,
+            Actoridentificator = new Actoridentificator
+            {
+                CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
+                CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
+                CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId,
+                ObjectId = identificatie
+            }
+        };
+
+        return await openKlantApiClient.CreateActorAsync(actorRequest);
     }
 
     private async Task<Actor> GetOrCreateMedewerkerActor(string email)
