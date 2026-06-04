@@ -231,6 +231,36 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return contactmoment.Uuid;
         }
 
+        public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateVerwerktContactverzoekAsync(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "Test contactverzoek for readonly guard verification",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            await CreateInternetaakIfNotExists(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid>(),
+                isExplicitNummer: false);
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+
+            await OpenKlantApiClient.PatchInternetaakStatusAsync(
+                new InternetakenPatchStatusRequest { Status = KnownInternetaakStatussen.Verwerkt },
+                internetaakUuid.ToString());
+
+            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
+            return (contactmoment.Uuid, internetaakUuid, internetaak.Nummer
+                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+        }
+
         public async Task<Guid> CreateContactverzoekWithTeamAssignmentNotCurrentUser(string onderwerp)
         {
             await CleanupExistingContactmomenten(onderwerp);

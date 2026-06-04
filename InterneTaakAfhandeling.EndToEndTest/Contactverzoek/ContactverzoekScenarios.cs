@@ -710,11 +710,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await VerifyBasicContactverzoekFields(testOnderwerp);
             await VerifyMetadataFields();
 
-            await Step("Verify action tabs are NOT visible (read-only mode for verwerkt contactverzoek - Feature #344)");
-            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
+            await Step("Verify action controls are hidden for verwerkt contactverzoek (Feature #344)");
             await Expect(Page.GetContactmomentRegistrerenTab()).Not.ToBeVisibleAsync();
             await Expect(Page.GetDoorsturenTab()).Not.ToBeVisibleAsync();
             await Expect(Page.GetAlleenToelichtingTab()).Not.ToBeVisibleAsync();
+
+            await Step("Verify informational message is shown for verwerkt contactverzoek");
+            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync();
 
             await Step("Verify the contactverzoek shows as verwerkt status");
             await Expect(Page.GetStatusValue()).ToHaveTextAsync("verwerkt");
@@ -968,6 +970,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetContactmomentSuccesvolBijgewerktMessage()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
+            await Step("Reload page to ensure logbook is updated");
+            await Page.ReloadAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
             await VerifyLogbookEntry("Contact gelukt");
 
             await Step("Verify the information 'test logboek' is visible in the logbook section");
@@ -1035,6 +1041,218 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(logbookHeading).ToBeVisibleAsync();
             var logbookSection = logbookHeading.Locator("xpath=ancestor::section");
             await Expect(logbookSection.GetByRole(AriaRole.Paragraph).Filter(new() { HasText = "test logboek" })).ToBeVisibleAsync(new() { Timeout = 10000 });
+        }
+
+        // Feature #344 — Afgehandeld contactverzoek alleen leesbaar
+        // Scenarios from Task #390 (backend guard) and Task #403 (frontend read-only)
+
+        [TestMethod("Assigning to self is rejected for verwerkt contactverzoek")]
+        public async Task AssignToSelf_IsRejected_WhenVerwerkt()
+        {
+            var onderwerp = $"Test_Guard_Assign_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var (contactmomentUuid, internetaakUuid, _) = await TestDataHelper.CreateVerwerktContactverzoekAsync(onderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
+
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Make direct API call to aan-mij-toewijzen on verwerkt contactverzoek");
+            var response = await Page.Context.APIRequest.PostAsync($"/api/internetaken/{internetaakUuid}/aan-mij-toewijzen");
+
+            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when assigning verwerkt contactverzoek");
+            var body = await response.TextAsync();
+            Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
+        }
+
+        [TestMethod("Adding a notitie is rejected for verwerkt contactverzoek")]
+        public async Task AddNotitie_IsRejected_WhenVerwerkt()
+        {
+            var onderwerp = $"Test_Guard_Notitie_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var (contactmomentUuid, internetaakUuid, _) = await TestDataHelper.CreateVerwerktContactverzoekAsync(onderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
+
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Make direct API call to notitie endpoint on verwerkt contactverzoek");
+            var response = await Page.Context.APIRequest.PostAsync(
+                $"/api/internetaken/{internetaakUuid}/notitie",
+                new() { DataObject = new { Notitie = "test notitie" } });
+
+            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when adding notitie to verwerkt contactverzoek");
+            var body = await response.TextAsync();
+            Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
+        }
+
+        [TestMethod("Forwarding is rejected for verwerkt contactverzoek")]
+        public async Task Forward_IsRejected_WhenVerwerkt()
+        {
+            var onderwerp = $"Test_Guard_Forward_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var (contactmomentUuid, internetaakUuid, _) = await TestDataHelper.CreateVerwerktContactverzoekAsync(onderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
+
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Make direct API call to forward endpoint on verwerkt contactverzoek");
+            // ActorType must be "Afdeling" or "Groep" to pass ForwardContactRequestModel.Validate()
+            var response = await Page.Context.APIRequest.PostAsync(
+                $"/api/internetaken/{internetaakUuid}/forward",
+                new() { DataObject = new { ActorType = "Afdeling", ActorIdentifier = "Burgerzaken_ibz" } });
+
+            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when forwarding verwerkt contactverzoek");
+            var body = await response.TextAsync();
+            Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
+        }
+
+        [TestMethod("Linking a zaak is rejected for verwerkt contactverzoek")]
+        public async Task LinkZaak_IsRejected_WhenVerwerkt()
+        {
+            var onderwerp = $"Test_Guard_Zaak_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var (contactmomentUuid, internetaakUuid, _) = await TestDataHelper.CreateVerwerktContactverzoekAsync(onderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
+
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Make direct API call to koppel-zaak endpoint on verwerkt contactverzoek");
+            // All required fields must be present for the body to deserialize before the guard can run
+            var response = await Page.Context.APIRequest.PostAsync(
+                "/api/internetaken/koppel-zaak",
+                new()
+                {
+                    DataObject = new
+                    {
+                        InternetaakId = internetaakUuid.ToString(),
+                        ZaakIdentificatie = "ZAAK-GUARD-TEST",
+                        AanleidinggevendKlantcontactUuid = contactmomentUuid
+                    }
+                });
+
+            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when linking zaak to verwerkt contactverzoek");
+            var body = await response.TextAsync();
+            Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
+        }
+
+        [TestMethod("Registering a contactmoment is rejected for verwerkt contactverzoek")]
+        public async Task RegisterContactmoment_IsRejected_WhenVerwerkt()
+        {
+            var onderwerp = $"Test_Guard_Close_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var (contactmomentUuid, internetaakUuid, _) = await TestDataHelper.CreateVerwerktContactverzoekAsync(onderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
+
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Make direct API call to close-with-klantcontact on verwerkt contactverzoek");
+            // All required fields must be present for deserialization to succeed before the guard runs
+            var response = await Page.Context.APIRequest.PostAsync(
+                "/api/internetaken/close-with-klantcontact",
+                new()
+                {
+                    DataObject = new
+                    {
+                        InterneTaakId = internetaakUuid,
+                        AanleidinggevendKlantcontactUuid = contactmomentUuid,
+                        KlantcontactRequest = new
+                        {
+                            IndicatieContactGelukt = true,
+                            Onderwerp = "guard-test",
+                            Inhoud = "guard-test",
+                            Kanaal = "e-mail",
+                            PlaatsgevondenOp = DateTime.UtcNow,
+                            Taal = "nl",
+                            Vertrouwelijk = false
+                        }
+                    }
+                });
+
+            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when registering contactmoment on verwerkt contactverzoek");
+            var body = await response.TextAsync();
+            Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
+        }
+
+        [TestMethod("Mutation is allowed for te_verwerken contactverzoek")]
+        public async Task AssignToSelf_IsAllowed_WhenTeVerwerken()
+        {
+            var onderwerp = $"Test_Guard_Allow_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var contactmomentUuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak: false);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
+
+            var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
+            Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
+
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Make direct API call to aan-mij-toewijzen on te_verwerken contactverzoek");
+            var response = await Page.Context.APIRequest.PostAsync($"/api/internetaken/{internetaakUuid}/aan-mij-toewijzen");
+
+            Assert.IsTrue(response.Status is >= 200 and < 300,
+                $"Expected success response for te_verwerken contactverzoek, got HTTP {response.Status}");
+        }
+
+        [TestMethod("Action controls are hidden and informational message is shown for verwerkt contactverzoek")]
+        public async Task ActionControls_AreHidden_WithMessage_WhenVerwerkt()
+        {
+            var onderwerp = $"Test_Readonly_UI_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var (contactmomentUuid, _, internetaakNummer) = await TestDataHelper.CreateVerwerktContactverzoekAsync(onderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
+
+            await NavigateToVerwerktContactverzoekByNummer(internetaakNummer);
+
+            await Step("Verify action controls are not visible");
+            await Expect(Page.GetToewijzenAanMezelfButton()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentRegistrerenTab()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetDoorsturenTab()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetAlleenToelichtingTab()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetGekoppeldeZaakKoppelenButton()).Not.ToBeVisibleAsync();
+
+            await Step("Verify informational message is shown");
+            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync();
+        }
+
+        [TestMethod("Action controls are available for open (te_verwerken) contactverzoek")]
+        public async Task ActionControls_AreAvailable_WhenTeVerwerken()
+        {
+            var onderwerp = $"Test_Open_Controls_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var uuid = await TestDataHelper.CreateContactverzoekWithTeamAssignmentNotCurrentUser(onderwerp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await NavigateToContactverzoekByNummer(TestDataConstants.ContactverzoekNummers.WithTeamAssignmentNotCurrentUser);
+
+            await Step("Verify action controls are visible for te_verwerken contactverzoek");
+            await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
+            await Expect(Page.GetDoorsturenTab()).ToBeVisibleAsync();
+            await Expect(Page.GetAlleenToelichtingTab()).ToBeVisibleAsync();
+
+            await Step("Verify informational message is not shown");
+            await Expect(Page.GetAfgehandeldMessage()).Not.ToBeVisibleAsync();
+        }
+
+        [TestMethod("Access via Mijn historie also shows read-only mode for verwerkt contactverzoek")]
+        public async Task ActionControls_AreHidden_WhenAccessedViaHistorie()
+        {
+            var onderwerp = $"Test_Historie_Readonly_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            await CreateAssignAndCloseContactverzoek(onderwerp, "Closing for Mijn historie readonly test");
+
+            await Step("Navigate to Mijn historie");
+            await SafeGotoAsync("/historie");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Find the closed contactverzoek in the history list and click through");
+            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync(new() { Timeout = 15000 });
+            var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = onderwerp });
+            await contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" }).ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            await Step("Verify all action controls are hidden");
+            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.GetContactmomentRegistrerenTab()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetDoorsturenTab()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetAlleenToelichtingTab()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetToewijzenAanMezelfButton()).Not.ToBeVisibleAsync();
         }
     }
 }
