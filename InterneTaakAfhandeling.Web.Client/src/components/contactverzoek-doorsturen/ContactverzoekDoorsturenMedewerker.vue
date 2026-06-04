@@ -17,6 +17,7 @@
 
   <input v-if="selectedMedewerker" type="hidden" name="medewerker" :value="selectedMedewerker" />
 
+  <!-- if there is exactly one option, it is selected automatically in the hidden input -->
   <utrecht-form-field v-if="secondaryOptions.length > 1">
     <utrecht-form-label for="secondaryPicker">Afdeling of groep</utrecht-form-label>
     <utrecht-select
