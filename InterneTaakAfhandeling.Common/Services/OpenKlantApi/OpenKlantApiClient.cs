@@ -489,6 +489,7 @@ public partial class OpenKlantApiClient(
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<Internetaak>();
+
         return result!;
 
     }

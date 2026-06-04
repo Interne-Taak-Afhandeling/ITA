@@ -797,58 +797,68 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await VerifyInternetaakStatusInOpenKlant(internetaakUuidForNav.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
         }
 
-        // [TestMethod("Detail page toont het contactmoment-nummer als heading (Feature #299)")]
-        // public async Task Detail_PageToont_ContactmomentNummer_AlsHeading()
-        // {
-        //     var testOnderwerp = $"Test_ContactmomentNummer_Heading_{Guid.NewGuid().ToString()[..8]}";
-        //     var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+        [TestMethod("Detail page toont het contactmoment-nummer als heading (Feature #299)")]
+        public async Task Detail_PageToont_ContactmomentNummer_AlsHeading()
+        {
+            var testOnderwerp = $"Test_ContactmomentNummer_Heading_{Guid.NewGuid().ToString()[..8]}";
+            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
-        //     await Step("Look up the internetaak and its contactmoment nummer");
-        //     var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
-        //     Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
+            await Step("Look up the internetaak and its contactmoment nummer");
+            var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
+            Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
 
-        //     var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
-        //     var contactmomentNummer = internetaak.AanleidinggevendKlantcontact?.Nummer;
-        //     Assert.IsNotNull(contactmomentNummer, "AanleidinggevendKlantcontact.Nummer should be available");
+            var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
+            var contactmomentNummer = internetaak.AanleidinggevendKlantcontact?.Nummer;
+            Assert.IsNotNull(contactmomentNummer, "AanleidinggevendKlantcontact.Nummer should be available");
 
-        //     await Step($"Navigate to /contactmoment/{contactmomentNummer}");
-        //     await SafeGotoAsync($"/contactmoment/{contactmomentNummer}");
-        //     await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Step($"Navigate to /contactmoment/{contactmomentNummer}");
+            await SafeGotoAsync($"/contactmoment/{contactmomentNummer}");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        //     await Step("Verify heading shows the contactmoment number, not the interne-taaknummer");
-        //     await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Contactverzoek {contactmomentNummer}" })).ToBeVisibleAsync();
-        //     await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Contactverzoek {internetaak.Nummer}" })).Not.ToBeVisibleAsync();
-        // }
+            await Step("Verify heading shows the contactmoment number, not the interne-taaknummer");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Contactverzoek {contactmomentNummer}" })).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Contactverzoek {internetaak.Nummer}" })).Not.ToBeVisibleAsync();
+        }
 
-        // [TestMethod("Overzicht router-links gebruiken het contactmoment-nummer in de URL (Feature #299)")]
-        // public async Task Overzicht_RouterLinks_GebruikenContactmomentNummer_InUrl()
-        // {
-        //     var testOnderwerp = $"Test_OverzichtRouterLink_{Guid.NewGuid().ToString()[..8]}";
-        //     var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
+        [TestMethod("Overzicht router-links gebruiken het contactmoment-nummer in de URL (Feature #299)")]
+        public async Task Overzicht_RouterLinks_GebruikenContactmomentNummer_InUrl()
+        {
+            var testOnderwerp = $"Test_OverzichtRouterLink_{Guid.NewGuid().ToString()[..8]}";
+            var contactmomentUuid = await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
-        //     await Step("Look up the contactmoment nummer");
-        //     var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
-        //     Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
+            await Step("Look up the contactmoment nummer");
+            var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
+            Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
 
-        //     var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
-        //     var contactmomentNummer = internetaak.AanleidinggevendKlantcontact?.Nummer;
-        //     Assert.IsNotNull(contactmomentNummer, "AanleidinggevendKlantcontact.Nummer should be available");
+            var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
+            var contactmomentNummer = internetaak.AanleidinggevendKlantcontact?.Nummer;
+            Assert.IsNotNull(contactmomentNummer, "AanleidinggevendKlantcontact.Nummer should be available");
 
-        //     await Step("Navigate to home and click the contactverzoek row link");
-        //     await SafeGotoAsync("/");
-        //     await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Step("Navigate to home and click the contactverzoek row link");
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        //     var detailsLink = Page.GetDetailsLink(testOnderwerp);
-        //     await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-        //     await detailsLink.ClickAsync();
-        //     await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var detailsLink = Page.GetDetailsLink(testOnderwerp);
+            await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await detailsLink.ClickAsync();
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        //     await Step("Verify URL uses /contactmoment/ with the contactmoment number");
-        //     await Expect(Page).ToHaveURLAsync(new Regex($"/contactmoment/{Regex.Escape(contactmomentNummer)}"));
+            await Step("Verify URL uses /contactmoment/ with the contactmoment number");
+            await Expect(Page).ToHaveURLAsync(new Regex($"/contactmoment/{Regex.Escape(contactmomentNummer)}"));
 
-        //     await Step("Verify heading shows the contactmoment number");
-        //     await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Contactverzoek {contactmomentNummer}" })).ToBeVisibleAsync();
-        // }
+            await Step("Verify heading shows the contactmoment number");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Contactverzoek {contactmomentNummer}" })).ToBeVisibleAsync();
+        }
+
+        // Task #423 — deferred edge cases (marked "indien testdata beschikbaar" in the task spec):
+        //
+        // 1. Meerdere klantcontacten in keten → heading toont altijd originele nummer
+        //    Not attempted: no chain-of-klantcontact test data was available at implementation time.
+        //    Planned as follow-up once suitable test data exists.
+        //
+        // 2. Meerdere internetaken voor zelfde klantcontact-nummer → 409
+        //    Not attempted: creating the required duplicate-internetaak state reliably was not
+        //    possible with the current test-data helpers. Planned as follow-up.
 
         [TestMethod("Assigning a Contactverzoek to yourself - with logbook verification")]
         public async Task User_AssignContactverzoekToSelf_VerifyLogbookEntry()
