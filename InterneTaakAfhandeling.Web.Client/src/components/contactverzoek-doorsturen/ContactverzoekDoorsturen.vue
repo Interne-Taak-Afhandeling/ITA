@@ -78,9 +78,7 @@ const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 // Form state
-const forwardTo = ref<(typeof FORWARD_OPTIONS)[keyof typeof FORWARD_OPTIONS]>(
-  FORWARD_OPTIONS.afdeling
-);
+const forwardTo = ref<FORWARD_OPTIONS[keyof FORWARD_OPTIONS]>(FORWARD_OPTIONS.afdeling);
 
 function resetForm() {
   forwardTo.value = FORWARD_OPTIONS.afdeling;
