@@ -239,13 +239,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 onderwerp,
                 "Test contactverzoek for readonly guard verification",
                 klantnaam: null);
-        public async Task<Guid> CreateContactverzoekWithTeamAssignmentNotCurrentUser(string onderwerp)
-        {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await GetOrCreateContactmoment(
-                onderwerp,
-                "This is a test contact request created during an end-to-end test run.");
 
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
@@ -266,6 +259,19 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
             return (contactmoment.Uuid, internetaakUuid, internetaak.Nummer
                 ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+        }
+
+        public async Task<Guid> CreateContactverzoekWithTeamAssignmentNotCurrentUser(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await GetOrCreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
             var otherMedewerkerActor = await GetOrCreateMedewerkerActorDirectly("surbhi@info.nl");
 
