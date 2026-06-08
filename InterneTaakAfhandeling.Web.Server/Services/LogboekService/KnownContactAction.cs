@@ -157,6 +157,17 @@ public class KnownContactAction
         };
     }
 
+    public static KnownContactAction Reopened(string reden, ITAUser loggedByUser)
+    {
+        return new KnownContactAction
+        {
+            Description = "heropend",
+            Type = ActiviteitTypes.Heropend,
+            Actor = CreateActor(loggedByUser),
+            Notitie = reden,
+        };
+    }
+
 
 
     private static ActiviteitActor CreateActor(ITAUser loggedByUser)
