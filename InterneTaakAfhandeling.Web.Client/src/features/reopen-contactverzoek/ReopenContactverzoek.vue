@@ -30,7 +30,7 @@
       </utrecht-button-group>
     </form>
   </utrecht-alert-dialog>
-  <utrecht-button type="button" appearance="primary-action-button" @click="show">
+  <utrecht-button type="button" appearance="secondary-action-button" @click="show">
     Heropenen
   </utrecht-button>
 </template>
