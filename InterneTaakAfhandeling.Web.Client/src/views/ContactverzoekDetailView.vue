@@ -16,6 +16,9 @@
           @assignmentSuccess="fetchInternetaken"
         />
       </utrecht-button-group>
+      <utrecht-button-group v-if="isAfgehandeld && hasFunctioneelBeheerderAccess">
+        <reopen-contactverzoek :id="taak.uuid" @success="fetchInternetaken" />
+      </utrecht-button-group>
     </template>
   </div>
 
@@ -74,6 +77,7 @@ import type { Internetaken } from "@/types/internetaken";
 import { internetakenService } from "@/services/internetakenService";
 import { knownErrorMessages } from "@/utils/fetchWrapper";
 import AssignContactverzoekToMe from "@/features/assign-contactverzoek-to-me/AssignContactverzoekToMe.vue";
+import ReopenContactverzoek from "@/features/reopen-contactverzoek/ReopenContactverzoek.vue";
 import ContactverzoekDetails from "@/components/ContactverzoekDetails.vue";
 import ContactmomentDetails from "@/components/ContactmomentDetails.vue";
 import ContactverzoekActies from "@/components/ContactverzoekActies.vue";
@@ -96,6 +100,7 @@ const routeNummer = computed(() => props.contactmomentNumber ?? props.contactver
 const userEmail = computed(() => authStore.user?.email ?? "");
 const objectregisterMedewerkerId = computed(() => authStore.user?.objectregisterMedewerkerId ?? "");
 const isAfgehandeld = computed(() => taak.value?.status === "verwerkt");
+const hasFunctioneelBeheerderAccess = computed(() => authStore.hasFunctioneelBeheerderAccess);
 
 const handleZaakGekoppeld = () => {
   fetchInternetaken();

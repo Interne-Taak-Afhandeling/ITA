@@ -31,7 +31,7 @@ public class ReopenContactRequestController(
     {
         if (string.IsNullOrWhiteSpace(request.Reden))
         {
-            throw new ValidationException("Reden is verplicht en mag niet leeg zijn.");
+            throw new ValidationException("Heropenen niet gelukt: er is geen reden opgegeven.");
         }
 
         await internetaakGuardService.GuardAgainstNietVerwerktAsync(id);
