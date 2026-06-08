@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using System.Net;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using System.Text;
 
 namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content;
@@ -34,11 +35,11 @@ public class EmailContentService : IEmailContentService
         var contactmomentNummer = internetaak.AanleidinggevendKlantcontact?.Nummer
             ?? throw new InvalidOperationException($"AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {internetaak.Nummer}");
 
-        var deeplink = $"{itaBaseUrl.TrimEnd('/')}/contactmoment/{contactmomentNummer}";
+        var deeplink = $"{itaBaseUrl.TrimEnd('/')}/contactmoment/{Uri.EscapeDataString(contactmomentNummer)}";
 
         var sb = new StringBuilder(EmailTemplate);
-        sb.Replace("{Link}", deeplink)
-          .Replace("{Nummer}", contactmomentNummer);
+        sb.Replace("{Link}", WebUtility.HtmlEncode(deeplink))
+          .Replace("{Nummer}", WebUtility.HtmlEncode(contactmomentNummer));
 
         return sb.ToString();
     }
