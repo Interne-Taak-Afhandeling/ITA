@@ -1,4 +1,4 @@
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using System.Text;
 
 namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content;
@@ -22,8 +22,7 @@ public class EmailContentService : IEmailContentService
     </head>
     <body>
         <p>Beste collega,</p>
-        <p>Er is een vraag of verzoek binnengekomen van een inwoner of ondernemer.<br/>
-        Je kunt het verzoek bekijken en afhandelen via onderstaande link:</p>
+        <p>Er is een vraag of verzoek binnengekomen van een inwoner of ondernemer.<br/>Je kunt het verzoek bekijken en afhandelen via onderstaande link:</p>
         <p><a href=""{Link}"">Contactverzoek {Nummer}</a></p>
         <p>We verzoeken je om dit zo spoedig mogelijk op te pakken.</p>
         <p>Met vriendelijke groet,<br/>KCC/Klantcontactcentrum</p>
