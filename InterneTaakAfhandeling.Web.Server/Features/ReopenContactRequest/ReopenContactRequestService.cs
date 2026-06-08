@@ -1,14 +1,17 @@
 using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ReopenContactRequest;
 
 public class ReopenContactRequestService(
     IOpenKlantApiClient openKlantApiClient,
+    ILogboekService logboekService,
     ILogger<ReopenContactRequestService> logger) : IReopenContactRequestService
 {
-    public async Task<ReopenResult> ReopenAsync(Guid internetaakId)
+    public async Task<ReopenResult> ReopenAsync(Guid internetaakId, string reden, ITAUser user)
     {
         var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
 
@@ -56,6 +59,9 @@ public class ReopenContactRequestService(
         };
 
         var updatedInternetaak = await openKlantApiClient.PatchInternetaakStatusAsync(statusRequest, internetaak.Uuid);
+
+        await logboekService.LogContactRequestAction(
+            KnownContactAction.Reopened(reden, user), internetaakId);
 
         return new ReopenResult
         {

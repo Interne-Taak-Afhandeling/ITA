@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Guards;
-using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +14,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ReopenContactRequest;
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class ReopenContactRequestController(
     IReopenContactRequestService reopenContactRequestService,
-    ILogboekService logboekService,
     IInternetaakGuardService internetaakGuardService,
     ITAUser user,
     ILogger<ReopenContactRequestController> logger) : Controller
@@ -38,13 +37,10 @@ public class ReopenContactRequestController(
         await internetaakGuardService.GuardAgainstNietVerwerktAsync(id);
 
         logger.LogInformation(
-            "Reopening internetaak {InternetaakId} by user {UserId} with reason: {Reden}",
-            id, _user.Email, request.Reden);
+            "Reopening internetaak {InternetaakId} by user {UserId}",
+            id, SecureLogging.SanitizeAndTruncate(_user.Email, 5));
 
-        var result = await reopenContactRequestService.ReopenAsync(id);
-
-        await logboekService.LogContactRequestAction(
-            KnownContactAction.Reopened(request.Reden, _user), id);
+        var result = await reopenContactRequestService.ReopenAsync(id, request.Reden, _user);
 
         return Ok(new ReopenContactRequestResponse
         {
