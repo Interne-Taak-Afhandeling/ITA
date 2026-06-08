@@ -8,6 +8,7 @@ public static class ActiviteitTypes
     public const string ZaakkoppelingGewijzigd = "zaakkoppeling-gewijzigd";
     public const string InterneNotitie = "interne-notitie";
     public const string Doorsturen = "doorsturen";
+    public const string Heropend = "heropend";
 
 }
 

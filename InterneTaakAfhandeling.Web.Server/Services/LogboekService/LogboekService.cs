@@ -122,6 +122,17 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                         }
                         break;
                     }
+
+                case ActiviteitTypes.Heropend:
+                    {
+                        activiteit.UitgevoerdDoor = GetName(item);
+                        activiteit.Tekst = "Contactverzoek heropend";
+                        if (!string.IsNullOrEmpty(item.Notitie))
+                        {
+                            activiteit.Notitie = item.Notitie;
+                        }
+                        break;
+                    }
             }
 
             activiteiten.Add(activiteit);
@@ -184,6 +195,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         ActiviteitTypes.Toegewezen => "Opgepakt",
         ActiviteitTypes.InterneNotitie => "Interne notitie",
         ActiviteitTypes.Doorsturen => "Doorgestuurd",
+        ActiviteitTypes.Heropend => "Heropend",
 
         _ => type ?? "Onbekende actie"
     };

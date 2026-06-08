@@ -48,6 +48,11 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
             {
                 problemDetails.Extensions["conflictCode"] = conflictEx.Code;
             }
+
+            if (exception is UnprocessableEntityException unprocessableEx && !string.IsNullOrEmpty(unprocessableEx.Code))
+            {
+                problemDetails.Extensions["errorCode"] = unprocessableEx.Code;
+            }
              
             if (exception is ValidationException validationEx)
             {
@@ -85,6 +90,7 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
         private static int GetStatusCode(Exception exception) => exception switch
         {
             ConflictException => StatusCodes.Status409Conflict,
+            UnprocessableEntityException => StatusCodes.Status422UnprocessableEntity,
             ValidationException => StatusCodes.Status400BadRequest,
             _ => StatusCodes.Status500InternalServerError
         };
@@ -92,6 +98,7 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
         private static string GetTitle(Exception exception) => exception switch
         {
             ConflictException => "Conflict Error",
+            UnprocessableEntityException => "Unprocessable Entity",
             ValidationException => "Validation Error",
             _ => "An unexpected error occurred"
         };
@@ -99,6 +106,7 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
         private static string GetType(Exception exception) => exception switch
         {
             ConflictException => "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409",
+            UnprocessableEntityException => "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422",
             ValidationException => "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
             _ => "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"
         };
