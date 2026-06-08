@@ -24,7 +24,7 @@ public class EmailContentService : IEmailContentService
         <p>Beste collega,</p>
         <p>Er is een vraag of verzoek binnengekomen van een inwoner of ondernemer.<br/>
         Je kunt het verzoek bekijken en afhandelen via onderstaande link:</p>
-        <p>Contactverzoek <a href=""{Link}"">{Nummer}</a></p>
+        <p><a href=""{Link}"">Contactverzoek {Nummer}</a></p>
         <p>We verzoeken je om dit zo spoedig mogelijk op te pakken.</p>
         <p>Met vriendelijke groet,<br/>KCC/Klantcontactcentrum</p>
     </body>
