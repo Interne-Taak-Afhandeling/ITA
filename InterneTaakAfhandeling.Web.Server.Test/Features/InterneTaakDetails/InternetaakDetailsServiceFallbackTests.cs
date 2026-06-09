@@ -233,6 +233,85 @@ public class InternetaakDetailsServiceFallbackTests
             () => service.Get(new InterneTaakQuery { Nummer = "123" }));
     }
 
+    [Fact]
+    public async Task Get_CallsPartijOnlyOnce_WhenMultipleBetrokkenenReferSamePartij()
+    {
+        // Arrange — two betrokkenen without own addresses, both linked to same partij
+        var partijUuid = "shared-partij-uuid";
+        var partijAdressen = new List<DigitaleAdres>
+        {
+            new() { Uuid = "da-shared", Url = "http://test/da/shared", Adres = "shared@example.nl", SoortDigitaalAdres = "email", IsStandaardAdres = true, Omschrijving = "Gedeeld" }
+        };
+
+        var betrokkene1 = new Betrokkene
+        {
+            Uuid = "betrokkene-1",
+            Url = "http://test/betrokkenen/1",
+            DigitaleAdressen = [],
+            Initiator = true,
+            Expand = new BetrokkeneExpand
+            {
+                DigitaleAdressen = [],
+                WasPartij = new Partij { Uuid = partijUuid, Url = $"http://test/partijen/{partijUuid}" }
+            }
+        };
+
+        var betrokkene2 = new Betrokkene
+        {
+            Uuid = "betrokkene-2",
+            Url = "http://test/betrokkenen/2",
+            DigitaleAdressen = [],
+            Initiator = false,
+            Expand = new BetrokkeneExpand
+            {
+                DigitaleAdressen = [],
+                WasPartij = new Partij { Uuid = partijUuid, Url = $"http://test/partijen/{partijUuid}" }
+            }
+        };
+
+        var internetaak = new Internetaak
+        {
+            Uuid = "internetaak-uuid",
+            Url = "http://test/internetaken/1",
+            AanleidinggevendKlantcontact = new Klantcontact
+            {
+                Uuid = Guid.NewGuid(),
+                Url = "http://test/klantcontacten/1",
+                Expand = new Expand
+                {
+                    HadBetrokkenen = [betrokkene1, betrokkene2]
+                }
+            }
+        };
+
+        _openKlantApiClientMock
+            .Setup(x => x.QueryInterneTakenAsync(It.IsAny<InterneTaakQuery>()))
+            .ReturnsAsync([internetaak]);
+
+        _contactmomentenServiceMock
+            .Setup(x => x.GetZaakOnderwerpObject(It.IsAny<Klantcontact>()))
+            .Returns((string?)null);
+
+        _openKlantApiClientMock
+            .Setup(x => x.GetPartijDigitaleAdressenAsync(partijUuid))
+            .ReturnsAsync(partijAdressen);
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.Get(new InterneTaakQuery { Nummer = "123" });
+
+        // Assert — API should be called only once despite two betrokkenen
+        _openKlantApiClientMock.Verify(
+            x => x.GetPartijDigitaleAdressenAsync(partijUuid), Times.Once);
+
+        // Both betrokkenen should have the partij addresses
+        var betrokkenen = result!.AanleidinggevendKlantcontact.Expand!.HadBetrokkenen!;
+        Assert.Equal(2, betrokkenen.Count);
+        Assert.Equal("shared@example.nl", betrokkenen[0].Expand!.DigitaleAdressen![0].Adres);
+        Assert.Equal("shared@example.nl", betrokkenen[1].Expand!.DigitaleAdressen![0].Adres);
+    }
+
     private static Internetaak CreateInternetaakWithBetrokkene(
         List<DigitaleAdres>? digitaleAdressen,
         string? wasPartijUuid)

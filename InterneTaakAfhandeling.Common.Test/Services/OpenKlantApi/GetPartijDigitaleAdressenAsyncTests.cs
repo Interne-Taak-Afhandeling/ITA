@@ -153,4 +153,18 @@ public class GetPartijDigitaleAdressenAsyncTests
         Assert.NotNull(result);
         Assert.Empty(result);
     }
+
+    [Fact]
+    public async Task GetPartijDigitaleAdressenAsync_PropagatesOperationCanceledException()
+    {
+        // Arrange — handler throws OperationCanceledException (simulating cancellation)
+        var partijUuid = "e8203b1b-f97a-4d4b-bf69-14a2a7c5e57a";
+        var handler = new MockHttpMessageHandler((_, _) =>
+            Task.FromException<HttpResponseMessage>(new OperationCanceledException()));
+        var client = CreateClient(handler);
+
+        // Act & Assert — should propagate, not be swallowed
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => client.GetPartijDigitaleAdressenAsync(partijUuid));
+    }
 }
