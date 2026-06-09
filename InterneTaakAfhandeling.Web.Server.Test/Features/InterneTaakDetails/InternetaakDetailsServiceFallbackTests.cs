@@ -168,10 +168,73 @@ public class InternetaakDetailsServiceFallbackTests
         Assert.NotNull(result);
         var betrokkene = result!.AanleidinggevendKlantcontact.Expand!.HadBetrokkenen!.First();
         Assert.Empty(betrokkene.Expand!.DigitaleAdressen!);
+
+        // Assert — warning was logged
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => true),
+                It.IsAny<HttpRequestException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Get_EnrichesBetrokkeneWithPartijAdressen_WhenDigitaleAdressenIsNull()
+    {
+        // Arrange — betrokkene with null digitaleAdressen (expand field missing), linked to partij
+        var partijUuid = "partij-uuid-null-case";
+        var partijAdressen = new List<DigitaleAdres>
+        {
+            new() { Uuid = "da-null-1", Url = "http://test/da/null1", Adres = "null-test@example.nl", SoortDigitaalAdres = "email", IsStandaardAdres = true, Omschrijving = "Werk" }
+        };
+
+        var internetaak = CreateInternetaakWithBetrokkene(
+            digitaleAdressen: null,
+            wasPartijUuid: partijUuid);
+
+        SetupQueryReturnsInternetaak(internetaak);
+
+        _openKlantApiClientMock
+            .Setup(x => x.GetPartijDigitaleAdressenAsync(partijUuid))
+            .ReturnsAsync(partijAdressen);
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.Get(new InterneTaakQuery { Nummer = "123" });
+
+        // Assert
+        var betrokkene = result!.AanleidinggevendKlantcontact.Expand!.HadBetrokkenen!.First();
+        Assert.Single(betrokkene.Expand!.DigitaleAdressen!);
+        Assert.Equal("null-test@example.nl", betrokkene.Expand.DigitaleAdressen![0].Adres);
+    }
+
+    [Fact]
+    public async Task Get_PropagatesOperationCanceledException_WhenPartijLookupIsCancelled()
+    {
+        // Arrange — partij lookup is cancelled (e.g. request shutdown)
+        var partijUuid = "partij-uuid-cancel";
+        var internetaak = CreateInternetaakWithBetrokkene(
+            digitaleAdressen: [],
+            wasPartijUuid: partijUuid);
+
+        SetupQueryReturnsInternetaak(internetaak);
+
+        _openKlantApiClientMock
+            .Setup(x => x.GetPartijDigitaleAdressenAsync(partijUuid))
+            .ThrowsAsync(new OperationCanceledException());
+
+        var service = CreateService();
+
+        // Act & Assert — should propagate, not swallow
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => service.Get(new InterneTaakQuery { Nummer = "123" }));
     }
 
     private static Internetaak CreateInternetaakWithBetrokkene(
-        List<DigitaleAdres> digitaleAdressen,
+        List<DigitaleAdres>? digitaleAdressen,
         string? wasPartijUuid)
     {
         var betrokkene = new Betrokkene

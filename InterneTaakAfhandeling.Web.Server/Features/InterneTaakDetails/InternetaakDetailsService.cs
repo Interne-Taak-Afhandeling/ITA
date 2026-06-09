@@ -113,6 +113,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                     betrokkene.Expand ??= new BetrokkeneExpand();
                     betrokkene.Expand.DigitaleAdressen = partijAdressen;
                 }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Fallback partij-lookup gefaald voor partij {PartijUuid}: {Message}",
