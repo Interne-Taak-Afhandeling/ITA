@@ -136,5 +136,13 @@ namespace InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models
         public required string Uuid { get; set; }
         public required string Url { get; set; }
         public string? Naam { get; set; }
+
+        [JsonPropertyName("_expand")]
+        public PartijExpand? Expand { get; set; }
+    }
+
+    public class PartijExpand
+    {
+        public List<DigitaleAdres>? DigitaleAdressen { get; set; }
     }
 }
