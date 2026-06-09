@@ -69,6 +69,13 @@ public class GetPartijDigitaleAdressenAsyncTests
         Assert.Equal("0612345678", result[1].Adres);
         Assert.Equal("telefoonnummer", result[1].SoortDigitaalAdres);
         Assert.False(result[1].IsStandaardAdres);
+
+        // Verify correct endpoint was called
+        Assert.NotNull(handler.LastRequest);
+        Assert.Equal(HttpMethod.Get, handler.LastRequest.Method);
+        Assert.Equal(
+            $"https://openklant.test/api/v1/partijen/{partijUuid}?expand=digitaleAdressen",
+            handler.LastRequest.RequestUri?.ToString());
     }
 
     [Fact]
@@ -112,6 +119,15 @@ public class GetPartijDigitaleAdressenAsyncTests
         // Assert
         Assert.NotNull(result);
         Assert.Empty(result);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((o, t) => o.ToString()!.Contains(partijUuid)),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     [Fact]

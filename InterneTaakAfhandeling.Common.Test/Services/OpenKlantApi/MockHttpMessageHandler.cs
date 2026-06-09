@@ -5,9 +5,12 @@ namespace InterneTaakAfhandeling.Common.Test.Services.OpenKlantApi;
 public class MockHttpMessageHandler(
     Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler) : HttpMessageHandler
 {
+    public HttpRequestMessage? LastRequest { get; private set; }
+
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        LastRequest = request;
         return handler(request, cancellationToken);
     }
 
