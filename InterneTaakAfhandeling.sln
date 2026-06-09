@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EndToEndTest.Common", "EndT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterneTaakAfhandeling.Common.Test", "InterneTaakAfhandeling.Common.Test\InterneTaakAfhandeling.Common.Test.csproj", "{208216A2-8043-4119-8718-A99D9E33BC77}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterneTaakAfhandeling.Web.Server.Test", "InterneTaakAfhandeling.Web.Server.Test\InterneTaakAfhandeling.Web.Server.Test.csproj", "{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -119,6 +121,18 @@ Global
 		{208216A2-8043-4119-8718-A99D9E33BC77}.Release|x64.Build.0 = Release|Any CPU
 		{208216A2-8043-4119-8718-A99D9E33BC77}.Release|x86.ActiveCfg = Release|Any CPU
 		{208216A2-8043-4119-8718-A99D9E33BC77}.Release|x86.Build.0 = Release|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Debug|x64.Build.0 = Debug|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Debug|x86.Build.0 = Debug|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Release|x64.ActiveCfg = Release|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Release|x64.Build.0 = Release|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Release|x86.ActiveCfg = Release|Any CPU
+		{5F57A45A-5384-4E5E-9D0E-F850EEBB76E4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

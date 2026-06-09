@@ -36,6 +36,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
             var interntaak = internetaken.Single();
 
             await EnrichWithZaakAsync(interntaak);
+            await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);
 
             return interntaak;
         }
@@ -70,6 +71,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
             var interntaak = internetaken.Single();
 
             await EnrichWithZaakAsync(interntaak);
+            await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);
 
             return interntaak;
         }
@@ -83,6 +85,42 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 if (!string.IsNullOrEmpty(onderwerpObjectId))
                 {
                     interntaak.Zaak = await _zakenApiClient.GetZaakAsync(onderwerpObjectId);
+                }
+            }
+        }
+
+        private async Task EnrichBetrokkenenWithPartijDigitaleAdressenAsync(Internetaak? internetaak)
+        {
+            var betrokkenen = internetaak?.AanleidinggevendKlantcontact?.Expand?.HadBetrokkenen;
+            if (betrokkenen == null) return;
+
+            foreach (var betrokkene in betrokkenen)
+            {
+                if (betrokkene.Expand?.DigitaleAdressen != null && betrokkene.Expand.DigitaleAdressen.Count > 0)
+                    continue;
+
+                var partijUuid = betrokkene.Expand?.WasPartij?.Uuid;
+                if (string.IsNullOrEmpty(partijUuid))
+                    continue;
+
+                try
+                {
+                    _logger.LogInformation("Fallback: ophalen digitale adressen van partij {PartijUuid} voor betrokkene {BetrokkeneUuid}",
+                        partijUuid, betrokkene.Uuid);
+
+                    var partijAdressen = await _openKlantApiClient.GetPartijDigitaleAdressenAsync(partijUuid);
+
+                    betrokkene.Expand ??= new BetrokkeneExpand();
+                    betrokkene.Expand.DigitaleAdressen = partijAdressen;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Fallback partij-lookup gefaald voor partij {PartijUuid}: {Message}",
+                        partijUuid, ex.Message);
                 }
             }
         }
