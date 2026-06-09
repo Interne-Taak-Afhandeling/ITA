@@ -94,6 +94,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
             var betrokkenen = internetaak?.AanleidinggevendKlantcontact?.Expand?.HadBetrokkenen;
             if (betrokkenen == null) return;
 
+            var partijAdressenCache = new Dictionary<string, List<DigitaleAdres>>();
+
             foreach (var betrokkene in betrokkenen)
             {
                 if (betrokkene.Expand?.DigitaleAdressen != null && betrokkene.Expand.DigitaleAdressen.Count > 0)
@@ -105,10 +107,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 
                 try
                 {
-                    _logger.LogInformation("Fallback: ophalen digitale adressen van partij {PartijUuid} voor betrokkene {BetrokkeneUuid}",
-                        partijUuid, betrokkene.Uuid);
+                    if (!partijAdressenCache.TryGetValue(partijUuid, out var partijAdressen))
+                    {
+                        _logger.LogInformation("Fallback: ophalen digitale adressen van partij {PartijUuid} voor betrokkene {BetrokkeneUuid}",
+                            partijUuid, betrokkene.Uuid);
 
-                    var partijAdressen = await _openKlantApiClient.GetPartijDigitaleAdressenAsync(partijUuid);
+                        partijAdressen = await _openKlantApiClient.GetPartijDigitaleAdressenAsync(partijUuid);
+                        partijAdressenCache[partijUuid] = partijAdressen;
+                    }
 
                     betrokkene.Expand ??= new BetrokkeneExpand();
                     betrokkene.Expand.DigitaleAdressen = partijAdressen;

@@ -486,9 +486,9 @@ public partial class OpenKlantApiClient(
     {
         try
         {
-            _logger.LogInformation("Fetching digitale adressen for partij {PartijUuid}", partijUuid);
+            _logger.LogDebug("Fetching digitale adressen for partij {PartijUuid}", partijUuid);
 
-            var response = await _httpClient.GetAsync($"partijen/{partijUuid}?expand=digitaleAdressen");
+            using var response = await _httpClient.GetAsync($"partijen/{partijUuid}?expand=digitaleAdressen");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -499,6 +499,10 @@ public partial class OpenKlantApiClient(
             var partij = await response.Content.ReadFromJsonAsync<Partij>();
 
             return partij?.Expand?.DigitaleAdressen ?? [];
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
