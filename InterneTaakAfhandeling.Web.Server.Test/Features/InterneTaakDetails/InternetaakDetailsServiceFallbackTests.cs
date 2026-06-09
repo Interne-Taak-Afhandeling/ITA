@@ -312,6 +312,68 @@ public class InternetaakDetailsServiceFallbackTests
         Assert.Equal("shared@example.nl", betrokkenen[1].Expand!.DigitaleAdressen![0].Adres);
     }
 
+    [Fact]
+    public async Task GetByKlantcontactNummer_EnrichesBetrokkeneWithPartijAdressen_WhenBetrokkeneHasNoOwnAdressen()
+    {
+        // Arrange — regression: the contactverzoek route uses GetByKlantcontactNummer,
+        // which must also trigger partij fallback via hadBetrokkenen.wasPartij
+        var partijUuid = "partij-uuid-klantcontact-route";
+        var partijAdressen = new List<DigitaleAdres>
+        {
+            new() { Uuid = "da-kcn", Url = "http://test/da/kcn", Adres = "via-klantcontact@example.nl", SoortDigitaalAdres = "email", IsStandaardAdres = true, Omschrijving = "Werk" }
+        };
+
+        var internetaak = CreateInternetaakWithBetrokkene(
+            digitaleAdressen: [],
+            wasPartijUuid: partijUuid);
+
+        SetupQueryReturnsInternetaak(internetaak);
+
+        _openKlantApiClientMock
+            .Setup(x => x.GetPartijDigitaleAdressenAsync(partijUuid))
+            .ReturnsAsync(partijAdressen);
+
+        var service = CreateService();
+
+        // Act — use GetByKlantcontactNummer entrypoint (contactverzoek route)
+        var result = await service.GetByKlantcontactNummer("KC-2024-001");
+
+        // Assert — fallback should work identically to Get()
+        Assert.NotNull(result);
+        var betrokkene = result!.AanleidinggevendKlantcontact.Expand!.HadBetrokkenen!.First();
+        Assert.Single(betrokkene.Expand!.DigitaleAdressen!);
+        Assert.Equal("via-klantcontact@example.nl", betrokkene.Expand.DigitaleAdressen![0].Adres);
+    }
+
+    [Fact]
+    public async Task GetByKlantcontactNummer_KeepsOwnAdressen_WhenBetrokkeneHasOwnAdressen()
+    {
+        // Arrange — regression: ensure GetByKlantcontactNummer does NOT override existing addresses
+        var ownAdressen = new List<DigitaleAdres>
+        {
+            new() { Uuid = "own-kcn", Url = "http://test/da/own-kcn", Adres = "eigen-kcn@example.nl", SoortDigitaalAdres = "email", IsStandaardAdres = true, Omschrijving = "Eigen" }
+        };
+
+        var internetaak = CreateInternetaakWithBetrokkene(
+            digitaleAdressen: ownAdressen,
+            wasPartijUuid: "partij-should-not-be-called");
+
+        SetupQueryReturnsInternetaak(internetaak);
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.GetByKlantcontactNummer("KC-2024-002");
+
+        // Assert — partij should NOT be called, own addresses preserved
+        _openKlantApiClientMock.Verify(
+            x => x.GetPartijDigitaleAdressenAsync(It.IsAny<string>()), Times.Never);
+
+        var betrokkene = result!.AanleidinggevendKlantcontact.Expand!.HadBetrokkenen!.First();
+        Assert.Single(betrokkene.Expand!.DigitaleAdressen!);
+        Assert.Equal("eigen-kcn@example.nl", betrokkene.Expand.DigitaleAdressen![0].Adres);
+    }
+
     private static Internetaak CreateInternetaakWithBetrokkene(
         List<DigitaleAdres>? digitaleAdressen,
         string? wasPartijUuid)
