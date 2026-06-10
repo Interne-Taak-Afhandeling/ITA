@@ -150,7 +150,7 @@ const organisatorischeEenheidLabel = computed(() => {
   const code = organisatorischeEenheidActor.value?.actoridentificator?.codeObjecttype;
   if (code === KnownAfdelingIdentificators.codeObjecttype) return "Afdeling";
   if (code === KnownGroepIdentificators.codeObjecttype) return "Groep";
-  return organisatorischeEenheidActor.value ? "Organisatorische eenheid" : null;
+  return null;
 });
 const aangemaaktDoor = computed(
   () => contactmoment.hadBetrokkenActoren?.map((x) => x.naam).find(Boolean) || ""
