@@ -57,8 +57,8 @@
       <utrecht-data-list-item>
         <utrecht-data-list-key>Behandelaar</utrecht-data-list-key>
         <utrecht-data-list-value :value="behandelaarNaam ?? organisatorischeEenheidActor?.naam ?? ''">
-          <span v-if="behandelaarNaam">{{ behandelaarNaam }}</span>
-          <span v-if="organisatorischeEenheidLabel && organisatorischeEenheidActor?.naam">
+          <span v-if="behandelaarNaam" class="actor-line">{{ behandelaarNaam }}</span>
+          <span v-if="organisatorischeEenheidLabel && organisatorischeEenheidActor?.naam" class="actor-line">
             {{ organisatorischeEenheidLabel }}: {{ organisatorischeEenheidActor.naam }}
           </span>
         </utrecht-data-list-value>
@@ -194,6 +194,10 @@ const organisatienaam = computed(() =>
   &[title]:not([title=""]) {
     user-select: all;
   }
+}
+
+.actor-line {
+  display: block;
 }
 
 .ita-data-list__group {
