@@ -42,6 +42,10 @@ public class ForwardContactRequestService(
         {
             updatedInternetaak.AanleidinggevendKlantcontact = await openKlantApiClient.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
         }
+        else
+        {
+            logger.LogWarning("AanleidinggevendKlantcontact ontbreekt op internetaak {Uuid} — notificatie wordt overgeslagen", internetaak.Uuid);
+        }
 
         var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
 
