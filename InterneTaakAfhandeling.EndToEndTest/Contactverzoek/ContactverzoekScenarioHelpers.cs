@@ -12,10 +12,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
     {
         //  Setup & Navigation Helpers
 
-        private async Task<Guid> SetupContactverzoek(string onderwerp, bool attachZaak)
+        private async Task<Guid> SetupContactverzoek(string onderwerp, bool attachZaak, bool includeMedewerkerAssignment = true)
         {
             await Step("Setup test data via API");
-            var uuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak);
+            var uuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak, includeMedewerkerAssignment: includeMedewerkerAssignment);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
             return uuid;
         }
@@ -23,7 +23,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task<Guid> SetupContactverzoek(string onderwerp, bool attachZaak, string internetaakNummer)
         {
             await Step("Setup test data via API");
-            var uuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak, internetaakNummer);
+            var uuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak, internetaakNummer, includeMedewerkerAssignment: false);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
             return uuid;
         }
@@ -31,7 +31,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task CreateAssignAndCloseContactverzoek(string onderwerp, string informatieText)
         {
             await Step("Create and close contactverzoek");
-            var contactmomentUuid = await SetupContactverzoek(onderwerp, attachZaak: false);
+            var contactmomentUuid = await SetupContactverzoek(onderwerp, attachZaak: false, includeMedewerkerAssignment: false);
             var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
             Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
 

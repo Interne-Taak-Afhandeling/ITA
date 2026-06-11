@@ -39,7 +39,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         public static ILocator GetContactmomentRegistrerenTab(this IPage page) =>
             page.GetByText("Contactmoment registreren");
 
-        public static ILocator GetDoorsturenTab(this IPage page) => page.GetByText("Doorsturen");
+        public static ILocator GetDoorsturenTab(this IPage page) => page.Locator("#label-contactmomentDoorsturen");
 
         public static ILocator GetAlleenToelichtingTab(this IPage page) => page.GetByText("Alleen toelichting");
 
@@ -157,9 +157,53 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         public static ILocator GetMijnHistorieLink(this IPage page) =>
             page.GetByRole(AriaRole.Link, new() { Name = "Mijn historie", Exact = true });
         
+        // Doorsturen form — mode selection
+        public static ILocator GetDoorsturenAfdelingRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Afdeling" });
+
+        public static ILocator GetDoorsturenGroepRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Groep" });
+
+        public static ILocator GetDoorsturenMedewerkerRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Medewerker" });
+
+        // Doorsturen form — mode-specific pickers
+        public static ILocator GetDoorsturenAfdelingSelect(this IPage page) =>
+            page.Locator("#afdelingSelect");
+
+        public static ILocator GetDoorsturenGroepSelect(this IPage page) =>
+            page.Locator("#groepSelect");
+
+        // Server-side medewerker combobox (modus Medewerker)
+        public static ILocator GetDoorsturenMedewerkerCombobox(this IPage page) =>
+            page.Locator("#medewerker-combobox");
+
+        // Secondary afdeling/groep picker after medewerker selection
+        public static ILocator GetDoorsturenSecondaryPicker(this IPage page) =>
+            page.Locator("#secondaryPicker");
+
+        // Optional medewerker pickers in afdeling/groep modes
+        public static ILocator GetDoorsturenAfdelingMedewerkerCombobox(this IPage page) =>
+            page.Locator("#afdeling-groep-medewerker-combobox");
+
+        public static ILocator GetDoorsturenGroepMedewerkerCombobox(this IPage page) =>
+            page.Locator("#groep-medewerker-combobox");
+
+        // Doorsturen form — submit
+        public static ILocator GetDoorsturenSubmitButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Contactverzoek doorsturen" });
+
+        // Old free email input — must NOT be present after Feature #349
+        public static ILocator GetDoorsturenEmailInput(this IPage page) =>
+            page.GetByLabel("E-mailadres medewerker");
+
+        // Doorsturen toast (contains the notificationResult from the backend)
+        public static ILocator GetDoorsturenToast(this IPage page, string text) =>
+            page.GetByRole(AriaRole.Status).Filter(new() { HasText = text });
+
         // Success/Error message locators
         public static ILocator GetSuccessToast(this IPage page, string? text = null) =>
-            text == null 
+            text == null
                 ? page.Locator("output[role='status']")
                 : page.GetByRole(AriaRole.Status).Filter(new() { HasText = text });
 
