@@ -38,6 +38,11 @@ public class ForwardContactRequestService(
 
         var updatedInternetaak = await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid);
 
+        if (updatedInternetaak.AanleidinggevendKlantcontact?.Uuid != null)
+        {
+            updatedInternetaak.AanleidinggevendKlantcontact = await openKlantApiClient.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
+        }
+
         var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
 
         return new ForwardContactRequestResponse
@@ -62,8 +67,7 @@ public class ForwardContactRequestService(
                 return GetResultMessageWhenNoEmails(actorEmailResult);
 
             var emailContent = emailContentService.BuildInternetakenEmailContent(internetaken, _itaBaseUrl);
-            var contactmomentNummer = internetaken.AanleidinggevendKlantcontact?.Nummer
-                ?? throw new InvalidOperationException($"AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {internetaken.Nummer}");
+            var contactmomentNummer = internetaken.AanleidinggevendKlantcontact.Nummer;
             var subject = $"Contactverzoek Doorgestuurd - {contactmomentNummer}";
 
             var sendResults = await SendEmailsAsync(actorEmailResult.FoundEmails, subject, emailContent);
