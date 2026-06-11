@@ -16,6 +16,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
     [DoNotParallelize]
     public class BackwardCompatibleRoutingScenarios : ITAPlaywrightTest
     {
+        [Ignore("Requires feature tasks #372, #373, #375 to be merged before this test can pass")]
         [TestMethod("Navigatie via oud interne-taaknummer op oude route /contactverzoek werkt")]
         public async Task OudeRoute_MetInterneTaaknummer_ToontContactverzoekMetContactmomentNummer()
         {

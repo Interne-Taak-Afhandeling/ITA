@@ -90,7 +90,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         public async Task<Guid> CreateContactverzoek(
             string onderwerp, 
             bool attachZaak = true,
-            string? internetaakNummer = null)
+            string? internetaakNummer = null,
+            bool includeMedewerkerAssignment = true)
         {
             var contactverzoekNummer = internetaakNummer ?? (attachZaak
                 ? TestDataConstants.ContactverzoekNummers.WithZaak
@@ -105,17 +106,19 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
-            
-            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+
+            var actorIds = new List<Guid> { Guid.Parse(afdelingActor.Uuid) };
+
+            if (includeMedewerkerAssignment)
+            {
+                var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+                actorIds.Add(Guid.Parse(medewerkerActor.Uuid));
+            }
 
             await CreateInternetaakIfNotExists(
                 contactverzoekNummer,
                 contactmoment.Uuid,
-                new List<Guid> 
-                { 
-                    Guid.Parse(medewerkerActor.Uuid), 
-                    Guid.Parse(afdelingActor.Uuid) 
-                },
+                actorIds,
                 isExplicitNummer: internetaakNummer != null);
 
             if (attachZaak)
