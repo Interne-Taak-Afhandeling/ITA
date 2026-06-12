@@ -38,15 +38,19 @@ public class ForwardContactRequestService(
 
         var updatedInternetaak = await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid);
 
-        if (updatedInternetaak.AanleidinggevendKlantcontact?.Uuid != null)
+        if (updatedInternetaak.AanleidinggevendKlantcontact?.Uuid == null)
         {
-            updatedInternetaak.AanleidinggevendKlantcontact = await openKlantApiClient.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
-        }
-        else
-        {
-            logger.LogWarning("AanleidinggevendKlantcontact ontbreekt op internetaak {Uuid} — notificatie wordt overgeslagen", internetaak.Uuid);
+            logger.LogError("Uuid van AanleidinggevendKlantcontact onbekend voor internetaak {Uuid}", internetaak.Uuid);
+            return new ForwardContactRequestResponse
+            {
+                Internetaak = updatedInternetaak,
+                NotificationResult = GenericError
+            };
         }
 
+        //Although the AanleidinggevendKlantcontact was returned from the patch endpoint, it does not contain all details (like Nummer) that are needed for the email notification. Therefore, we need to fetch the full Klantcontact details.
+        updatedInternetaak.AanleidinggevendKlantcontact = await openKlantApiClient.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
+        
         var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
 
         return new ForwardContactRequestResponse
