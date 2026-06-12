@@ -45,6 +45,7 @@ public interface IOpenKlantApiClient
 
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
 
+    Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid);
 
 }
 
@@ -481,6 +482,34 @@ public partial class OpenKlantApiClient(
         }
     }
 
+    public async Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid)
+    {
+        try
+        {
+            _logger.LogDebug("Fetching digitale adressen for partij {PartijUuid}", partijUuid);
+
+            using var response = await _httpClient.GetAsync($"partijen/{partijUuid}?expand=digitaleAdressen");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to fetch partij {PartijUuid}: {StatusCode}", partijUuid, response.StatusCode);
+                return [];
+            }
+
+            var partij = await response.Content.ReadFromJsonAsync<Partij>();
+
+            return partij?.Expand?.DigitaleAdressen ?? [];
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error fetching digitale adressen for partij {PartijUuid}: {Message}", partijUuid, ex.Message);
+            return [];
+        }
+    }
 
 
     public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)

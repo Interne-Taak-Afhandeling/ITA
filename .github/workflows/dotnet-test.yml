@@ -1,0 +1,37 @@
+name: Run tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main", "*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project:
+          - InterneTaakAfhandeling.Common.Test
+          - InterneTaakAfhandeling.Web.Server.Test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+      - run: dotnet restore
+        working-directory: ${{ matrix.project }}
+      - run: dotnet build --no-restore
+        working-directory: ${{ matrix.project }}
+      - run: dotnet test --no-build --verbosity normal --logger trx --results-directory ${{ github.workspace }}/TestResults
+        working-directory: ${{ matrix.project }}
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: TestResults/**/*.trx
