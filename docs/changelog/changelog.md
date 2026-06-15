@@ -2,14 +2,14 @@
 
 ## v3.2.0
 
-[Feature: Knop 'Toewijzen aan jezelf' verbergen bij bestaande toewijzing](https://github.com/Interne-Taak-Afhandeling/ITA/issues/347)
-[Feature: Afgehandeld contactverzoek alleen leesbaar](https://github.com/Interne-Taak-Afhandeling/ITA/issues/344)
-[Feature: Gebruik het nummer van het "contactmoment" in plaats van het nummer van de "interne taak"](https://github.com/Interne-Taak-Afhandeling/ITA/issues/299)
-[Feature: Doorsturen via medewerker- of afdelingsselectie in plaats van vrij e-mailadres](https://github.com/Interne-Taak-Afhandeling/ITA/issues/349)
-[Feature: Digitale adressen betrokkene via partij bij afwezigheid eigen adressen](https://github.com/Interne-Taak-Afhandeling/ITA/issues/367)
-[Feature: Beheerder kan gesloten contactverzoek heropenen](https://github.com/Interne-Taak-Afhandeling/ITA/issues/391)
-[Feature: Heldere notificatie-e-mail bij toewijzing contactverzoek](https://github.com/Interne-Taak-Afhandeling/ITA/issues/336)
-[Feature: Bug: Error when opening Contactverzoek with a linked Zaak](https://github.com/Interne-Taak-Afhandeling/ITA/issues/412)
+- [Feature: Knop 'Toewijzen aan jezelf' verbergen bij bestaande toewijzing](https://github.com/Interne-Taak-Afhandeling/ITA/issues/347)
+- [Feature: Afgehandeld contactverzoek alleen leesbaar](https://github.com/Interne-Taak-Afhandeling/ITA/issues/344)
+- [Feature: Gebruik het nummer van het "contactmoment" in plaats van het nummer van de "interne taak"](https://github.com/Interne-Taak-Afhandeling/ITA/issues/299)
+- [Feature: Doorsturen via medewerker- of afdelingsselectie in plaats van vrij e-mailadres](https://github.com/Interne-Taak-Afhandeling/ITA/issues/349)
+- [Feature: Digitale adressen betrokkene via partij bij afwezigheid eigen adressen](https://github.com/Interne-Taak-Afhandeling/ITA/issues/367)
+- [Feature: Beheerder kan gesloten contactverzoek heropenen](https://github.com/Interne-Taak-Afhandeling/ITA/issues/391)
+- [Feature: Heldere notificatie-e-mail bij toewijzing contactverzoek](https://github.com/Interne-Taak-Afhandeling/ITA/issues/336)
+- [Feature: Bug: Error when opening Contactverzoek with a linked Zaak](https://github.com/Interne-Taak-Afhandeling/ITA/issues/412)
 
 
 
