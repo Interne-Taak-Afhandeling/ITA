@@ -9,6 +9,7 @@
 [Feature: Digitale adressen betrokkene via partij bij afwezigheid eigen adressen](https://github.com/Interne-Taak-Afhandeling/ITA/issues/367)
 [Feature: Beheerder kan gesloten contactverzoek heropenen](https://github.com/Interne-Taak-Afhandeling/ITA/issues/391)
 [Feature: Heldere notificatie-e-mail bij toewijzing contactverzoek](https://github.com/Interne-Taak-Afhandeling/ITA/issues/336)
+[Feature: Bug: Error when opening Contactverzoek with a linked Zaak](https://github.com/Interne-Taak-Afhandeling/ITA/issues/412)
 
 
 
