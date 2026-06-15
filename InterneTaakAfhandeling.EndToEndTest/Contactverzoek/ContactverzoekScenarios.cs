@@ -1273,7 +1273,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
             await Step("Navigate to Alle contactverzoeken screen");
-            await SafeGotoAsync("/");
+            await SafeGotoAsync("/alle-contactverzoeken");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify list of open contact requests is displayed");
@@ -1295,33 +1295,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await CreateAssignAndCloseContactverzoek(testOnderwerp, "Closing for removal test");
 
             await Step("Navigate to Alle contactverzoeken");
-            await SafeGotoAsync("/");
+            await SafeGotoAsync("/alle-contactverzoeken");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Task.Delay(2000);
 
             await Step("Verify the closed contact request is no longer in the list");
-            await Expect(Page.Locator($"text={testOnderwerp}")).Not.ToBeVisibleAsync();
+            await Expect(Page.Locator($"text={testOnderwerp}")).Not.ToBeVisibleAsync(new() { Timeout = 10000 });
         }
 
-        [TestMethod("Dash is displayed when e-mail address is left blank in contactverzoek")]
-        public async Task User_ViewsAlleContactverzoeken_DashDisplayedWhenEmailBlank()
+        [TestMethod("Dash is displayed when e-mail address is left blank in contactverzoek details")]
+        public async Task User_ViewsContactverzoekDetails_DashDisplayedWhenEmailBlank()
         {
             var testOnderwerp = $"Test_EmailDash_{Guid.NewGuid().ToString().Substring(0, 8)}";
             await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
-            await Step("Navigate to Alle contactverzoeken screen");
-            await SafeGotoAsync("/");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Step("Navigate to contactverzoek details");
+            await NavigateToContactverzoekDetails(testOnderwerp);
 
-            await Step("Verify the list is displayed");
-            var tableRows = Page.Locator("table tbody tr");
-            await Expect(tableRows.First).ToBeVisibleAsync();
-
-            await Step("Verify dash is displayed for contactverzoek with blank e-mail");
-            var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = testOnderwerp });
-            await Expect(contactverzoekRow).ToBeVisibleAsync();
-            var rowText = await contactverzoekRow.InnerTextAsync();
-            Assert.IsTrue(rowText.Contains("-"), "A dash should be displayed when e-mail address is left blank");
+            await Step("Verify dash is displayed for blank e-mail in contactverzoek details");
+            await Expect(Page.GetEmailLabel()).ToBeVisibleAsync();
+            await Expect(Page.GetEmailValue()).ToHaveTextAsync("-");
         }
 
         [TestMethod("Alle contactverzoeken list is sorted in ascending order")]
@@ -1332,7 +1324,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await SetupContactverzoek(testOnderwerp, attachZaak: false);
 
             await Step("Navigate to Alle contactverzoeken screen");
-            await SafeGotoAsync("/");
+            await SafeGotoAsync("/alle-contactverzoeken");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify the list is displayed");
