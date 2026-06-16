@@ -56,8 +56,11 @@
 
       <utrecht-data-list-item>
         <utrecht-data-list-key>Behandelaar</utrecht-data-list-key>
-        <utrecht-data-list-value :value="behandelaar">
-          {{ behandelaar }}
+        <utrecht-data-list-value :value="behandelaarNaam ?? organisatorischeEenheidActor?.naam ?? ''">
+          <span v-if="behandelaarNaam" class="actor-line">{{ behandelaarNaam }}</span>
+          <span v-if="organisatorischeEenheidLabel && organisatorischeEenheidActor?.naam" class="actor-line">
+            {{ organisatorischeEenheidLabel }}: {{ organisatorischeEenheidActor.naam }}
+          </span>
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
@@ -80,6 +83,11 @@
 
 <script setup lang="ts">
 import type { Actor, Klantcontact } from "@/types/internetaken";
+import {
+  KnownAfdelingIdentificators,
+  KnownGroepIdentificators,
+  KnownMedewerkerIdentificators
+} from "@/constants/medewerkerIdentificators";
 import { computed } from "vue";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
@@ -120,10 +128,29 @@ const email = computed(
       .map(({ adres }: { adres?: string }) => adres || "")
       .find(Boolean) || ""
 );
-const behandelaar = computed(() => {
-  const mdwActor = actoren.find((x) => x.actoridentificator?.codeObjecttype === "mdw");
-  if (mdwActor?.naam) return mdwActor.naam;
-  return actoren[0]?.naam || "";
+const behandelaarNaam = computed(
+  () =>
+    actoren.find(
+      (x) => x.actoridentificator?.codeObjecttype === KnownMedewerkerIdentificators.codeObjecttype
+    )?.naam ?? null
+);
+
+const organisatorischeEenheidActor = computed(
+  () =>
+    actoren.find((x) => {
+      const code = x.actoridentificator?.codeObjecttype;
+      return (
+        code === KnownAfdelingIdentificators.codeObjecttype ||
+        code === KnownGroepIdentificators.codeObjecttype
+      );
+    }) ?? null
+);
+
+const organisatorischeEenheidLabel = computed(() => {
+  const code = organisatorischeEenheidActor.value?.actoridentificator?.codeObjecttype;
+  if (code === KnownAfdelingIdentificators.codeObjecttype) return "Afdeling";
+  if (code === KnownGroepIdentificators.codeObjecttype) return "Groep";
+  return null;
 });
 const aangemaaktDoor = computed(
   () => contactmoment.hadBetrokkenActoren?.map((x) => x.naam).find(Boolean) || ""
@@ -167,6 +194,10 @@ const organisatienaam = computed(() =>
   &[title]:not([title=""]) {
     user-select: all;
   }
+}
+
+.actor-line {
+  display: block;
 }
 
 .ita-data-list__group {
