@@ -112,8 +112,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             var logbookSection = Page.Locator("ol");
             var logbookText = await logbookSection.InnerTextAsync();
 
-            Assert.IsTrue(logbookText.Contains("E2E test contactverzoek creator"),
-                $"Logboek should contain actor name 'E2E test contactverzoek creator'. Actual: '{logbookText}'");
+            Assert.IsTrue(logbookText.Contains("ICATT Integratie Test"),
+                $"Logboek should contain actor name 'ICATT Integratie Test'. Actual: '{logbookText}'");
 
             var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
             Assert.IsTrue(Regex.IsMatch(logbookText, dateTimePattern),
