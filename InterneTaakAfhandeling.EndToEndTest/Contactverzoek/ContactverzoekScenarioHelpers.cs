@@ -198,15 +198,37 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 40000 });
+            // The "Informatie voor burger" field loads from a nested API call
+            // (internetaak → aanleidinggevendKlantcontact.inhoud). In CI, this
+            // external API call can silently fail or be slow. Reload once to
+            // give the frontend a second chance to fetch the data.
+            try
+            {
+                await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 15000 });
+            }
+            catch (TimeoutException)
+            {
+                await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
+            }
             await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(
-                "This is a test contact request created during an end-to-end test run.", new() { Timeout = 10000 });
+                "This is a test contact request created during an end-to-end test run.", new() { Timeout = 15000 });
         }
 
         private async Task VerifyZaakIsVisible(string zaakIdentificatie)
         {
             await Step($"Verify ZAAK '{zaakIdentificatie}' is visible");
-            await Expect(Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie })).ToBeVisibleAsync(new() { Timeout = 10000 });
+            var zaakLocator = Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie });
+            // Zaak details are fetched from the external Zaken API. In CI, this
+            // call can silently fail or be slow. Reload once to retry.
+            try
+            {
+                await Expect(zaakLocator).ToBeVisibleAsync(new() { Timeout = 10000 });
+            }
+            catch (PlaywrightException)
+            {
+                await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
+                await Expect(zaakLocator).ToBeVisibleAsync(new() { Timeout = 10000 });
+            }
         }
 
         private async Task VerifyActionTabsArePresent()
