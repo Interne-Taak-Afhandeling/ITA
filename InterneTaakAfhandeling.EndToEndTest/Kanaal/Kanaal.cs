@@ -18,25 +18,27 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
         private readonly List<string> kanalenToCleanup = new();
 
         [TestInitialize]
-        public async Task TestInitialize()
+        public override async Task TestInitialize()
         {
+            await base.TestInitialize();
+
             locators = new BeheerLocators(Page);
             
             // Pre-cleanup: Remove test data that may exist from previous failed test runs
             await TryDeleteKanaal(TestKanaalName);
             await TryDeleteKanaal(EditedKanaalName);
+
+            // Register post-test cleanup via the base class pattern
+            RegisterCleanup(async () =>
+            {
+                foreach (var kanaalName in kanalenToCleanup)
+                {
+                    await TryDeleteKanaal(kanaalName);
+                }
+                kanalenToCleanup.Clear();
+            });
         }
 
-        [TestCleanup]
-        public async Task TestCleanup()
-        {
-            // Post-cleanup: Remove test data created during this test run
-            foreach (var kanaalName in kanalenToCleanup)
-            {
-                await TryDeleteKanaal(kanaalName);
-            }
-            kanalenToCleanup.Clear();
-        }
 
         private async Task<bool> TryDeleteKanaal(string kanaalName)
         {
