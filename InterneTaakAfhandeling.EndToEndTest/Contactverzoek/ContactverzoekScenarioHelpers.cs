@@ -198,10 +198,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible });
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 40000 });
             await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(
-                "This is a test contact request created during an end-to-end test run.", new() { Timeout = 40000 });
+                "This is a test contact request created during an end-to-end test run.", new() { Timeout = 10000 });
         }
 
         private async Task VerifyZaakIsVisible(string zaakIdentificatie)

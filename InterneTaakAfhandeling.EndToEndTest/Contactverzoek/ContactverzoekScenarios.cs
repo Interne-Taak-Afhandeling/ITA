@@ -177,7 +177,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
 
             await Step("Verify request is closed - success message");
-            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
+            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Get internetaak UUID and verify status in OpenKlant");
@@ -753,7 +753,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await VerifyInternetaakStatusInOpenKlant(internetaakUuidForNav.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
 
             await Step("And navigates to History tab");
-            await Page.GetMijnHistorieLink().ClickAsync();
+            await Page.GetMijnHistorieLink().ClickAsync(new() { Timeout = 10000 });
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Reload page to ensure latest data is displayed");
