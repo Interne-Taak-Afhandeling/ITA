@@ -79,7 +79,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         }
 
-        private const string StoragePath = "./auth.json";
 
 
         /// <summary>
@@ -130,6 +129,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         {
             // Handle Azure AD authentication if credentials are configured
             await HandleAuthenticationAsync();
+
             // start tracing (after authentication to keep credentials out of traces)
             await Context.Tracing.StartAsync(new()
             {
@@ -525,24 +525,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
             return value;
         }
-        [TestInitialize]
-        public async Task TestInitializeWithAuth()
-        {
-            // Clear any existing auth state to force fresh login every time
-            if (File.Exists(StoragePath))
-            {
-                File.Delete(StoragePath);
-            }
-            await HandleAuthenticationAsync();
-        }
         public override BrowserNewContextOptions ContextOptions()
         {
             var baseUrl = s_configuration["TestSettings:TEST_BASE_URL"];
             return new(base.ContextOptions())
             {
-                BaseURL = baseUrl ?? "https://ita.test.icatt.nl", // Default fallback
-                // Don't reuse auth state - force fresh login every time to see the login flow
-                StorageStatePath = null,
+                BaseURL = baseUrl ?? "https://ita.test.icatt.nl",
                 ViewportSize = new() { Width = 1920, Height = 1080 },
             };
         }
@@ -559,14 +547,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         {
             var username = s_configuration["TestSettings:TEST_USERNAME"];
             var password = s_configuration["TestSettings:TEST_PASSWORD"];
-            // If no credentials are configured, skip authentication
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 return;
             }
             try
             {
-                // Create login helper and perform fresh login every time
                 var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper ?? throw new InvalidOperationException("TOTP helper not initialized"));
                 await loginHelper.LoginAsync();
             }
