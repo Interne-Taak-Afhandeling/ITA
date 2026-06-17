@@ -79,8 +79,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         }
 
-        internal const string AuthStatePath = "./auth.json";
-
+    internal const string AuthStatePath = "./auth.json";
 
         /// <summary>
         /// Detects if tests are running locally (not in CI/CD)
