@@ -1082,10 +1082,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Make direct API call to forward endpoint on verwerkt contactverzoek");
-            // ActorType must be "Afdeling" or "Groep" to pass ForwardContactRequestModel.Validate()
             var response = await Page.Context.APIRequest.PostAsync(
                 $"/api/internetaken/{internetaakUuid}/forward",
-                new() { DataObject = new { ActorType = "Afdeling", ActorIdentifier = "Burgerzaken_ibz" } });
+                new() { DataObject = new { Afdeling = "Burgerzaken_ibz" } });
 
             Assert.AreEqual(409, response.Status, "Expected HTTP 409 when forwarding verwerkt contactverzoek");
             var body = await response.TextAsync();
@@ -1292,8 +1291,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetEmailValue()).ToHaveTextAsync("-");
         }
 
-        [TestMethod("Alle contactverzoeken list is sorted in ascending order")]
-        public async Task User_ViewsAlleContactverzoeken_SortedInAscendingOrder()
+        [TestMethod("Alle contactverzoeken list is sorted in descending order (newest first)")]
+        public async Task User_ViewsAlleContactverzoeken_SortedInDescendingOrder()
         {
             await Step("Create contactverzoek to ensure data exists");
             var testOnderwerp = $"Test_Sort_{Guid.NewGuid().ToString().Substring(0, 8)}";
@@ -1315,7 +1314,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
                 return;
             }
 
-            await Step("Verify details are sorted in ascending order by date");
+            await Step("Verify details are sorted in descending order by date");
             var dates = new List<DateTime>();
             for (var i = 0; i < rowCount; i++)
             {
@@ -1331,8 +1330,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             for (var i = 1; i < dates.Count; i++)
             {
-                Assert.IsTrue(dates[i] >= dates[i - 1],
-                    $"List should be sorted in ascending order. Found '{dates[i]:dd-MM-yyyy}' after '{dates[i - 1]:dd-MM-yyyy}'");
+                Assert.IsTrue(dates[i] <= dates[i - 1],
+                    $"List should be sorted in descending order (newest first). Found '{dates[i]:dd-MM-yyyy}' after '{dates[i - 1]:dd-MM-yyyy}'");
             }
         }
     }
