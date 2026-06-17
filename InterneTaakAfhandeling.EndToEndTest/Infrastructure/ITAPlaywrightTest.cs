@@ -110,8 +110,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 .Build();
         }
 
-        // Initialize UniqueOtpHelper if TOTP secret is available
-        private static readonly UniqueOtpHelper? s_uniqueOtpHelper = CreateOtpHelperIfConfigured();
+        // Initialize UniqueOtpHelper if TOTP secret is available (internal so GlobalSetup can share it)
+        internal static readonly UniqueOtpHelper? s_uniqueOtpHelper = CreateOtpHelperIfConfigured();
         // this is used to build afdelingOptions test report 
 
         private static readonly ConcurrentDictionary<string, string> s_testReports = [];

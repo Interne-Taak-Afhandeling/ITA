@@ -40,7 +40,7 @@ public static class GlobalSetup
         });
         var page = await browserContext.NewPageAsync();
 
-        var otpHelper = new UniqueOtpHelper(totpSecret);
+        var otpHelper = ITAPlaywrightTest.s_uniqueOtpHelper ?? new UniqueOtpHelper(totpSecret);
         var loginHelper = new AzureAdLoginHelper(page, username, password, otpHelper);
         await loginHelper.LoginAsync();
 

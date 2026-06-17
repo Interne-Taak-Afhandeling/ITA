@@ -753,11 +753,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await VerifyInternetaakStatusInOpenKlant(internetaakUuidForNav.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
 
             await Step("And navigates to History tab");
+            await SafeGotoAsync("/");
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await Page.GetMijnHistorieLink().ClickAsync(new() { Timeout = 10000 });
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            await Step("Reload page to ensure latest data is displayed");
-            await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
 
             await Step("Then the closed contact request is displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
