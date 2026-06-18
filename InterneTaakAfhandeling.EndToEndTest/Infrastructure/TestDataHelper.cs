@@ -486,11 +486,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 return; // Already connected
             }
 
-            await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+            // The API can transiently reject the request (400) when the
+            // contactmoment was just created. Retry once after a short delay.
+            try
             {
-                Actor = new ActorReference { Uuid = actor.Uuid },
-                Klantcontact = new KlantcontactReference { Uuid = contactmomentUuid }
-            });
+                await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+                {
+                    Actor = new ActorReference { Uuid = actor.Uuid },
+                    Klantcontact = new KlantcontactReference { Uuid = contactmomentUuid }
+                });
+            }
+            catch (Exception)
+            {
+                await Task.Delay(2000);
+                await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+                {
+                    Actor = new ActorReference { Uuid = actor.Uuid },
+                    Klantcontact = new KlantcontactReference { Uuid = contactmomentUuid }
+                });
+            }
         }
 
         //  Actor Operations

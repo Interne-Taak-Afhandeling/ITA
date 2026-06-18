@@ -54,9 +54,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
                     return true; 
                 }
 
-                Page.Dialog += (_, dialog) => dialog.AcceptAsync();
-                await locators.GetDeleteButton(kanaalName).ClickAsync();
-                await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                void AcceptDialog(object? sender, IDialog dialog) => dialog.AcceptAsync();
+                Page.Dialog += AcceptDialog;
+                try
+                {
+                    await locators.GetDeleteButton(kanaalName).ClickAsync();
+                    await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                }
+                finally
+                {
+                    Page.Dialog -= AcceptDialog;
+                }
                 
                 // Verify deletion succeeded
                 var stillExists = await locators.GetKanaalListItem(kanaalName).CountAsync() > 0;
@@ -98,9 +106,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
         private async Task DeleteKanaal(string kanaalName)
         {
             await Step($"Delete kanaal: {kanaalName}");
-            Page.Dialog += (_, dialog) => dialog.AcceptAsync();
-            await locators.GetDeleteButton(kanaalName).ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            void AcceptDialog(object? sender, IDialog dialog) => dialog.AcceptAsync();
+            Page.Dialog += AcceptDialog;
+            try
+            {
+                await locators.GetDeleteButton(kanaalName).ClickAsync();
+                await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            }
+            finally
+            {
+                Page.Dialog -= AcceptDialog;
+            }
         }
 
         private async Task VerifyKanaalExists(string kanaalName)
