@@ -1,9 +1,11 @@
 ﻿using InterneTaakAfhandeling.Common.Extensions;
 using InterneTaakAfhandeling.Common.Services.Afhandeltermijn;
+using InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Poller.Data;
 using InterneTaakAfhandeling.Poller.Features;
+using InterneTaakAfhandeling.Poller.Features.DagelijkseHerinnering;
 using InterneTaakAfhandeling.Poller.Services.NotifierState;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -48,6 +50,7 @@ internal class Program
                 .AddITAApiClients(configuration)
                 .AddSmtpClients(configuration)
                 .AddSingleton<IAfhandeltermijnProvider, HardcodedAfhandeltermijnProvider>()
+                .AddScoped<IOverdueContactVerzoekQueryService, OverdueContactVerzoekQueryService>()
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
                 .AddScoped<IContactmomentenService, ContactmomentenService>();
