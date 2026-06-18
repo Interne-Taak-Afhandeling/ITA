@@ -1,4 +1,5 @@
 ﻿using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.Afhandeltermijn;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Poller.Data;
@@ -46,6 +47,7 @@ internal class Program
                 .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString))
                 .AddITAApiClients(configuration)
                 .AddSmtpClients(configuration)
+                .AddSingleton<IAfhandeltermijnProvider, HardcodedAfhandeltermijnProvider>()
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
                 .AddScoped<IContactmomentenService, ContactmomentenService>();
