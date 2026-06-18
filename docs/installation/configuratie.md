@@ -56,6 +56,8 @@ ITA gaat ervan uit dat emailadressen van medewerkers en organisatorische eenhede
 | afdeling.typeVersion                   | De versie van het afdeling objecttype dat gebruikt wordt (waarschijnlijk 1) |
 | groep.type                             | De url van het groep objecttype in de objecttypen api.   |
 | groep.typeVersion                      | De versie van het groep objecttype dat gebruikt wordt (waarschijnlijk 1) |
+| medewerker.type                        | De url van het medewerker objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie voor meer informatie |
+| medewerker.typeVersion                 | De versie van het medewerker objecttype dat gebruikt wordt (waarschijnlijk 1) |
 
 Database configuratie
 ---------------------------------
