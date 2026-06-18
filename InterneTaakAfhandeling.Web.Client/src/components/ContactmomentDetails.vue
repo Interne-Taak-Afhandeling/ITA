@@ -17,7 +17,7 @@
 
       <utrecht-data-list-item>
         <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
-        <utrecht-data-list-value :value="email" v-title-on-overflow>
+        <utrecht-data-list-value :value="email ?? undefined" v-title-on-overflow>
           {{ email }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
