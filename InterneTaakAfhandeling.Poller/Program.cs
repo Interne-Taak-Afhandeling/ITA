@@ -50,6 +50,7 @@ internal class Program
                 .AddITAApiClients(configuration)
                 .AddSmtpClients(configuration)
                 .AddSingleton<IAfhandeltermijnProvider, HardcodedAfhandeltermijnProvider>()
+                .AddSingleton<IDagelijkseHerinneringsTemplateService, DagelijkseHerinneringsTemplateService>()
                 .AddScoped<IOverdueContactVerzoekQueryService, OverdueContactVerzoekQueryService>()
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
