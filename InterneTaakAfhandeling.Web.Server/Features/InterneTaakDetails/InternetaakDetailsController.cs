@@ -1,4 +1,5 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using Microsoft.AspNetCore.Authorization;
@@ -98,8 +99,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
             var oe = actoren.FirstOrDefault(a => a.SoortActor == SoortActor.organisatorische_eenheid);
             var oeType = oe?.Actoridentificator?.CodeObjecttype switch
             {
-                "afd" => "Afdeling",
-                "grp" => "Groep",
+                KnownAfdelingIdentificators.CodeObjecttypeAfdeling => "Afdeling",
+                KnownGroepIdentificators.CodeObjecttypeGroep => "Groep",
                 _ => oe != null ? "Organisatorische eenheid" : null
             };
 
