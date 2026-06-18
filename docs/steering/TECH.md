@@ -214,6 +214,7 @@ ITA is a Dutch government application and MUST comply with **WCAG 2.2 level AA**
 | Services | Service modules in `src/services/` MUST expose typed functions that return `Promise<T>` with explicit TypeScript types from `src/types/` |
 | Composables | MUST follow the `use-*.ts` naming convention in `src/composables/` |
 | Pattern reuse | When a new view requires behavioral logic similar to an existing view (e.g., pagination, state caching), the new view MUST reuse existing composables rather than reimplementing equivalent logic. If the existing composable does not fit, extend it or create a new composable after evaluation |
+| ViewModel boundary | When modifying a component that processes raw API model data (filtering, mapping, null-coalescing, string formatting), evaluate whether that logic belongs in the backend ViewModel instead. If a dedicated response DTO exists or is being introduced, ALL client-side field derivations in that component MUST be moved to the ViewModel — not just the ones introduced in the current change. |
 | Route definitions | MUST include `meta.title` and `meta.requiresITAAccess` (or `meta.requiresAuth` / `meta.requiresFunctioneelBeheerderAccess`) for authorization enforcement and page-title rendering |
 
 **Rationale:** Consistent use of NL Design System tokens ensures accessibility, government branding compliance (Digitoegankelijk), and a uniform user experience across all views.

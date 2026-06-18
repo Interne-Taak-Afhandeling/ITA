@@ -1,11 +1,3 @@
-export const KnownAfdelingIdentificators = {
-  codeObjecttype: "afd"
-} as const;
-
-export const KnownGroepIdentificators = {
-  codeObjecttype: "grp"
-} as const;
-
 export const KnownMedewerkerIdentificators = {
   codeObjecttype: "mdw",
   emailFromEntraId: {

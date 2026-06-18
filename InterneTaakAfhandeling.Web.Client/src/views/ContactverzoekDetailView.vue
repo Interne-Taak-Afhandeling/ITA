@@ -44,9 +44,18 @@
       title="Gegevens van contact"
     >
       <contactmoment-details
-        :contactmoment="taak.aanleidinggevendKlantcontact"
         :status="taak.status"
-        :actoren="taak.toegewezenAanActoren || []"
+        :klant-naam="taak.klantNaam"
+        :organisatienaam="taak.organisatienaam"
+        :email="taak.email"
+        :telefoonnummer1="taak.telefoonnummer1"
+        :telefoonnummer2="taak.telefoonnummer2"
+        :plaatsgevonden-op="taak.plaatsgevondenOp"
+        :kanaal="taak.kanaal"
+        :aangemaakt-door="taak.aangemaaktDoor"
+        :behandelaar-naam="taak.behandelaarNaam"
+        :organisatorische-eenheid-naam="taak.organisatorischeEenheidNaam"
+        :organisatorische-eenheid-type="taak.organisatorischeEenheidType"
       />
     </detail-section>
 

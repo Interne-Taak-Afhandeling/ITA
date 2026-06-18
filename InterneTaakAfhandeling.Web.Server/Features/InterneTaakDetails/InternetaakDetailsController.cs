@@ -14,7 +14,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
 
         private readonly IInternetaakService _internetakenService = internetakenService;
 
-        [ProducesResponseType(typeof(Internetaak), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(InterneTaakDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("{internetaakNummer}")]
@@ -43,10 +43,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
                 });
             }
 
-            return Ok(internetaak);
+            return Ok(ToResponse(internetaak));
         }
 
-        [ProducesResponseType(typeof(Internetaak), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(InterneTaakDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("by-klantcontact/{nummer}")]
@@ -88,8 +88,81 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
                 });
             }
 
-            return Ok(internetaak);
+            return Ok(ToResponse(internetaak));
         }
+
+        private static InterneTaakDetailsResponse ToResponse(Internetaak internetaak)
+        {
+            var actoren = internetaak.ToegewezenAanActoren ?? [];
+            var medewerker = actoren.FirstOrDefault(a => a.SoortActor == SoortActor.medewerker);
+            var oe = actoren.FirstOrDefault(a => a.SoortActor == SoortActor.organisatorische_eenheid);
+            var oeType = oe?.Actoridentificator?.CodeObjecttype switch
+            {
+                "afd" => "Afdeling",
+                "grp" => "Groep",
+                _ => oe != null ? "Organisatorische eenheid" : null
+            };
+
+            var klantcontact = internetaak.AanleidinggevendKlantcontact;
+            var klantNaam = ResolveKlantNaam(klantcontact);
+            var telefoonnummers = ResolveTelefoonnummers(klantcontact);
+
+            return new InterneTaakDetailsResponse
+            {
+                Uuid = internetaak.Uuid,
+                Nummer = internetaak.Nummer,
+                GevraagdeHandeling = internetaak.GevraagdeHandeling,
+                AanleidinggevendKlantcontact = klantcontact,
+                ToegewezenAanActoren = internetaak.ToegewezenAanActoren,
+                Toelichting = internetaak.Toelichting,
+                Status = internetaak.Status,
+                ToegewezenOp = internetaak.ToegewezenOp,
+                AfgehandeldOp = internetaak.AfgehandeldOp,
+                Zaak = internetaak.Zaak,
+                BehandelaarNaam = medewerker?.Naam,
+                OrganisatorischeEenheidNaam = oe?.Naam,
+                OrganisatorischeEenheidType = oeType,
+                KlantNaam = klantNaam,
+                Organisatienaam = ResolveOrganisatienaam(klantcontact, klantNaam),
+                Email = ResolveEmail(klantcontact),
+                Telefoonnummer1 = telefoonnummers.Count > 0 ? telefoonnummers[0] : null,
+                Telefoonnummer2 = telefoonnummers.Count > 1 ? telefoonnummers[1] : null,
+                PlaatsgevondenOp = klantcontact?.PlaatsgevondenOp,
+                Kanaal = klantcontact?.Kanaal,
+                AangemaaktDoor = klantcontact?.HadBetrokkenActoren?
+                    .Select(a => a.Naam)
+                    .FirstOrDefault(naam => !string.IsNullOrEmpty(naam))
+            };
+        }
+
+        private static string? ResolveKlantNaam(Klantcontact? klantcontact) =>
+            klantcontact?.Expand?.HadBetrokkenen?
+                .Select(b => b.VolledigeNaam ?? b.Organisatienaam)
+                .FirstOrDefault(naam => !string.IsNullOrEmpty(naam));
+
+        private static string? ResolveOrganisatienaam(Klantcontact? klantcontact, string? klantNaam) =>
+            klantcontact?.Expand?.HadBetrokkenen?
+                .Select(b => b.Organisatienaam)
+                .FirstOrDefault(naam => !string.IsNullOrEmpty(naam) && naam != klantNaam);
+
+        private static string? ResolveEmail(Klantcontact? klantcontact) =>
+            klantcontact?.Expand?.HadBetrokkenen?[0]?.Expand?.DigitaleAdressen?
+                .Where(a => a.SoortDigitaalAdres == "email" && !string.IsNullOrEmpty(a.Adres))
+                .Select(a => a.Adres)
+                .FirstOrDefault();
+
+        private static List<TelefoonnummerItem> ResolveTelefoonnummers(Klantcontact? klantcontact) =>
+            klantcontact?.Expand?.HadBetrokkenen?[0]?.Expand?.DigitaleAdressen?
+                .Where(a => a.SoortDigitaalAdres == "telefoonnummer" && !string.IsNullOrEmpty(a.Adres))
+                .Select((a, i) => new TelefoonnummerItem
+                {
+                    Adres = a.Adres!,
+                    Omschrijving = PascalCase(a.Omschrijving) ?? $"Telefoonnummer {i + 1}"
+                })
+                .ToList() ?? [];
+
+        private static string? PascalCase(string? s) =>
+            string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
 
     }
 }

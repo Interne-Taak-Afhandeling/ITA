@@ -3,14 +3,14 @@
     <div class="ita-data-list__group">
       <utrecht-data-list-item>
         <utrecht-data-list-key>Klantnaam</utrecht-data-list-key>
-        <utrecht-data-list-value :value="klantNaam">
+        <utrecht-data-list-value :value="klantNaam ?? undefined">
           {{ klantNaam }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
       <utrecht-data-list-item v-if="organisatienaam">
         <utrecht-data-list-key>Organisatie</utrecht-data-list-key>
-        <utrecht-data-list-value :value="organisatienaam">
+        <utrecht-data-list-value :value="organisatienaam ?? undefined">
           {{ organisatienaam }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
@@ -24,15 +24,15 @@
 
       <utrecht-data-list-item>
         <utrecht-data-list-key>Telefoonnummer</utrecht-data-list-key>
-        <utrecht-data-list-value :value="phoneNumber1?.adres">
-          {{ phoneNumber1?.adres }}
+        <utrecht-data-list-value :value="telefoonnummer1?.adres">
+          {{ telefoonnummer1?.adres }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
-      <utrecht-data-list-item v-if="phoneNumber2?.adres">
-        <utrecht-data-list-key>{{ phoneNumber2.omschrijving }}</utrecht-data-list-key>
-        <utrecht-data-list-value :value="phoneNumber2.adres">
-          {{ phoneNumber2.adres }}
+      <utrecht-data-list-item v-if="telefoonnummer2?.adres">
+        <utrecht-data-list-key>{{ telefoonnummer2.omschrijving }}</utrecht-data-list-key>
+        <utrecht-data-list-value :value="telefoonnummer2.adres">
+          {{ telefoonnummer2.adres }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
     </div>
@@ -43,24 +43,28 @@
         <utrecht-data-list-value
           value="empty values are handled by date-time-or-nvt so we hard code a value here"
         >
-          <date-time-or-nvt :date="contactmoment.plaatsgevondenOp" />
+          <date-time-or-nvt :date="plaatsgevondenOp ?? undefined" />
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
       <utrecht-data-list-item>
         <utrecht-data-list-key>Aangemaakt door</utrecht-data-list-key>
-        <utrecht-data-list-value :value="aangemaaktDoor">
+        <utrecht-data-list-value :value="aangemaaktDoor ?? undefined">
           {{ aangemaaktDoor }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
-      <utrecht-data-list-item>
+      <utrecht-data-list-item v-if="behandelaarNaam">
         <utrecht-data-list-key>Behandelaar</utrecht-data-list-key>
-        <utrecht-data-list-value :value="behandelaarNaam ?? organisatorischeEenheidActor?.naam ?? ''">
-          <span v-if="behandelaarNaam" class="actor-line">{{ behandelaarNaam }}</span>
-          <span v-if="organisatorischeEenheidLabel && organisatorischeEenheidActor?.naam" class="actor-line">
-            {{ organisatorischeEenheidLabel }}: {{ organisatorischeEenheidActor.naam }}
-          </span>
+        <utrecht-data-list-value :value="behandelaarNaam">
+          {{ behandelaarNaam }}
+        </utrecht-data-list-value>
+      </utrecht-data-list-item>
+
+      <utrecht-data-list-item v-if="organisatorischeEenheidNaam">
+        <utrecht-data-list-key>{{ organisatorischeEenheidType }}</utrecht-data-list-key>
+        <utrecht-data-list-value :value="organisatorischeEenheidNaam">
+          {{ organisatorischeEenheidNaam }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
@@ -73,101 +77,31 @@
 
       <utrecht-data-list-item>
         <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
-        <utrecht-data-list-value :value="contactmoment.kanaal">{{
-          contactmoment.kanaal
-        }}</utrecht-data-list-value>
+        <utrecht-data-list-value :value="kanaal ?? undefined">{{ kanaal }}</utrecht-data-list-value>
       </utrecht-data-list-item>
     </div>
   </utrecht-data-list>
 </template>
 
 <script setup lang="ts">
-import type { Actor, Klantcontact } from "@/types/internetaken";
-import {
-  KnownAfdelingIdentificators,
-  KnownGroepIdentificators,
-  KnownMedewerkerIdentificators
-} from "@/constants/medewerkerIdentificators";
-import { computed } from "vue";
+import type { TelefoonnummerItem } from "@/types/internetaken";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 
-const { contactmoment, actoren } = defineProps<{
-  contactmoment: Klantcontact;
-  actoren: Actor[];
+defineProps<{
   status: string;
+  klantNaam?: string | null;
+  organisatienaam?: string | null;
+  email?: string | null;
+  telefoonnummer1?: TelefoonnummerItem | null;
+  telefoonnummer2?: TelefoonnummerItem | null;
+  plaatsgevondenOp?: string | null;
+  kanaal?: string | null;
+  aangemaaktDoor?: string | null;
+  behandelaarNaam?: string | null;
+  organisatorischeEenheidNaam?: string | null;
+  organisatorischeEenheidType?: string | null;
 }>();
-
-const pascalCase = (s: string | undefined) =>
-  !s ? s : `${s[0].toLocaleUpperCase()}${s.substring(1) || ""}`;
-const phoneNumbers = computed(
-  () =>
-    contactmoment._expand?.hadBetrokkenen?.[0]?._expand.digitaleAdressen
-      ?.filter(
-        ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) =>
-          soortDigitaalAdres === "telefoonnummer"
-      )
-      .filter((x) => x.adres)
-      .map(({ adres, omschrijving }, i) => ({
-        adres,
-        omschrijving: pascalCase(omschrijving) || `Telefoonnummer ${i + 1}`
-      })) || []
-);
-const phoneNumber1 = computed(() =>
-  phoneNumbers.value.length > 0 ? phoneNumbers.value[0] : undefined
-);
-const phoneNumber2 = computed(() =>
-  phoneNumbers.value.length > 1 ? phoneNumbers.value[1] : undefined
-);
-const email = computed(
-  () =>
-    contactmoment._expand?.hadBetrokkenen?.[0]?._expand.digitaleAdressen
-      ?.filter(
-        ({ soortDigitaalAdres }: { soortDigitaalAdres?: string }) => soortDigitaalAdres === "email"
-      )
-      .map(({ adres }: { adres?: string }) => adres || "")
-      .find(Boolean) || ""
-);
-const behandelaarNaam = computed(
-  () =>
-    actoren.find(
-      (x) => x.actoridentificator?.codeObjecttype === KnownMedewerkerIdentificators.codeObjecttype
-    )?.naam ?? null
-);
-
-const organisatorischeEenheidActor = computed(
-  () =>
-    actoren.find((x) => {
-      const code = x.actoridentificator?.codeObjecttype;
-      return (
-        code === KnownAfdelingIdentificators.codeObjecttype ||
-        code === KnownGroepIdentificators.codeObjecttype
-      );
-    }) ?? null
-);
-
-const organisatorischeEenheidLabel = computed(() => {
-  const code = organisatorischeEenheidActor.value?.actoridentificator?.codeObjecttype;
-  if (code === KnownAfdelingIdentificators.codeObjecttype) return "Afdeling";
-  if (code === KnownGroepIdentificators.codeObjecttype) return "Groep";
-  return null;
-});
-const aangemaaktDoor = computed(
-  () => contactmoment.hadBetrokkenActoren?.map((x) => x.naam).find(Boolean) || ""
-);
-
-const klantNaam = computed(() =>
-  contactmoment._expand?.hadBetrokkenen
-    ?.map((x) => x.volledigeNaam || x.organisatienaam)
-    .find(Boolean)
-);
-
-const organisatienaam = computed(() =>
-  contactmoment._expand?.hadBetrokkenen
-    ?.map((x) => x.organisatienaam)
-    .filter((x) => x !== klantNaam.value)
-    .find(Boolean)
-);
 </script>
 
 <style lang="scss" scoped>
@@ -194,10 +128,6 @@ const organisatienaam = computed(() =>
   &[title]:not([title=""]) {
     user-select: all;
   }
-}
-
-.actor-line {
-  display: block;
 }
 
 .ita-data-list__group {
