@@ -144,7 +144,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // Heading now shows AanleidinggevendKlantcontact.Nummer (contactmoment number), not the
             // interne-taaknummer. Use the action tab as a reliable page-loaded indicator instead.
-            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
         }
 
         private async Task NavigateToVerwerktContactverzoekByNummer(string internetaakNummer)
@@ -153,7 +153,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await SafeGotoAsync($"/contactverzoek/{internetaakNummer}");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // Verwerkt contactverzoeken hide the action tabs; wait for the afgehandeld message instead.
-            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync();
         }
 
         private async Task NavigateToContactmomentRegistrerenTab()
@@ -180,7 +180,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task VerifyBasicContactverzoekFields(string onderwerp)
         {
             await Step("Verify contactverzoek is visible");
-            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
 
             await Step("Verify contact information fields");
             await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();

@@ -107,7 +107,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
         {
             await Step($"Verify kanaal '{kanaalName}' exists");
             await NavigateToKanalenPage();
-            await Expect(locators.GetKanaalLink(kanaalName)).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(locators.GetKanaalLink(kanaalName)).ToBeVisibleAsync();
         }
 
         private async Task EditKanaalName(string currentName, string newName)
@@ -185,7 +185,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
 
             await Step("Verify error message is displayed");
             var errorMessage = Page.Locator(".preserve-newline").Filter(new() { HasText = $"Er bestaat al een kanaal met de naam {TestKanaalName}" });
-            await Expect(errorMessage).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(errorMessage).ToBeVisibleAsync();
         }
     }
 }

@@ -177,7 +177,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
 
             await Step("Verify request is closed - success message");
-            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Get internetaak UUID and verify status in OpenKlant");
@@ -669,7 +669,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Then closed contact request assigned to the employee is displayed");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
-            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
 
             await Step("Verify the contact request shows as assigned to current user");
             var tableRows = Page.Locator("table tbody tr");
@@ -755,13 +755,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("And navigates to History tab");
             await SafeGotoAsync("/");
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetMijnHistorieLink().ClickAsync(new() { Timeout = 10000 });
+            await Page.GetMijnHistorieLink().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then the closed contact request is displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
-            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
 
             await Step("Verify the reassigned and closed contact request shows in user's history");
             var tableRows = Page.Locator("table tbody tr");
@@ -967,7 +967,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var logbookHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" });
             await Expect(logbookHeading).ToBeVisibleAsync();
             var logbookSection = logbookHeading.Locator("xpath=ancestor::section");
-            await Expect(logbookSection.GetByRole(AriaRole.Paragraph).Filter(new() { HasText = "test logboek" })).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(logbookSection.GetByRole(AriaRole.Paragraph).Filter(new() { HasText = "test logboek" })).ToBeVisibleAsync();
         }
 
         [TestMethod("Close contactmoment, navigate to Mijn historie and verify logbook entry")]
@@ -1002,7 +1002,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
 
             await Step("Verify contactverzoek was closed successfully");
-            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Expect(Page.GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage()).ToBeVisibleAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
  
             await Step("Navigate to Mijn historie tab");
@@ -1026,7 +1026,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var logbookHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" });
             await Expect(logbookHeading).ToBeVisibleAsync();
             var logbookSection = logbookHeading.Locator("xpath=ancestor::section");
-            await Expect(logbookSection.GetByRole(AriaRole.Paragraph).Filter(new() { HasText = "test logboek" })).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(logbookSection.GetByRole(AriaRole.Paragraph).Filter(new() { HasText = "test logboek" })).ToBeVisibleAsync();
         }
 
         // Feature #344 — Afgehandeld contactverzoek alleen leesbaar
@@ -1227,13 +1227,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Find the closed contactverzoek in the history list and click through");
-            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
             var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = onderwerp });
             await contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" }).ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify all action controls are hidden");
-            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync();
             await Expect(Page.GetContactmomentRegistrerenTab()).Not.ToBeVisibleAsync();
             await Expect(Page.GetDoorsturenTab()).Not.ToBeVisibleAsync();
             await Expect(Page.GetAlleenToelichtingTab()).Not.ToBeVisibleAsync();
@@ -1273,7 +1273,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify the closed contact request is no longer in the list");
-            await Expect(Page.Locator($"text={testOnderwerp}")).Not.ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.Locator($"text={testOnderwerp}")).Not.ToBeVisibleAsync();
         }
 
         [TestMethod("Dash is displayed when e-mail address is left blank in contactverzoek details")]
@@ -1303,7 +1303,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Verify the list is displayed");
             var tableRows = Page.Locator("table tbody tr");
-            await Expect(tableRows.First).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Expect(tableRows.First).ToBeVisibleAsync();
             var rowCount = await tableRows.CountAsync();
             Assert.IsTrue(rowCount >= 1, "Expected at least one contact request in the list");
 
