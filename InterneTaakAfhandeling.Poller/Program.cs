@@ -52,6 +52,7 @@ internal class Program
                 .AddSingleton<IAfhandeltermijnProvider, HardcodedAfhandeltermijnProvider>()
                 .AddSingleton<IDagelijkseHerinneringsTemplateService, DagelijkseHerinneringsTemplateService>()
                 .AddScoped<IOverdueContactVerzoekQueryService, OverdueContactVerzoekQueryService>()
+                .AddScoped<IDagelijkseHerinneringsEmailService, DagelijkseHerinneringsEmailService>()
                 .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
                 .AddScoped<IContactmomentenService, ContactmomentenService>();
