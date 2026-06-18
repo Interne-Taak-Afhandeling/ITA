@@ -47,4 +47,3 @@ Configureer de volgende helm values:
 - ``afdeling.type``: de URL van het afdeling objecttype in de Objecttypen API (gemeentespecifiek).
 - ``afdeling.typeVersion``: de versie van het objecttype (standaard: 1).
 
-                    
