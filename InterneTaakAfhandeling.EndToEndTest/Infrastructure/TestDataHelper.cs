@@ -713,7 +713,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
                 // Existing internetaak is stale (wrong contactmoment or wrong status) — delete and recreate
                 Logger.LogInformation("Internetaak with nummer '{Nummer}' exists but is stale (wrong contactmoment or status), recreating", nummer);
-                await OpenKlantApiClient.DeleteInterneTaakAsync(Guid.Parse(existingInternetaak.Uuid!));
+                if (!Guid.TryParse(existingInternetaak.Uuid, out var existingUuid))
+                {
+                    throw new InvalidOperationException($"Internetaak has invalid UUID format: '{existingInternetaak.Uuid}'");
+                }
+                await OpenKlantApiClient.DeleteInterneTaakAsync(existingUuid);
             }
 
             // Doesn't exist, try to create it

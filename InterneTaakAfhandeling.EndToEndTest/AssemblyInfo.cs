@@ -14,6 +14,12 @@ public static class GlobalSetup
     [AssemblyInitialize]
     public static async Task SetupSharedAuth(TestContext context)
     {
+        // Remove any stale auth state from a previous run
+        if (File.Exists(ITAPlaywrightTest.AuthStatePath))
+        {
+            File.Delete(ITAPlaywrightTest.AuthStatePath);
+        }
+
         var configuration = new ConfigurationBuilder()
             .AddUserSecrets<ITAPlaywrightTest>()
             .AddEnvironmentVariables()
@@ -28,13 +34,13 @@ public static class GlobalSetup
             return; // No credentials configured, skip shared auth
         }
 
-        var playwright = await Playwright.CreateAsync();
-        var browser = await playwright.Chromium.LaunchAsync(new()
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new()
         {
             Headless = !ITAPlaywrightTest.IsRunningLocally()
         });
 
-        var browserContext = await browser.NewContextAsync(new()
+        await using var browserContext = await browser.NewContextAsync(new()
         {
             BaseURL = configuration["TestSettings:TEST_BASE_URL"] ?? "https://ita.test.icatt.nl"
         });
@@ -49,9 +55,6 @@ public static class GlobalSetup
         {
             Path = ITAPlaywrightTest.AuthStatePath
         });
-
-        await browser.CloseAsync();
-        playwright.Dispose();
     }
 
     [AssemblyCleanup]
