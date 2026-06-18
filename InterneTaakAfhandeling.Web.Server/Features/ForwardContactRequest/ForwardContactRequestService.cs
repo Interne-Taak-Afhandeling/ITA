@@ -38,6 +38,19 @@ public class ForwardContactRequestService(
 
         var updatedInternetaak = await openKlantApiClient.PatchInternetaakActorAsync(internetakenUpdateRequest, internetaak.Uuid);
 
+        if (updatedInternetaak.AanleidinggevendKlantcontact?.Uuid == null)
+        {
+            logger.LogError("Uuid van AanleidinggevendKlantcontact onbekend voor internetaak {Uuid}", internetaak.Uuid);
+            return new ForwardContactRequestResponse
+            {
+                Internetaak = updatedInternetaak,
+                NotificationResult = GenericError
+            };
+        }
+
+        //Although the AanleidinggevendKlantcontact was returned from the patch endpoint, it does not contain all details (like Nummer) that are needed for the email notification. Therefore, we need to fetch the full Klantcontact details.
+        updatedInternetaak.AanleidinggevendKlantcontact = await openKlantApiClient.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
+        
         var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
 
         return new ForwardContactRequestResponse
@@ -61,9 +74,9 @@ public class ForwardContactRequestService(
             if (!actorEmailResult.FoundEmails.Any())
                 return GetResultMessageWhenNoEmails(actorEmailResult);
 
+            var contactmomentNummer = (internetaken.AanleidinggevendKlantcontact?.Nummer) ?? throw new InvalidOperationException(
+                    $"AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {internetaken.Nummer}");
             var emailContent = emailContentService.BuildInternetakenEmailContent(internetaken, _itaBaseUrl);
-            var contactmomentNummer = internetaken.AanleidinggevendKlantcontact?.Nummer
-                ?? throw new InvalidOperationException($"AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {internetaken.Nummer}");
             var subject = $"Contactverzoek Doorgestuurd - {contactmomentNummer}";
 
             var sendResults = await SendEmailsAsync(actorEmailResult.FoundEmails, subject, emailContent);
