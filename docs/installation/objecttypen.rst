@@ -11,6 +11,10 @@ ITA slaat de history rondom de afhandeling van een Contactverzoek op in de Objec
 
 - Het schema van het objecttype staat in de repository van ITA: `https://github.com/Interne-Taak-Afhandeling/ITA/blob/main/docs/schema/Logboek-schema.json <https://github.com/Interne-Taak-Afhandeling/ITA/blob/main/docs/schema/Logboek-schema.json>`_
 
+Configureer de volgende helm values:
+- ``logboek.type``: de URL van het logboek objecttype in de Objecttypen API (gemeentespecifiek).
+- ``logboek.typeVersion``: de versie van het objecttype (standaard: 1).
+
 Medewerker
 ----------
 
