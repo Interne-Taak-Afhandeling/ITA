@@ -57,8 +57,8 @@ internal class Program
                 .AddScoped<INieuweInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
                 .AddScoped<IContactmomentenService, ContactmomentenService>()
-                .AddKeyedScoped<IPollerJob, NieuweInternetaakNotificatiePollerJob>("notifier")
-                .AddKeyedScoped<IPollerJob, VerlopenContactverzoekHerinneringPollerJob>("dagelijkse-herinnering");
+                .AddKeyedScoped<IPollerJob, NieuweInternetaakNotificatiePollerJob>("nieuwe-internetaak-notificatie")
+                .AddKeyedScoped<IPollerJob, VerlopenContactverzoekHerinneringPollerJob>("verlopen-contactverzoek-herinnering");
 
             var serviceProvider = services.BuildServiceProvider();
 
@@ -74,7 +74,7 @@ internal class Program
             var message = configuration["PollerMessage"] ?? "Poller executed at";
             Console.WriteLine($"{message} {DateTimeOffset.UtcNow}");
 
-            var pollerMode = Environment.GetEnvironmentVariable("POLLER_MODE") ?? "notifier";
+            var pollerMode = Environment.GetEnvironmentVariable("POLLER_MODE") ?? "nieuwe-internetaak-notificatie";
             logger.LogInformation("Poller started in mode: {PollerMode}", pollerMode);
 
             using var runScope = serviceProvider.CreateScope();

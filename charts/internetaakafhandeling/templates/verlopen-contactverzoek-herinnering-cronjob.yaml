@@ -19,7 +19,7 @@ spec:
               imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
               env:
                 - name: POLLER_MODE
-                  value: "dagelijkse-herinnering"
+                  value: "verlopen-contactverzoek-herinnering"
               {{- with .Values.poller.resources }}
               resources:
                 {{- toYaml . | nindent 16 }}
