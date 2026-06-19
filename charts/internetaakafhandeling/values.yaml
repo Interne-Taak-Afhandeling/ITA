@@ -150,10 +150,8 @@ web:
     setting1: ""
     setting2: ""
 
-# NieuweInternetaakNotificatie — notifies assignees when a new internetaak is created (every 15 min)
-nieuweInternetaakNotificatie:
-  schedule: "*/15 * * * *"
-
+# Poller — shared image and resource settings for all poller CronJobs
+poller:
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
     tag: "latest"
@@ -167,6 +165,9 @@ nieuweInternetaakNotificatie:
   #   cpu: 100m
   #   memory: 128Mi
 
+# NieuweInternetaakNotificatie — notifies assignees when a new internetaak is created (every 15 min)
+nieuweInternetaakNotificatie:
+  schedule: "*/15 * * * *"
   notification:
     pollerMessage: "Poller uitgevoerd om:"
     hourThreshold: "-24"

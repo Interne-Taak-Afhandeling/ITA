@@ -16,12 +16,12 @@ spec:
         spec:
           containers:
             - name: verlopen-contactverzoek-herinnering
-              image: "{{ .Values.nieuweInternetaakNotificatie.image.repository }}:{{ .Values.nieuweInternetaakNotificatie.image.tag }}"
-              imagePullPolicy: {{ .Values.nieuweInternetaakNotificatie.image.pullPolicy }}
+              image: "{{ .Values.poller.image.repository }}:{{ .Values.poller.image.tag }}"
+              imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
               env:
                 - name: POLLER_MODE
                   value: "dagelijkse-herinnering"
-              {{- with .Values.nieuweInternetaakNotificatie.resources }}
+              {{- with .Values.poller.resources }}
               resources:
                 {{- toYaml . | nindent 16 }}
               {{- end }}

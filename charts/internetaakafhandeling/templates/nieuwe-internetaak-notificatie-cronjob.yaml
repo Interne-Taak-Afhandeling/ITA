@@ -15,9 +15,9 @@ spec:
         spec:
           containers:
             - name: nieuwe-internetaak-notificatie
-              image: "{{ .Values.nieuweInternetaakNotificatie.image.repository }}:{{ .Values.nieuweInternetaakNotificatie.image.tag }}"
-              imagePullPolicy: {{ .Values.nieuweInternetaakNotificatie.image.pullPolicy }}
-              {{- with .Values.nieuweInternetaakNotificatie.resources }}
+              image: "{{ .Values.poller.image.repository }}:{{ .Values.poller.image.tag }}"
+              imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
+              {{- with .Values.poller.resources }}
               resources:
                 {{- toYaml . | nindent 16 }}
               {{- end }}
