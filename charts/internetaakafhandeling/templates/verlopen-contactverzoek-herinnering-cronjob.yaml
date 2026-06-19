@@ -4,6 +4,7 @@ metadata:
   name: {{ include "internetaakafhandeling.fullname" . }}-verlopen-contactverzoek-herinnering
   labels:
     {{- include "internetaakafhandeling.labels" . | nindent 4 }}
+    app.kubernetes.io/component: poller
 spec:
   schedule: "{{ .Values.verlopenContactverzoekHerinnering.schedule }}"
   jobTemplate:
@@ -12,6 +13,7 @@ spec:
         metadata:
           labels:
             {{- include "internetaakafhandeling.labels" . | nindent 12 }}
+            app.kubernetes.io/component: poller
         spec:
           containers:
             - name: verlopen-contactverzoek-herinnering
