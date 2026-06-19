@@ -4,14 +4,14 @@ using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace InterneTaakAfhandeling.Poller.Features.DagelijkseHerinnering;
+namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 
-public sealed class DagelijkseHerinneringsEmailService(
+public sealed class VerlopenContactverzoekHerinneringsEmailService(
     IInterneTaakEmailInputService emailInputService,
-    IDagelijkseHerinneringsTemplateService templateService,
+    IVerlopenContactverzoekHerinneringsTemplateService templateService,
     IEmailService emailService,
     IConfiguration configuration,
-    ILogger<DagelijkseHerinneringsEmailService> logger) : IDagelijkseHerinneringsEmailService
+    ILogger<VerlopenContactverzoekHerinneringsEmailService> logger) : IVerlopenContactverzoekHerinneringsEmailService
 {
     private readonly string _baseUrl = configuration.GetValue<string>("Ita:BaseUrl")
         ?? throw new InvalidOperationException("Ita:BaseUrl configuratie ontbreekt.");
@@ -34,7 +34,7 @@ public sealed class DagelijkseHerinneringsEmailService(
             if (resolveResult.FoundEmails.Count == 0)
             {
                 logger.LogWarning(
-                    "Dagelijkse herinnering: geen e-mailadres gevonden voor actor {ActorUuid} — overgeslagen",
+                    "Daily reminder: no email address found for actor {ActorUuid} — skipped",
                     actorUuid);
                 overgeslagen++;
                 continue;
@@ -48,7 +48,7 @@ public sealed class DagelijkseHerinneringsEmailService(
                 {
                     await emailService.SendEmailAsync(email, content.Onderwerp, content.HtmlBody);
                     logger.LogInformation(
-                        "Dagelijkse herinnering: mail verstuurd naar {EmailPrefix}... voor actor {ActorUuid} ({AantalCvs} CVs)",
+                        "Daily reminder: email sent to {EmailPrefix}... for actor {ActorUuid} ({AantalCvs} contact requests)",
                         email[..Math.Min(email.Length, 4)],
                         actorUuid,
                         ontvanger.VerlopenContactVerzoeken.Count);
@@ -57,7 +57,7 @@ public sealed class DagelijkseHerinneringsEmailService(
                 catch (Exception ex)
                 {
                     logger.LogWarning(ex,
-                        "Dagelijkse herinnering: SMTP-fout voor {EmailPrefix}... (actor {ActorUuid}) — overgeslagen",
+                        "Daily reminder: SMTP error for {EmailPrefix}... (actor {ActorUuid}) — skipped",
                         email[..Math.Min(email.Length, 4)],
                         actorUuid);
                     fouten++;
@@ -66,7 +66,7 @@ public sealed class DagelijkseHerinneringsEmailService(
         }
 
         logger.LogInformation(
-            "Dagelijkse herinnering: run voltooid — verstuurd: {Verstuurd}, overgeslagen: {Overgeslagen}, fouten: {Fouten}",
+            "Daily reminder: run completed — sent: {Verstuurd}, skipped: {Overgeslagen}, errors: {Fouten}",
             verstuurd, overgeslagen, fouten);
     }
 }

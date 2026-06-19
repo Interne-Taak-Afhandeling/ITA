@@ -18,9 +18,9 @@
 {{- printf "%s-web" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/* Poller specific names */}}
-{{- define "internetaakafhandeling.poller.name" -}}
-{{- printf "%s-poller" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{/* NieuweInternetaakNotificatie specific names */}}
+{{- define "internetaakafhandeling.nieuweInternetaakNotificatie.name" -}}
+{{- printf "%s-nieuwe-internetaak-notificatie" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/* Common labels */}}
@@ -38,10 +38,10 @@ app.kubernetes.io/name: web
 app.kubernetes.io/component: web
 {{- end -}}
 
-{{- define "internetaakafhandeling.poller.labels" -}}
+{{- define "internetaakafhandeling.nieuweInternetaakNotificatie.labels" -}}
 {{ include "internetaakafhandeling.labels" . }}
-app.kubernetes.io/name: poller
-app.kubernetes.io/component: poller
+app.kubernetes.io/name: nieuwe-internetaak-notificatie
+app.kubernetes.io/component: nieuwe-internetaak-notificatie
 {{- end -}}
 
 {{/* Selector labels */}}
@@ -50,8 +50,8 @@ app.kubernetes.io/name: {{ include "internetaakafhandeling.web.name" . }}
 app.kubernetes.io/instance: {{ include "internetaakafhandeling.fullname" . }}
 {{- end -}}
 
-{{- define "internetaakafhandeling.poller.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "internetaakafhandeling.poller.name" . }}
+{{- define "internetaakafhandeling.nieuweInternetaakNotificatie.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "internetaakafhandeling.nieuweInternetaakNotificatie.name" . }}
 app.kubernetes.io/instance: {{ include "internetaakafhandeling.fullname" . }}
 {{- end -}}
 

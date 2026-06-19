@@ -4,7 +4,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using Microsoft.Extensions.Logging;
 
-namespace InterneTaakAfhandeling.Poller.Features.DagelijkseHerinnering;
+namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 
 public class OverdueContactVerzoekQueryService(
     IOpenKlantApiClient openKlantApiClient,
@@ -13,7 +13,7 @@ public class OverdueContactVerzoekQueryService(
 {
     public async Task<IReadOnlyList<RecipientHerinneringData>> GetOverdueContactVerzoekenAsync(CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Dagelijkse herinnering: query gestart");
+        logger.LogInformation("Daily reminder: query started");
 
         var afhandeltermijn = afhandeltermijnProvider.GetAfhandeltermijn();
         var now = DateTimeOffset.UtcNow;
@@ -31,11 +31,11 @@ public class OverdueContactVerzoekQueryService(
             page++;
         }
 
-        logger.LogInformation("Dagelijkse herinnering: {Count} te_verwerken internetaken opgehaald", allInternetaken.Count);
+        logger.LogInformation("Daily reminder: {Count} te_verwerken internetaken retrieved", allInternetaken.Count);
 
         var overdue = allInternetaken.Where(taak => IsOverdue(taak, afhandeltermijn, now)).ToList();
 
-        logger.LogInformation("Dagelijkse herinnering: {Count} verlopen na datumfilter", overdue.Count);
+        logger.LogInformation("Daily reminder: {Count} overdue after date filter", overdue.Count);
 
         var byActor = new Dictionary<string, (Actor Actor, List<Internetaak> Taken)>();
 
@@ -45,7 +45,7 @@ public class OverdueContactVerzoekQueryService(
             {
                 if (string.IsNullOrEmpty(actor.Uuid))
                 {
-                    logger.LogWarning("Actor zonder UUID gevonden voor internetaak {Uuid} — overgeslagen", taak.Uuid);
+                    logger.LogWarning("Daily reminder: actor without UUID found for internetaak {Uuid} — skipped", taak.Uuid);
                     continue;
                 }
 
@@ -58,7 +58,7 @@ public class OverdueContactVerzoekQueryService(
             }
         }
 
-        logger.LogInformation("Dagelijkse herinnering: {Count} ontvangergroepen na groepering", byActor.Count);
+        logger.LogInformation("Daily reminder: {Count} recipient groups after grouping", byActor.Count);
 
         return byActor.Values.Select(entry => new RecipientHerinneringData
         {

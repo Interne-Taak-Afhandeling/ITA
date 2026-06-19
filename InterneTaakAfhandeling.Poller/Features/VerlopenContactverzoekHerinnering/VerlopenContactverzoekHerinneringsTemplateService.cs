@@ -3,9 +3,9 @@ using System.Text;
 using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
 
-namespace InterneTaakAfhandeling.Poller.Features.DagelijkseHerinnering;
+namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 
-public sealed class DagelijkseHerinneringsTemplateService : IDagelijkseHerinneringsTemplateService
+public sealed class VerlopenContactverzoekHerinneringsTemplateService : IVerlopenContactverzoekHerinneringsTemplateService
 {
     public HerinneringsMailContent GenereerMailContent(RecipientHerinneringData ontvanger, string baseUrl)
     {

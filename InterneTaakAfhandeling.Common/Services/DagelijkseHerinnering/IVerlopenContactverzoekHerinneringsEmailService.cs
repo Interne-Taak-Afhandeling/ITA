@@ -1,6 +1,6 @@
 namespace InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
 
-public interface IDagelijkseHerinneringsEmailService
+public interface IVerlopenContactverzoekHerinneringsEmailService
 {
     Task StuurHerinneringenAsync(
         IReadOnlyList<RecipientHerinneringData> ontvangers,

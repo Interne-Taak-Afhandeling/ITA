@@ -1,6 +1,6 @@
 namespace InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
 
-public interface IDagelijkseHerinneringsTemplateService
+public interface IVerlopenContactverzoekHerinneringsTemplateService
 {
     HerinneringsMailContent GenereerMailContent(RecipientHerinneringData ontvanger, string baseUrl);
 }

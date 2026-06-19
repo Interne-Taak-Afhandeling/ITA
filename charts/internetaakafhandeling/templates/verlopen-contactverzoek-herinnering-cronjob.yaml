@@ -1,0 +1,46 @@
+{{- if .Values.verlopenContactverzoekHerinnering.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "internetaakafhandeling.fullname" . }}-verlopen-contactverzoek-herinnering
+  labels:
+    {{- include "internetaakafhandeling.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.verlopenContactverzoekHerinnering.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "internetaakafhandeling.labels" . | nindent 12 }}
+        spec:
+          containers:
+            - name: verlopen-contactverzoek-herinnering
+              image: "{{ .Values.nieuweInternetaakNotificatie.image.repository }}:{{ .Values.nieuweInternetaakNotificatie.image.tag }}"
+              imagePullPolicy: {{ .Values.nieuweInternetaakNotificatie.image.pullPolicy }}
+              env:
+                - name: POLLER_MODE
+                  value: "dagelijkse-herinnering"
+              {{- with .Values.nieuweInternetaakNotificatie.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              envFrom:
+                - configMapRef:
+                    name: {{ include "internetaakafhandeling.fullname" . }}-config
+                - secretRef:
+                    name: {{ include "internetaakafhandeling.fullname" . }}-secrets
+          restartPolicy: OnFailure
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

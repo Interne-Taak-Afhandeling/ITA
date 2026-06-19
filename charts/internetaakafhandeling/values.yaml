@@ -2,7 +2,7 @@
 nameOverride: ""
 fullnameOverride: ""
 
-# Pod scheduling controls applied to both poller-cronjob and web-deployment.
+# Pod scheduling controls applied to both cronjobs and web-deployment.
 # Defaults are empty so behavior is unchanged on single-nodepool clusters.
 # Useful for multi-nodepool clusters (e.g. AKS system/user pool separation)
 # where workloads must be pinned to specific nodes.
@@ -150,15 +150,15 @@ web:
     setting1: ""
     setting2: ""
 
-# Poller Configuration
-poller:
+# NieuweInternetaakNotificatie — notifies assignees when a new internetaak is created (every 15 min)
+nieuweInternetaakNotificatie:
   schedule: "*/15 * * * *"
-  
+
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
     tag: "latest"
     pullPolicy: Always
-  
+
   resources: {}
   # limits:
   #   cpu: 200m
@@ -170,3 +170,8 @@ poller:
   notification:
     pollerMessage: "Poller uitgevoerd om:"
     hourThreshold: "-24"
+
+# VerlopenContactverzoekHerinnering — sends a daily reminder for overdue contact requests (weekdays 07:00)
+verlopenContactverzoekHerinnering:
+  enabled: false
+  schedule: "0 7 * * 1-5"

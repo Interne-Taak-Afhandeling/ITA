@@ -42,8 +42,8 @@ data:
   Email__SmtpSettings__EnableSsl: {{ .Values.smtp.enableSsl | quote }}
   
   # Notification settings
-  pollerMessage: {{ .Values.poller.notification.pollerMessage | quote }}
-  InternetakenNotifier__HourThreshold: {{ .Values.poller.notification.hourThreshold | quote }}
+  pollerMessage: {{ .Values.nieuweInternetaakNotificatie.notification.pollerMessage | quote }}
+  InternetakenNotifier__HourThreshold: {{ .Values.nieuweInternetaakNotificatie.notification.hourThreshold | quote }}
 
   # ITA Base URL for email
   Ita__BaseUrl: {{ .Values.ita.baseUrl | quote }}
