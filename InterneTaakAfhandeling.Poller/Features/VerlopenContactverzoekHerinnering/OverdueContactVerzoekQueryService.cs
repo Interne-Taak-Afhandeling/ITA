@@ -49,6 +49,13 @@ public class OverdueContactVerzoekQueryService(
                     continue;
                 }
 
+                if (actor.SoortActor != SoortActor.medewerker && actor.SoortActor != SoortActor.organisatorische_eenheid)
+                {
+                    logger.LogWarning("Daily reminder: unrecognised actor type {SoortActor} for actor {ActorUuid} on internetaak {InternetaakUuid} — skipped",
+                        actor.SoortActor, actor.Uuid, taak.Uuid);
+                    continue;
+                }
+
                 if (!byActor.TryGetValue(actor.Uuid, out var entry))
                 {
                     entry = (actor, []);
