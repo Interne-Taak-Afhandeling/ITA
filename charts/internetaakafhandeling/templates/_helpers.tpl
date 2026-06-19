@@ -18,11 +18,6 @@
 {{- printf "%s-web" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/* NieuweInternetaakNotificatie specific names */}}
-{{- define "internetaakafhandeling.nieuweInternetaakNotificatie.name" -}}
-{{- printf "%s-nieuwe-internetaak-notificatie" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{/* Common labels */}}
 {{- define "internetaakafhandeling.labels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
@@ -38,20 +33,9 @@ app.kubernetes.io/name: web
 app.kubernetes.io/component: web
 {{- end -}}
 
-{{- define "internetaakafhandeling.nieuweInternetaakNotificatie.labels" -}}
-{{ include "internetaakafhandeling.labels" . }}
-app.kubernetes.io/name: nieuwe-internetaak-notificatie
-app.kubernetes.io/component: nieuwe-internetaak-notificatie
-{{- end -}}
-
 {{/* Selector labels */}}
 {{- define "internetaakafhandeling.web.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "internetaakafhandeling.web.name" . }}
-app.kubernetes.io/instance: {{ include "internetaakafhandeling.fullname" . }}
-{{- end -}}
-
-{{- define "internetaakafhandeling.nieuweInternetaakNotificatie.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "internetaakafhandeling.nieuweInternetaakNotificatie.name" . }}
 app.kubernetes.io/instance: {{ include "internetaakafhandeling.fullname" . }}
 {{- end -}}
 

@@ -1,9 +1,9 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "internetaakafhandeling.nieuweInternetaakNotificatie.name" . }}
+  name: {{ include "internetaakafhandeling.fullname" . }}-nieuwe-internetaak-notificatie
   labels:
-    {{- include "internetaakafhandeling.nieuweInternetaakNotificatie.labels" . | nindent 4 }}
+    {{- include "internetaakafhandeling.labels" . | nindent 4 }}
 spec:
   schedule: "{{ .Values.nieuweInternetaakNotificatie.schedule }}"
   jobTemplate:
@@ -11,12 +11,15 @@ spec:
       template:
         metadata:
           labels:
-            {{- include "internetaakafhandeling.nieuweInternetaakNotificatie.selectorLabels" . | nindent 12 }}
+            {{- include "internetaakafhandeling.labels" . | nindent 12 }}
         spec:
           containers:
             - name: nieuwe-internetaak-notificatie
               image: "{{ .Values.poller.image.repository }}:{{ .Values.poller.image.tag }}"
               imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
+              env:
+                - name: POLLER_MODE
+                  value: "nieuwe-internetaak-notificatie"
               {{- with .Values.poller.resources }}
               resources:
                 {{- toYaml . | nindent 16 }}
