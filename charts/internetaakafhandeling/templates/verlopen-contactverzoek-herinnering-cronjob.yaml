@@ -1,4 +1,3 @@
-{{- if .Values.verlopenContactverzoekHerinnering.enabled }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -43,4 +42,3 @@ spec:
           affinity:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-{{- end }}

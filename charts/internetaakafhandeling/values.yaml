@@ -174,5 +174,4 @@ nieuweInternetaakNotificatie:
 
 # VerlopenContactverzoekHerinnering — sends a daily reminder for overdue contact requests (weekdays 07:00)
 verlopenContactverzoekHerinnering:
-  enabled: false
   schedule: "0 7 * * 1-5"
