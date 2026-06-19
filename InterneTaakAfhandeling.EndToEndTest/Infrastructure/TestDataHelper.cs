@@ -486,11 +486,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 return; // Already connected
             }
 
-            await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+            // The API can transiently reject the request (400) when the
+            // contactmoment was just created. Retry once after a short delay.
+            try
             {
-                Actor = new ActorReference { Uuid = actor.Uuid },
-                Klantcontact = new KlantcontactReference { Uuid = contactmomentUuid }
-            });
+                await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+                {
+                    Actor = new ActorReference { Uuid = actor.Uuid },
+                    Klantcontact = new KlantcontactReference { Uuid = contactmomentUuid }
+                });
+            }
+            catch (Exception)
+            {
+                await Task.Delay(2000);
+                await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+                {
+                    Actor = new ActorReference { Uuid = actor.Uuid },
+                    Klantcontact = new KlantcontactReference { Uuid = contactmomentUuid }
+                });
+            }
         }
 
         //  Actor Operations
@@ -686,7 +700,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             List<Guid> actorUuids,
             bool isExplicitNummer = false)
         {
-            // First check if internetaak with this nummer already exists (idempotent behavior)
+            // First check if internetaak with this nummer already exists
             var existing = await OpenKlantApiClient.QueryInterneTakenAsync(new InterneTaakQuery
             {
                 Nummer = nummer
@@ -699,9 +713,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             if (existing.Count > 0)
             {
-                // Already exists - idempotent success
-                Logger.LogInformation("Internetaak with nummer '{Nummer}' already exists, skipping creation", nummer);
-                return;
+                var existingInternetaak = existing[0];
+
+                // Verify the existing internetaak is linked to the correct contactmoment and has the right status
+                var isCorrectContactmoment = existingInternetaak.AanleidinggevendKlantcontact?.Uuid == contactmomentUuid;
+                var isCorrectStatus = existingInternetaak.Status == KnownInternetaakStatussen.TeVerwerken;
+
+                if (isCorrectContactmoment && isCorrectStatus)
+                {
+                    Logger.LogInformation("Internetaak with nummer '{Nummer}' already exists and is correctly linked, skipping creation", nummer);
+                    return;
+                }
+
+                // Existing internetaak is stale (wrong contactmoment or wrong status) — delete and recreate
+                Logger.LogInformation("Internetaak with nummer '{Nummer}' exists but is stale (wrong contactmoment or status), recreating", nummer);
+                if (!Guid.TryParse(existingInternetaak.Uuid, out var existingUuid))
+                {
+                    throw new InvalidOperationException($"Internetaak has invalid UUID format: '{existingInternetaak.Uuid}'");
+                }
+                await OpenKlantApiClient.DeleteInterneTaakAsync(existingUuid);
             }
 
             // Doesn't exist, try to create it

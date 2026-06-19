@@ -20,6 +20,12 @@ namespace EndToEndTest.Common.Infrastructure
             _otp = new Totp(secretBytes);
         }
 
+        /// <summary>
+        /// Minimum seconds remaining on a TOTP code to consider it "fresh enough"
+        /// to survive the network round-trip to Azure AD.
+        /// </summary>
+        private const int MinRemainingSeconds = 10;
+
         public async Task<string> GetUniqueCode()
         {
             await _semaphore.WaitAsync();
@@ -28,9 +34,10 @@ namespace EndToEndTest.Common.Infrastructure
                 var remainingSeconds = _otp.RemainingSeconds();
                 var newCode = _otp.ComputeTotp();
 
-                if (newCode == _oldCode)
+                if (newCode == _oldCode || remainingSeconds < MinRemainingSeconds)
                 {
-                    // Wait for the current OTP to expire and get a new one
+                    // Either the code was already used, or it's about to expire.
+                    // Wait for the next TOTP window so we get a fresh code with max lifetime.
                     await Task.Delay(TimeSpan.FromSeconds(remainingSeconds + 1));
                     newCode = _otp.ComputeTotp();
                 }

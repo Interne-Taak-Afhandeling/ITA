@@ -18,25 +18,27 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
         private readonly List<string> kanalenToCleanup = new();
 
         [TestInitialize]
-        public async Task TestInitialize()
+        public override async Task TestInitialize()
         {
+            await base.TestInitialize();
+
             locators = new BeheerLocators(Page);
             
             // Pre-cleanup: Remove test data that may exist from previous failed test runs
             await TryDeleteKanaal(TestKanaalName);
             await TryDeleteKanaal(EditedKanaalName);
+
+            // Register post-test cleanup via the base class pattern
+            RegisterCleanup(async () =>
+            {
+                foreach (var kanaalName in kanalenToCleanup)
+                {
+                    await TryDeleteKanaal(kanaalName);
+                }
+                kanalenToCleanup.Clear();
+            });
         }
 
-        [TestCleanup]
-        public async Task TestCleanup()
-        {
-            // Post-cleanup: Remove test data created during this test run
-            foreach (var kanaalName in kanalenToCleanup)
-            {
-                await TryDeleteKanaal(kanaalName);
-            }
-            kanalenToCleanup.Clear();
-        }
 
         private async Task<bool> TryDeleteKanaal(string kanaalName)
         {
@@ -52,9 +54,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
                     return true; 
                 }
 
-                Page.Dialog += (_, dialog) => dialog.AcceptAsync();
-                await locators.GetDeleteButton(kanaalName).ClickAsync();
-                await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                void AcceptDialog(object? sender, IDialog dialog) => dialog.AcceptAsync();
+                Page.Dialog += AcceptDialog;
+                try
+                {
+                    await locators.GetDeleteButton(kanaalName).ClickAsync();
+                    await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                }
+                finally
+                {
+                    Page.Dialog -= AcceptDialog;
+                }
                 
                 // Verify deletion succeeded
                 var stillExists = await locators.GetKanaalListItem(kanaalName).CountAsync() > 0;
@@ -96,16 +106,24 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
         private async Task DeleteKanaal(string kanaalName)
         {
             await Step($"Delete kanaal: {kanaalName}");
-            Page.Dialog += (_, dialog) => dialog.AcceptAsync();
-            await locators.GetDeleteButton(kanaalName).ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            void AcceptDialog(object? sender, IDialog dialog) => dialog.AcceptAsync();
+            Page.Dialog += AcceptDialog;
+            try
+            {
+                await locators.GetDeleteButton(kanaalName).ClickAsync();
+                await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            }
+            finally
+            {
+                Page.Dialog -= AcceptDialog;
+            }
         }
 
         private async Task VerifyKanaalExists(string kanaalName)
         {
             await Step($"Verify kanaal '{kanaalName}' exists");
             await NavigateToKanalenPage();
-            await Expect(locators.GetKanaalLink(kanaalName)).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(locators.GetKanaalLink(kanaalName)).ToBeVisibleAsync();
         }
 
         private async Task EditKanaalName(string currentName, string newName)
@@ -183,7 +201,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
 
             await Step("Verify error message is displayed");
             var errorMessage = Page.Locator(".preserve-newline").Filter(new() { HasText = $"Er bestaat al een kanaal met de naam {TestKanaalName}" });
-            await Expect(errorMessage).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(errorMessage).ToBeVisibleAsync();
         }
     }
 }

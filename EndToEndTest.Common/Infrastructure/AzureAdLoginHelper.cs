@@ -1,4 +1,4 @@
-using Microsoft.Playwright;
+﻿using Microsoft.Playwright;
 
 namespace EndToEndTest.Common.Infrastructure
 {
@@ -71,6 +71,9 @@ namespace EndToEndTest.Common.Infrastructure
             await _page.FillAsync("input[name='passwd']", _password);
             await _page.ClickAsync("input[type='submit']");
 
+            // Wait for Azure AD to process the password before expecting 2FA
+            await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
             await Handle2FAAsync();
         }
 
@@ -90,7 +93,7 @@ namespace EndToEndTest.Common.Infrastructure
 
             // we will either get the 2FA code input and the submit button,
             // or an option to enter the code manually
-            await totpBoxSelector.Or(enterManuallyLink).First.WaitForAsync();
+            await totpBoxSelector.Or(enterManuallyLink).First.WaitForAsync(new() { Timeout = 30000 });
 
             if (await enterManuallyLink.IsVisibleAsync())
             {
