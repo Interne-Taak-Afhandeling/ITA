@@ -9,6 +9,7 @@ using InterneTaakAfhandeling.Common.Services.Zgw;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 {
@@ -17,6 +18,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         private OpenKlantApiClient OpenKlantApiClient { get; }
         private ObjectApiClient ObjectApiClient { get; }
         private ZakenApiClient ZakenApiClient { get; }
+        private HttpClient OpenKlantHttpClient { get; }
         private string Username { get; }
         private ILogger<TestDataHelper> Logger { get; }
 
@@ -40,11 +42,19 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             Logger = loggerFactory.CreateLogger<TestDataHelper>();
 
             OpenKlantApiClient = CreateOpenKlantApiClient(openKlantBaseUrl, openKlantApiKey, loggerFactory);
+            OpenKlantHttpClient = CreateOpenKlantHttpClient(openKlantBaseUrl, openKlantApiKey);
             ObjectApiClient = CreateObjectApiClient(objectenApiBaseUrl, objectenApiKey, loggerFactory, l, a, g, m);
             ZakenApiClient = CreateZakenApiClient(zakenApiBaseUrl, zakenApiKey, zakenApiClientId, loggerFactory);
         }
 
         // Client Creation
+
+        private static HttpClient CreateOpenKlantHttpClient(string baseUrl, string apiKey)
+        {
+            var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", apiKey);
+            return httpClient;
+        }
 
         private static OpenKlantApiClient CreateOpenKlantApiClient(
             string baseUrl, 
@@ -736,6 +746,223 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     onderwerpobject.Uuid, onderwerpobject.Onderwerpobjectidentificator?.ObjectId);
                 return null;
             }
+        }
+
+        // Digitale Adressen Operations
+
+        /// <summary>
+        /// Creates a digitale adres linked to a betrokkene via the OpenKlant API.
+        /// Returns the UUID of the created digitale adres for cleanup.
+        /// </summary>
+        public async Task<string> CreateDigitaalAdresForBetrokkeneAsync(
+            string betrokkeneUuid,
+            string adres,
+            string soortDigitaalAdres,
+            string omschrijving = "")
+        {
+            var request = new
+            {
+                verstrektDoorBetrokkene = new { uuid = betrokkeneUuid },
+                verstrektDoorPartij = (object?)null,
+                adres,
+                soortDigitaalAdres,
+                omschrijving
+            };
+
+            var response = await OpenKlantHttpClient.PostAsJsonAsync("digitaleadressen", request);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<DigitaleAdres>();
+            Logger.LogInformation("Created digitale adres {Uuid} ({SoortDigitaalAdres}: {Adres}) for betrokkene {BetrokkeneUuid}",
+                result!.Uuid, soortDigitaalAdres, adres, betrokkeneUuid);
+
+            return result.Uuid;
+        }
+
+        /// <summary>
+        /// Creates a digitale adres linked to a partij via the OpenKlant API.
+        /// Returns the UUID of the created digitale adres for cleanup.
+        /// </summary>
+        public async Task<string> CreateDigitaalAdresForPartijAsync(
+            string partijUuid,
+            string adres,
+            string soortDigitaalAdres,
+            string omschrijving = "")
+        {
+            var request = new
+            {
+                verstrektDoorBetrokkene = (object?)null,
+                verstrektDoorPartij = new { uuid = partijUuid },
+                adres,
+                soortDigitaalAdres,
+                omschrijving
+            };
+
+            var response = await OpenKlantHttpClient.PostAsJsonAsync("digitaleadressen", request);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<DigitaleAdres>();
+            Logger.LogInformation("Created digitale adres {Uuid} ({SoortDigitaalAdres}: {Adres}) for partij {PartijUuid}",
+                result!.Uuid, soortDigitaalAdres, adres, partijUuid);
+
+            return result.Uuid;
+        }
+
+        /// <summary>
+        /// Looks up a partij by BSN and returns the UUID.
+        /// </summary>
+        public async Task<string> GetPartijUuidByBsnAsync(string bsn = TestDataConstants.Partijen.TestBsn)
+        {
+            var partij = await GetPartijByBsn(bsn);
+            return partij.Uuid;
+        }
+
+        /// <summary>
+        /// Returns existing digitale adressen for a partij.
+        /// </summary>
+        public Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid)
+        {
+            return OpenKlantApiClient.GetPartijDigitaleAdressenAsync(partijUuid);
+        }
+
+        /// <summary>
+        /// Deletes a digitale adres from the OpenKlant API.
+        /// </summary>
+        public async Task DeleteDigitaalAdresAsync(string uuid)
+        {
+            try
+            {
+                var response = await OpenKlantHttpClient.DeleteAsync($"digitaleadressen/{uuid}");
+                response.EnsureSuccessStatusCode();
+                Logger.LogInformation("Deleted digitale adres {Uuid}", uuid);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Failed to delete digitale adres {Uuid}", uuid);
+            }
+        }
+
+        /// <summary>
+        /// Creates a contactverzoek with a partij and betrokkene's own digitale adressen.
+        /// Returns (contactmomentUuid, betrokkeneUuid, digitaalAdresUuid) for assertions and cleanup.
+        /// </summary>
+        public async Task<(Guid contactmomentUuid, string betrokkeneUuid, string digitaalAdresUuid)> CreateContactverzoekWithPartijAndOwnAdressenAsync(
+            string onderwerp,
+            string ownEmail,
+            string bsn = TestDataConstants.Partijen.TestBsn)
+        {
+            var partij = await GetPartijByBsn(bsn);
+            var contactmoment = await CreateContactmoment(onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                partij.Naam);
+
+            var betrokkene = await AttachPartijToContactmoment(Guid.Parse(partij.Uuid), contactmoment.Uuid);
+
+            // Create own digitale adres on the betrokkene
+            var digitaalAdresUuid = await CreateDigitaalAdresForBetrokkeneAsync(
+                betrokkene.Uuid,
+                ownEmail,
+                "email",
+                "Eigen e-mail");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+
+            var nummer = GenerateUniqueInternetaakNummer();
+            await CreateInternetaak(
+                nummer,
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(medewerkerActor.Uuid),
+                    Guid.Parse(afdelingActor.Uuid)
+                });
+
+            return (contactmoment.Uuid, betrokkene.Uuid, digitaalAdresUuid);
+        }
+
+        /// <summary>
+        /// Creates a minimal partij without digitale adressen via the OpenKlant API.
+        /// Returns the UUID of the created partij for cleanup.
+        /// </summary>
+        public async Task<string> CreatePartijWithoutAdressenAsync()
+        {
+            var request = new
+            {
+                digitaleAdressen = Array.Empty<object>(),
+                voorkeursDigitaalAdres = (object?)null,
+                partijIdentificatoren = Array.Empty<object>(),
+                soortPartij = "persoon",
+                indicatieActief = true,
+                indicatieGeheimhouding = false,
+                voorkeurstaal = "nl",
+                bezoekadres = (object?)null,
+                correspondentieadres = (object?)null
+            };
+
+            var response = await OpenKlantHttpClient.PostAsJsonAsync("partijen", request);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<Common.Services.OpenKlantApi.Models.Partij>();
+            Logger.LogInformation("Created partij without adressen: {Uuid}", result!.Uuid);
+            return result.Uuid;
+        }
+
+        /// <summary>
+        /// Deletes a partij from the OpenKlant API.
+        /// </summary>
+        public async Task DeletePartijAsync(string uuid)
+        {
+            try
+            {
+                var response = await OpenKlantHttpClient.DeleteAsync($"partijen/{uuid}");
+                if (response.IsSuccessStatusCode)
+                {
+                    Logger.LogInformation("Deleted partij {Uuid}", uuid);
+                }
+                else
+                {
+                    Logger.LogWarning("Failed to delete partij {Uuid}: {StatusCode}", uuid, response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Failed to delete partij {Uuid}", uuid);
+            }
+        }
+
+        /// <summary>
+        /// Creates a contactverzoek with a specific partij UUID (without BSN lookup).
+        /// Used for testing scenarios where the partij has specific characteristics.
+        /// </summary>
+        public async Task<Guid> CreateContactverzoekWithSpecificPartijAsync(string onderwerp, string partijUuid)
+        {
+            var contactmoment = await CreateContactmoment(onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            await AttachPartijToContactmoment(Guid.Parse(partijUuid), contactmoment.Uuid);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+
+            var nummer = GenerateUniqueInternetaakNummer();
+            await CreateInternetaak(
+                nummer,
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(medewerkerActor.Uuid),
+                    Guid.Parse(afdelingActor.Uuid)
+                });
+
+            return contactmoment.Uuid;
         }
 
     }
