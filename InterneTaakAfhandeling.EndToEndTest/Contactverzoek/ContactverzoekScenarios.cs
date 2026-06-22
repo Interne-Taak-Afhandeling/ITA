@@ -736,7 +736,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Navigate back to Mijn historie to ensure latest data is displayed");
             await SafeGotoAsync("/historie");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await Step("Then the closed contact request is displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
@@ -893,7 +892,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.Locator($"text={TestDataConstants.Zaken.TestZaakIdentificatie}")).Not.ToBeVisibleAsync();
 
             await Page.ReloadAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await VerifyLogbookEntry("Zaak gewijzigd");
         }
 

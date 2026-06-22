@@ -68,7 +68,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
 
             await Step("Verify success toast is shown");
             await Expect(Page.GetContactverzoekHeropendMessage()).ToBeVisibleAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify action controls are now visible (contactverzoek is open again)");
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
@@ -99,11 +98,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Page.GetHeroepenRedenTextbox().FillAsync("Herbeoordeling");
             await Page.GetHeroepenDialogBevestigenButton().ClickAsync();
             await Expect(Page.GetContactverzoekHeropendMessage()).ToBeVisibleAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Reload page to ensure logboek is refreshed");
             await Page.ReloadAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify logboek contains 'Heropend' step heading");
             await Expect(Page.GetByText("Heropend", new() { Exact = true })).ToBeVisibleAsync();
@@ -208,7 +205,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         {
             await Step($"Navigate to verwerkt contactverzoek: {internetaakNummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaakNummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
         }
 
@@ -216,7 +212,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         {
             await Step($"Navigate to contactverzoek: {internetaakNummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaakNummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync(new() { Timeout = 10000 });
         }
 
