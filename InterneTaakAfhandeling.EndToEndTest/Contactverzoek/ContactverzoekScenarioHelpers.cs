@@ -20,14 +20,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             return uuid;
         }
 
-        private async Task<Guid> SetupContactverzoek(string onderwerp, bool attachZaak, string internetaakNummer)
-        {
-            await Step("Setup test data via API");
-            var uuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak, internetaakNummer);
-            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
-            return uuid;
-        }
-
         private async Task CreateAssignAndCloseContactverzoek(string onderwerp, string informatieText)
         {
             await Step("Create and close contactverzoek");
@@ -61,9 +53,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await VerifyInternetaakStatusInOpenKlant(internetaakUuid.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
         }
 
-        private async Task<(Guid internetaakUuid, string internetaakNummer)> SetupAndResolveContactverzoek(string onderwerp, string internetaakNummer)
+        private async Task<(Guid internetaakUuid, string internetaakNummer)> SetupAndResolveContactverzoek(string onderwerp)
         {
-            var contactmomentUuid = await SetupContactverzoek(onderwerp, attachZaak: false, internetaakNummer: internetaakNummer);
+            var contactmomentUuid = await SetupContactverzoek(onderwerp, attachZaak: false);
             var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
             Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
 
