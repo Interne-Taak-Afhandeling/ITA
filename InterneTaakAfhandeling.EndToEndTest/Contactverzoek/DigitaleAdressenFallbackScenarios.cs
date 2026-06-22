@@ -34,21 +34,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
                 RegisterCleanup(async () => await TestDataHelper.DeleteDigitaalAdresAsync(phoneUuid));
             }
 
-            var contactmomentUuid = await TestDataHelper.CreateContactverzoekWithAfdelingMedewerkerAndPartij(onderwerp);
+            var (contactmomentUuid, nummer) = await TestDataHelper.CreateContactverzoekWithAfdelingMedewerkerAndPartij(onderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
 
-            var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
-            Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
-
-            var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid.Value);
-            Assert.IsNotNull(internetaak.Nummer, "Internetaak nummer should be found");
-
-            await Step($"Navigate to contactverzoek by nummer: {internetaak.Nummer}");
-            await SafeGotoAsync($"/contactverzoek/{internetaak.Nummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Step($"Navigate to contactverzoek by nummer: {nummer}");
+            await SafeGotoAsync($"/contactverzoek/{nummer}");
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
 
-            return internetaak.Nummer!;
+            return nummer;
         }
 
         private async Task SafeGotoAsync(string url)
@@ -77,7 +70,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             catch (PlaywrightException)
             {
                 await Step("Retrying after page reload (external API may be slow)");
-                await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
+                await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.DOMContentLoaded });
                 await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
                 await assertions();
             }
@@ -130,7 +123,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step($"Navigate to contactverzoek by nummer: {internetaak.Nummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaak.Nummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
 
             await Step("Verify only own e-mailadres of betrokkene is shown");
@@ -159,7 +151,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step($"Navigate to contactverzoek by nummer: {internetaak.Nummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaak.Nummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
 
             await Step("Verify contactsectie shows dashes (empty state)");
@@ -210,7 +201,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step($"Navigate to contactverzoek by nummer: {internetaak.Nummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaak.Nummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
 
             await Step("Verify contactsectie shows dashes (partij has no adressen)");

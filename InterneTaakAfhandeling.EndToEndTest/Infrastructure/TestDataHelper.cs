@@ -851,8 +851,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             string ownEmail,
             string bsn = TestDataConstants.Partijen.TestBsn)
         {
-            await CleanupExistingContactmomenten(onderwerp);
-
             var partij = await GetPartijByBsn(bsn);
             var contactmoment = await CreateContactmoment(onderwerp,
                 "This is a test contact request created during an end-to-end test run.",
@@ -874,15 +872,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
 
             var nummer = GenerateUniqueInternetaakNummer();
-            await CreateInternetaakIfNotExists(
+            await CreateInternetaak(
                 nummer,
                 contactmoment.Uuid,
                 new List<Guid>
                 {
                     Guid.Parse(medewerkerActor.Uuid),
                     Guid.Parse(afdelingActor.Uuid)
-                },
-                isExplicitNummer: true);
+                });
 
             return (contactmoment.Uuid, betrokkene.Uuid);
         }
@@ -944,8 +941,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         /// </summary>
         public async Task<Guid> CreateContactverzoekWithSpecificPartijAsync(string onderwerp, string partijUuid)
         {
-            await CleanupExistingContactmomenten(onderwerp);
-
             var contactmoment = await CreateContactmoment(onderwerp,
                 "This is a test contact request created during an end-to-end test run.",
                 klantnaam: null);
@@ -959,15 +954,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
 
             var nummer = GenerateUniqueInternetaakNummer();
-            await CreateInternetaakIfNotExists(
+            await CreateInternetaak(
                 nummer,
                 contactmoment.Uuid,
                 new List<Guid>
                 {
                     Guid.Parse(medewerkerActor.Uuid),
                     Guid.Parse(afdelingActor.Uuid)
-                },
-                isExplicitNummer: true);
+                });
 
             return contactmoment.Uuid;
         }
