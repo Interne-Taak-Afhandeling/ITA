@@ -28,10 +28,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static class Doorsturen
         {
-            // Must match the naam as returned by GET /api/afdelingen from the objectenregister
-            public const string TestAfdelingNaam = "Sociaal wijkteam";
-            // Must match the naam as returned by GET /api/groepen from the objectenregister
-            public const string TestGroepNaam = "Bouw";
             // Search query that returns at least one medewerker in the test objectenregister
             public const string TestMedewerkerSearchQuery = "integratie";
             // Search query that returns a medewerker WITHOUT an email address in the test objectenregister

@@ -45,6 +45,44 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
                 $"Failed to navigate to '{url}' after 3 attempts.", lastException);
         }
 
+        private async Task<string> SelectFirstOption(ILocator select)
+        {
+            var firstOption = select.Locator("option:not([value=''])").First;
+            await Expect(firstOption).ToBeAttachedAsync();
+            var label = await firstOption.InnerTextAsync();
+            var value = await firstOption.GetAttributeAsync("value") ?? label.Trim();
+            await select.SelectOptionAsync(new[] { value });
+            return label.Trim();
+        }
+
+        /// <summary>
+        /// Iterates through the select options and picks the first one that causes the
+        /// "Medewerker (optioneel)" picker to appear. Not all afdelingen/groepen have
+        /// medewerkers in the test objectenregister, so a blind first-pick may not suffice.
+        /// </summary>
+        private async Task<string> SelectFirstOptionWithMedewerkerPicker(ILocator select)
+        {
+            var options = select.Locator("option:not([value=''])");
+            await Expect(options.First).ToBeAttachedAsync();
+            var count = await options.CountAsync();
+            for (var i = 0; i < count; i++)
+            {
+                var option = options.Nth(i);
+                var label = await option.InnerTextAsync();
+                var value = await option.GetAttributeAsync("value") ?? label.Trim();
+                await select.SelectOptionAsync(new[] { value });
+                await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                if (await Page.GetByText("Medewerker (optioneel)").IsVisibleAsync())
+                    return label.Trim();
+            }
+            // Fall back to first option so the subsequent Expect() gives a clear failure message
+            var fallback = options.First;
+            var fallbackLabel = await fallback.InnerTextAsync();
+            var fallbackValue = await fallback.GetAttributeAsync("value") ?? fallbackLabel.Trim();
+            await select.SelectOptionAsync(new[] { fallbackValue });
+            return fallbackLabel.Trim();
+        }
+
         // ── tests ─────────────────────────────────────────────────────────────
 
         [TestMethod("Handmatige e-mailinvoer is niet meer mogelijk — vrij e-mailadresveld afwezig")]
@@ -83,9 +121,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify 'Afdeling' mode is active by default");
             await Expect(Page.GetDoorsturenAfdelingSelect()).ToBeVisibleAsync();
 
-            await Step($"Select afdeling '{TestDataConstants.Doorsturen.TestAfdelingNaam}'");
-            await Page.GetDoorsturenAfdelingSelect()
-                .SelectOptionAsync(new[] { TestDataConstants.Doorsturen.TestAfdelingNaam });
+            await Step("Select the first available afdeling");
+            await SelectFirstOption(Page.GetDoorsturenAfdelingSelect());
 
             await Step("Submit the forwarding form");
             await Page.GetDoorsturenSubmitButton().ClickAsync();
@@ -105,9 +142,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetDoorsturenGroepRadio().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step($"Select groep '{TestDataConstants.Doorsturen.TestGroepNaam}'");
-            await Page.GetDoorsturenGroepSelect()
-                .SelectOptionAsync(new[] { TestDataConstants.Doorsturen.TestGroepNaam });
+            await Step("Select the first available groep");
+            await SelectFirstOption(Page.GetDoorsturenGroepSelect());
 
             await Step("Submit the forwarding form");
             await Page.GetDoorsturenSubmitButton().ClickAsync();
@@ -123,12 +159,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var onderwerp = $"Test_Doorsturen_AfdelingMdw_{Guid.NewGuid().ToString()[..8]}";
             await SetupAndNavigateToDoorsturenTab(onderwerp);
 
-            await Step($"Select afdeling '{TestDataConstants.Doorsturen.TestAfdelingNaam}'");
-            await Page.GetDoorsturenAfdelingSelect()
-                .SelectOptionAsync(new[] { TestDataConstants.Doorsturen.TestAfdelingNaam });
-
-            await Step("Wait for optional medewerker picker to load");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Step("Select the first afdeling that has an optional medewerker picker");
+            await SelectFirstOptionWithMedewerkerPicker(Page.GetDoorsturenAfdelingSelect());
 
             await Step("Verify optional medewerker combobox is visible and labeled 'Medewerker (optioneel)'");
             await Expect(Page.GetByText("Medewerker (optioneel)")).ToBeVisibleAsync(new() { Timeout = 10000 });
@@ -145,12 +177,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetDoorsturenGroepRadio().ClickAsync();
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-            await Step($"Select groep '{TestDataConstants.Doorsturen.TestGroepNaam}'");
-            await Page.GetDoorsturenGroepSelect()
-                .SelectOptionAsync(new[] { TestDataConstants.Doorsturen.TestGroepNaam });
-
-            await Step("Wait for optional medewerker picker to load");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Step("Select the first groep that has an optional medewerker picker");
+            await SelectFirstOptionWithMedewerkerPicker(Page.GetDoorsturenGroepSelect());
 
             await Step("Verify optional medewerker combobox is visible");
             await Expect(Page.GetByText("Medewerker (optioneel)")).ToBeVisibleAsync(new() { Timeout = 10000 });
