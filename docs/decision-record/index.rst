@@ -51,3 +51,12 @@ Tonen van digitale adressen
 Bij een Contactverzoek worden de contactgegevens van de klant opgeslagen in ``digitaleAdressen`` die verstrekt zijn door de betrokkene van het Klantcontact. 
 De interface van ITA gaat uit van 1 of 2 telefoonnummers, en 1 e-mailadres. 
 Omdat bij de telefoonnummers, zeker een tweede telefoonnummer, een omschrijving opgeslagen kan zijn die door de klant is doorgegeven, gebruiken we voor de labels van telefoonnummers de waarde van ``digitaalAdres.omschrijving``. Voor het e-mailadres doen we dat niet.  
+
+Tonen van de Contactverzoeken die zijn toegewezen aan de ingelogde gebruiker
+------------------------------------------------------------------------------
+
+**Probleem**: Paginering is, gegeven de mogelijkheden binnen de Klantinteracties API, niet wenselijk. Een Contactverzoek kan op meerdere manieren zijn toegewezen, waardoor er meerdere Actoren kunnen bestaan voor de ingelogde gebruiker. De Klantinteracties Api biedt alleen de mogelijkheid om internetaken op te vragen op basis van één Actor. We zouden dus apart per Actor alle pagina's met internetaken op moeten halen en die lijsten samen moeten voegen en ordenen om daar vervolgens de gewenste pagina met Contactverzoeken uit te destilleren. Dat zou de applicatie zeer traag maken.
+
+* Keuze: Voor nu halen we slechts de eerste pagina internetaken op per Actor en maken daar een gecombineerde lijst van. Derhalve worden alleen de eerste honderd Contactverzoeken per Actor getoond. 
+
+* Overwegingen: Dit is een voorlopige oplossing in afwachting van en uitbreiding van de api. Voor openstaande Contactverzoeken verwachten we niet dat het een probleem zal zijn. Het is onwaarschijnlijk dat iemand meer dan honderd openstaande Contactverzoeken heeft. Voor het overzicht van afgeronde Contactverzoeken is het mogelijk in de praktijk wel een beperking, maar dat is minder belangrijke data. Hoe ouder een afgerond Contactverzoek, hoe kleiner de kans dat men dat nog moet inzien. Tenslotte is de kans zeer groot dat er óók een Afdeling of Groep aan een Contactverzoek hangt (vanuit KISS bijv. wordt een contactverzoek altijd minimaal aan een Afdeling of Groep toegewezen). Daarmee zijn oudere afgeronden Contactverzoeken zeer waarschijnlijk wel in te zien via de afgesloten Contactverzoeken van die Afdeling of Groep.
