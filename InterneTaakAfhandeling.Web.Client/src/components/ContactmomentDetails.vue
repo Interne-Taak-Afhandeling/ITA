@@ -88,20 +88,20 @@ import type { TelefoonnummerItem } from "@/types/internetaken";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 
-  defineProps<{
-    status: string;
-    klantNaam?: string | null;
-    organisatienaam?: string | null;
-    email?: string | null;
-    telefoonnummer1?: TelefoonnummerItem | null;
-    telefoonnummer2?: TelefoonnummerItem | null;
-    plaatsgevondenOp?: string | null;
-    kanaal?: string | null;
-    aangemaaktDoor?: string | null;
-    behandelaarNaam?: string | null;
-    organisatorischeEenheidNaam?: string | null;
-    organisatorischeEenheidType?: string | null;
-  }>();
+defineProps<{
+  status: string;
+  klantNaam?: string | null;
+  organisatienaam?: string | null;
+  email?: string | null;
+  telefoonnummer1?: TelefoonnummerItem | null;
+  telefoonnummer2?: TelefoonnummerItem | null;
+  plaatsgevondenOp?: string | null;
+  kanaal?: string | null;
+  aangemaaktDoor?: string | null;
+  behandelaarNaam?: string | null;
+  organisatorischeEenheidNaam?: string | null;
+  organisatorischeEenheidType?: string | null;
+}>();
 </script>
 
 <style lang="scss" scoped>
