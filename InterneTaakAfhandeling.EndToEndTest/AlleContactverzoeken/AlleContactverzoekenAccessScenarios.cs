@@ -13,7 +13,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.AlleContactverzoeken
         {
             await Step("Navigate directly to /alle-contactverzoeken");
             await Page.GotoAsync("/alle-contactverzoeken");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify the page is displayed with correct heading");
             var heading = Page.GetByRole(AriaRole.Heading, new() { Name = "Alle contactverzoeken", Level = 1 });
@@ -42,13 +41,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.AlleContactverzoeken
 
             await Step("Navigate to /alle-contactverzoeken");
             await Page.GotoAsync("/alle-contactverzoeken");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Click the details link for the test contactverzoek");
             var detailsLink = Page.GetDetailsLink(testOnderwerp);
             await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
             await detailsLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify URL uses /contactmoment/ with the contactmoment number");
             await Expect(Page).ToHaveURLAsync(new Regex($"/contactmoment/{Regex.Escape(contactmomentNummer)}"));

@@ -59,7 +59,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
                 try
                 {
                     await locators.GetDeleteButton(kanaalName).ClickAsync();
-                    await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
                 }
                 finally
                 {
@@ -87,7 +86,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
         {
             await Step("Navigate to home page");
             await Page.GotoAsync("/");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Navigate to Kanalen via Beheer menu");
             await locators.BeheerLink.ClickAsync();
@@ -100,7 +98,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
             await locators.KanaalToevoegenLink.ClickAsync();
             await locators.NaamTextbox.FillAsync(kanaalName);
             await locators.OpslaanButton.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         }
 
         private async Task DeleteKanaal(string kanaalName)
@@ -111,7 +108,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
             try
             {
                 await locators.GetDeleteButton(kanaalName).ClickAsync();
-                await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             }
             finally
             {
@@ -132,7 +128,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
             await locators.GetKanaalLink(currentName).ClickAsync();
             await locators.NaamTextbox.FillAsync(newName);
             await locators.OpslaanButton.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         }
 
         // Test Methods

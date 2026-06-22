@@ -36,7 +36,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
 
             await Step($"When de medewerker navigeert naar /contactverzoek/{internetaak.Nummer} via een oude e-maillink");
             await Page.GotoAsync($"/contactverzoek/{internetaak.Nummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Then wordt het contactverzoek correct getoond");
             await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();

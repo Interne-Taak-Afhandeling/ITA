@@ -86,6 +86,9 @@ namespace EndToEndTest.Common.Infrastructure
         [TestInitialize]
         public virtual async Task TestInitialize()
         {
+            // Ensure Expect timeout is always applied (30s), regardless of .runsettings file discovery.
+            SetDefaultExpectTimeout(30_000);
+
             // Handle Azure AD authentication if credentials are configured
             await HandleAuthenticationAsync();
 

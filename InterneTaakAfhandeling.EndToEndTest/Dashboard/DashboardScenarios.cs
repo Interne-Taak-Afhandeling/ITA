@@ -21,17 +21,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GotoAsync("/");
 
             await Step("Wait for dashboard to load");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-            await Step("Click on contactverzoek to view details");
             var onderwerpElement = Page.Locator($"text={testOnderwerp}");
             await Expect(onderwerpElement).ToBeVisibleAsync();
 
             var detailsLink = Page.GetDetailsLink(testOnderwerp);
             await detailsLink.ClickAsync();
-
-            await Step("Verify details page loads");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify contactverzoek details are accessible");
             var onderwerpInDetails = Page.Locator($"text={testOnderwerp}");
