@@ -844,9 +844,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         /// <summary>
         /// Creates a contactverzoek with a partij and betrokkene's own digitale adressen.
-        /// Returns (contactmomentUuid, betrokkeneUuid) for assertions and cleanup.
+        /// Returns (contactmomentUuid, betrokkeneUuid, digitaalAdresUuid) for assertions and cleanup.
         /// </summary>
-        public async Task<(Guid contactmomentUuid, string betrokkeneUuid)> CreateContactverzoekWithPartijAndOwnAdressenAsync(
+        public async Task<(Guid contactmomentUuid, string betrokkeneUuid, string digitaalAdresUuid)> CreateContactverzoekWithPartijAndOwnAdressenAsync(
             string onderwerp,
             string ownEmail,
             string bsn = TestDataConstants.Partijen.TestBsn)
@@ -859,7 +859,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var betrokkene = await AttachPartijToContactmoment(Guid.Parse(partij.Uuid), contactmoment.Uuid);
 
             // Create own digitale adres on the betrokkene
-            await CreateDigitaalAdresForBetrokkeneAsync(
+            var digitaalAdresUuid = await CreateDigitaalAdresForBetrokkeneAsync(
                 betrokkene.Uuid,
                 ownEmail,
                 "email",
@@ -881,7 +881,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     Guid.Parse(afdelingActor.Uuid)
                 });
 
-            return (contactmoment.Uuid, betrokkene.Uuid);
+            return (contactmoment.Uuid, betrokkene.Uuid, digitaalAdresUuid);
         }
 
         /// <summary>
@@ -894,7 +894,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             {
                 digitaleAdressen = Array.Empty<object>(),
                 voorkeursDigitaalAdres = (object?)null,
-                rpipiereesvertegenwoordigerVan = Array.Empty<object>(),
                 partijIdentificatoren = Array.Empty<object>(),
                 soortPartij = "persoon",
                 indicatieActief = true,

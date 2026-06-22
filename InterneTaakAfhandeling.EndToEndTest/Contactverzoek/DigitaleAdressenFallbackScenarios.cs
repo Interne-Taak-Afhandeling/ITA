@@ -109,10 +109,24 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             var onderwerp = $"E2E_Fallback_EigenAdressen_{DateTime.UtcNow.Ticks}";
             var ownEmail = "eigen-test@e2e-ita.nl";
+            var partijEmail = "partij-fallback@e2e-ita.nl";
+
+            // Ensure the partij has an email so the test actually exercises priority logic
+            var partijUuid = await TestDataHelper.GetPartijUuidByBsnAsync();
+            var existingAdressen = await TestDataHelper.GetPartijDigitaleAdressenAsync(partijUuid);
+
+            if (!existingAdressen.Any(a => a.SoortDigitaalAdres == "email"))
+            {
+                await Step("Creating email on partij to exercise priority logic");
+                var partijEmailUuid = await TestDataHelper.CreateDigitaalAdresForPartijAsync(
+                    partijUuid, partijEmail, "email", "Partij e-mail test");
+                RegisterCleanup(async () => await TestDataHelper.DeleteDigitaalAdresAsync(partijEmailUuid));
+            }
 
             await Step("Setup contactverzoek with partij AND own digitale adressen on betrokkene");
-            var (contactmomentUuid, _) = await TestDataHelper.CreateContactverzoekWithPartijAndOwnAdressenAsync(
+            var (contactmomentUuid, _, digitaalAdresUuid) = await TestDataHelper.CreateContactverzoekWithPartijAndOwnAdressenAsync(
                 onderwerp, ownEmail);
+            RegisterCleanup(async () => await TestDataHelper.DeleteDigitaalAdresAsync(digitaalAdresUuid));
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
 
             var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
@@ -165,11 +179,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         public async Task Medewerker_ZietLegeContactsectie_WanneerPartijGeenAdressenHeeft()
         {
             // This scenario requires a partij without digitale adressen in the test environment.
-            // The unit tests (InternetaakDetailsServiceFallbackTests.Get_ReturnsEmptyAdressen_WhenPartijHasNoAdressen)
-            // cover the server-side behavior. This E2E test validates the full stack.
-            //
-            // Setup: uses a partij that exists in OpenKlant but has no digitale adressen.
-            // If no such partij is available, this test should be marked Inconclusive.
+            // Setup: creates a partij that exists in OpenKlant but has no digitale adressen.
+            // If no such partij can be created, this test is marked Inconclusive.
 
             var onderwerp = $"E2E_Fallback_PartijZonderAdressen_{DateTime.UtcNow.Ticks}";
 
@@ -183,8 +194,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             catch (Exception ex)
             {
                 Assert.Inconclusive(
-                    $"Could not create partij without adressen in test environment: {ex.Message}. " +
-                    "This scenario is covered by unit tests.");
+                    $"Could not create partij without adressen in test environment: {ex.Message}.");
                 return;
             }
 
