@@ -488,6 +488,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 });
         }
 
+        /// <summary>
+        /// Returns the display name of the current user's actor in OpenKlant.
+        /// This may differ from the hardcoded name if the actor was created externally.
+        /// </summary>
+        public async Task<string> GetCurrentUserActorNameAsync()
+        {
+            var actor = await GetOrCreateSubmitterActor();
+            return actor.Naam;
+        }
+
         private async Task<Actor> GetOrCreateAfdelingActor(string afdelingName)
 {
     var afdeling = await GetAfdelingByName(afdelingName);

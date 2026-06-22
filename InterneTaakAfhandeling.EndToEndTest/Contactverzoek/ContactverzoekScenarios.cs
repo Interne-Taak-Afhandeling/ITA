@@ -587,7 +587,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
             
             await Step("Verify the current user is now shown as Behandelaar");
-            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("E2E test contactverzoek creator");
+            var expectedName = await TestDataHelper.GetCurrentUserActorNameAsync();
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync(expectedName);
         }
 
         [TestMethod("validating Annuleren in confirmation dialog")]
@@ -829,7 +830,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
 
             await Step("Verify the current user is now shown as Behandelaar");
-            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("E2E test contactverzoek creator");
+            var expectedName = await TestDataHelper.GetCurrentUserActorNameAsync();
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync(expectedName);
 
             await VerifyLogbookEntry("Opgepakt");
         }
