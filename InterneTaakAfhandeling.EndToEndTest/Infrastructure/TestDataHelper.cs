@@ -94,9 +94,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             bool attachZaak = true,
             string? internetaakNummer = null)
         {
-            var contactverzoekNummer = internetaakNummer ?? (attachZaak
-                ? TestDataConstants.ContactverzoekNummers.WithZaak
-                : TestDataConstants.ContactverzoekNummers.WithoutZaak);
+            // Generate a unique nummer unless an explicit one is provided.
+            // This ensures full test isolation — no shared state between tests.
+            var contactverzoekNummer = internetaakNummer ?? GenerateUniqueInternetaakNummer();
 
             var contactmoment = await GetOrCreateContactmoment(
                 onderwerp, 
