@@ -207,17 +207,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // The "Informatie voor burger" field loads from a nested API call
             // (internetaak → aanleidinggevendKlantcontact.inhoud). In CI, this
-            // external API call can silently fail or be slow. Reload once to
-            // give the frontend a second chance to fetch the data.
-            try
-            {
-                await Expect(Page.GetInformatieVoorBurgerValue()).ToBeVisibleAsync();
-            }
-            catch (PlaywrightException)
-            {
-                await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
-                await Expect(Page.GetInformatieVoorBurgerValue()).ToBeVisibleAsync();
-            }
+            // external API call can silently fail or be slow.
+            await ExpectWithReloadRetry(Page.GetInformatieVoorBurgerValue());
             await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(
                 "This is a test contact request created during an end-to-end test run.");
         }
@@ -227,16 +218,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step($"Verify ZAAK '{zaakIdentificatie}' is visible");
             var zaakLocator = Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie });
             // Zaak details are fetched from the external Zaken API. In CI, this
-            // call can silently fail or be slow. Reload once to retry.
-            try
-            {
-                await Expect(zaakLocator).ToBeVisibleAsync();
-            }
-            catch (PlaywrightException)
-            {
-                await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
-                await Expect(zaakLocator).ToBeVisibleAsync();
-            }
+            // call can silently fail or be slow.
+            await ExpectWithReloadRetry(zaakLocator);
         }
 
         private async Task VerifyActionTabsArePresent()
