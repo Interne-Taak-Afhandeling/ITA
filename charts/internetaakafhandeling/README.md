@@ -49,7 +49,7 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | ingress.hosts | list | `[]` | ingress hosts |
 | ingress.tls | list | `[]` |  |
 | ita.baseUrl | string | `""` |  |
-| logboek.type | string | `""` | De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie |
+| logboek.type | string | `""` | De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie voor meer informatie |
 | logboek.typeVersion | int | `1` | De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | medewerker.type | string | `""` | De url van het medewerker objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie voor meer informatie |
 | medewerker.typeVersion | int | `1` | De versie van het medewerker objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
