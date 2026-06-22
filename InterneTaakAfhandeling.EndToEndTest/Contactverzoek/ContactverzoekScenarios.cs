@@ -734,8 +734,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetMijnHistorieLink().WaitForAsync(new() { State = WaitForSelectorState.Visible });
             await Page.GetMijnHistorieLink().ClickAsync();
 
-            await Step("Navigate back to Mijn historie to ensure latest data is displayed");
-            await SafeGotoAsync("/historie");
             await Step("Then the closed contact request is displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
@@ -891,7 +889,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify the old zaak is no longer visible");
             await Expect(Page.Locator($"text={TestDataConstants.Zaken.TestZaakIdentificatie}")).Not.ToBeVisibleAsync();
 
-            await Page.ReloadAsync();
             await VerifyLogbookEntry("Zaak gewijzigd");
         }
 
@@ -1275,13 +1272,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
                 }
             }
 
-            // Filter to recent dates only to avoid stale entries from previous test runs
-            var recentDates = dates.Where(d => d >= DateTime.Today.AddDays(-1)).ToList();
-            // The list is sorted descending (newest first)
-            for (var i = 1; i < recentDates.Count; i++)
+            for (var i = 1; i < dates.Count; i++)
             {
-                Assert.IsTrue(recentDates[i] <= recentDates[i - 1],
-                    $"List should be sorted in descending order (newest first). Found '{recentDates[i]:dd-MM-yyyy}' after '{recentDates[i - 1]:dd-MM-yyyy}'");
+                Assert.IsTrue(dates[i] <= dates[i - 1],
+                    $"List should be sorted in descending order (newest first). Found '{dates[i]:dd-MM-yyyy}' after '{dates[i - 1]:dd-MM-yyyy}'");
             }
         }
     }
