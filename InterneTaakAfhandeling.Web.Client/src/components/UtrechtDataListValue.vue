@@ -13,10 +13,10 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 const { value = "" } = defineProps<{
-  value?: number | string;
+  value?: number | string | null;
   emptyDescription?: string;
   multiline?: boolean;
   notranslate?: boolean;
 }>();
-const empty = computed(() => value === "" || value === undefined);
+const empty = computed(() => value === "" || value === undefined || value === null);
 </script>

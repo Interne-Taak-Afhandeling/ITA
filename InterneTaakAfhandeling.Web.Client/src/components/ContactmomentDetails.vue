@@ -3,21 +3,21 @@
     <div class="ita-data-list__group">
       <utrecht-data-list-item>
         <utrecht-data-list-key>Klantnaam</utrecht-data-list-key>
-        <utrecht-data-list-value :value="klantNaam ?? undefined">
+        <utrecht-data-list-value :value="klantNaam">
           {{ klantNaam }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
       <utrecht-data-list-item v-if="organisatienaam">
         <utrecht-data-list-key>Organisatie</utrecht-data-list-key>
-        <utrecht-data-list-value :value="organisatienaam ?? undefined">
+        <utrecht-data-list-value :value="organisatienaam">
           {{ organisatienaam }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
       <utrecht-data-list-item>
         <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
-        <utrecht-data-list-value :value="email ?? undefined" v-title-on-overflow>
+        <utrecht-data-list-value :value="email" v-title-on-overflow>
           {{ email }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
@@ -43,13 +43,13 @@
         <utrecht-data-list-value
           value="empty values are handled by date-time-or-nvt so we hard code a value here"
         >
-          <date-time-or-nvt :date="plaatsgevondenOp ?? undefined" />
+          <date-time-or-nvt :date="plaatsgevondenOp" />
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
       <utrecht-data-list-item>
         <utrecht-data-list-key>Aangemaakt door</utrecht-data-list-key>
-        <utrecht-data-list-value :value="aangemaaktDoor ?? undefined">
+        <utrecht-data-list-value :value="aangemaaktDoor">
           {{ aangemaaktDoor }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
@@ -77,7 +77,7 @@
 
       <utrecht-data-list-item>
         <utrecht-data-list-key>Kanaal</utrecht-data-list-key>
-        <utrecht-data-list-value :value="kanaal ?? undefined">{{ kanaal }}</utrecht-data-list-value>
+        <utrecht-data-list-value :value="kanaal">{{ kanaal }}</utrecht-data-list-value>
       </utrecht-data-list-item>
     </div>
   </utrecht-data-list>
@@ -88,20 +88,20 @@ import type { TelefoonnummerItem } from "@/types/internetaken";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 
-defineProps<{
-  status: string;
-  klantNaam?: string | null;
-  organisatienaam?: string | null;
-  email?: string | null;
-  telefoonnummer1?: TelefoonnummerItem | null;
-  telefoonnummer2?: TelefoonnummerItem | null;
-  plaatsgevondenOp?: string | null;
-  kanaal?: string | null;
-  aangemaaktDoor?: string | null;
-  behandelaarNaam?: string | null;
-  organisatorischeEenheidNaam?: string | null;
-  organisatorischeEenheidType?: string | null;
-}>();
+  defineProps<{
+    status: string;
+    klantNaam?: string | null;
+    organisatienaam?: string | null;
+    email?: string | null;
+    telefoonnummer1?: TelefoonnummerItem | null;
+    telefoonnummer2?: TelefoonnummerItem | null;
+    plaatsgevondenOp?: string | null;
+    kanaal?: string | null;
+    aangemaaktDoor?: string | null;
+    behandelaarNaam?: string | null;
+    organisatorischeEenheidNaam?: string | null;
+    organisatorischeEenheidType?: string | null;
+  }>();
 </script>
 
 <style lang="scss" scoped>
