@@ -587,7 +587,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
             
             await Step("Verify the current user is now shown as Behandelaar");
-            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("E2E test contactverzoek creator");
+            var expectedName = await TestDataHelper.GetCurrentUserActorNameAsync();
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync(expectedName);
         }
 
         [TestMethod("validating Annuleren in confirmation dialog")]
@@ -662,7 +663,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             Assert.IsTrue(firstRowText.Contains(testOnderwerp), $"Expected to find '{testOnderwerp}' in the history table");
 
             await Step("Given user is on Historie - When user clicks on a contactverzoek from the list");
-            var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = testOnderwerp });
+            var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = testOnderwerp }).First;
             var detailsLink = contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" });
             await detailsLink.ClickAsync();
 
@@ -829,7 +830,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
 
             await Step("Verify the current user is now shown as Behandelaar");
-            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("E2E test contactverzoek creator");
+            var expectedName = await TestDataHelper.GetCurrentUserActorNameAsync();
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync(expectedName);
 
             await VerifyLogbookEntry("Opgepakt");
         }
@@ -1177,7 +1179,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Find the closed contactverzoek in the history list and click through");
             await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
-            var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = onderwerp });
+            var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = onderwerp }).First;
             await contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" }).ClickAsync();
 
             await Step("Verify all action controls are hidden");

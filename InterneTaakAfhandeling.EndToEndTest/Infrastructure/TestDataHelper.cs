@@ -256,6 +256,27 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, internetaakUuid, nummer);
         }
 
+        public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateTeVerwerkenContactverzoekAsync(string onderwerp)
+        {
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "Test contactverzoek for heropenen E2E verification",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid>());
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+
+            return (contactmoment.Uuid, internetaakUuid, nummer);
+        }
+
         public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithTeamAssignmentNotCurrentUser(string onderwerp)
         {
             var contactmoment = await CreateContactmoment(
@@ -475,6 +496,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                         CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId
                     }
                 });
+        }
+
+        /// <summary>
+        /// Returns the display name of the current user's actor in OpenKlant.
+        /// This may differ from the hardcoded name if the actor was created externally.
+        /// </summary>
+        public async Task<string> GetCurrentUserActorNameAsync()
+        {
+            var actor = await GetOrCreateSubmitterActor();
+            return actor.Naam;
         }
 
         private async Task<Actor> GetOrCreateAfdelingActor(string afdelingName)

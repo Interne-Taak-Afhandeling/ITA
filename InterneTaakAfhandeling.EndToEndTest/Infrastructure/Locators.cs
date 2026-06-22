@@ -7,7 +7,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         // Dashboard locators
         public static ILocator GetDetailsLink(this IPage page, string onderwerp)
         {
-            var testRow = page.GetByRole(AriaRole.Row).Filter(new() { HasText = onderwerp });
+            var testRow = page.GetByRole(AriaRole.Row).Filter(new() { HasText = onderwerp }).First;
             return testRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" });
         }
 
@@ -175,5 +175,18 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetAfgehandeldMessage(this IPage page) =>
             page.GetByText("Dit contactverzoek is afgehandeld en kan niet meer worden gewijzigd.");
+
+        // Heropenen locators
+        public static ILocator GetHeropenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Heropenen" });
+
+        public static ILocator GetHeropenDialogBevestigenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Heropenen" });
+
+        public static ILocator GetHeropenRedenTextbox(this IPage page) =>
+            page.Locator("#reopen-reden");
+
+        public static ILocator GetContactverzoekHeropendMessage(this IPage page) =>
+            page.GetByRole(AriaRole.Status).Filter(new() { HasText = "Contactverzoek heropend" });
     }
 }
