@@ -65,15 +65,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
                     Page.Dialog -= AcceptDialog;
                 }
                 
-                // Verify deletion succeeded
-                var stillExists = await locators.GetKanaalListItem(kanaalName).CountAsync() > 0;
-                if (!stillExists)
-                {
-                    return true;
-                }
-                
-                Console.WriteLine($"Kanaal '{kanaalName}' still exists after deletion attempt");
-                return false;
+                await Expect(locators.GetKanaalListItem(kanaalName)).ToHaveCountAsync(0);
+                return true;
             }
             catch (Exception ex)
             {
