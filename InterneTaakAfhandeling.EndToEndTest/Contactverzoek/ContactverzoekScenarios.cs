@@ -341,17 +341,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Verify closed contactverzoeken for the groep are displayed");
             var tableRows = Page.Locator("table tbody tr");
-            var rowCount = await tableRows.CountAsync();
-            if (rowCount == 0)
+            try
             {
-                // Wait briefly for potential async data load
-                await Task.Delay(2000);
-                rowCount = await tableRows.CountAsync();
+                await Expect(tableRows.First).ToBeVisibleAsync();
             }
-            if (rowCount == 0)
+            catch (PlaywrightException)
             {
                 Assert.Inconclusive("No completed contactverzoeken found for groep — test environment has no data for this scenario");
             }
+            var rowCount = await tableRows.CountAsync();
 
             await VerifyLatestRecordIsOnTopInHistorieTable(tableRows, rowCount);
         }
