@@ -317,7 +317,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
 
             await Step("Verify closed contactverzoek is displayed in the table");
-            await ExpectWithReloadRetry(Page.Locator($"text={testOnderwerp}"));
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
         }
 
         [TestMethod("View completed contactverzoeken of afdeling")]
@@ -330,7 +330,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToAfdelingshistorieAndSelectOrganisatorischeEenheid(afdelingNaam);
 
             await Step("Verify the closed contactverzoek appears in afdeling history");
-            await ExpectWithReloadRetry(Page.Locator($"text={testOnderwerp}"));
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
         }
 
         [TestMethod("View completed contactverzoeken of groep")]
@@ -655,7 +655,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Then closed contact request assigned to the employee is displayed");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
-            await ExpectWithReloadRetry(Page.Locator($"text={testOnderwerp}"));
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
 
             await Step("Verify the contact request shows as assigned to current user");
             var tableRows = Page.Locator("table tbody tr");
@@ -742,7 +742,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Then the closed contact request is displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
-            await ExpectWithReloadRetry(Page.Locator($"text={testOnderwerp}"));
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
 
             await Step("Verify the reassigned and closed contact request shows in user's history");
             var tableRows = Page.Locator("table tbody tr");
@@ -973,7 +973,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await SafeGotoAsync("/historie");
 
             await Step("Verify the closed contactverzoek appears in historie");
-            await ExpectWithReloadRetry(Page.Locator($"text={testOnderwerp}"));
+            await Expect(Page.Locator($"text={testOnderwerp}")).ToBeVisibleAsync();
 
             await Step("Click on the contactverzoek from the historie list");
             await Page.GetDetailsLink(testOnderwerp).ClickAsync();
@@ -1181,7 +1181,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await SafeGotoAsync("/historie");
 
             await Step("Find the closed contactverzoek in the history list and click through");
-            await ExpectWithReloadRetry(Page.Locator($"text={onderwerp}"));
+            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
             var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = onderwerp });
             await contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" }).ClickAsync();
 

@@ -202,8 +202,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
             // The "Informatie voor burger" field loads from a nested API call
             // (internetaak → aanleidinggevendKlantcontact.inhoud). In CI, this
-            // external API call can silently fail or be slow.
-            await ExpectWithReloadRetry(Page.GetInformatieVoorBurgerValue());
+            // external API call can be slow.
             await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(
                 "This is a test contact request created during an end-to-end test run.");
         }
@@ -214,7 +213,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var zaakLocator = Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie });
             // Zaak details are fetched from the external Zaken API. In CI, this
             // call can silently fail or be slow.
-            await ExpectWithReloadRetry(zaakLocator);
+            await Expect(zaakLocator).ToBeVisibleAsync();
         }
 
         private async Task VerifyActionTabsArePresent()
@@ -283,7 +282,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify both closed contact requests are displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
-            await ExpectWithReloadRetry(Page.Locator($"text={newestOnderwerp}"));
+            await Expect(Page.Locator($"text={newestOnderwerp}")).ToBeVisibleAsync();
             await Expect(Page.Locator($"text={olderOnderwerp}")).ToBeVisibleAsync();
 
             await Step("Verify list is sorted in descending order (most recent first)");
@@ -416,29 +415,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
                 var timeDifference = Math.Abs((DateTimeOffset.UtcNow - internetaak.AfgehandeldOp.Value).TotalMinutes);
                 Assert.IsTrue(timeDifference < 5,
                     $"AfgehandeldOp should be close to current time. Difference: {timeDifference} minutes");
-            }
-        }
-
-        /// <summary>
-        /// After closing a contactverzoek, the backend may need time to propagate
-        /// the status change before the history page reflects the new entry.
-        /// This helper waits for a locator to appear, retrying with page reloads
-        /// up to 3 times with increasing delays to handle slow CI propagation.
-        /// </summary>
-        private async Task ExpectWithReloadRetry(ILocator locator, int maxRetries = 3)
-        {
-            for (var attempt = 0; attempt <= maxRetries; attempt++)
-            {
-                try
-                {
-                    await Expect(locator).ToBeVisibleAsync();
-                    return;
-                }
-                catch (PlaywrightException) when (attempt < maxRetries)
-                {
-                    await Task.Delay(3000);
-                    await Page.ReloadAsync();
-                }
             }
         }
     }
