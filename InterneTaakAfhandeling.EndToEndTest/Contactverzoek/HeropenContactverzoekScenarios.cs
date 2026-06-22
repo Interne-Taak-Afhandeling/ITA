@@ -13,34 +13,34 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
     /// </summary>
     [TestClass]
     [DoNotParallelize]
-    public class HeroepenContactverzoekScenarios : ITAPlaywrightTest
+    public class HeropenContactverzoekScenarios : ITAPlaywrightTest
     {
         // Scenario: Beheerder ziet de heropenen-knop op een gesloten contactverzoek
         [TestMethod("Beheerder ziet de heropenen-knop op een gesloten contactverzoek")]
         public async Task HeroepenKnop_IsVisible_ForVerwerktContactverzoek()
         {
-            var onderwerp = $"Test_HeroepenKnop_Visible_{Guid.NewGuid().ToString()[..8]}";
+            var onderwerp = $"Test_HeropenKnop_Visible_{Guid.NewGuid().ToString()[..8]}";
             var (contactmomentUuid, _, internetaakNummer) = await TestDataHelper.CreateVerwerktContactverzoekAsync(onderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
 
             await NavigateToVerwerktContactverzoekByNummer(internetaakNummer);
 
             await Step("Verify 'Heropenen' button is visible for verwerkt contactverzoek");
-            await Expect(Page.GetHeroepenButton()).ToBeVisibleAsync();
+            await Expect(Page.GetHeropenButton()).ToBeVisibleAsync();
         }
 
         // Scenario: Heropenen-knop is niet zichtbaar bij een open contactverzoek
         [TestMethod("Heropenen-knop is niet zichtbaar bij een open contactverzoek")]
         public async Task HeroepenKnop_IsNotVisible_ForTeVerwerkenContactverzoek()
         {
-            var onderwerp = $"Test_HeroepenKnop_NotVisible_{Guid.NewGuid().ToString()[..8]}";
+            var onderwerp = $"Test_HeropenKnop_NotVisible_{Guid.NewGuid().ToString()[..8]}";
             var (contactmomentUuid, _, internetaakNummer) = await TestDataHelper.CreateTeVerwerkenContactverzoekAsync(onderwerp);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(contactmomentUuid.ToString()));
 
             await NavigateToContactverzoekByNummer(internetaakNummer);
 
             await Step("Verify 'Heropenen' button is NOT visible for te_verwerken contactverzoek");
-            await Expect(Page.GetHeroepenButton()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetHeropenButton()).Not.ToBeVisibleAsync();
         }
 
         // Scenario: Beheerder heropent een gesloten contactverzoek via de dialoog
@@ -54,17 +54,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await NavigateToVerwerktContactverzoekByNummer(internetaakNummer);
 
             await Step("Click 'Heropenen' button to open dialog");
-            await Page.GetHeroepenButton().ClickAsync();
+            await Page.GetHeropenButton().ClickAsync();
 
             await Step("Verify dialog is open with heading 'Contactverzoek heropenen'");
             await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Contactverzoek heropenen" })).ToBeVisibleAsync();
 
             await Step("Fill in reden 'Klant heeft aanvullende vraag'");
-            await Page.GetHeroepenRedenTextbox().FillAsync("Klant heeft aanvullende vraag");
+            await Page.GetHeropenRedenTextbox().FillAsync("Klant heeft aanvullende vraag");
 
             await Step("Click 'Heropenen' confirm button in dialog");
-            await Page.GetHeroepenDialogBevestigenButton().ClickAsync();
+            await Page.GetHeropenDialogBevestigenButton().ClickAsync();
 
             await Step("Verify success toast is shown");
             await Expect(Page.GetContactverzoekHeropendMessage()).ToBeVisibleAsync();
@@ -76,8 +76,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Verify afgehandeld message is no longer shown");
             await Expect(Page.GetAfgehandeldMessage()).Not.ToBeVisibleAsync();
 
-            await Step("Verify behandelaar assignment is still intact (same behandelaar)");
+            await Step("Verify no behandelaar is assigned (test data has no actor, 'Toewijzen aan mezelf' button visible)");
             await Expect(Page.GetToewijzenAanMezelfButton()).ToBeVisibleAsync();
+
+            await Step("Verify ToegewezenAanActoren remains empty in OpenKlant after reopen");
+            var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid);
+            Assert.IsTrue(
+                internetaak.ToegewezenAanActoren == null || internetaak.ToegewezenAanActoren.Count == 0,
+                $"Expected no actors assigned after reopen, but found {internetaak.ToegewezenAanActoren?.Count ?? 0}");
 
             await Step("Verify status in OpenKlant is 'te_verwerken'");
             await VerifyInternetaakStatusInOpenKlant(internetaakUuid, "te_verwerken");
@@ -94,9 +100,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await NavigateToVerwerktContactverzoekByNummer(internetaakNummer);
 
             await Step("Heropen contactverzoek with reden 'Herbeoordeling'");
-            await Page.GetHeroepenButton().ClickAsync();
-            await Page.GetHeroepenRedenTextbox().FillAsync("Herbeoordeling");
-            await Page.GetHeroepenDialogBevestigenButton().ClickAsync();
+            await Page.GetHeropenButton().ClickAsync();
+            await Page.GetHeropenRedenTextbox().FillAsync("Herbeoordeling");
+            await Page.GetHeropenDialogBevestigenButton().ClickAsync();
             await Expect(Page.GetContactverzoekHeropendMessage()).ToBeVisibleAsync();
 
             await Step("Reload page to ensure logboek is refreshed");
@@ -131,14 +137,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await NavigateToVerwerktContactverzoekByNummer(internetaakNummer);
 
             await Step("Open heropenen dialog");
-            await Page.GetHeroepenButton().ClickAsync();
+            await Page.GetHeropenButton().ClickAsync();
             await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
 
             await Step("Try to submit without filling in reden");
-            await Page.GetHeroepenDialogBevestigenButton().ClickAsync();
+            await Page.GetHeropenDialogBevestigenButton().ClickAsync();
 
             await Step("Verify form validation blocks submission — reden field reports valueMissing");
-            var redenTextbox = Page.GetHeroepenRedenTextbox();
+            var redenTextbox = Page.GetHeropenRedenTextbox();
             await Expect(redenTextbox).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
             await Step("Verify dialog is still open (submission was blocked)");
@@ -159,11 +165,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await NavigateToVerwerktContactverzoekByNummer(internetaakNummer);
 
             await Step("Open heropenen dialog");
-            await Page.GetHeroepenButton().ClickAsync();
+            await Page.GetHeropenButton().ClickAsync();
             await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
 
             await Step("Fill in reden (dialog should be openable and fillable)");
-            await Page.GetHeroepenRedenTextbox().FillAsync("Testannulering");
+            await Page.GetHeropenRedenTextbox().FillAsync("Testannulering");
 
             await Step("Click 'Annuleren' to close dialog without confirming");
             await Page.GetAnnulerenDialogButton().ClickAsync();

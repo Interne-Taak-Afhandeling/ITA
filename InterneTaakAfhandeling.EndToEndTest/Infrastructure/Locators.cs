@@ -177,13 +177,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             page.GetByText("Dit contactverzoek is afgehandeld en kan niet meer worden gewijzigd.");
 
         // Heropenen locators
-        public static ILocator GetHeroepenButton(this IPage page) =>
+        public static ILocator GetHeropenButton(this IPage page) =>
             page.GetByRole(AriaRole.Button, new() { Name = "Heropenen" });
 
-        public static ILocator GetHeroepenDialogBevestigenButton(this IPage page) =>
+        public static ILocator GetHeropenDialogBevestigenButton(this IPage page) =>
             page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Heropenen" });
 
-        public static ILocator GetHeroepenRedenTextbox(this IPage page) =>
+        public static ILocator GetHeropenRedenTextbox(this IPage page) =>
             page.Locator("#reopen-reden");
 
         public static ILocator GetContactverzoekHeropendMessage(this IPage page) =>
