@@ -6,21 +6,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
     
      public static class TestDataConstants
     {
-        public static class ContactverzoekNummers
-        {
-            public const string WithZaak = "8001321008";
-            public const string WithoutZaak = "8001321009";
-            public const string WithPartij = "8001321010";
-            public const string HistorieFirst = "8001321011";
-            public const string HistorieSecond = "8001321012";
-            public const string UnassignedForReassignment = "8001321013";
-            public const string WithCurrentUserAssigned = "8001321014";
-            public const string WithTeamAssignmentOnly = "8001321015";
-            public const string WithNoAssignments = "8001321016";
-            public const string WithCurrentUserAssignedViaObjectRegisterId = "8001321017";
-            public const string WithTeamAssignmentNotCurrentUser = "8001321018";
-        }
-
          public static class Zaken
         {
             public const string TestZaakIdentificatie = "ZAAK-2023-002";

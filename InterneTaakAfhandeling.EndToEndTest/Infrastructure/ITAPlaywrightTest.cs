@@ -141,6 +141,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         [TestInitialize]
         public virtual async Task TestInitialize()
         {
+            // Ensure Expect timeout is always applied (30s), regardless of .runsettings file discovery.
+            // This accommodates slower CI runners and external API latency where detail pages
+            // fetch data from multiple external APIs before rendering.
+            SetDefaultExpectTimeout(30_000);
+
             // start tracing (authentication is pre-loaded via StorageStatePath in ContextOptions)
             await Context.Tracing.StartAsync(new()
             {

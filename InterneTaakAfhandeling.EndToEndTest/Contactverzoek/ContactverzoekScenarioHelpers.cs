@@ -20,14 +20,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             return uuid;
         }
 
-        private async Task<Guid> SetupContactverzoek(string onderwerp, bool attachZaak, string internetaakNummer)
-        {
-            await Step("Setup test data via API");
-            var uuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak, internetaakNummer);
-            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
-            return uuid;
-        }
-
         private async Task CreateAssignAndCloseContactverzoek(string onderwerp, string informatieText)
         {
             await Step("Create and close contactverzoek");
@@ -61,9 +53,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await VerifyInternetaakStatusInOpenKlant(internetaakUuid.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
         }
 
-        private async Task<(Guid internetaakUuid, string internetaakNummer)> SetupAndResolveContactverzoek(string onderwerp, string internetaakNummer)
+        private async Task<(Guid internetaakUuid, string internetaakNummer)> SetupAndResolveContactverzoek(string onderwerp)
         {
-            var contactmomentUuid = await SetupContactverzoek(onderwerp, attachZaak: false, internetaakNummer: internetaakNummer);
+            var contactmomentUuid = await SetupContactverzoek(onderwerp, attachZaak: false);
             var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
             Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
 
@@ -96,7 +88,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         }
 
         private async Task SafeGotoAsync(string url)
@@ -131,13 +122,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Navigate to home page");
             await SafeGotoAsync("/");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step($"Click on contactverzoek '{onderwerp}'");
             var detailsLink = Page.GetDetailsLink(onderwerp);
             await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
             await detailsLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // Wait for detail page to fully render (tab proves the SPA route loaded)
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
         }
@@ -146,7 +135,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step($"Navigate to contactverzoek by nummer: {internetaakNummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaakNummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // Heading now shows AanleidinggevendKlantcontact.Nummer (contactmoment number), not the
             // interne-taaknummer. Use the action tab as a reliable page-loaded indicator instead.
             await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
@@ -156,7 +144,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step($"Navigate to verwerkt contactverzoek by nummer: {internetaakNummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaakNummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // Verwerkt contactverzoeken hide the action tabs; wait for the afgehandeld message instead.
             await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync();
         }
@@ -173,13 +160,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Navigate to Afdelingshistorie");
             await SafeGotoAsync("/");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetByRole(AriaRole.Link, new() { Name = "Afdelingshistorie", Exact = true }).ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var afdelingshistorieLink = Page.GetByRole(AriaRole.Link, new() { Name = "Afdelingshistorie", Exact = true });
+            await afdelingshistorieLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await afdelingshistorieLink.ClickAsync();
 
             await Step($"Select department '{organisatorischeEenheidNaam}' from dropdown");
-            await Page.GetByLabel("Selecteer een afdeling of").SelectOptionAsync(new[] { organisatorischeEenheidNaam });
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var dropdown = Page.GetByLabel("Selecteer een afdeling of");
+            await dropdown.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await dropdown.SelectOptionAsync(new[] { organisatorischeEenheidNaam });
         }
 
         // Verification Helpers
@@ -204,20 +192,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetVraagValue(onderwerp)).ToHaveTextAsync(onderwerp);
 
             await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // The "Informatie voor burger" field loads from a nested API call
             // (internetaak → aanleidinggevendKlantcontact.inhoud). In CI, this
-            // external API call can silently fail or be slow. Reload once to
-            // give the frontend a second chance to fetch the data.
-            try
-            {
-                await Expect(Page.GetInformatieVoorBurgerValue()).ToBeVisibleAsync();
-            }
-            catch (PlaywrightException)
-            {
-                await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
-                await Expect(Page.GetInformatieVoorBurgerValue()).ToBeVisibleAsync();
-            }
+            // external API call can be slow.
             await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(
                 "This is a test contact request created during an end-to-end test run.");
         }
@@ -227,16 +204,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step($"Verify ZAAK '{zaakIdentificatie}' is visible");
             var zaakLocator = Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie });
             // Zaak details are fetched from the external Zaken API. In CI, this
-            // call can silently fail or be slow. Reload once to retry.
-            try
-            {
-                await Expect(zaakLocator).ToBeVisibleAsync();
-            }
-            catch (PlaywrightException)
-            {
-                await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
-                await Expect(zaakLocator).ToBeVisibleAsync();
-            }
+            // call can silently fail or be slow.
+            await Expect(zaakLocator).ToBeVisibleAsync();
         }
 
         private async Task VerifyActionTabsArePresent()
@@ -301,12 +270,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Navigate to History tab (Mijn historie)");
             await SafeGotoAsync("/historie");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify both closed contact requests are displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
-            await ExpectWithReloadRetry(Page.Locator($"text={newestOnderwerp}"));
+            await Expect(Page.Locator($"text={newestOnderwerp}")).ToBeVisibleAsync();
             await Expect(Page.Locator($"text={olderOnderwerp}")).ToBeVisibleAsync();
 
             await Step("Verify list is sorted in descending order (most recent first)");
@@ -354,7 +322,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Verify validation: Afsluiten question is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
             await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
@@ -393,9 +360,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Verify success message");
             await Expect(Page.GetByText("Contactmoment succesvol bijgewerkt")).ToBeVisibleAsync();
-
-            await Step("Wait and refresh to load Logboek");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step($"Verify '{logboekText}' is displayed in Logboek");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" })).ToBeVisibleAsync();
@@ -443,30 +407,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
                 var timeDifference = Math.Abs((DateTimeOffset.UtcNow - internetaak.AfgehandeldOp.Value).TotalMinutes);
                 Assert.IsTrue(timeDifference < 5,
                     $"AfgehandeldOp should be close to current time. Difference: {timeDifference} minutes");
-            }
-        }
-
-        /// <summary>
-        /// After closing a contactverzoek, the backend may need time to propagate
-        /// the status change before the history page reflects the new entry.
-        /// This helper waits for a locator to appear, retrying with page reloads
-        /// up to 3 times with increasing delays to handle slow CI propagation.
-        /// </summary>
-        private async Task ExpectWithReloadRetry(ILocator locator, int maxRetries = 3)
-        {
-            for (var attempt = 0; attempt <= maxRetries; attempt++)
-            {
-                try
-                {
-                    await Expect(locator).ToBeVisibleAsync();
-                    return;
-                }
-                catch (PlaywrightException) when (attempt < maxRetries)
-                {
-                    await Task.Delay(3000);
-                    await Page.ReloadAsync();
-                    await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-                }
             }
         }
     }

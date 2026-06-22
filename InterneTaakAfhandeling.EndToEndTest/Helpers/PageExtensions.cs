@@ -55,9 +55,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Helpers
 
         public static async Task<bool> IsLoggedInAsync(this IPage page)
         {
-            // Navigate to root and check if we stay on ITA domain
+            // Navigate to root and wait for URL to stabilize (either ITA or redirect to login)
             await page.GotoAsync("/");
-            await Task.Delay(2000); // Allow time for potential redirect
+            try
+            {
+                await page.WaitForURLAsync(
+                    url => url.Contains("ita.test.icatt.nl") || url.Contains("login.microsoftonline.com"),
+                    new() { Timeout = 10_000 });
+            }
+            catch (TimeoutException) { }
 
             var currentUrl = page.Url;
             return currentUrl.Contains("ita.test.icatt.nl") &&

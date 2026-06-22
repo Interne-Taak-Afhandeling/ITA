@@ -71,9 +71,6 @@ namespace EndToEndTest.Common.Infrastructure
             await _page.FillAsync("input[name='passwd']", _password);
             await _page.ClickAsync("input[type='submit']");
 
-            // Wait for Azure AD to process the password before expecting 2FA
-            await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
             await Handle2FAAsync();
         }
 
