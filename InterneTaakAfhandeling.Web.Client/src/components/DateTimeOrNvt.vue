@@ -9,6 +9,6 @@
 import { formatIsoDateTime, formatNlDateTime, parseValidDate } from "@/utils/dateUtils";
 import type { DateLike } from "@vueuse/core";
 import { computed } from "vue";
-const props = defineProps<{ date: DateLike }>();
+const props = defineProps<{ date: DateLike | null }>();
 const validated = computed(() => parseValidDate(props.date));
 </script>

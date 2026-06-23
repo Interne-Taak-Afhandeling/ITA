@@ -13,6 +13,17 @@ export interface Internetaken {
   status: string;
   toegewezenOp: string;
   afgehandeldOp?: string;
+  behandelaarNaam?: string | null;
+  organisatorischeEenheidNaam?: string | null;
+  organisatorischeEenheidType?: string | null;
+  klantNaam?: string | null;
+  organisatienaam?: string | null;
+  email?: string | null;
+  telefoonnummer1?: TelefoonnummerItem | null;
+  telefoonnummer2?: TelefoonnummerItem | null;
+  plaatsgevondenOp?: string | null;
+  kanaal?: string | null;
+  aangemaaktDoor?: string | null;
   digitaleAdress?: DigitaleAdres[];
   betrokkene?: Betrokkene;
   zaak?: Zaak;
@@ -67,6 +78,11 @@ export interface Actor {
   indicatieActief?: boolean;
   actoridentificator?: Actoridentificator;
   actorIdentificatie?: unknown;
+}
+
+export interface TelefoonnummerItem {
+  adres: string;
+  omschrijving: string;
 }
 
 export interface ActorResponse {
