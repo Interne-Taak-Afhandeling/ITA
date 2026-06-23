@@ -188,5 +188,36 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetContactverzoekHeropendMessage(this IPage page) =>
             page.GetByRole(AriaRole.Status).Filter(new() { HasText = "Contactverzoek heropend" });
+
+        // Doorsturen form locators
+        public static ILocator GetDoorsturenAfdelingRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Afdeling" });
+
+        public static ILocator GetDoorsturenGroepRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Groep" });
+
+        public static ILocator GetDoorsturenMedewerkerRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Medewerker" });
+
+        public static ILocator GetAfdelingSelect(this IPage page) =>
+            page.Locator("#afdelingSelect");
+
+        public static ILocator GetGroepSelect(this IPage page) =>
+            page.Locator("#groepSelect");
+
+        public static ILocator GetMedewerkerCombobox(this IPage page) =>
+            page.Locator("#medewerker-combobox");
+
+        public static ILocator GetSecondaryPicker(this IPage page) =>
+            page.Locator("#secondaryPicker");
+
+        public static ILocator GetAfdelingGroepMedewerkerCombobox(this IPage page) =>
+            page.Locator("#afdeling-groep-medewerker-combobox");
+
+        public static ILocator GetGroepMedewerkerCombobox(this IPage page) =>
+            page.Locator("#groep-medewerker-combobox");
+
+        public static ILocator GetContactverzoekDoorsturenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Contactverzoek doorsturen" });
     }
 }
