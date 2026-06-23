@@ -54,14 +54,14 @@
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
-      <utrecht-data-list-item>
+      <utrecht-data-list-item v-if="behandelaarNaam">
         <utrecht-data-list-key>Behandelaar</utrecht-data-list-key>
         <utrecht-data-list-value :value="behandelaarNaam">
           {{ behandelaarNaam }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
-      <utrecht-data-list-item>
+      <utrecht-data-list-item v-if="organisatorischeEenheidType">
         <utrecht-data-list-key>{{ organisatorischeEenheidType }}</utrecht-data-list-key>
         <utrecht-data-list-value :value="organisatorischeEenheidNaam">
           {{ organisatorischeEenheidNaam }}
