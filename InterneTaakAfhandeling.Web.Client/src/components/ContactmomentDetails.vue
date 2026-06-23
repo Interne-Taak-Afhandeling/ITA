@@ -24,15 +24,15 @@
 
       <utrecht-data-list-item>
         <utrecht-data-list-key>Telefoonnummer</utrecht-data-list-key>
-        <utrecht-data-list-value :value="telefoonnummer1?.adres">
-          {{ telefoonnummer1?.adres }}
+        <utrecht-data-list-value :value="telefoonnummer1">
+          {{ telefoonnummer1 }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
-      <utrecht-data-list-item v-if="telefoonnummer2?.adres">
-        <utrecht-data-list-key>{{ telefoonnummer2.omschrijving }}</utrecht-data-list-key>
-        <utrecht-data-list-value :value="telefoonnummer2.adres">
-          {{ telefoonnummer2.adres }}
+      <utrecht-data-list-item v-if="telefoonnummer2">
+        <utrecht-data-list-key>{{ telefoonnummer2Omschrijving }}</utrecht-data-list-key>
+        <utrecht-data-list-value :value="telefoonnummer2">
+          {{ telefoonnummer2 }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
     </div>
@@ -54,14 +54,14 @@
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
-      <utrecht-data-list-item v-if="behandelaarNaam">
+      <utrecht-data-list-item>
         <utrecht-data-list-key>Behandelaar</utrecht-data-list-key>
         <utrecht-data-list-value :value="behandelaarNaam">
           {{ behandelaarNaam }}
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
-      <utrecht-data-list-item v-if="organisatorischeEenheidNaam">
+      <utrecht-data-list-item>
         <utrecht-data-list-key>{{ organisatorischeEenheidType }}</utrecht-data-list-key>
         <utrecht-data-list-value :value="organisatorischeEenheidNaam">
           {{ organisatorischeEenheidNaam }}
@@ -84,7 +84,6 @@
 </template>
 
 <script setup lang="ts">
-import type { TelefoonnummerItem } from "@/types/internetaken";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 
@@ -93,8 +92,9 @@ defineProps<{
   klantNaam?: string | null;
   organisatienaam?: string | null;
   email?: string | null;
-  telefoonnummer1?: TelefoonnummerItem | null;
-  telefoonnummer2?: TelefoonnummerItem | null;
+  telefoonnummer1?: string | null;
+  telefoonnummer2?: string | null;
+  telefoonnummer2Omschrijving?: string | null;
   plaatsgevondenOp?: string | null;
   kanaal?: string | null;
   aangemaaktDoor?: string | null;
