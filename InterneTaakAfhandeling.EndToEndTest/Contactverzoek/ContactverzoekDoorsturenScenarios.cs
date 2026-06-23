@@ -162,7 +162,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
             await Step("Verify success toast");
-            await Expect(Page.GetSuccessToast()).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "doorgestuurd" })).ToBeVisibleAsync();
         }
 
         [TestMethod("Contactverzoek doorsturen via modus Groep")]
@@ -183,7 +183,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
             await Step("Verify success toast");
-            await Expect(Page.GetSuccessToast()).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "doorgestuurd" })).ToBeVisibleAsync();
         }
 
         [TestMethod("Handmatige e-mailinvoer is niet meer mogelijk")]
@@ -251,7 +251,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
             await Step("Verify success toast (confirms email notification sent or forwarded)");
-            await Expect(Page.GetSuccessToast()).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "doorgestuurd" })).ToBeVisibleAsync();
         }
 
         [TestMethod("Validatie faalt zonder secundaire afdeling of groep bij modus medewerker")]
@@ -279,7 +279,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Expect(secondaryPicker).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
             await Step("Verify no success toast was shown");
-            await Expect(Page.GetSuccessToast()).Not.ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "doorgestuurd" })).Not.ToBeVisibleAsync();
         }
 
         [TestMethod("Doorsturen wanneer medewerker geen e-mailadres heeft")]
@@ -316,7 +316,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
             await Step("Verify toast indicates forwarding succeeded (with notification warning)");
-            await Expect(Page.GetSuccessToast()).ToBeVisibleAsync();
+            await Expect(Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "doorgestuurd" })).ToBeVisibleAsync();
         }
 
         // === Private helpers ===
@@ -340,7 +340,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await detailsLink.ClickAsync();
 
             await Step("Wait for detail page to load");
-            var doorsturenTab = Page.GetByText("Doorsturen", new() { Exact = true });
+            var doorsturenTab = Page.Locator("#label-contactmomentDoorsturen");
             await Expect(doorsturenTab).ToBeVisibleAsync();
 
             await Step("Click 'Doorsturen' tab");
