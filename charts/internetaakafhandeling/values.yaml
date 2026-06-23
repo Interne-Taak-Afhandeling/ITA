@@ -150,7 +150,10 @@ web:
     setting1: ""
     setting2: ""
 
-# Poller — shared image and resource settings for all poller CronJobs
+# Poller — shared image and resource settings for all poller CronJobs.
+# Each CronJob sets POLLER_MODE to select its execution path:
+#   "nieuwe-internetaak-notificatie"        — check for new internetaken and send notifications
+#   "verlopen-contactverzoek-herinnering"   — send daily reminders for overdue contact requests
 poller:
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
