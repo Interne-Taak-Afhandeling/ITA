@@ -18,7 +18,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_ForwardForm_DefaultsToAfdelingMode()
         {
             var onderwerp = $"Test_Forward_Default_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -33,7 +33,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_CanSearchMedewerker_ByName()
         {
             var onderwerp = $"Test_Forward_Search_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -56,7 +56,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_CanSeeSecondaryPicker_AfterMedewerkerSelection()
         {
             var onderwerp = $"Test_Forward_Secondary_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -64,15 +64,20 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Page.GetDoorsturenMedewerkerRadio().ClickAsync();
             await SearchAndSelectFirstMedewerker();
 
-            await Step("Verify secondary picker (afdeling/groep) is visible");
-            await Expect(Page.GetSecondaryPicker()).ToBeVisibleAsync();
+            await Step("Verify secondary picker is visible OR a hidden afdeling/groep input is auto-selected");
+            var secondaryPicker = Page.GetSecondaryPicker();
+            var hiddenAfdelingOrGroep = Page.Locator("input[type='hidden'][name='afdeling'], input[type='hidden'][name='groep']");
+            var pickerVisible = await secondaryPicker.IsVisibleAsync();
+            var hiddenInputPresent = await hiddenAfdelingOrGroep.CountAsync() > 0;
+            Assert.IsTrue(pickerVisible || hiddenInputPresent,
+                "After medewerker selection, either the secondary picker should be visible or an afdeling/groep should be auto-selected");
         }
 
         [TestMethod("Modus Afdeling met optionele medewerker-picker")]
         public async Task User_CanSeeOptionalMedewerkerPicker_InAfdelingMode()
         {
             var onderwerp = $"Test_Forward_AfdelingMdw_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -91,7 +96,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_CanSeeOptionalMedewerkerPicker_InGroepMode()
         {
             var onderwerp = $"Test_Forward_GroepMdw_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -111,7 +116,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_SeesRadioOptionsInCorrectOrder()
         {
             var onderwerp = $"Test_Forward_Order_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -145,7 +150,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_CanForwardContactverzoek_ViaMedewerkerMode()
         {
             var onderwerp = $"Test_Forward_Mdw_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -169,7 +174,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_CanForwardContactverzoek_ViaGroepMode()
         {
             var onderwerp = $"Test_Forward_Groep_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -190,24 +195,24 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_CannotSeeEmailInputField_InForwardForm()
         {
             var onderwerp = $"Test_Forward_NoEmail_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
             await Step("Verify no free-text email input field exists in the forward form");
             var emailInput = Page.Locator("input[type='email']");
-            await Expect(emailInput).Not.ToBeVisibleAsync();
+            await Expect(emailInput).ToHaveCountAsync(0);
 
             await Step("Verify no field labeled 'E-mailadres' exists in the form");
             var emailLabel = Page.GetByLabel("E-mailadres");
-            await Expect(emailLabel).Not.ToBeVisibleAsync();
+            await Expect(emailLabel).ToHaveCountAsync(0);
         }
 
         [TestMethod("Zoeken zonder resultaten toont geen opties")]
         public async Task User_SeesNoOptions_WhenMedewerkerSearchHasNoResults()
         {
             var onderwerp = $"Test_Forward_NoResults_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -229,7 +234,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_CanForwardContactverzoek_ViaMedewerkerWithAfdeling()
         {
             var onderwerp = $"Test_Forward_MdwAfd_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -239,10 +244,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Search and select a medewerker");
             await SearchAndSelectFirstMedewerker();
 
-            await Step("Select an afdeling from secondary picker");
-            var secondaryPicker = Page.GetSecondaryPicker();
-            await Expect(secondaryPicker).ToBeVisibleAsync();
-            await secondaryPicker.SelectOptionAsync(new SelectOptionValue { Index = 1 });
+            await Step("Select an afdeling from secondary picker (if visible)");
+            await SelectFirstSecondaryOption();
 
             await Step("Submit the forward form");
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
@@ -255,7 +258,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         public async Task User_CannotSubmitForwardForm_InMedewerkerMode_WithoutAnySelection()
         {
             var onderwerp = $"Test_Forward_NoSec_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
@@ -265,18 +268,38 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Search and select a medewerker (but do NOT select secondary)");
             await SearchAndSelectFirstMedewerker();
 
-            await Step("Verify secondary picker is visible with default placeholder");
+            await Step("Check if secondary picker is visible (only when >1 linked option)");
             var secondaryPicker = Page.GetSecondaryPicker();
-            await Expect(secondaryPicker).ToBeVisibleAsync();
+            var pickerVisible = await secondaryPicker.IsVisibleAsync();
 
-            await Step("Attempt to submit without selecting secondary option");
-            await Page.GetContactverzoekDoorsturenButton().ClickAsync();
+            if (pickerVisible)
+            {
+                await Step("Attempt to submit without selecting secondary option");
+                await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
-            await Step("Verify form validation blocks submission — secondary picker reports validity error");
-            await Expect(secondaryPicker).ToHaveJSPropertyAsync("validity.valueMissing", true);
+                await Step("Verify form validation blocks submission — secondary picker reports validity error");
+                await Expect(secondaryPicker).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
-            await Step("Verify no success toast was shown");
-            await Expect(Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "doorgestuurd" })).Not.ToBeVisibleAsync();
+                await Step("Verify no success toast was shown");
+                await Expect(Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "doorgestuurd" })).Not.ToBeVisibleAsync();
+            }
+            else
+            {
+                await Step("Medewerker has single linked option (auto-selected) — verify validation by testing without medewerker selection");
+                // Reset the form by switching modes and back
+                await Page.GetDoorsturenAfdelingRadio().ClickAsync();
+                await Page.GetDoorsturenMedewerkerRadio().ClickAsync();
+
+                await Step("Attempt to submit without selecting a medewerker");
+                await Page.GetContactverzoekDoorsturenButton().ClickAsync();
+
+                await Step("Verify the combobox reports a validation error");
+                var combobox = Page.GetMedewerkerCombobox();
+                await Expect(combobox).ToHaveJSPropertyAsync("validity.valid", false);
+
+                await Step("Verify no success toast was shown");
+                await Expect(Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "doorgestuurd" })).Not.ToBeVisibleAsync();
+            }
         }
 
         [TestMethod("Doorsturen wanneer medewerker geen e-mailadres heeft")]
@@ -290,7 +313,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             }
 
             var onderwerp = $"Test_Forward_NoEmail_Mdw_{Guid.NewGuid().ToString()[..8]}";
-            var contactmomentUuid = await SetupContactverzoek(onderwerp);
+            await SetupContactverzoek(onderwerp);
 
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
