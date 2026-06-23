@@ -24,5 +24,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
         }
 
+        public static class Doorsturen
+        {
+            /// <summary>
+            /// Search query that matches at least one medewerker in the test objectenregister.
+            /// Must return results when used with the /api/medewerkers?search= endpoint.
+            /// </summary>
+            public const string TestMedewerkerSearchQuery = "integratie";
+
+            /// <summary>
+            /// Search query that returns no medewerker results.
+            /// </summary>
+            public const string TestMedewerkerSearchQueryNoResults = "ZZZZNONEXISTENT";
+
+            /// <summary>
+            /// Search query matching a medewerker without an email address.
+            /// Set to a valid value when test data is configured; tests using this are marked Inconclusive until then.
+            /// </summary>
+            public const string TestMedewerkerNoEmailSearchQuery = "";
+        }
+
     }
 }
