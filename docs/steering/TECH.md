@@ -139,7 +139,7 @@ npm run format:ci    # Prettier check without writing
   - `{Feature}Controller.cs` — API endpoint (inherits `ControllerBase`)
   - `I{Feature}Service.cs` + `{Feature}Service.cs` — Business logic
   - `{Feature}Model.cs` — Request/response DTOs
-- **Controller vs Service responsibility:** The service owns domain logic (fetching, orchestrating, validating). The controller owns the HTTP concern **including presentation mapping** — transforming domain models into response DTOs is a controller responsibility, not business logic. Keep `ToResponse`-style mappers in the controller.
+- **Controller vs Service responsibility:** In a vertical slice architecture each feature decides what fits best. As a general guideline: services own domain logic (fetching, orchestrating, validating), while presentation mapping (e.g. `ToResponse`-style DTO transformations) often fits naturally in the controller. Neither placement is wrong — choose what keeps the feature simple and readable.
 - **Routing:** `[Route("api/{resource}")]`, lowercase URLs
 - **DI registration:** All services in `Config/ServiceCollectionExtensions.cs` as `AddScoped`
 
