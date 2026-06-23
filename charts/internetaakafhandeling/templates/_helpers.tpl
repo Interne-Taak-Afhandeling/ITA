@@ -18,11 +18,6 @@
 {{- printf "%s-web" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/* Poller specific names */}}
-{{- define "internetaakafhandeling.poller.name" -}}
-{{- printf "%s-poller" (include "internetaakafhandeling.fullname" .) | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{/* Common labels */}}
 {{- define "internetaakafhandeling.labels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
@@ -38,20 +33,9 @@ app.kubernetes.io/name: web
 app.kubernetes.io/component: web
 {{- end -}}
 
-{{- define "internetaakafhandeling.poller.labels" -}}
-{{ include "internetaakafhandeling.labels" . }}
-app.kubernetes.io/name: poller
-app.kubernetes.io/component: poller
-{{- end -}}
-
 {{/* Selector labels */}}
 {{- define "internetaakafhandeling.web.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "internetaakafhandeling.web.name" . }}
-app.kubernetes.io/instance: {{ include "internetaakafhandeling.fullname" . }}
-{{- end -}}
-
-{{- define "internetaakafhandeling.poller.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "internetaakafhandeling.poller.name" . }}
 app.kubernetes.io/instance: {{ include "internetaakafhandeling.fullname" . }}
 {{- end -}}
 

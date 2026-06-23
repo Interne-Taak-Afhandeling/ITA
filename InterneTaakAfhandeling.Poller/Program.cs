@@ -1,8 +1,12 @@
 ﻿using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.Afhandeltermijn;
+using InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Poller.Data;
 using InterneTaakAfhandeling.Poller.Features;
+using InterneTaakAfhandeling.Poller.Features.NieuweInternetaakNotificatie;
+using InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 using InterneTaakAfhandeling.Poller.Services.NotifierState;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -46,9 +50,15 @@ internal class Program
                 .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString))
                 .AddITAApiClients(configuration)
                 .AddSmtpClients(configuration)
-                .AddScoped<IInternetakenProcessor, InternetakenNotifier>()
+                .AddSingleton<IAfhandeltermijnProvider, HardcodedAfhandeltermijnProvider>()
+                .AddSingleton<IVerlopenContactverzoekHerinneringsTemplateService, VerlopenContactverzoekHerinneringsTemplateService>()
+                .AddScoped<IOverdueContactVerzoekQueryService, OverdueContactVerzoekQueryService>()
+                .AddScoped<IVerlopenContactverzoekHerinneringsEmailService, VerlopenContactverzoekHerinneringsEmailService>()
+                .AddScoped<INieuweInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
-                .AddScoped<IContactmomentenService, ContactmomentenService>();
+                .AddScoped<IContactmomentenService, ContactmomentenService>()
+                .AddKeyedScoped<IPollerJob, NieuweInternetaakNotificatiePollerJob>("nieuwe-internetaak-notificatie")
+                .AddKeyedScoped<IPollerJob, VerlopenContactverzoekHerinneringPollerJob>("verlopen-contactverzoek-herinnering");
 
             var serviceProvider = services.BuildServiceProvider();
 
@@ -59,19 +69,24 @@ internal class Program
                 dbContext.Database.Migrate();
             }
 
-
-            // Get services
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-            var processor = serviceProvider.GetRequiredService<IInternetakenProcessor>();
 
-            // Retrieve the message from the configuration; fallback if not found
             var message = configuration["PollerMessage"] ?? "Poller executed at";
-
             Console.WriteLine($"{message} {DateTimeOffset.UtcNow}");
 
-            logger.LogInformation("Starting ITA Poller application");
+            var pollerMode = Environment.GetEnvironmentVariable("POLLER_MODE") ?? "nieuwe-internetaak-notificatie";
+            logger.LogInformation("Poller started in mode: {PollerMode}", pollerMode);
 
-            await processor.NotifyAboutNewInternetakenAsync();
+            using var runScope = serviceProvider.CreateScope();
+            var job = runScope.ServiceProvider.GetKeyedService<IPollerJob>(pollerMode);
+
+            if (job is null)
+            {
+                logger.LogError("Unknown POLLER_MODE '{PollerMode}' — no job registered for this mode", pollerMode);
+                return;
+            }
+
+            await job.ExecuteAsync();
         }
         catch (Exception ex)
         {
