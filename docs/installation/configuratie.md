@@ -43,19 +43,21 @@ ITA gaat ervan uit dat emailadressen van medewerkers en organisatorische eenhede
 
 | **Variabele**                          | **Waarde**                                                                                                  |
 |----------------------------------------|----------------------------------------------------------------------------------------------------------|
-| apiConnections.objectApi.baseUrl       | https://uw-overige-objecten-adres.nl/api/v2/  |
-| apiConnections.objectApiKey            | min. 32 karakters  |
-| apiConnections.openKlantApi.baseUrl    | https://uw-openklant-adres/klantinteracties/api/v1/  |
-| apiConnections.openKlantApiKey         | min. 32 karakters  |
+| apiConnections.objectApi.baseUrl       | https://uw-objecten-adres.nl/api/v2/  |
+| apiConnections.objectApiKey            | Min. 32 karakters  |
+| apiConnections.openKlantApi.baseUrl    | https://uw-openklant-adres.nl/klantinteracties/api/v1/  |
+| apiConnections.openKlantApiKey         | Min. 32 karakters  |
 | apiConnections.zaakSysteem.baseUrl     |  https://uw-zaaksysteem-adres.nl of, bij e-Suite, de root-URL van de podiumd-adapter (bijv. `https://podiumd-adapter.uw-domein.nl`). De adapter routeert op basis van de ZGW API-paden (bijv. `/zaken/api/v1/`). |
-| apiConnections.zaakSysteem.clientId    |  bij gebruik van de podiumd-adapter is dit de client ID zoals geconfigureerd in de adapter.  |
-| apiConnections.zaakSysteemKey          |  min. 32 karakters. Bij gebruik van de podiumd-adapter is dit de client secret zoals geconfigureerd in de adapter.  |
-| logboek.type                           | De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie  |
+| apiConnections.zaakSysteem.clientId    |  Bij gebruik van de podiumd-adapter is dit de client ID zoals geconfigureerd in de adapter.  |
+| apiConnections.zaakSysteemKey          |  Min. 32 karakters. Bij gebruik van de podiumd-adapter is dit de client secret zoals geconfigureerd in de adapter.  |
+| logboek.type                           | De url van het logboek objecttype in de objecttypen api. Zie de objecttypen pagina in de documentatie for meer informatie.  |
 | logboek.typeVersion                    | De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | afdeling.type                          | De url van het afdeling objecttype in de objecttypen api. |
-| afdeling.typeVersion                   | De versie van het afdeling objecttype dat gebruikt wordt (waarschijnlijk 1) |
+| afdeling.typeVersion                   | De versie van het afdeling objecttype dat gebruikt wordt (waarschijnlijk 1). |
 | groep.type                             | De url van het groep objecttype in de objecttypen api.   |
-| groep.typeVersion                      | De versie van het groep objecttype dat gebruikt wordt (waarschijnlijk 1) |
+| groep.typeVersion                      | De versie van het groep objecttype dat gebruikt wordt (waarschijnlijk 1). |
+| medewerker.type                        | De url van het medewerker objecttype in de objecttypen api. Zie de objecttypen pagina in de documentatie voor meer informatie. |
+| medewerker.typeVersion                 | De versie van het medewerker objecttype dat gebruikt wordt (waarschijnlijk 1). |
 
 Database configuratie
 ---------------------------------
@@ -73,10 +75,10 @@ Deze theming variabelen zijn allemaal optioneel.
 
 | Variabele                      | Omschrijving |
 |--------------------------------|--------------|
-| web.resources.logoUrl          | Publieke URL waar het logo van de gemeente beschikbaar is, bijvoorbeeld: `https://www.mijn-gemeente.nl/logo.svg` |
-| web.resources.faviconUrl       | Publieke URL waar het favicon van de gemeente beschikbaar is, bijvoorbeeld: `https://www.mijn-gemeente.nl/favicon.ico` |
-| web.resources.designTokensUrl  | Publieke URL waar het CSS-bestand met NL Design System tokens beschikbaar is, om de applicatie te stylen in gemeentehuisstijl, bijvoorbeeld: `https://unpkg.com/@gemeente/design-tokens/dist/index.css` |
-| web.resources.webFontSources   | Publieke URL – of meerdere publieke URL's – als verwijzing naar web-font-bestand(en) horend bij de gemeentehuisstijl, bijvoorbeeld: `['https://fonts.mijn-gemeente.nl/custom-regular-font.woff2', 'https://fonts.mijn-gemeente.nl/custom-bold-font.woff2']`. Een enkele verwijzing naar de locatie waar alle font-style-bestanden staan kan ook: `['https://fonts.mijn-gemeente.nl/custom-font/']`. **Let op:** deze configuratie is alleen bedoeld om de font-bestanden onder CORS te kunnen inladen. Verwijzingen naar bestanden zullen ook in de theme styling onder een `@font-face` ruleset gespecificeerd moeten worden. |
+| web.styling.logoUrl          | Publieke URL waar het logo van de gemeente beschikbaar is, bijvoorbeeld: `https://www.mijn-gemeente.nl/logo.svg` |
+| web.styling.faviconUrl       | Publieke URL waar het favicon van de gemeente beschikbaar is, bijvoorbeeld: `https://www.mijn-gemeente.nl/favicon.ico` |
+| web.styling.designTokensUrl  | Publieke URL waar het CSS-bestand met NL Design System tokens beschikbaar is, om de applicatie te stylen in gemeentehuisstijl, bijvoorbeeld: `https://unpkg.com/@gemeente/design-tokens/dist/index.css` |
+| web.styling.webFontSources   | Publieke URL – of meerdere publieke URL's – als verwijzing naar web-font-bestand(en) horend bij de gemeentehuisstijl, bijvoorbeeld: `['https://fonts.mijn-gemeente.nl/custom-regular-font.woff2', 'https://fonts.mijn-gemeente.nl/custom-bold-font.woff2']`. Een enkele verwijzing naar de locatie waar alle font-style-bestanden staan kan ook: `['https://fonts.mijn-gemeente.nl/custom-font/']`. **Let op:** deze configuratie is alleen bedoeld om de font-bestanden onder CORS te kunnen inladen. Verwijzingen naar bestanden zullen ook in de theme styling onder een `@font-face` ruleset gespecificeerd moeten worden. |
 
 
 
