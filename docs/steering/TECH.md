@@ -139,6 +139,7 @@ npm run format:ci    # Prettier check without writing
   - `{Feature}Controller.cs` — API endpoint (inherits `ControllerBase`)
   - `I{Feature}Service.cs` + `{Feature}Service.cs` — Business logic
   - `{Feature}Model.cs` — Request/response DTOs
+- **Controller vs Service responsibility:** The service owns domain logic (fetching, orchestrating, validating). The controller owns the HTTP concern **including presentation mapping** — transforming domain models into response DTOs is a controller responsibility, not business logic. Keep `ToResponse`-style mappers in the controller.
 - **Routing:** `[Route("api/{resource}")]`, lowercase URLs
 - **DI registration:** All services in `Config/ServiceCollectionExtensions.cs` as `AddScoped`
 
