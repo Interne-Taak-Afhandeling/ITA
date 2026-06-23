@@ -218,9 +218,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             var combobox = Page.GetMedewerkerCombobox();
             await combobox.FillAsync(TestDataConstants.Doorsturen.TestMedewerkerSearchQueryNoResults);
 
-            await Step("Wait for debounce + server response");
-            await Page.WaitForTimeoutAsync(500);
-
             await Step("Verify no listbox/options are shown");
             var listbox = Page.Locator("#medewerker-combobox-listbox");
             await Expect(listbox).Not.ToBeVisibleAsync();
