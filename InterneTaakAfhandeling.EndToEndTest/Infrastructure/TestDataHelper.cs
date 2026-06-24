@@ -616,6 +616,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             });
         }
 
+        private async Task CleanupExistingContactmomenten(string onderwerp)
+        {
+            var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(
+                new KlantcontactQuery { Onderwerp = onderwerp });
+
+            foreach (var existing in contactmomenten)
+            {
+                await OpenKlantApiClient.DeleteKlantcontactAsync(existing.Uuid);
+            }
+
+            var remaining = await OpenKlantApiClient.QueryKlantcontactAsync(
+                new KlantcontactQuery { Onderwerp = onderwerp });
+
+            if (remaining.Count > 0)
+            {
+                throw new InvalidOperationException($"Failed to cleanup contactmomenten. Still found {remaining.Count} contactmomenten after deletion.");
+            }
+        }
+
         private async Task ConnectActorToContactmoment(Actor actor, Guid contactmomentUuid)
         {
             var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
@@ -920,6 +939,81 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             Logger.LogInformation("Successfully created internetaak with nummer '{Nummer}'", nummer);
             return nummer;
+        }
+
+        private async Task CreateInternetaakIfNotExists(
+            string nummer,
+            Guid contactmomentUuid,
+            List<Guid> actorUuids,
+            bool isExplicitNummer = false)
+        {
+            var existing = await OpenKlantApiClient.QueryInterneTakenAsync(new InterneTaakQuery
+            {
+                Nummer = nummer
+            });
+
+            if (existing.Count > 1)
+            {
+                throw new InvalidOperationException($"Found {existing.Count} internetaken with nummer '{nummer}', expected at most 1.");
+            }
+
+            if (existing.Count > 0)
+            {
+                Logger.LogInformation("Internetaak with nummer '{Nummer}' already exists, skipping creation", nummer);
+                return;
+            }
+
+            var currentNummer = nummer;
+            Exception? lastConflictException = null;
+
+            for (var attempt = 1; attempt <= 3; attempt++)
+            {
+                try
+                {
+                    await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
+                    {
+                        AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmomentUuid },
+                        GevraagdeHandeling = "terugbellen svp",
+                        Nummer = currentNummer,
+                        Status = KnownInternetaakStatussen.TeVerwerken,
+                        ToegewezenAanActoren = actorUuids.Select(id => new UuidObject { Uuid = id }).ToList(),
+                        Toelichting = "Test contactverzoek from ITA E2E test"
+                    });
+
+                    Logger.LogInformation("Successfully created internetaak with nummer '{Nummer}'", currentNummer);
+                    return;
+                }
+                catch (HttpRequestException ex) when (ex.Message.Contains("409") || ex.Message.Contains("conflict"))
+                {
+                    lastConflictException = ex;
+
+                    if (isExplicitNummer)
+                    {
+                        throw new InvalidOperationException(
+                            $"Cannot create internetaak with explicit nummer '{nummer}' because it already exists. " +
+                            "This breaks test contracts that expect this exact nummer for navigation/verification.",
+                            ex);
+                    }
+
+                    Logger.LogWarning("Internetaak nummer '{Nummer}' already exists, attempting with different nummer (attempt {Attempt}/3)",
+                        currentNummer, attempt);
+
+                    if (attempt < 3)
+                    {
+                        currentNummer = GenerateUniqueInternetaakNummer();
+                        await Task.Delay(50);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to create internetaak due to non-retryable error: {Message}", ex.Message);
+                    throw;
+                }
+            }
+
+            throw new InvalidOperationException(
+                $"Failed to create internetaak after {3} attempts due to nummer conflicts. Last conflict was with nummer '{currentNummer}'.",
+                lastConflictException);
         }
 
         // Zaak Operations
