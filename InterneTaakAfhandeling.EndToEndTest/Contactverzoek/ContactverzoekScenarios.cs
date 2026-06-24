@@ -599,16 +599,19 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
             await NavigateToContactverzoekByNummer(nummer);
-            
-            await Step("Capture initial Behandelaar value");
-            var initialBehandelaar = await Page.GetBehandelaarValue().InnerTextAsync();
+
+            // Team-only contactverzoek: no medewerker → no "Behandelaar" row, only OE row
+            await Step("Capture initial OE assignment state");
+            await Expect(Page.GetOrganisatorischeEenheidKey("Afdeling")).ToBeVisibleAsync();
+            var initialAfdelingValue = await Page.GetOrganisatorischeEenheidValue("Afdeling").InnerTextAsync();
 
             await Step("Click on 'Toewijzen aan mezelf' button and cancel");
             await Page.GetToewijzenAanMezelfButton().ClickAsync();
             await Page.GetAnnulerenDialogButton().ClickAsync();
-            
-            await Step("Verify Behandelaar field remains unchanged");
-            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync(initialBehandelaar);
+
+            await Step("Verify assignment unchanged after Annuleren: OE intact, no Behandelaar added");
+            await Expect(Page.GetOrganisatorischeEenheidValue("Afdeling")).ToHaveTextAsync(initialAfdelingValue);
+            await Expect(Page.GetBehandelaarValue()).Not.ToBeVisibleAsync();
         }
 
         [TestMethod("Check afdelingen en groepen dropdown in Afdelingshistorie")]

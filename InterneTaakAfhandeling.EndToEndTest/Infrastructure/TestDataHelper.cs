@@ -623,6 +623,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             foreach (var existing in contactmomenten)
             {
+                var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(existing.Uuid);
+                if (internetaakUuid.HasValue)
+                {
+                    await OpenKlantApiClient.DeleteInterneTaakAsync(internetaakUuid.Value);
+                }
                 await OpenKlantApiClient.DeleteKlantcontactAsync(existing.Uuid);
             }
 
@@ -959,8 +964,15 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             if (existing.Count > 0)
             {
-                Logger.LogInformation("Internetaak with nummer '{Nummer}' already exists, skipping creation", nummer);
-                return;
+                if (isExplicitNummer)
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot create internetaak with explicit nummer '{nummer}' because it already exists. " +
+                        "This breaks test contracts that expect this exact nummer for navigation/verification.");
+                }
+
+                Logger.LogWarning("Internetaak with nummer '{Nummer}' already exists (nummer collision), generating new nummer", nummer);
+                nummer = GenerateUniqueInternetaakNummer();
             }
 
             var currentNummer = nummer;

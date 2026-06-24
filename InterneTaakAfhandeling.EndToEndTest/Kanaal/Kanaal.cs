@@ -181,9 +181,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
 
             await CreateKanaal(TestKanaalName);
             kanalenToCleanup.Add(TestKanaalName);
-            
-            await VerifyKanaalExists(TestKanaalName);
-            
+
+            // After a successful save the app redirects to the kanalen list — verify there
+            // without navigating away first, which would race against the in-progress redirect
+            await Expect(locators.GetKanaalLink(TestKanaalName)).ToBeVisibleAsync();
+
             await Step($"Attempt to create duplicate kanaal: {TestKanaalName}");
             await CreateKanaal(TestKanaalName);
 
