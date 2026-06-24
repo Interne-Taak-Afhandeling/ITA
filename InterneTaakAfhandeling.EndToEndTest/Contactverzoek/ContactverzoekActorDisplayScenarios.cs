@@ -15,11 +15,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await NavigateToContactverzoekByNummer(internetaakNummer);
 
-            await Step("Verify medewerker staat op de eerste regel van de actorweergave");
-            await Expect(Page.GetBehandelaarActorLine("ICATT Integratietest")).ToBeVisibleAsync();
+            await Step("Verify medewerker staat in de 'Behandelaar'-rij");
+            await Expect(Page.GetBehandelaarValue()).ToBeVisibleAsync();
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("ICATT Integratietest");
 
-            await Step("Verify 'Afdeling: [naam]' staat op de tweede regel");
-            await Expect(Page.GetBehandelaarActorLine("Afdeling: e2e afdeling")).ToBeVisibleAsync();
+            await Step("Verify 'Afdeling'-rij toont de OE-naam");
+            await Expect(Page.GetOrganisatorischeEenheidKey("Afdeling")).ToBeVisibleAsync();
+            await Expect(Page.GetOrganisatorischeEenheidValue("Afdeling")).ToBeVisibleAsync();
         }
 
         [TestMethod("Actorweergave toont medewerker en groep op twee regels")]
@@ -32,11 +34,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await NavigateToContactverzoekByNummer(internetaakNummer);
 
-            await Step("Verify medewerker staat op de eerste regel van de actorweergave");
-            await Expect(Page.GetBehandelaarActorLine("ICATT Integratietest")).ToBeVisibleAsync();
+            await Step("Verify medewerker staat in de 'Behandelaar'-rij");
+            await Expect(Page.GetBehandelaarValue()).ToBeVisibleAsync();
+            await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync("ICATT Integratietest");
 
-            await Step("Verify 'Groep: [naam]' staat op de tweede regel");
-            await Expect(Page.GetBehandelaarActorLine("Groep: e2e groep")).ToBeVisibleAsync();
+            await Step("Verify 'Groep'-rij toont de OE-naam");
+            await Expect(Page.GetOrganisatorischeEenheidKey("Groep")).ToBeVisibleAsync();
+            await Expect(Page.GetOrganisatorischeEenheidValue("Groep")).ToBeVisibleAsync();
         }
 
         [TestMethod("Actorweergave toont alleen afdeling wanneer er geen medewerker is")]
@@ -49,11 +53,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await NavigateToContactverzoekByNummer(internetaakNummer);
 
-            await Step("Verify 'Afdeling: [naam]' is zichtbaar");
-            await Expect(Page.GetBehandelaarActorLine("Afdeling: e2e afdeling")).ToBeVisibleAsync();
+            await Step("Verify 'Afdeling'-rij toont de OE-naam");
+            await Expect(Page.GetOrganisatorischeEenheidKey("Afdeling")).ToBeVisibleAsync();
+            await Expect(Page.GetOrganisatorischeEenheidValue("Afdeling")).ToBeVisibleAsync();
 
-            await Step("Verify geen medewerkersnaamregel zichtbaar");
-            await Expect(Page.GetBehandelaarActorLine("ICATT Integratietest")).Not.ToBeVisibleAsync();
+            await Step("Verify geen 'Behandelaar'-rij zichtbaar");
+            await Expect(Page.GetBehandelaarValue()).Not.ToBeVisibleAsync();
         }
 
         [TestMethod("Actorweergave toont alleen groep wanneer er geen medewerker is")]
@@ -66,15 +71,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await NavigateToContactverzoekByNummer(internetaakNummer);
 
-            await Step("Verify 'Groep: [naam]' is zichtbaar");
-            await Expect(Page.GetBehandelaarActorLine("Groep: e2e groep")).ToBeVisibleAsync();
+            await Step("Verify 'Groep'-rij toont de OE-naam");
+            await Expect(Page.GetOrganisatorischeEenheidKey("Groep")).ToBeVisibleAsync();
+            await Expect(Page.GetOrganisatorischeEenheidValue("Groep")).ToBeVisibleAsync();
 
-            await Step("Verify geen medewerkersnaamregel zichtbaar");
-            await Expect(Page.GetBehandelaarActorLine("ICATT Integratietest")).Not.ToBeVisibleAsync();
+            await Step("Verify geen 'Behandelaar'-rij zichtbaar");
+            await Expect(Page.GetBehandelaarValue()).Not.ToBeVisibleAsync();
         }
 
-        [TestMethod("Actorweergave toont geen typespecifiek label bij onbekend OE-type")]
-        public async Task User_CannotSeeWrongLabel_OnContactverzoekDetailWithUnknownOeType()
+        [TestMethod("Actorweergave toont fallbackweergave bij onbekend type organisatorische eenheid")]
+        public async Task User_CanSeeFallbackActorDisplay_OnContactverzoekDetailWithUnknownOeType()
         {
             var onderwerp = "Test_ActorDisplay_UnknownOeType";
             await Step("Setup contactverzoek met onbekend OE-type actor via API");
@@ -83,9 +89,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await NavigateToContactverzoekByNummer(internetaakNummer);
 
-            await Step("Verify geen typespecifiek label 'Afdeling' of 'Groep' zichtbaar voor onbekend type");
-            await Expect(Page.GetBehandelaarActorLine("Afdeling")).Not.ToBeVisibleAsync();
-            await Expect(Page.GetBehandelaarActorLine("Groep")).Not.ToBeVisibleAsync();
+            await Step("Verify OE-naam is zichtbaar met generiek label 'Organisatorische eenheid'");
+            await Expect(Page.GetOrganisatorischeEenheidKey("Organisatorische eenheid")).ToBeVisibleAsync();
+            await Expect(Page.GetOrganisatorischeEenheidValue("Organisatorische eenheid")).ToHaveTextAsync("e2e onbekende eenheid");
+
+            await Step("Verify geen typespecifiek label 'Afdeling' of 'Groep' zichtbaar");
+            await Expect(Page.GetOrganisatorischeEenheidKey("Afdeling")).Not.ToBeVisibleAsync();
+            await Expect(Page.GetOrganisatorischeEenheidKey("Groep")).Not.ToBeVisibleAsync();
         }
 
         [TestMethod("Actorweergave toont alleen de eerste organisatorische eenheid bij meerdere gekoppelde actoren")]
@@ -99,10 +109,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactverzoekByNummer(internetaakNummer);
 
             await Step("Verify eerste OE (afdeling) is zichtbaar");
-            await Expect(Page.GetBehandelaarActorLine("Afdeling: e2e afdeling")).ToBeVisibleAsync();
+            await Expect(Page.GetOrganisatorischeEenheidKey("Afdeling")).ToBeVisibleAsync();
+            await Expect(Page.GetOrganisatorischeEenheidValue("Afdeling")).ToBeVisibleAsync();
 
             await Step("Verify tweede OE (groep) is niet zichtbaar");
-            await Expect(Page.GetBehandelaarActorLine("Groep")).Not.ToBeVisibleAsync();
+            await Expect(Page.GetOrganisatorischeEenheidKey("Groep")).Not.ToBeVisibleAsync();
         }
     }
 }
