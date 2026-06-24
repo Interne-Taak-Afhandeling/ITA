@@ -12,6 +12,7 @@ using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Features.ReopenContactRequest;
+using InterneTaakAfhandeling.Web.Server.Features.Urgentie;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Guards;
@@ -65,6 +66,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IInternetaakGuardService, InternetaakGuardService>();
             services.AddScoped<IReopenContactRequestService, ReopenContactRequestService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
+            services.AddSingleton<IUrgentieBerekenService, UrgentieBerekenService>();
             services.AddSmtpClients(configuration);
             
             services.AddDbContext<ApplicationDbContext>(options =>
