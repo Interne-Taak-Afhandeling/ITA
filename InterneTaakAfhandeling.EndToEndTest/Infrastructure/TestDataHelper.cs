@@ -231,6 +231,183 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, nummer);
         }
 
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepAndMedewerker(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var groepActor = await GetOrCreateGroepActor();
+            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+
+            await CreateInternetaakIfNotExists(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(medewerkerActor.Uuid),
+                    Guid.Parse(groepActor.Uuid)
+                },
+                isExplicitNummer: false);
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
+            return (contactmoment.Uuid, internetaak.Nummer
+                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+        }
+
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingAndMedewerker(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+
+            await CreateInternetaakIfNotExists(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(medewerkerActor.Uuid),
+                    Guid.Parse(afdelingActor.Uuid)
+                },
+                isExplicitNummer: false);
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
+            return (contactmoment.Uuid, internetaak.Nummer
+                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+        }
+
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingOnly(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+
+            await CreateInternetaakIfNotExists(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(afdelingActor.Uuid) },
+                isExplicitNummer: false);
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
+            return (contactmoment.Uuid, internetaak.Nummer
+                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+        }
+
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepOnly(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var groepActor = await GetOrCreateGroepActor();
+
+            await CreateInternetaakIfNotExists(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(groepActor.Uuid) },
+                isExplicitNummer: false);
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
+            return (contactmoment.Uuid, internetaak.Nummer
+                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+        }
+
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithUnknownOeType(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var unknownOeActor = await GetOrCreateUnknownTypeOeActor();
+
+            await CreateInternetaakIfNotExists(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(unknownOeActor.Uuid) },
+                isExplicitNummer: false);
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
+            return (contactmoment.Uuid, internetaak.Nummer
+                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+        }
+
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithMultipleOeActors(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            var groepActor = await GetOrCreateGroepActor();
+
+            await CreateInternetaakIfNotExists(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(afdelingActor.Uuid),
+                    Guid.Parse(groepActor.Uuid)
+                },
+                isExplicitNummer: false);
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
+            return (contactmoment.Uuid, internetaak.Nummer
+                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+        }
+
         public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateVerwerktContactverzoekAsync(string onderwerp)
         {
             var contactmoment = await CreateContactmoment(
@@ -592,6 +769,66 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                         CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
                         CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
                         CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId
+                    }
+                });
+        }
+
+        private async Task<Actor> GetOrCreateGroepActor()
+        {
+            var groepen = await ObjectApiClient.GetGroepen(1);
+            if (groepen.Results.Count == 0)
+                throw new InvalidOperationException("No groepen found in the Objects API — cannot create groep actor.");
+
+            var groep = groepen.Results.First().Record.Data;
+
+            return await GetOrCreateActor(
+                query: new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    ActoridentificatorObjectId = groep.Identificatie
+                },
+                request: new ActorRequest
+                {
+                    Naam = "e2e groep",
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    IndicatieActief = true,
+                    Actoridentificator = new Actoridentificator
+                    {
+                        ObjectId = groep.Identificatie,
+                        CodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+                        CodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+                        CodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId
+                    }
+                });
+        }
+
+        private Task<Actor> GetOrCreateUnknownTypeOeActor()
+        {
+            return GetOrCreateActor(
+                query: new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = "onbekend",
+                    ActoridentificatorCodeRegister = "obj",
+                    ActoridentificatorCodeSoortObjectId = "idf",
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    ActoridentificatorObjectId = "e2e-onbekend-oe-type"
+                },
+                request: new ActorRequest
+                {
+                    Naam = "e2e onbekende eenheid",
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    IndicatieActief = true,
+                    Actoridentificator = new Actoridentificator
+                    {
+                        ObjectId = "e2e-onbekend-oe-type",
+                        CodeObjecttype = "onbekend",
+                        CodeRegister = "obj",
+                        CodeSoortObjectId = "idf"
                     }
                 });
         }
