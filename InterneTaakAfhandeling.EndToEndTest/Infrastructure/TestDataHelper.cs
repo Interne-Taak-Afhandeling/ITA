@@ -231,6 +231,75 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, nummer);
         }
 
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepAndMedewerker(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var groepActor = await GetOrCreateGroepActor();
+                var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+                return new List<Guid> { Guid.Parse(medewerkerActor.Uuid), Guid.Parse(groepActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingAndMedewerker(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+                var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+                return new List<Guid> { Guid.Parse(medewerkerActor.Uuid), Guid.Parse(afdelingActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingOnly(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+                return new List<Guid> { Guid.Parse(afdelingActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepOnly(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var groepActor = await GetOrCreateGroepActor();
+                return new List<Guid> { Guid.Parse(groepActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithUnknownOeType(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var unknownOeActor = await GetOrCreateUnknownTypeOeActor();
+                return new List<Guid> { Guid.Parse(unknownOeActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithMultipleOeActors(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+                var groepActor = await GetOrCreateGroepActor();
+                return new List<Guid> { Guid.Parse(afdelingActor.Uuid), Guid.Parse(groepActor.Uuid) };
+            });
+
+        private async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithActors(
+            string onderwerp,
+            Func<Task<List<Guid>>> resolveActorUuids)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var actorUuids = await resolveActorUuids();
+
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                actorUuids);
+
+            return (contactmoment.Uuid, nummer);
+        }
+
         public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateVerwerktContactverzoekAsync(string onderwerp)
         {
             var contactmoment = await CreateContactmoment(
@@ -439,6 +508,30 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             });
         }
 
+        private async Task CleanupExistingContactmomenten(string onderwerp)
+        {
+            var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(
+                new KlantcontactQuery { Onderwerp = onderwerp });
+
+            foreach (var existing in contactmomenten)
+            {
+                var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(existing.Uuid);
+                if (internetaakUuid.HasValue)
+                {
+                    await OpenKlantApiClient.DeleteInterneTaakAsync(internetaakUuid.Value);
+                }
+                await OpenKlantApiClient.DeleteKlantcontactAsync(existing.Uuid);
+            }
+
+            var remaining = await OpenKlantApiClient.QueryKlantcontactAsync(
+                new KlantcontactQuery { Onderwerp = onderwerp });
+
+            if (remaining.Count > 0)
+            {
+                throw new InvalidOperationException($"Failed to cleanup contactmomenten. Still found {remaining.Count} contactmomenten after deletion.");
+            }
+        }
+
         private async Task ConnectActorToContactmoment(Actor actor, Guid contactmomentUuid)
         {
             var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
@@ -592,6 +685,66 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                         CodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
                         CodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
                         CodeSoortObjectId = KnownMedewerkerIdentificators.ObjectRegisterId.CodeSoortObjectId
+                    }
+                });
+        }
+
+        private async Task<Actor> GetOrCreateGroepActor()
+        {
+            var groepen = await ObjectApiClient.GetGroepen(1);
+            if (groepen.Results.Count == 0)
+                throw new InvalidOperationException("No groepen found in the Objects API — cannot create groep actor.");
+
+            var groep = groepen.Results.First().Record.Data;
+
+            return await GetOrCreateActor(
+                query: new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    ActoridentificatorObjectId = groep.Identificatie
+                },
+                request: new ActorRequest
+                {
+                    Naam = "e2e groep",
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    IndicatieActief = true,
+                    Actoridentificator = new Actoridentificator
+                    {
+                        ObjectId = groep.Identificatie,
+                        CodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+                        CodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+                        CodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId
+                    }
+                });
+        }
+
+        private Task<Actor> GetOrCreateUnknownTypeOeActor()
+        {
+            return GetOrCreateActor(
+                query: new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = "onbekend",
+                    ActoridentificatorCodeRegister = "obj",
+                    ActoridentificatorCodeSoortObjectId = "idf",
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    ActoridentificatorObjectId = "e2e-onbekend-oe-type"
+                },
+                request: new ActorRequest
+                {
+                    Naam = "e2e onbekende eenheid",
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    IndicatieActief = true,
+                    Actoridentificator = new Actoridentificator
+                    {
+                        ObjectId = "e2e-onbekend-oe-type",
+                        CodeObjecttype = "onbekend",
+                        CodeRegister = "obj",
+                        CodeSoortObjectId = "idf"
                     }
                 });
         }

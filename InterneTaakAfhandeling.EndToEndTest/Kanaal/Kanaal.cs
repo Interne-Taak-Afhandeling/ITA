@@ -181,9 +181,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Kanaal
 
             await CreateKanaal(TestKanaalName);
             kanalenToCleanup.Add(TestKanaalName);
-            
+
             await VerifyKanaalExists(TestKanaalName);
-            
+
             await Step($"Attempt to create duplicate kanaal: {TestKanaalName}");
             await CreateKanaal(TestKanaalName);
 

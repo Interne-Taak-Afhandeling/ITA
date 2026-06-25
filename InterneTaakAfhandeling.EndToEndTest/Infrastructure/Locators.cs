@@ -73,6 +73,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return parentDiv.Locator("dd.utrecht-data-list__item-value");
         }
 
+        public static ILocator GetOrganisatorischeEenheidValue(this IPage page, string typeLabel)
+        {
+            // Scope by the dt key to avoid substring matches on other rows (e.g. onderwerp containing the label)
+            var parentDiv = page.Locator("div.utrecht-data-list__item")
+                .Filter(new() { Has = page.Locator("dt.utrecht-data-list__item-key").Filter(new() { HasText = typeLabel }) });
+            return parentDiv.Locator("dd.utrecht-data-list__item-value");
+        }
+
+        public static ILocator GetOrganisatorischeEenheidKey(this IPage page, string typeLabel) =>
+            page.Locator("dt.utrecht-data-list__item-key").Filter(new() { HasText = typeLabel });
+
         public static ILocator GetStatusLabel(this IPage page) => page.GetByText("Status");
 
         public static ILocator GetStatusValue(this IPage page)
