@@ -246,21 +246,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var groepActor = await GetOrCreateGroepActor();
             var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
 
-            await CreateInternetaakIfNotExists(
+            var nummer = await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
                 new List<Guid>
                 {
                     Guid.Parse(medewerkerActor.Uuid),
                     Guid.Parse(groepActor.Uuid)
-                },
-                isExplicitNummer: false);
+                });
 
-            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
-                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
-            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
-            return (contactmoment.Uuid, internetaak.Nummer
-                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+            return (contactmoment.Uuid, nummer);
         }
 
         public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingAndMedewerker(string onderwerp)
@@ -278,21 +273,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
             var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
 
-            await CreateInternetaakIfNotExists(
+            var nummer = await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
                 new List<Guid>
                 {
                     Guid.Parse(medewerkerActor.Uuid),
                     Guid.Parse(afdelingActor.Uuid)
-                },
-                isExplicitNummer: false);
+                });
 
-            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
-                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
-            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
-            return (contactmoment.Uuid, internetaak.Nummer
-                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+            return (contactmoment.Uuid, nummer);
         }
 
         public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingOnly(string onderwerp)
@@ -309,17 +299,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
 
-            await CreateInternetaakIfNotExists(
+            var nummer = await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
-                new List<Guid> { Guid.Parse(afdelingActor.Uuid) },
-                isExplicitNummer: false);
+                new List<Guid> { Guid.Parse(afdelingActor.Uuid) });
 
-            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
-                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
-            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
-            return (contactmoment.Uuid, internetaak.Nummer
-                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+            return (contactmoment.Uuid, nummer);
         }
 
         public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepOnly(string onderwerp)
@@ -336,17 +321,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             var groepActor = await GetOrCreateGroepActor();
 
-            await CreateInternetaakIfNotExists(
+            var nummer = await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
-                new List<Guid> { Guid.Parse(groepActor.Uuid) },
-                isExplicitNummer: false);
+                new List<Guid> { Guid.Parse(groepActor.Uuid) });
 
-            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
-                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
-            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
-            return (contactmoment.Uuid, internetaak.Nummer
-                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+            return (contactmoment.Uuid, nummer);
         }
 
         public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithUnknownOeType(string onderwerp)
@@ -363,17 +343,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             var unknownOeActor = await GetOrCreateUnknownTypeOeActor();
 
-            await CreateInternetaakIfNotExists(
+            var nummer = await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
-                new List<Guid> { Guid.Parse(unknownOeActor.Uuid) },
-                isExplicitNummer: false);
+                new List<Guid> { Guid.Parse(unknownOeActor.Uuid) });
 
-            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
-                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
-            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
-            return (contactmoment.Uuid, internetaak.Nummer
-                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+            return (contactmoment.Uuid, nummer);
         }
 
         public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithMultipleOeActors(string onderwerp)
@@ -391,21 +366,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
             var groepActor = await GetOrCreateGroepActor();
 
-            await CreateInternetaakIfNotExists(
+            var nummer = await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
                 new List<Guid>
                 {
                     Guid.Parse(afdelingActor.Uuid),
                     Guid.Parse(groepActor.Uuid)
-                },
-                isExplicitNummer: false);
+                });
 
-            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
-                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
-            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
-            return (contactmoment.Uuid, internetaak.Nummer
-                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+            return (contactmoment.Uuid, nummer);
         }
 
         public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateVerwerktContactverzoekAsync(string onderwerp)
@@ -944,88 +914,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             Logger.LogInformation("Successfully created internetaak with nummer '{Nummer}'", nummer);
             return nummer;
-        }
-
-        private async Task CreateInternetaakIfNotExists(
-            string nummer,
-            Guid contactmomentUuid,
-            List<Guid> actorUuids,
-            bool isExplicitNummer = false)
-        {
-            var existing = await OpenKlantApiClient.QueryInterneTakenAsync(new InterneTaakQuery
-            {
-                Nummer = nummer
-            });
-
-            if (existing.Count > 1)
-            {
-                throw new InvalidOperationException($"Found {existing.Count} internetaken with nummer '{nummer}', expected at most 1.");
-            }
-
-            if (existing.Count > 0)
-            {
-                if (isExplicitNummer)
-                {
-                    throw new InvalidOperationException(
-                        $"Cannot create internetaak with explicit nummer '{nummer}' because it already exists. " +
-                        "This breaks test contracts that expect this exact nummer for navigation/verification.");
-                }
-
-                Logger.LogWarning("Internetaak with nummer '{Nummer}' already exists (nummer collision), generating new nummer", nummer);
-                nummer = GenerateUniqueInternetaakNummer();
-            }
-
-            var currentNummer = nummer;
-            Exception? lastConflictException = null;
-
-            for (var attempt = 1; attempt <= 3; attempt++)
-            {
-                try
-                {
-                    await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
-                    {
-                        AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmomentUuid },
-                        GevraagdeHandeling = "terugbellen svp",
-                        Nummer = currentNummer,
-                        Status = KnownInternetaakStatussen.TeVerwerken,
-                        ToegewezenAanActoren = actorUuids.Select(id => new UuidObject { Uuid = id }).ToList(),
-                        Toelichting = "Test contactverzoek from ITA E2E test"
-                    });
-
-                    Logger.LogInformation("Successfully created internetaak with nummer '{Nummer}'", currentNummer);
-                    return;
-                }
-                catch (HttpRequestException ex) when (ex.Message.Contains("409") || ex.Message.Contains("conflict"))
-                {
-                    lastConflictException = ex;
-
-                    if (isExplicitNummer)
-                    {
-                        throw new InvalidOperationException(
-                            $"Cannot create internetaak with explicit nummer '{nummer}' because it already exists. " +
-                            "This breaks test contracts that expect this exact nummer for navigation/verification.",
-                            ex);
-                    }
-
-                    Logger.LogWarning("Internetaak nummer '{Nummer}' already exists, attempting with different nummer (attempt {Attempt}/3)",
-                        currentNummer, attempt);
-
-                    if (attempt < 3)
-                    {
-                        currentNummer = GenerateUniqueInternetaakNummer();
-                        await Task.Delay(50);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "Failed to create internetaak due to non-retryable error: {Message}", ex.Message);
-                    throw;
-                }
-            }
-
-            throw new InvalidOperationException(
-                $"Failed to create internetaak after {3} attempts due to nummer conflicts. Last conflict was with nummer '{currentNummer}'.",
-                lastConflictException);
         }
 
         // Zaak Operations
