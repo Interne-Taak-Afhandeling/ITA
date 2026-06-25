@@ -231,7 +231,54 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, nummer);
         }
 
-        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepAndMedewerker(string onderwerp)
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepAndMedewerker(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var groepActor = await GetOrCreateGroepActor();
+                var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+                return new List<Guid> { Guid.Parse(medewerkerActor.Uuid), Guid.Parse(groepActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingAndMedewerker(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+                var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+                return new List<Guid> { Guid.Parse(medewerkerActor.Uuid), Guid.Parse(afdelingActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingOnly(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+                return new List<Guid> { Guid.Parse(afdelingActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepOnly(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var groepActor = await GetOrCreateGroepActor();
+                return new List<Guid> { Guid.Parse(groepActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithUnknownOeType(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var unknownOeActor = await GetOrCreateUnknownTypeOeActor();
+                return new List<Guid> { Guid.Parse(unknownOeActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithMultipleOeActors(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+                var groepActor = await GetOrCreateGroepActor();
+                return new List<Guid> { Guid.Parse(afdelingActor.Uuid), Guid.Parse(groepActor.Uuid) };
+            });
+
+        private async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithActors(
+            string onderwerp,
+            Func<Task<List<Guid>>> resolveActorUuids)
         {
             await CleanupExistingContactmomenten(onderwerp);
 
@@ -243,137 +290,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
-            var groepActor = await GetOrCreateGroepActor();
-            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+            var actorUuids = await resolveActorUuids();
 
             var nummer = await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
-                new List<Guid>
-                {
-                    Guid.Parse(medewerkerActor.Uuid),
-                    Guid.Parse(groepActor.Uuid)
-                });
-
-            return (contactmoment.Uuid, nummer);
-        }
-
-        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingAndMedewerker(string onderwerp)
-        {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await CreateContactmoment(
-                onderwerp,
-                "This is a test contact request created during an end-to-end test run.",
-                klantnaam: null);
-
-            var submitterActor = await GetOrCreateSubmitterActor();
-            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
-
-            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
-            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
-
-            var nummer = await CreateInternetaak(
-                GenerateUniqueInternetaakNummer(),
-                contactmoment.Uuid,
-                new List<Guid>
-                {
-                    Guid.Parse(medewerkerActor.Uuid),
-                    Guid.Parse(afdelingActor.Uuid)
-                });
-
-            return (contactmoment.Uuid, nummer);
-        }
-
-        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingOnly(string onderwerp)
-        {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await CreateContactmoment(
-                onderwerp,
-                "This is a test contact request created during an end-to-end test run.",
-                klantnaam: null);
-
-            var submitterActor = await GetOrCreateSubmitterActor();
-            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
-
-            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
-
-            var nummer = await CreateInternetaak(
-                GenerateUniqueInternetaakNummer(),
-                contactmoment.Uuid,
-                new List<Guid> { Guid.Parse(afdelingActor.Uuid) });
-
-            return (contactmoment.Uuid, nummer);
-        }
-
-        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepOnly(string onderwerp)
-        {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await CreateContactmoment(
-                onderwerp,
-                "This is a test contact request created during an end-to-end test run.",
-                klantnaam: null);
-
-            var submitterActor = await GetOrCreateSubmitterActor();
-            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
-
-            var groepActor = await GetOrCreateGroepActor();
-
-            var nummer = await CreateInternetaak(
-                GenerateUniqueInternetaakNummer(),
-                contactmoment.Uuid,
-                new List<Guid> { Guid.Parse(groepActor.Uuid) });
-
-            return (contactmoment.Uuid, nummer);
-        }
-
-        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithUnknownOeType(string onderwerp)
-        {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await CreateContactmoment(
-                onderwerp,
-                "This is a test contact request created during an end-to-end test run.",
-                klantnaam: null);
-
-            var submitterActor = await GetOrCreateSubmitterActor();
-            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
-
-            var unknownOeActor = await GetOrCreateUnknownTypeOeActor();
-
-            var nummer = await CreateInternetaak(
-                GenerateUniqueInternetaakNummer(),
-                contactmoment.Uuid,
-                new List<Guid> { Guid.Parse(unknownOeActor.Uuid) });
-
-            return (contactmoment.Uuid, nummer);
-        }
-
-        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithMultipleOeActors(string onderwerp)
-        {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await CreateContactmoment(
-                onderwerp,
-                "This is a test contact request created during an end-to-end test run.",
-                klantnaam: null);
-
-            var submitterActor = await GetOrCreateSubmitterActor();
-            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
-
-            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
-            var groepActor = await GetOrCreateGroepActor();
-
-            var nummer = await CreateInternetaak(
-                GenerateUniqueInternetaakNummer(),
-                contactmoment.Uuid,
-                new List<Guid>
-                {
-                    Guid.Parse(afdelingActor.Uuid),
-                    Guid.Parse(groepActor.Uuid)
-                });
+                actorUuids);
 
             return (contactmoment.Uuid, nummer);
         }
