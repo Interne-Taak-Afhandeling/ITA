@@ -11,6 +11,7 @@ import { BadgeStatus as UtrechtBadgeStatus } from "@utrecht/component-library-vu
 export interface UrgentieInfo {
   status: "binnen_termijn" | "bijna_verlopen" | "verlopen";
   streefdatum: string;
+  resterendeUren: number;
 }
 
 const props = defineProps<{ urgentie: UrgentieInfo | null | undefined }>();
@@ -29,27 +30,24 @@ const badgeStatus = computed(() => {
 });
 
 const label = computed(() => {
-  if (!props.urgentie?.streefdatum) return "";
+  if (!props.urgentie) return "";
 
-  const streefdatum = new Date(props.urgentie.streefdatum);
-  const now = new Date();
-  const diffMs = streefdatum.getTime() - now.getTime();
-  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+  const uren = props.urgentie.resterendeUren;
 
-  if (diffHours > 0) {
-    if (diffHours > 48) {
-      const days = Math.round(diffHours / 24);
+  if (uren > 0) {
+    if (uren > 48) {
+      const days = Math.round(uren / 24);
       return `nog ${days}d`;
     }
-    return `nog ${diffHours}u`;
+    return `nog ${uren}u`;
   }
 
-  const verlopenHours = Math.abs(diffHours);
-  if (verlopenHours > 48) {
-    const days = Math.round(verlopenHours / 24);
+  const verlopenUren = Math.abs(uren);
+  if (verlopenUren > 48) {
+    const days = Math.round(verlopenUren / 24);
     return `${days}d verlopen`;
   }
-  return `${verlopenHours}u verlopen`;
+  return `${verlopenUren}u verlopen`;
 });
 </script>
 

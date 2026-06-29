@@ -1,10 +1,12 @@
+using Microsoft.Extensions.Options;
+
 namespace InterneTaakAfhandeling.Web.Server.Features.Urgentie;
 
-public class UrgentieBerekenService(ILogger<UrgentieBerekenService> logger) : IUrgentieBerekenService
+public class UrgentieBerekenService(
+    IOptions<UrgentieOptions> options,
+    ILogger<UrgentieBerekenService> logger) : IUrgentieBerekenService
 {
-    private static readonly TimeSpan Afhandeltermijn = TimeSpan.FromHours(48);
-    private static readonly TimeSpan BijnaVerlopenDrempel = TimeSpan.FromHours(6);
-
+    private readonly UrgentieOptions _options = options.Value;
     private readonly ILogger<UrgentieBerekenService> _logger = logger;
 
     public UrgentieInfo? Bereken(DateTimeOffset? contactDatum)
@@ -15,13 +17,14 @@ public class UrgentieBerekenService(ILogger<UrgentieBerekenService> logger) : IU
             return null;
         }
 
-        var streefdatum = contactDatum.Value + Afhandeltermijn;
-        var resterend = streefdatum - DateTimeOffset.UtcNow;
+        var afhandeltermijn = TimeSpan.FromHours(_options.AfhandeltermijnUren);
+        var streefdatum = AddWeekdayHours(contactDatum.Value, afhandeltermijn);
+        var resterendeWerkdagUren = BerekenResterendeWerkdagUren(DateTimeOffset.UtcNow, streefdatum);
 
-        var status = resterend switch
+        var status = resterendeWerkdagUren switch
         {
-            { TotalHours: <= 0 } => UrgentieStatus.Verlopen,
-            { TotalHours: <= 6 } => UrgentieStatus.BijnaVerlopen,
+            <= 0 => UrgentieStatus.Verlopen,
+            var u when u <= _options.BijnaVerlopenDrempelUren => UrgentieStatus.BijnaVerlopen,
             _ => UrgentieStatus.BinnenTermijn
         };
 
@@ -34,7 +37,95 @@ public class UrgentieBerekenService(ILogger<UrgentieBerekenService> logger) : IU
                 UrgentieStatus.Verlopen => "verlopen",
                 _ => "binnen_termijn"
             },
-            Streefdatum = streefdatum
+            Streefdatum = streefdatum,
+            ResterendeUren = Math.Round(resterendeWerkdagUren)
         };
+    }
+
+    /// <summary>
+    /// Adds the given number of hours to a start time, skipping weekends entirely (24/7 on weekdays).
+    /// </summary>
+    internal static DateTimeOffset AddWeekdayHours(DateTimeOffset start, TimeSpan hoursToAdd)
+    {
+        var current = start;
+        var remainingHours = hoursToAdd.TotalHours;
+
+        while (remainingHours > 0)
+        {
+            if (IsWeekend(current))
+            {
+                current = SkipToNextWeekday(current);
+                continue;
+            }
+
+            var endOfDay = current.Date.AddDays(1);
+            var hoursLeftInDay = (endOfDay - current).TotalHours;
+
+            if (remainingHours <= hoursLeftInDay)
+            {
+                current = current.AddHours(remainingHours);
+                remainingHours = 0;
+            }
+            else
+            {
+                remainingHours -= hoursLeftInDay;
+                current = new DateTimeOffset(endOfDay, current.Offset);
+            }
+        }
+
+        return current;
+    }
+
+    /// <summary>
+    /// Calculates the number of weekday hours (excluding Saturday/Sunday) between now and the streefdatum.
+    /// Returns negative values when the streefdatum has passed.
+    /// </summary>
+    internal static double BerekenResterendeWerkdagUren(DateTimeOffset now, DateTimeOffset streefdatum)
+    {
+        if (now >= streefdatum)
+        {
+            return -BerekenWerkdagUrenTussen(streefdatum, now);
+        }
+
+        return BerekenWerkdagUrenTussen(now, streefdatum);
+    }
+
+    private static double BerekenWerkdagUrenTussen(DateTimeOffset start, DateTimeOffset end)
+    {
+        var current = start;
+        var totalHours = 0.0;
+
+        while (current < end)
+        {
+            if (IsWeekend(current))
+            {
+                current = SkipToNextWeekday(current);
+                continue;
+            }
+
+            var endOfDay = current.Date.AddDays(1);
+            var dayEnd = endOfDay < end
+                ? new DateTimeOffset(endOfDay, current.Offset)
+                : end;
+
+            totalHours += (dayEnd - current).TotalHours;
+            current = new DateTimeOffset(endOfDay, current.Offset);
+        }
+
+        return totalHours;
+    }
+
+    private static bool IsWeekend(DateTimeOffset date) =>
+        date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    private static DateTimeOffset SkipToNextWeekday(DateTimeOffset date)
+    {
+        var next = date.Date.AddDays(1);
+        while (next.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+        {
+            next = next.AddDays(1);
+        }
+
+        return new DateTimeOffset(next, date.Offset);
     }
 }
