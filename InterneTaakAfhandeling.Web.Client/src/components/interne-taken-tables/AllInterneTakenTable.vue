@@ -52,7 +52,8 @@
 
 <script setup lang="ts">
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
-import UrgentieBadge, { type UrgentieInfo } from "../UrgentieBadge.vue";
+import UrgentieBadge from "../UrgentieBadge.vue";
+import type { UrgentieInfo } from "@/types/internetaken";
 
 defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
 

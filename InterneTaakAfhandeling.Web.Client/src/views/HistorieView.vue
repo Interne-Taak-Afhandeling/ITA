@@ -27,9 +27,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import MyInterneTakenTable, {
-  type MyInterneTaakOverviewItem
-} from "@/components/interne-taken-tables/MyInterneTakenTable.vue";
+import MyInterneTakenTable from "@/components/interne-taken-tables/MyInterneTakenTable.vue";
+import type { MyInterneTaakOverviewItem } from "@/types/internetaken";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import { userService } from "@/services/userService";

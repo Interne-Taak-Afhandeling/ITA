@@ -1,5 +1,5 @@
 import { get, post } from "@/utils/fetchWrapper";
-import type { MyInterneTaakOverviewItem } from "@/components/interne-taken-tables/MyInterneTakenTable.vue";
+import type { MyInterneTaakOverviewItem } from "@/types/internetaken";
 
 export const userService = {
   getAssignedInternetaken: (): Promise<MyInterneTaakOverviewItem[]> => {

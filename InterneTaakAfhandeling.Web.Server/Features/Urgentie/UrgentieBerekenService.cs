@@ -60,7 +60,7 @@ public class UrgentieBerekenService(
                 continue;
             }
 
-            var endOfDay = current.Date.AddDays(1);
+            var endOfDay = new DateTimeOffset(current.Date.AddDays(1), current.Offset);
             var hoursLeftInDay = (endOfDay - current).TotalHours;
 
             if (remainingHours <= hoursLeftInDay)
@@ -71,7 +71,7 @@ public class UrgentieBerekenService(
             else
             {
                 remainingHours -= hoursLeftInDay;
-                current = new DateTimeOffset(endOfDay, current.Offset);
+                current = endOfDay;
             }
         }
 
@@ -105,13 +105,11 @@ public class UrgentieBerekenService(
                 continue;
             }
 
-            var endOfDay = current.Date.AddDays(1);
-            var dayEnd = endOfDay < end
-                ? new DateTimeOffset(endOfDay, current.Offset)
-                : end;
+            var endOfDay = new DateTimeOffset(current.Date.AddDays(1), current.Offset);
+            var dayEnd = endOfDay < end ? endOfDay : end;
 
             totalHours += (dayEnd - current).TotalHours;
-            current = new DateTimeOffset(endOfDay, current.Offset);
+            current = endOfDay;
         }
 
         return totalHours;

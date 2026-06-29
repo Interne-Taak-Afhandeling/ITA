@@ -6,13 +6,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { BadgeStatus as UtrechtBadgeStatus } from "@utrecht/component-library-vue";
-
-export interface UrgentieInfo {
-  status: "binnen_termijn" | "bijna_verlopen" | "verlopen";
-  streefdatum: string;
-  resterendeUren: number;
-}
+import type { UrgentieInfo } from "@/types/internetaken";
 
 const props = defineProps<{ urgentie: UrgentieInfo | null | undefined }>();
 
@@ -36,7 +30,7 @@ const label = computed(() => {
 
   if (uren > 0) {
     if (uren > 48) {
-      const days = Math.round(uren / 24);
+      const days = Math.ceil(uren / 24);
       return `nog ${days}d`;
     }
     return `nog ${uren}u`;
@@ -45,7 +39,7 @@ const label = computed(() => {
   const verlopenUren = Math.abs(uren);
   if (verlopenUren === 0) return "<1u verlopen";
   if (verlopenUren > 48) {
-    const days = Math.round(verlopenUren / 24);
+    const days = Math.ceil(verlopenUren / 24);
     return `${days}d verlopen`;
   }
   return `${verlopenUren}u verlopen`;

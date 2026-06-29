@@ -39,20 +39,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Internetaken } from "@/types/internetaken";
+import type { MyInterneTaakOverviewItem } from "@/types/internetaken";
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
-import UrgentieBadge, { type UrgentieInfo } from "../UrgentieBadge.vue";
-
-export interface MyInterneTaakOverviewItem {
-  uuid: string;
-  nummer?: string;
-  gevraagdeHandeling?: string;
-  status?: string;
-  toegewezenOp?: string;
-  afgehandeldOp?: string;
-  aanleidinggevendKlantcontact?: Internetaken["aanleidinggevendKlantcontact"];
-  urgentie?: UrgentieInfo | null;
-}
+import UrgentieBadge from "../UrgentieBadge.vue";
 
 defineProps<{ interneTaken: MyInterneTaakOverviewItem[] }>();
 </script>
