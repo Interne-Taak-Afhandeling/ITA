@@ -3,19 +3,23 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
+using InterneTaakAfhandeling.Web.Server.Features.Urgentie;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
 {
     public interface IMyInterneTakenOverviewService
     {
-        Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond);
+        Task<IReadOnlyList<MyInterneTaakOverviewItem>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond);
     }
-    public class MyInterneTakenOverviewService(IOpenKlantApiClient openKlantApiClient) : IMyInterneTakenOverviewService
+    public class MyInterneTakenOverviewService(
+        IOpenKlantApiClient openKlantApiClient,
+        IUrgentieBerekenService urgentieBerekenService) : IMyInterneTakenOverviewService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
+        private readonly IUrgentieBerekenService _urgentieBerekenService = urgentieBerekenService;
 
 
-        public async Task<IReadOnlyList<Internetaak>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond)
+        public async Task<IReadOnlyList<MyInterneTaakOverviewItem>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond)
         {
             var actorIds = await GetActorIds(user);
 
@@ -33,7 +37,27 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
 
             var results = await Task.WhenAll(internetakenTasks);
 
-            return [.. results.SelectMany(x => x).OrderByDescending(x => x.ToegewezenOp)];
+            return [.. results
+                .SelectMany(x => x)
+                .OrderByDescending(x => x.ToegewezenOp)
+                .Select(MapToOverviewItem)];
+        }
+
+        private MyInterneTaakOverviewItem MapToOverviewItem(Internetaak internetaak)
+        {
+            var contactDatum = internetaak.AanleidinggevendKlantcontact?.PlaatsgevondenOp;
+
+            return new MyInterneTaakOverviewItem
+            {
+                Uuid = internetaak.Uuid,
+                Nummer = internetaak.Nummer,
+                GevraagdeHandeling = internetaak.GevraagdeHandeling,
+                Status = internetaak.Status,
+                ToegewezenOp = internetaak.ToegewezenOp,
+                AfgehandeldOp = internetaak.AfgehandeldOp,
+                AanleidinggevendKlantcontact = internetaak.AanleidinggevendKlantcontact,
+                Urgentie = _urgentieBerekenService.Bereken(contactDatum)
+            };
         }
 
         private async Task<IReadOnlyList<string>> GetActorIds(ITAUser user)

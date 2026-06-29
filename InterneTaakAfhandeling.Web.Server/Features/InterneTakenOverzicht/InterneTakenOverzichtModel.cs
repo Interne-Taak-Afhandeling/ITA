@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using InterneTaakAfhandeling.Web.Server.Features.Urgentie;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
 
@@ -42,4 +43,6 @@ public class InterneTaakOverzichtItem
     public string? BehandelaarNaam { get; set; }
 
     public string? ContactmomentNummer { get; set; }
+
+    public UrgentieInfo? Urgentie { get; set; }
 }

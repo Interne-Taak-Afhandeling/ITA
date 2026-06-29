@@ -1,5 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Features.Urgentie;
 using System;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
@@ -12,13 +13,16 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
     public class InterneTakenOverzichtService : IInterneTakenOverzichtService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient;
+        private readonly IUrgentieBerekenService _urgentieBerekenService;
         private readonly ILogger<InterneTakenOverzichtService> _logger;
 
         public InterneTakenOverzichtService(
             IOpenKlantApiClient openKlantApiClient,
+            IUrgentieBerekenService urgentieBerekenService,
             ILogger<InterneTakenOverzichtService> logger)
         {
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
+            _urgentieBerekenService = urgentieBerekenService ?? throw new ArgumentNullException(nameof(urgentieBerekenService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -55,6 +59,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
 
             //behandelaar en afdelingnaam toevoegen 
             await LoadActorInfoAsync(internetaak, item);
+
+            //urgentie berekenen op basis van ContactDatum
+            item.Urgentie = _urgentieBerekenService.Bereken(item.ContactDatum);
 
             return item;
         }
