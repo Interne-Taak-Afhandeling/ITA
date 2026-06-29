@@ -351,4 +351,5 @@ export interface MyInterneTaakOverviewItem {
   afgehandeldOp?: string;
   aanleidinggevendKlantcontact?: Internetaken["aanleidinggevendKlantcontact"];
   urgentie?: UrgentieInfo | null;
+  afdelingNaam?: string | null;
 }

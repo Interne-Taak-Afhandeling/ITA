@@ -13,4 +13,5 @@ public class MyInterneTaakOverviewItem
     public DateTimeOffset? AfgehandeldOp { get; init; }
     public Klantcontact? AanleidinggevendKlantcontact { get; init; }
     public UrgentieInfo? Urgentie { get; init; }
+    public string? AfdelingNaam { get; init; }
 }
