@@ -48,8 +48,7 @@ public sealed class VerlopenContactverzoekHerinneringsEmailService(
                 {
                     await emailService.SendEmailAsync(email, content.Onderwerp, content.HtmlBody);
                     logger.LogInformation(
-                        "Daily reminder: email sent to {EmailPrefix}... for actor {ActorUuid} ({AantalCvs} contact requests)",
-                        email[..Math.Min(email.Length, 4)],
+                        "Daily reminder: email sent for actor {ActorUuid} ({AantalCvs} contact requests)",
                         actorUuid,
                         ontvanger.VerlopenContactVerzoeken.Count);
                     verstuurd++;
@@ -57,8 +56,7 @@ public sealed class VerlopenContactverzoekHerinneringsEmailService(
                 catch (Exception ex)
                 {
                     logger.LogWarning(ex,
-                        "Daily reminder: SMTP error for {EmailPrefix}... (actor {ActorUuid}) — skipped",
-                        email[..Math.Min(email.Length, 4)],
+                        "Daily reminder: SMTP error for actor {ActorUuid} — skipped",
                         actorUuid);
                     fouten++;
                 }
