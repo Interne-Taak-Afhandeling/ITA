@@ -37,15 +37,20 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
 
             var results = await Task.WhenAll(internetakenTasks);
 
-            return [.. results
+            var internetaken = results
                 .SelectMany(x => x)
                 .OrderByDescending(x => x.ToegewezenOp)
-                .Select(MapToOverviewItem)];
+                .ToList();
+
+            var overviewItems = await Task.WhenAll(internetaken.Select(MapToOverviewItemAsync));
+
+            return [.. overviewItems];
         }
 
-        private MyInterneTaakOverviewItem MapToOverviewItem(Internetaak internetaak)
+        private async Task<MyInterneTaakOverviewItem> MapToOverviewItemAsync(Internetaak internetaak)
         {
             var contactDatum = internetaak.AanleidinggevendKlantcontact?.PlaatsgevondenOp;
+            var afdelingNaam = await GetAfdelingNaamAsync(internetaak);
 
             return new MyInterneTaakOverviewItem
             {
@@ -56,8 +61,40 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
                 ToegewezenOp = internetaak.ToegewezenOp,
                 AfgehandeldOp = internetaak.AfgehandeldOp,
                 AanleidinggevendKlantcontact = internetaak.AanleidinggevendKlantcontact,
-                Urgentie = _urgentieBerekenService.Bereken(contactDatum)
+                Urgentie = _urgentieBerekenService.Bereken(contactDatum),
+                AfdelingNaam = afdelingNaam
             };
+        }
+
+        private async Task<string?> GetAfdelingNaamAsync(Internetaak internetaak)
+        {
+            if (internetaak.ToegewezenAanActoren?.Any() != true)
+                return null;
+
+            var actorTasks = internetaak.ToegewezenAanActoren
+                .Where(actorRef => !string.IsNullOrEmpty(actorRef.Uuid))
+                .Select(actorRef => GetActorSafeAsync(actorRef.Uuid));
+
+            var actors = await Task.WhenAll(actorTasks);
+
+            var afdelingActors = actors
+                .Where(a => a?.SoortActor != SoortActor.medewerker && !string.IsNullOrEmpty(a?.Naam))
+                .Select(a => a!.Naam)
+                .ToList();
+
+            return afdelingActors.Count != 0 ? string.Join(", ", afdelingActors) : null;
+        }
+
+        private async Task<Actor?> GetActorSafeAsync(string uuid)
+        {
+            try
+            {
+                return await _openKlantApiClient.GetActorAsync(uuid);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private async Task<IReadOnlyList<string>> GetActorIds(ITAUser user)

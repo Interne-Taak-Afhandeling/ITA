@@ -11,13 +11,14 @@
         <utrecht-table-header-cell scope="col">Urgentie</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Afdeling</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Behandelaar</utrecht-table-header-cell>
+        <utrecht-table-header-cell scope="col">Klantcontactnummer</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Details</utrecht-table-header-cell>
       </utrecht-table-row>
     </utrecht-table-header>
 
     <utrecht-table-body>
       <utrecht-table-row v-if="interneTaken.length === 0">
-        <utrecht-table-cell colspan="7">Geen contactverzoeken gevonden</utrecht-table-cell>
+        <utrecht-table-cell colspan="8">Geen contactverzoeken gevonden</utrecht-table-cell>
       </utrecht-table-row>
 
       <utrecht-table-row v-for="taak in interneTaken" :key="taak.uuid">
@@ -41,6 +42,9 @@
         </utrecht-table-cell>
         <utrecht-table-cell class="text-truncate" :title="taak.behandelaarNaam || ''">
           {{ taak.behandelaarNaam || "-" }}
+        </utrecht-table-cell>
+        <utrecht-table-cell>
+          {{ taak.contactmomentNummer || "-" }}
         </utrecht-table-cell>
         <utrecht-table-cell>
           <router-link :to="`/contactmoment/${taak.contactmomentNummer}`">Klik hier</router-link>
