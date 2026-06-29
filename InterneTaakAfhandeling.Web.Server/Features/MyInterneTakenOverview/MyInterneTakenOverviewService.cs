@@ -13,10 +13,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
     }
     public class MyInterneTakenOverviewService(
         IOpenKlantApiClient openKlantApiClient,
-        IUrgentieBerekenService urgentieBerekenService) : IMyInterneTakenOverviewService
+        IUrgentieBerekenService urgentieBerekenService,
+        ILogger<MyInterneTakenOverviewService> logger) : IMyInterneTakenOverviewService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IUrgentieBerekenService _urgentieBerekenService = urgentieBerekenService;
+        private readonly ILogger<MyInterneTakenOverviewService> _logger = logger;
 
 
         public async Task<IReadOnlyList<MyInterneTaakOverviewItem>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond)
@@ -91,8 +93,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
             {
                 return await _openKlantApiClient.GetActorAsync(uuid);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to fetch actor {Uuid}", uuid);
                 return null;
             }
         }

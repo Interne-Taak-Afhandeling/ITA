@@ -53,12 +53,3 @@ import UrgentieBadge from "../UrgentieBadge.vue";
 
 defineProps<{ interneTaken: MyInterneTaakOverviewItem[] }>();
 </script>
-
-<style lang="scss" scoped>
-.text-truncate {
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-</style>
