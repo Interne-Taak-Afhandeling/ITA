@@ -38,7 +38,9 @@ public class UrgentieBerekenService(
                 _ => "binnen_termijn"
             },
             Streefdatum = streefdatum,
-            ResterendeUren = Math.Round(resterendeWerkdagUren)
+            ResterendeUren = resterendeWerkdagUren >= 0
+                ? Math.Ceiling(resterendeWerkdagUren)
+                : -Math.Ceiling(Math.Abs(resterendeWerkdagUren))
         };
     }
 

@@ -43,6 +43,7 @@ const label = computed(() => {
   }
 
   const verlopenUren = Math.abs(uren);
+  if (verlopenUren === 0) return "<1u verlopen";
   if (verlopenUren > 48) {
     const days = Math.round(verlopenUren / 24);
     return `${days}d verlopen`;
