@@ -12,7 +12,9 @@
         <utrecht-table-header-cell scope="col">Afdeling</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Behandelaar</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Klantcontactnummer</utrecht-table-header-cell>
-        <utrecht-table-header-cell scope="col">Details</utrecht-table-header-cell>
+        <utrecht-table-header-cell scope="col" class="details-cell"
+          >Details</utrecht-table-header-cell
+        >
       </utrecht-table-row>
     </utrecht-table-header>
 
@@ -21,7 +23,13 @@
         <utrecht-table-cell colspan="8">Geen contactverzoeken gevonden</utrecht-table-cell>
       </utrecht-table-row>
 
-      <utrecht-table-row v-for="taak in interneTaken" :key="taak.uuid">
+      <utrecht-table-row
+        v-for="taak in interneTaken"
+        :key="taak.uuid"
+        class="clickable-row"
+        @mousedown="onRowMouseDown"
+        @click="navigateOnRowClick($event, `/contactmoment/${taak.contactmomentNummer}`)"
+      >
         <utrecht-table-cell class="ita-no-wrap">
           <date-time-or-nvt :date="taak.contactDatum || taak.toegewezenOp" />
         </utrecht-table-cell>
@@ -46,8 +54,14 @@
         <utrecht-table-cell>
           {{ taak.contactmomentNummer || "-" }}
         </utrecht-table-cell>
-        <utrecht-table-cell>
-          <router-link :to="`/contactmoment/${taak.contactmomentNummer}`">Klik hier</router-link>
+        <utrecht-table-cell class="details-cell">
+          <router-link
+            :to="`/contactmoment/${taak.contactmomentNummer}`"
+            :aria-label="`Open contactverzoek ${taak.klantNaam || taak.onderwerp || taak.contactmomentNummer || ''}`"
+            class="details-link"
+            @click.stop
+            >→</router-link
+          >
         </utrecht-table-cell>
       </utrecht-table-row>
     </utrecht-table-body>
@@ -55,11 +69,14 @@
 </template>
 
 <script setup lang="ts">
+import { useRowNavigation } from "@/composables/use-row-navigation";
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
 import UrgentieBadge from "../UrgentieBadge.vue";
 import type { UrgentieInfo } from "@/types/internetaken";
 
 defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
+
+const { onRowMouseDown, navigateOnRowClick } = useRowNavigation();
 
 export interface InterneTaakOverviewItem {
   uuid: string;
