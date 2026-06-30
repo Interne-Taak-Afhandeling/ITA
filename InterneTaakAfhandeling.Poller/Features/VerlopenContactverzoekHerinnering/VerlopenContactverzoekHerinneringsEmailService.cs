@@ -1,5 +1,3 @@
-using InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -7,7 +5,6 @@ using Microsoft.Extensions.Logging;
 namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 
 public sealed class VerlopenContactverzoekHerinneringsEmailService(
-    IInterneTaakEmailInputService emailInputService,
     IVerlopenContactverzoekHerinneringsTemplateService templateService,
     IEmailService emailService,
     IConfiguration configuration,
@@ -28,36 +25,37 @@ public sealed class VerlopenContactverzoekHerinneringsEmailService(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var actorUuid = ontvanger.Ontvanger.Uuid;
-            var resolveResult = await emailInputService.ResolveActorsEmailAsync([ontvanger.Ontvanger]);
-
-            if (resolveResult.FoundEmails.Count == 0)
+            if (ontvanger.EmailAdressen.Count == 0)
             {
                 logger.LogWarning(
                     "Daily reminder: no email address found for actor {ActorUuid} — skipped",
-                    actorUuid);
+                    ontvanger.ActorUuid);
                 overgeslagen++;
                 continue;
             }
 
-            var content = templateService.GenereerMailContent(ontvanger, _baseUrl);
+            var content = templateService.GenereerMailContent(
+                ontvanger.AantalVerlopenContactVerzoeken,
+                ontvanger.MaxAantalWerkdagenOpenstaan,
+                ontvanger.IsMedewerker,
+                _baseUrl);
 
-            foreach (var email in resolveResult.FoundEmails)
+            foreach (var email in ontvanger.EmailAdressen)
             {
                 try
                 {
-                    await emailService.SendEmailAsync(email, content.Onderwerp, content.HtmlBody);
+                    await emailService.SendEmailAsync(email, content.Onderwerp, content.HtmlBody, content.PlainTextBody);
                     logger.LogInformation(
                         "Daily reminder: email sent for actor {ActorUuid} ({AantalCvs} contact requests)",
-                        actorUuid,
-                        ontvanger.VerlopenContactVerzoeken.Count);
+                        ontvanger.ActorUuid,
+                        ontvanger.AantalVerlopenContactVerzoeken);
                     verstuurd++;
                 }
                 catch (Exception ex)
                 {
                     logger.LogWarning(ex,
                         "Daily reminder: SMTP error for actor {ActorUuid} — skipped",
-                        actorUuid);
+                        ontvanger.ActorUuid);
                     fouten++;
                 }
             }

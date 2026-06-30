@@ -1,15 +1,14 @@
-using InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
 using InterneTaakAfhandeling.Poller.Features;
 
 namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 
 public sealed class VerlopenContactverzoekHerinneringPollerJob(
-    IOverdueContactVerzoekQueryService overdueService,
+    IVerlopenContactVerzoekQueryService verlopenService,
     IVerlopenContactverzoekHerinneringsEmailService emailService) : IPollerJob
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var ontvangers = await overdueService.GetOverdueContactVerzoekenAsync(cancellationToken);
+        var ontvangers = await verlopenService.GetVerlopenContactVerzoekenAsync(cancellationToken);
         await emailService.StuurHerinneringenAsync(ontvangers, cancellationToken);
     }
 }

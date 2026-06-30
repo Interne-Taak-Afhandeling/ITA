@@ -1,24 +1,19 @@
 using System.Net;
 using System.Text;
-using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
 
 namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 
 public sealed class VerlopenContactverzoekHerinneringsTemplateService : IVerlopenContactverzoekHerinneringsTemplateService
 {
-    public HerinneringsMailContent GenereerMailContent(RecipientHerinneringData ontvanger, string baseUrl)
+    public HerinneringsMailContent GenereerMailContent(int aantalCvs, int maxWerkdagen, bool isMedewerker, string baseUrl)
     {
-        var aantalCvs = ontvanger.VerlopenContactVerzoeken.Count;
-        var maxWerkdagen = ontvanger.MaxAantalWerkdagenOpenstaan;
-        var isMedewerker = ontvanger.Ontvanger.Actoridentificator?.CodeObjecttype ==
-                          KnownMedewerkerIdentificators.CodeObjecttypeMedewerker;
-
         var werkvoorraadUrl = isMedewerker
             ? $"{baseUrl.TrimEnd('/')}/"
             : $"{baseUrl.TrimEnd('/')}/afdelings-contacten";
 
-        var onderwerp = $"{aantalCvs} contactverzoeken wachten op jou";
+        var onderwerp = aantalCvs == 1
+            ? "1 contactverzoek wacht op jou"
+            : $"{aantalCvs} contactverzoeken wachten op jou";
 
         var htmlBody = BouwHtmlBody(aantalCvs, maxWerkdagen, werkvoorraadUrl);
         var plainTextBody = BouwPlainTextBody(aantalCvs, maxWerkdagen, werkvoorraadUrl);

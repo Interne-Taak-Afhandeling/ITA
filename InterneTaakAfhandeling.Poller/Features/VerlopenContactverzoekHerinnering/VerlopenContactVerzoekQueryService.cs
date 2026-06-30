@@ -1,17 +1,17 @@
-﻿using InterneTaakAfhandeling.Common.Services.Afhandeltermijn;
-using InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
+﻿using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using Microsoft.Extensions.Logging;
 
 namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 
-public class OverdueContactVerzoekQueryService(
+public class VerlopenContactVerzoekQueryService(
     IOpenKlantApiClient openKlantApiClient,
     IAfhandeltermijnProvider afhandeltermijnProvider,
-    ILogger<OverdueContactVerzoekQueryService> logger) : IOverdueContactVerzoekQueryService
+    IInterneTaakEmailInputService emailInputService,
+    ILogger<VerlopenContactVerzoekQueryService> logger) : IVerlopenContactVerzoekQueryService
 {
-    public async Task<IReadOnlyList<RecipientHerinneringData>> GetOverdueContactVerzoekenAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<RecipientHerinneringData>> GetVerlopenContactVerzoekenAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Daily reminder: query started");
 
@@ -33,13 +33,13 @@ public class OverdueContactVerzoekQueryService(
 
         logger.LogInformation("Daily reminder: {Count} te_verwerken internetaken retrieved", allInternetaken.Count);
 
-        var overdue = allInternetaken.Where(taak => IsOverdue(taak, afhandeltermijn, now)).ToList();
+        var verlopen = allInternetaken.Where(taak => IsVerlopen(taak, afhandeltermijn, now)).ToList();
 
-        logger.LogInformation("Daily reminder: {Count} overdue after date filter", overdue.Count);
+        logger.LogInformation("Daily reminder: {Count} verlopen after date filter", verlopen.Count);
 
         var byActor = new Dictionary<string, (Actor Actor, List<Internetaak> Taken)>();
 
-        foreach (var taak in overdue)
+        foreach (var taak in verlopen)
         {
             foreach (var actor in taak.ToegewezenAanActoren ?? [])
             {
@@ -67,16 +67,26 @@ public class OverdueContactVerzoekQueryService(
 
         logger.LogInformation("Daily reminder: {Count} recipient groups after grouping", byActor.Count);
 
-        return byActor.Values.Select(entry => new RecipientHerinneringData
+        var recipients = new List<RecipientHerinneringData>();
+
+        foreach (var (_, entry) in byActor)
         {
-            Ontvanger = entry.Actor,
-            VerlopenContactVerzoeken = entry.Taken,
-            MaxAantalWerkdagenOpenstaan = entry.Taken.Max(taak =>
-                BerekenWerkdagen(taak.AanleidinggevendKlantcontact?.PlaatsgevondenOp ?? now, now))
-        }).ToList();
+            var resolveResult = await emailInputService.ResolveActorsEmailAsync([entry.Actor]);
+            recipients.Add(new RecipientHerinneringData
+            {
+                ActorUuid = entry.Actor.Uuid,
+                IsMedewerker = entry.Actor.SoortActor == SoortActor.medewerker,
+                EmailAdressen = resolveResult.FoundEmails,
+                AantalVerlopenContactVerzoeken = entry.Taken.Count,
+                MaxAantalWerkdagenOpenstaan = entry.Taken.Max(taak =>
+                    BerekenWerkdagen(taak.AanleidinggevendKlantcontact?.PlaatsgevondenOp ?? now, now))
+            });
+        }
+
+        return recipients;
     }
 
-    private static bool IsOverdue(Internetaak taak, TimeSpan afhandeltermijn, DateTimeOffset now)
+    private static bool IsVerlopen(Internetaak taak, TimeSpan afhandeltermijn, DateTimeOffset now)
     {
         var plaatsgevondenOp = taak.AanleidinggevendKlantcontact?.PlaatsgevondenOp;
         return plaatsgevondenOp != null && VoegWerkurenToe(plaatsgevondenOp.Value, afhandeltermijn) <= now;

@@ -1,6 +1,4 @@
 ﻿using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Common.Services.Afhandeltermijn;
-using InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Poller.Data;
@@ -52,7 +50,7 @@ internal class Program
                 .AddSmtpClients(configuration)
                 .AddSingleton<IAfhandeltermijnProvider, HardcodedAfhandeltermijnProvider>()
                 .AddSingleton<IVerlopenContactverzoekHerinneringsTemplateService, VerlopenContactverzoekHerinneringsTemplateService>()
-                .AddScoped<IOverdueContactVerzoekQueryService, OverdueContactVerzoekQueryService>()
+                .AddScoped<IVerlopenContactVerzoekQueryService, VerlopenContactVerzoekQueryService>()
                 .AddScoped<IVerlopenContactverzoekHerinneringsEmailService, VerlopenContactverzoekHerinneringsEmailService>()
                 .AddScoped<INieuweInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()

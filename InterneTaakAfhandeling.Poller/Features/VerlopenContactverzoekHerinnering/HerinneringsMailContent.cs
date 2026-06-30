@@ -1,4 +1,4 @@
-namespace InterneTaakAfhandeling.Common.Services.DagelijkseHerinnering;
+namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 
 public sealed class HerinneringsMailContent
 {
