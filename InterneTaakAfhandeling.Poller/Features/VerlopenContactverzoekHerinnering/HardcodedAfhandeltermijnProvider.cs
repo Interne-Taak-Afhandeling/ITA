@@ -1,0 +1,7 @@
+namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
+
+// Hardcoded at 48 hours; swap this registration for a configurable implementation in #329.
+public sealed class HardcodedAfhandeltermijnProvider : IAfhandeltermijnProvider
+{
+    public TimeSpan GetAfhandeltermijn() => TimeSpan.FromHours(48);
+}

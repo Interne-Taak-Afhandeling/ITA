@@ -196,6 +196,10 @@ public partial class OpenKlantApiClient(
             _logger.LogInformation("Fetching internetaken from OpenKlant API");
 
             var response = await _httpClient.GetAsync(path);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return new InternetakenResponse { Results = [] };
+
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadFromJsonAsync<InternetakenResponse>();
