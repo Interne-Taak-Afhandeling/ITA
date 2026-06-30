@@ -335,3 +335,21 @@ export interface ForwardKlantContactResponse {
   internetaak: Internetaken;
   notificationResult: string;
 }
+
+export interface UrgentieInfo {
+  status: "binnen_termijn" | "bijna_verlopen" | "verlopen";
+  streefdatum: string;
+  resterendeUren: number;
+}
+
+export interface MyInterneTaakOverviewItem {
+  uuid: string;
+  nummer?: string;
+  gevraagdeHandeling?: string;
+  status?: string;
+  toegewezenOp?: string;
+  afgehandeldOp?: string;
+  aanleidinggevendKlantcontact?: Internetaken["aanleidinggevendKlantcontact"];
+  urgentie?: UrgentieInfo | null;
+  afdelingNaam?: string | null;
+}

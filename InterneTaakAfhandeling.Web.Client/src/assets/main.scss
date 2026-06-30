@@ -67,4 +67,27 @@
     align-items: center;
     min-height: 200px;
   }
+
+  .text-truncate {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .clickable-row {
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--ita-color-secondary);
+    }
+  }
+
+  .details-cell {
+    text-align: center;
+  }
+
+  .details-link {
+    text-decoration: none;
+  }
 }

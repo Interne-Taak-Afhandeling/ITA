@@ -8,7 +8,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         public static ILocator GetDetailsLink(this IPage page, string onderwerp)
         {
             var testRow = page.GetByRole(AriaRole.Row).Filter(new() { HasText = onderwerp }).First;
-            return testRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" });
+            return testRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "→" });
         }
 
         // Contactverzoek Details locators

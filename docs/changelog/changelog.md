@@ -1,5 +1,13 @@
 # Changelog
 
+## v3.3.0
+
+- [Feature: Werklijst urgentie-status en verbeterde kolommen](https://github.com/Interne-Taak-Afhandeling/ITA/issues/402)
+  - Urgentie-statuslabel (groen/oranje/rood) per contactverzoek op basis van afhandeltermijn
+  - Kolommen "Afdeling" en "Klantcontactnummer" toegevoegd aan werklijsten
+  - Klikbare tabelrijen met hover-effect voor snelle navigatie
+  - Nieuwe configuratie: `Urgentie:AfhandeltermijnUren` (default: 48) en `Urgentie:BijnaVerlopenDrempelUren` (default: 6)
+
 ## v3.2.0
 
 - [Feature: Knop 'Toewijzen aan jezelf' verbergen bij bestaande toewijzing](https://github.com/Interne-Taak-Afhandeling/ITA/issues/347)
