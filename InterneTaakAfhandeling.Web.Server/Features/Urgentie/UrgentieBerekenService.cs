@@ -19,7 +19,8 @@ public class UrgentieBerekenService(
 
         var afhandeltermijn = TimeSpan.FromHours(_options.AfhandeltermijnUren);
         var streefdatum = AddWeekdayHours(contactDatum.Value, afhandeltermijn);
-        var resterendeWerkdagUren = BerekenResterendeWerkdagUren(DateTimeOffset.UtcNow, streefdatum);
+        var now = DateTimeOffset.UtcNow.ToOffset(streefdatum.Offset);
+        var resterendeWerkdagUren = BerekenResterendeWerkdagUren(now, streefdatum);
 
         var status = resterendeWerkdagUren switch
         {
