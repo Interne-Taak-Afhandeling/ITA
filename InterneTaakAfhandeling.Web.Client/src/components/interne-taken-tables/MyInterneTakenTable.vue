@@ -22,10 +22,11 @@
       <utrecht-table-row
         v-for="taak in interneTaken"
         :key="taak.uuid"
-        class="clickable-row"
+        :class="{ 'clickable-row': taak.aanleidinggevendKlantcontact?.nummer }"
         @mousedown="onRowMouseDown"
         @click="
-          navigateOnRowClick($event, `/contactmoment/${taak?.aanleidinggevendKlantcontact?.nummer}`)
+          taak.aanleidinggevendKlantcontact?.nummer &&
+          navigateOnRowClick($event, `/contactmoment/${taak.aanleidinggevendKlantcontact.nummer}`)
         "
       >
         <utrecht-table-cell class="ita-no-wrap">
@@ -48,12 +49,14 @@
         </utrecht-table-cell>
         <utrecht-table-cell class="details-cell">
           <router-link
-            :to="`/contactmoment/${taak?.aanleidinggevendKlantcontact?.nummer}`"
-            :aria-label="`Open contactverzoek ${taak.aanleidinggevendKlantcontact?._expand?.hadBetrokkenen?.map((x) => x.volledigeNaam).find(Boolean) || taak.aanleidinggevendKlantcontact?.onderwerp || taak.aanleidinggevendKlantcontact?.nummer || ''}`"
+            v-if="taak.aanleidinggevendKlantcontact?.nummer"
+            :to="`/contactmoment/${taak.aanleidinggevendKlantcontact.nummer}`"
+            :aria-label="`Open contactverzoek ${getKlantLabel(taak)}`"
             class="details-link"
             @click.stop
             >→</router-link
           >
+          <span v-else>-</span>
         </utrecht-table-cell>
       </utrecht-table-row>
     </utrecht-table-body>
@@ -69,4 +72,14 @@ import UrgentieBadge from "../UrgentieBadge.vue";
 defineProps<{ interneTaken: MyInterneTaakOverviewItem[] }>();
 
 const { onRowMouseDown, navigateOnRowClick } = useRowNavigation();
+
+function getKlantLabel(taak: MyInterneTaakOverviewItem): string {
+  const contact = taak.aanleidinggevendKlantcontact;
+  return (
+    contact?._expand?.hadBetrokkenen?.map((x) => x.volledigeNaam).find(Boolean) ||
+    contact?.onderwerp ||
+    contact?.nummer ||
+    ""
+  );
+}
 </script>

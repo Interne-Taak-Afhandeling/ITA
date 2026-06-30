@@ -26,9 +26,12 @@
       <utrecht-table-row
         v-for="taak in interneTaken"
         :key="taak.uuid"
-        class="clickable-row"
+        :class="{ 'clickable-row': taak.contactmomentNummer }"
         @mousedown="onRowMouseDown"
-        @click="navigateOnRowClick($event, `/contactmoment/${taak.contactmomentNummer}`)"
+        @click="
+          taak.contactmomentNummer &&
+          navigateOnRowClick($event, `/contactmoment/${taak.contactmomentNummer}`)
+        "
       >
         <utrecht-table-cell class="ita-no-wrap">
           <date-time-or-nvt :date="taak.contactDatum || taak.toegewezenOp" />
@@ -56,12 +59,14 @@
         </utrecht-table-cell>
         <utrecht-table-cell class="details-cell">
           <router-link
+            v-if="taak.contactmomentNummer"
             :to="`/contactmoment/${taak.contactmomentNummer}`"
-            :aria-label="`Open contactverzoek ${taak.klantNaam || taak.onderwerp || taak.contactmomentNummer || ''}`"
+            :aria-label="`Open contactverzoek ${taak.klantNaam || taak.onderwerp || taak.contactmomentNummer}`"
             class="details-link"
             @click.stop
             >→</router-link
           >
+          <span v-else>-</span>
         </utrecht-table-cell>
       </utrecht-table-row>
     </utrecht-table-body>

@@ -4,12 +4,11 @@ export function useRowNavigation() {
   const router = useRouter();
 
   // Track where the press started so click can tell a drag from a tap.
-  let x = 0,
-    y = 0;
+  // null = no recorded start, so skip the drag check (e.g. touch/pointer).
+  let start: { x: number; y: number } | null = null;
 
   const onRowMouseDown = (e: MouseEvent) => {
-    x = e.clientX;
-    y = e.clientY;
+    start = { x: e.clientX, y: e.clientY };
   };
 
   const navigateOnRowClick = (e: MouseEvent, path: string) => {
@@ -17,7 +16,12 @@ export function useRowNavigation() {
     if ((e.target as HTMLElement).closest("a")) return;
 
     // Skip nav if the user was drag-selecting text (pointer moved >5px).
-    if (Math.abs(e.clientX - x) > 5 || Math.abs(e.clientY - y) > 5) return;
+    if (start) {
+      const dx = Math.abs(e.clientX - start.x);
+      const dy = Math.abs(e.clientY - start.y);
+      start = null;
+      if (dx > 5 || dy > 5) return;
+    }
 
     router.push(path);
   };
