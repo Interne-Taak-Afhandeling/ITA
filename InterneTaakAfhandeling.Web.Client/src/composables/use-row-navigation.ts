@@ -13,7 +13,10 @@ export function useRowNavigation() {
 
   const navigateOnRowClick = (e: MouseEvent, path: string) => {
     // Let clicks on links behave as links, not row navigation.
-    if ((e.target as HTMLElement).closest("a")) return;
+    if ((e.target as HTMLElement).closest("a")) {
+      start = null;
+      return;
+    }
 
     // Skip nav if the user was drag-selecting text (pointer moved >5px).
     if (start) {
