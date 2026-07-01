@@ -61,8 +61,31 @@ assignees: ""
 
 ---
 
+## Feature Completion Checklist
+
+<!-- Each item is "if applicable" — skip items that don't apply, but document why. Source: docs/steering/QA.md -->
+
+- [ ] **Changelog** — An entry has been added to the top of the changelog with the feature/bug name and a link to the GitHub issue. If there are new environment variables or other upgrade-relevant changes, they are mentioned here.
+- [ ] **Manual** — Installation & configuration manual have been updated. Environment variables and anything else needed to install/run ITA are explained.
+- [ ] **Helm** — New release variables have been included in the Helm charts/values files.
+- [ ] **Readme** — README has been updated with information on how to run the applications locally.
+- [ ] **User secrets** — User secrets in 1Password have been added/updated.
+- [ ] **Decision record** — Any significant architectural or design decisions have been documented in `docs/decision-record/`.
+- [ ] **Cleanup** — Branches, test data, temporary copies of databases, files, and temporary K8S clusters have been cleaned up.
+- [ ] **UX** — Significant design changes have been checked with a UX specialist.
+- [ ] **Test documentation** — Regression test scenarios not covered by automated tests, known issues, and things deliberately not tested are documented.
+
+---
+
 ## Proposed Tasks
 
 <!-- Onderliggende taken — link issues zodra ze aangemaakt worden. -->
 
 - [ ]
+
+---
+
+## Administration
+
+Coöperatie Dimpact | Dimpact: ITA-VNGsubsidie
+Dimpact: ITA-VNGsubsidie
