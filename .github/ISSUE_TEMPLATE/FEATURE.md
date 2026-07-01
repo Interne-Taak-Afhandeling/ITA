@@ -82,3 +82,10 @@ assignees: ""
 <!-- Onderliggende taken — link issues zodra ze aangemaakt worden. -->
 
 - [ ]
+
+---
+
+## Administration
+
+Coöperatie Dimpact | Dimpact: ITA-VNGsubsidie
+Dimpact: ITA-VNGsubsidie
