@@ -1,32 +1,11 @@
-using System.Net;
+﻿using System.Net;
 using System.Text;
 
 namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
 
-public sealed class VerlopenContactverzoekHerinneringsTemplateService : IVerlopenContactverzoekHerinneringsTemplateService
+public sealed class VerlopenContactverzoekHerinneringsTemplateService
 {
-    public HerinneringsMailContent GenereerMailContent(int aantalCvs, int maxWerkdagen, bool isMedewerker, string baseUrl)
-    {
-        var werkvoorraadUrl = isMedewerker
-            ? $"{baseUrl.TrimEnd('/')}/"
-            : $"{baseUrl.TrimEnd('/')}/afdelings-contacten";
-
-        var onderwerp = aantalCvs == 1
-            ? "1 contactverzoek wacht op jou"
-            : $"{aantalCvs} contactverzoeken wachten op jou";
-
-        var htmlBody = BouwHtmlBody(aantalCvs, maxWerkdagen, werkvoorraadUrl);
-        var plainTextBody = BouwPlainTextBody(aantalCvs, maxWerkdagen, werkvoorraadUrl);
-
-        return new HerinneringsMailContent
-        {
-            Onderwerp = onderwerp,
-            HtmlBody = htmlBody,
-            PlainTextBody = plainTextBody
-        };
-    }
-
-    private static string BouwHtmlBody(int aantalCvs, int maxWerkdagen, string werkvoorraadUrl)
+    public   string GenereerMailBody(int aantalCvs, int maxWerkdagen, string werkvoorraadUrl)
     {
         var sb = new StringBuilder();
         sb.Append(@"<html>
@@ -57,21 +36,12 @@ public sealed class VerlopenContactverzoekHerinneringsTemplateService : IVerlope
         return sb.ToString();
     }
 
-    private static string BouwPlainTextBody(int aantalCvs, int maxWerkdagen, string werkvoorraadUrl)
+    public   string GenereerMailSubject(int aantalVerlopenContactVerzoeken)
     {
-        var werkdagenLabel = maxWerkdagen == 1 ? "werkdag" : "werkdagen";
-        return $"""
-Beste collega,
+       return aantalVerlopenContactVerzoeken == 1
+                ? "1 contactverzoek wacht op jou"
+                : $"{aantalVerlopenContactVerzoeken} contactverzoeken wachten op jou";
 
-Er staan {aantalCvs} contactverzoeken open die al verlopen zijn. Het langstlopende contactverzoek staat al {maxWerkdagen} {werkdagenLabel} open.
-
-Inwoners waarderen een snelle afhandeling van hun verzoeken.
-
-Neem contact op en handel deze contactverzoeken af.
-
-Ga naar je werkvoorraad: {werkvoorraadUrl}
-
-Fijne werkdag
-""";
     }
+
 }
