@@ -92,15 +92,7 @@ A Feature is only considered **fully complete** when both phases are done:
 
 In addition to the two verification phases, every Feature must satisfy these items before it can be closed. Each item is "if applicable" — skip items that don't apply to the Feature, but document why.
 
-- [ ] **Changelog** — An entry has been added to the top of the changelog with the feature/bug name and a link to the GitHub issue. If there are new environment variables or other upgrade-relevant changes, they are mentioned here.
-- [ ] **Manual** — Installation & configuration manual have been updated. Environment variables and anything else needed to install/run ITA are explained.
-- [ ] **Helm** — New release variables have been included in the Helm charts/values files.
-- [ ] **Readme** — README has been updated with information on how to run the applications locally.
-- [ ] **User secrets** — User secrets in 1Password have been added/updated.
-- [ ] **Decision record** — Any significant architectural or design decisions have been documented in `docs/decision-record/`.
-- [ ] **Cleanup** — Branches, test data, temporary copies of databases, files, and temporary K8S clusters have been cleaned up.
-- [ ] **UX** — Significant design changes have been checked with a UX specialist.
-- [ ] **Test documentation** — Regression test scenarios not covered by automated tests, known issues, and things deliberately not tested are documented.
+This checklist is maintained in the [Feature issue template](/.github/ISSUE_TEMPLATE/FEATURE.md) and appears on every Feature automatically. See that template for the full list.
 
 ---
 
@@ -123,10 +115,7 @@ Every Gherkin scenario from a Task issue must map to at least one Playwright E2E
 
 Tasks are reviewed and merged into the feature branch. E2E testing happens at feature level in Phase 2.
 
-- [ ] Linting passes (`npm run lint:ci`)
-- [ ] Formatting passes (`npm run format:ci`)
-- [ ] PR approved by at least one reviewer
-- [ ] No unrelated changes or scope creep
+This checklist is maintained in the [Task issue template](/.github/ISSUE_TEMPLATE/TASK.md) and appears on every Task automatically. See that template for the full list.
 
 ### Feature-level DoD — Phase 1 (feature PR → main)
 
