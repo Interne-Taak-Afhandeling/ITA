@@ -25,8 +25,7 @@
 
       <utrecht-table-row
         v-for="taak in interneTaken"
-        :key="taak.uuid"
-        :class="{ 'clickable-row': taak.contactmomentNummer }"
+        :key="taak.uuid"       
         @mousedown="onRowMouseDown"
         @click="
           taak.contactmomentNummer &&

@@ -21,8 +21,7 @@
 
       <utrecht-table-row
         v-for="taak in interneTaken"
-        :key="taak.uuid"
-        :class="{ 'clickable-row': taak.aanleidinggevendKlantcontact?.nummer }"
+        :key="taak.uuid"      
         @mousedown="onRowMouseDown"
         @click="
           taak.aanleidinggevendKlantcontact?.nummer &&
