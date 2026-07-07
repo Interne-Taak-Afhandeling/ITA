@@ -13,8 +13,7 @@ public class UrgentieBerekenService(
     {
         if (contactDatum is null)
         {
-            _logger.LogWarning("Urgentieberekening overgeslagen: ContactDatum is null");
-            return null;
+           return null;
         }
 
         var afhandeltermijn = TimeSpan.FromHours(_options.AfhandeltermijnUren);
