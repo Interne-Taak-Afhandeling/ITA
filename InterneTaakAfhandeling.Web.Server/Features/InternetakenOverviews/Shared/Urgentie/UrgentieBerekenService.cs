@@ -47,23 +47,13 @@ public class UrgentieBerekenService(
             ? Math.Ceiling(resterendeWerkdagUren)
             : -Math.Ceiling(Math.Abs(resterendeWerkdagUren));
 
-        if (uren > 0)
+        return uren switch
         {
-            if (uren > 48)
-            {
-                var days = (int)Math.Ceiling(uren / 24);
-                return $"nog {days}d";
-            }
-            return $"nog {uren}u";
-        }
-
-        var verlopenUren = Math.Abs(uren);
-        if (verlopenUren > 48)
-        {
-            var days = (int)Math.Ceiling(verlopenUren / 24);
-            return $"{days}d verlopen";
-        }
-        return $"{verlopenUren}u verlopen";
+            > 48  => $"nog {(int)Math.Ceiling(uren / 24)}d",
+            > 0   => $"nog {uren}u",
+            < -48 => $"{(int)Math.Ceiling(Math.Abs(uren) / 24)}d verlopen",
+            _     => $"{Math.Abs(uren)}u verlopen"
+        };
     }
 
     /// <summary>
