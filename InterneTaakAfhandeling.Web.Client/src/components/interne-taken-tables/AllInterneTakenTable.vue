@@ -77,26 +77,11 @@
 import { useRowNavigation } from "@/composables/use-row-navigation";
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
 import UrgentieBadge from "../UrgentieBadge.vue";
-import type { UrgentieInfo } from "@/types/internetaken";
+  import type { UrgentieInfo, InterneTaakOverviewItem } from "@/types/internetaken";
 
 defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
 
 const { onRowMouseDown, navigateOnRowClick } = useRowNavigation();
 
-export interface InterneTaakOverviewItem {
-  uuid: string;
-  nummer: string;
-  gevraagdeHandeling: string;
-  status: string;
-  toegewezenOp: string;
-  afgehandeldOp?: string;
-  onderwerp?: string;
-  klantNaam?: string;
-  contactDatum?: string;
-  afdelingNaam?: string;
-  behandelaarNaam?: string;
-  heeftBehandelaar: boolean;
-  contactmomentNummer?: string;
-  urgentie?: UrgentieInfo | null;
-}
+
 </script>

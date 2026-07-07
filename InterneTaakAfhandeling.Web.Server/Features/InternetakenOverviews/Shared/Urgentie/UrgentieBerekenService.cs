@@ -32,16 +32,38 @@ public class UrgentieBerekenService(
         {
             Status = status switch
             {
-                UrgentieStatus.BinnenTermijn => "binnen_termijn",
-                UrgentieStatus.BijnaVerlopen => "bijna_verlopen",
-                UrgentieStatus.Verlopen => "verlopen",
-                _ => "binnen_termijn"
+                UrgentieStatus.BinnenTermijn => "succes",
+                UrgentieStatus.BijnaVerlopen => "warning",
+                UrgentieStatus.Verlopen => "error",
+                _ => ""
             },
-            Streefdatum = streefdatum,
-            ResterendeUren = resterendeWerkdagUren >= 0
-                ? Math.Ceiling(resterendeWerkdagUren)
-                : -Math.Ceiling(Math.Abs(resterendeWerkdagUren))
+            Label = BuildLabel(resterendeWerkdagUren)
         };
+    }
+
+    private static string BuildLabel(double resterendeWerkdagUren)
+    {
+        var uren = resterendeWerkdagUren >= 0
+            ? Math.Ceiling(resterendeWerkdagUren)
+            : -Math.Ceiling(Math.Abs(resterendeWerkdagUren));
+
+        if (uren > 0)
+        {
+            if (uren > 48)
+            {
+                var days = (int)Math.Ceiling(uren / 24);
+                return $"nog {days}d";
+            }
+            return $"nog {uren}u";
+        }
+
+        var verlopenUren = Math.Abs(uren);
+        if (verlopenUren > 48)
+        {
+            var days = (int)Math.Ceiling(verlopenUren / 24);
+            return $"{days}d verlopen";
+        }
+        return $"{verlopenUren}u verlopen";
     }
 
     /// <summary>

@@ -1,6 +1,6 @@
 <template>
-  <utrecht-badge-status v-if="urgentie" :status="badgeStatus">
-    {{ label }}
+  <utrecht-badge-status v-if="urgentie" :status="urgentie.status">
+    {{ urgentie.label }}
   </utrecht-badge-status>
 </template>
 
@@ -11,40 +11,7 @@ import type { UrgentieInfo } from "@/types/internetaken";
 
 const props = defineProps<{ urgentie: UrgentieInfo | null | undefined }>();
 
-const badgeStatus = computed(() => {
-  switch (props.urgentie?.status) {
-    case "binnen_termijn":
-      return "success";
-    case "bijna_verlopen":
-      return "warning";
-    case "verlopen":
-      return "error";
-    default:
-      return undefined;
-  }
-});
 
-const label = computed(() => {
-  if (!props.urgentie) return "";
-
-  const uren = props.urgentie.resterendeUren;
-
-  if (uren > 0) {
-    if (uren > 48) {
-      const days = Math.ceil(uren / 24);
-      return `nog ${days}d`;
-    }
-    return `nog ${uren}u`;
-  }
-
-  const verlopenUren = Math.abs(uren);
-  if (verlopenUren === 0) return "<1u verlopen";
-  if (verlopenUren > 48) {
-    const days = Math.ceil(verlopenUren / 24);
-    return `${days}d verlopen`;
-  }
-  return `${verlopenUren}u verlopen`;
-});
 </script>
 
 <style lang="scss" scoped>
