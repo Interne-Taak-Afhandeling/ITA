@@ -8,11 +8,11 @@ using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe;
 using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.MedewerkersOverzicht;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
+using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllInternetakenOverview;
+using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInternetakenOverview;
+using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
-using InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
 using InterneTaakAfhandeling.Web.Server.Features.ReopenContactRequest;
-using InterneTaakAfhandeling.Web.Server.Features.Urgentie;
 using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Guards;
@@ -53,7 +53,6 @@ namespace InterneTaakAfhandeling.Web.Server.Config
 
 
             services.AddITAApiClients(configuration);
-            services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
             services.AddScoped<IInternetaakService, InternetaakDetailsService>();
             services.AddScoped<IContactmomentenService, ContactmomentenService>();

@@ -1,4 +1,4 @@
-namespace InterneTaakAfhandeling.Web.Server.Features.Urgentie;
+﻿namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
 public enum UrgentieStatus
 {

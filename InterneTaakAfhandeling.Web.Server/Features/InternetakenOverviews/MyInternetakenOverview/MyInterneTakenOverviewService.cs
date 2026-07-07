@@ -1,11 +1,11 @@
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
-using InterneTaakAfhandeling.Web.Server.Features.Urgentie;
+using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
+namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInternetakenOverview
 {
     public interface IMyInterneTakenOverviewService
     {
@@ -32,7 +32,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
                     var query = new InterneTaakQuery
                     {
                         ToegewezenAanActor__Uuid = Guid.Parse(actorId),
-                        Status = (afgerond == true) ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken
+                        Status = afgerond ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken
                     };
                     return _openKlantApiClient.QueryInterneTakenAsync(query);
                 });

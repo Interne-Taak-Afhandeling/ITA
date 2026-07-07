@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.Urgentie;
+namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
 public class UrgentieBerekenService(
     IOptions<UrgentieOptions> options,

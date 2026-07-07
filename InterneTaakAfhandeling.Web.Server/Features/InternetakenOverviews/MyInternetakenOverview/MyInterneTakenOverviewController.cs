@@ -1,8 +1,8 @@
-using InterneTaakAfhandeling.Web.Server.Authentication;
+﻿using InterneTaakAfhandeling.Web.Server.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
+namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInternetakenOverview
 {
     [Route("api/internetaken")]
     [ApiController]

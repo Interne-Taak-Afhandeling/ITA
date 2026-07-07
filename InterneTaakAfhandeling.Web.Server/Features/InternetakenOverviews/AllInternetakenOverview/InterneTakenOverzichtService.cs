@@ -1,13 +1,12 @@
 ﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Features.Urgentie;
-using System;
+using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
+namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllInternetakenOverview
 {
     public interface IInterneTakenOverzichtService
     {
-        Task<InterneTakenOverzichtResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTaakQuery);
+        Task<InterneTakenOverviewResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTaakQuery);
     }
 
     public class InterneTakenOverzichtService : IInterneTakenOverzichtService
@@ -26,14 +25,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<InterneTakenOverzichtResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery)
+        public async Task<InterneTakenOverviewResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery)
         {                   
-            var internetakenResponse = await _openKlantApiClient.GetAllInternetakenAsync(interneTakenQuery);
+            var internetakenResponse = await _openKlantApiClient.GetInternetakenPaginatedAsync(interneTakenQuery);
 
             var OverzichtItems = (await Task.WhenAll(internetakenResponse.Results
                 .Select(ExtendAndMapInternetaakToOverzichtItemAsync))).ToList();
 
-            return new InterneTakenOverzichtResponse
+            return new InterneTakenOverviewResponse
             {
                 Count = internetakenResponse.Count,
                 Next = internetakenResponse.Next,
@@ -42,9 +41,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
             };
         }
 
-        private async Task<InterneTaakOverzichtItem> ExtendAndMapInternetaakToOverzichtItemAsync(Internetaak internetaak)
+        private async Task<InterneTaakOverviewItem> ExtendAndMapInternetaakToOverzichtItemAsync(Internetaak internetaak)
         {
-            var item = new InterneTaakOverzichtItem
+            var item = new InterneTaakOverviewItem
             {
                 Uuid = internetaak.Uuid,
                 Nummer = internetaak.Nummer,
@@ -66,7 +65,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
             return item;
         }
 
-        private async Task LoadKlantcontactInfoAsync(Guid aanleidinggevendKlantcontactUuid, InterneTaakOverzichtItem item)
+        private async Task LoadKlantcontactInfoAsync(Guid aanleidinggevendKlantcontactUuid, InterneTaakOverviewItem item)
         {
             if (aanleidinggevendKlantcontactUuid == default)
                 return;
@@ -89,7 +88,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht
             }
         }
 
-        private async Task LoadActorInfoAsync(Internetaak internetaak, InterneTaakOverzichtItem item)
+        private async Task LoadActorInfoAsync(Internetaak internetaak, InterneTaakOverviewItem item)
         {
             if (internetaak.ToegewezenAanActoren?.Any() != true)
                 return;

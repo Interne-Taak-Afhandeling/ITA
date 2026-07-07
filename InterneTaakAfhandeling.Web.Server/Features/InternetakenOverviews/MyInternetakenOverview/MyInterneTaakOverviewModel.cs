@@ -1,7 +1,7 @@
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Features.Urgentie;
+﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview;
+namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInternetakenOverview;
 
 public class MyInterneTaakOverviewItem
 {
