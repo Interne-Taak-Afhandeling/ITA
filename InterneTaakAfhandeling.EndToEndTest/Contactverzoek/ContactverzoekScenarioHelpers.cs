@@ -1,5 +1,7 @@
 using System.Globalization;
+using System.Net.Http;
 using System.Text.RegularExpressions;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using ITA.InterneTaakAfhandeling.EndToEndTest.Helpers;
 using Microsoft.Playwright;
@@ -14,14 +16,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Setup test data via API");
             var uuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak);
-            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
-            return uuid;
-        }
-
-        private async Task<Guid> SetupContactverzoek(string onderwerp, bool attachZaak, string internetaakNummer)
-        {
-            await Step("Setup test data via API");
-            var uuid = await TestDataHelper.CreateContactverzoek(onderwerp, attachZaak, internetaakNummer);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
             return uuid;
         }
@@ -43,6 +37,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             if (await toewijzenButton.IsVisibleAsync())
             {
                 await toewijzenButton.ClickAsync();
+                await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
                 await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
                 await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
             }
@@ -58,9 +53,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await VerifyInternetaakStatusInOpenKlant(internetaakUuid.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
         }
 
-        private async Task<(Guid internetaakUuid, string internetaakNummer)> SetupAndResolveContactverzoek(string onderwerp, string internetaakNummer)
+        private async Task<(Guid internetaakUuid, string internetaakNummer)> SetupAndResolveContactverzoek(string onderwerp)
         {
-            var contactmomentUuid = await SetupContactverzoek(onderwerp, attachZaak: false, internetaakNummer: internetaakNummer);
+            var contactmomentUuid = await SetupContactverzoek(onderwerp, attachZaak: false);
             var internetaakUuid = await TestDataHelper.GetInternetaakUuidFromContactmomentAsync(contactmomentUuid);
             Assert.IsNotNull(internetaakUuid, "Internetaak UUID should be found");
 
@@ -79,13 +74,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             if (await toewijzenButton.IsVisibleAsync())
             {
                 await toewijzenButton.ClickAsync();
+                await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
                 await Page.GetToewijzenAanMezelfDialogButton().ClickAsync();
                 await Expect(Page.GetContactverzoekToegewezenMessage()).ToBeVisibleAsync();
             }
 
             await NavigateToContactmomentRegistrerenTab();
             await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Page.Locator("#kanalen").SelectOptionAsync(new[] { kanaal });
             await Page.Locator("#informatie-burger").FillAsync(informatie);
@@ -93,7 +88,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetContactmomentOpslaanButton().ClickAsync();
             await Expect(Page.GetByRole(AriaRole.Dialog)).ToBeVisibleAsync();
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         }
 
         private async Task SafeGotoAsync(string url)
@@ -128,51 +122,52 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Navigate to home page");
             await SafeGotoAsync("/");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step($"Click on contactverzoek '{onderwerp}'");
             var detailsLink = Page.GetDetailsLink(onderwerp);
             await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
             await detailsLink.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            // Wait for detail page to fully render (tab proves the SPA route loaded)
+            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
         }
 
         private async Task NavigateToContactverzoekByNummer(string internetaakNummer)
         {
             await Step($"Navigate to contactverzoek by nummer: {internetaakNummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaakNummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // Heading now shows AanleidinggevendKlantcontact.Nummer (contactmoment number), not the
             // interne-taaknummer. Use the action tab as a reliable page-loaded indicator instead.
-            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
         }
 
         private async Task NavigateToVerwerktContactverzoekByNummer(string internetaakNummer)
         {
             await Step($"Navigate to verwerkt contactverzoek by nummer: {internetaakNummer}");
             await SafeGotoAsync($"/contactverzoek/{internetaakNummer}");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             // Verwerkt contactverzoeken hide the action tabs; wait for the afgehandeld message instead.
-            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync();
         }
 
         private async Task NavigateToContactmomentRegistrerenTab()
         {
             await Step("Navigate to Contactmoment Registreren tab");
             await Page.GetContactmomentRegistrerenTab().ClickAsync();
+            // Wait for tab panel content to render (radio button proves panel loaded)
+            await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeVisibleAsync();
         }
 
         private async Task NavigateToAfdelingshistorieAndSelectOrganisatorischeEenheid(string organisatorischeEenheidNaam)
         {
             await Step("Navigate to Afdelingshistorie");
             await SafeGotoAsync("/");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetByRole(AriaRole.Link, new() { Name = "Afdelingshistorie", Exact = true }).ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var afdelingshistorieLink = Page.GetByRole(AriaRole.Link, new() { Name = "Afdelingshistorie", Exact = true });
+            await afdelingshistorieLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await afdelingshistorieLink.ClickAsync();
 
             await Step($"Select department '{organisatorischeEenheidNaam}' from dropdown");
-            await Page.GetByLabel("Selecteer een afdeling of").SelectOptionAsync(new[] { organisatorischeEenheidNaam });
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            var dropdown = Page.GetByLabel("Selecteer een afdeling of");
+            await dropdown.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await dropdown.SelectOptionAsync(new[] { organisatorischeEenheidNaam });
         }
 
         // Verification Helpers
@@ -180,7 +175,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task VerifyBasicContactverzoekFields(string onderwerp)
         {
             await Step("Verify contactverzoek is visible");
-            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync(new() { Timeout = 10000 });
+            await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
 
             await Step("Verify contact information fields");
             await Expect(Page.GetKlantnaamLabel()).ToBeVisibleAsync();
@@ -197,17 +192,20 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetVraagValue(onderwerp)).ToHaveTextAsync(onderwerp);
 
             await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            await Page.GetInformatieVoorBurgerValue().WaitForAsync(new() { State = WaitForSelectorState.Visible });
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            // The "Informatie voor burger" field loads from a nested API call
+            // (internetaak → aanleidinggevendKlantcontact.inhoud). In CI, this
+            // external API call can be slow.
             await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(
-                "This is a test contact request created during an end-to-end test run.", new() { Timeout = 40000 });
+                "This is a test contact request created during an end-to-end test run.");
         }
 
         private async Task VerifyZaakIsVisible(string zaakIdentificatie)
         {
             await Step($"Verify ZAAK '{zaakIdentificatie}' is visible");
-            await Expect(Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie })).ToBeVisibleAsync(new() { Timeout = 10000 });
+            var zaakLocator = Page.Locator("dd.utrecht-data-list__item-value").Filter(new() { HasText = zaakIdentificatie });
+            // Zaak details are fetched from the external Zaken API. In CI, this
+            // call can silently fail or be slow.
+            await Expect(zaakLocator).ToBeVisibleAsync();
         }
 
         private async Task VerifyActionTabsArePresent()
@@ -272,7 +270,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Navigate to History tab (Mijn historie)");
             await SafeGotoAsync("/historie");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("Verify both closed contact requests are displayed in the history tab");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
@@ -325,7 +322,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         {
             await Step("Verify validation: Afsluiten question is required");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             var radioButton = Page.Locator("input[type='radio'][name*='afsluiten']").First;
             await Expect(radioButton).ToHaveJSPropertyAsync("validity.valueMissing", true);
 
@@ -365,9 +361,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Verify success message");
             await Expect(Page.GetByText("Contactmoment succesvol bijgewerkt")).ToBeVisibleAsync();
 
-            await Step("Wait and refresh to load Logboek");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
             await Step($"Verify '{logboekText}' is displayed in Logboek");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" })).ToBeVisibleAsync();
             await Expect(Page.GetByText(logboekText)).ToBeVisibleAsync();
@@ -383,14 +376,24 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task VerifyInternetaakStatusInOpenKlant(Guid internetaakUuid, string expectedStatus, bool shouldHaveAfgehandeldOp = false)
         {
             await Step($"Verify status in OpenKlant is '{expectedStatus}'");
-            var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid);
+            Internetaak? internetaak = null;
             var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
 
-            while ((internetaak.Status != expectedStatus || (shouldHaveAfgehandeldOp && internetaak.AfgehandeldOp == null))
-                   && DateTimeOffset.UtcNow < deadline)
+            while (DateTimeOffset.UtcNow < deadline)
             {
+                try
+                {
+                    internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid);
+                    if (internetaak.Status == expectedStatus && (!shouldHaveAfgehandeldOp || internetaak.AfgehandeldOp != null))
+                    {
+                        break;
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    // Transient 404 — the backend may still be processing. Retry.
+                }
                 await Task.Delay(1000);
-                internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid);
             }
 
             Assert.IsNotNull(internetaak, "Internetaak should exist in OpenKlant");

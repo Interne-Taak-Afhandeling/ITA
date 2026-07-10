@@ -4,25 +4,25 @@ using InterneTaakAfhandeling.Web.Server.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.AfdelingenGroepenOverzicht;
+namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllInternetakenOverview.AfdelingenGroepenOverzicht;
 
 [Route("api/internetaken")]
 [ApiController]
 [Authorize(Policy = ITAPolicy.Name)]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
-public class AfdelingenGroepenOverzichtController(
+public class InterneTakenForAfdelingOrGroepController(
     IInterneTakenOverzichtService interneTakenOverzichtService,
-    ILogger<AfdelingenGroepenOverzichtController> logger)
+    ILogger<InterneTakenForAfdelingOrGroepController> logger)
     : Controller
 {
     private readonly IInterneTakenOverzichtService _interneTakenOverzichtService = interneTakenOverzichtService ??
         throw new ArgumentNullException(nameof(interneTakenOverzichtService));
 
-    private readonly ILogger<AfdelingenGroepenOverzichtController> _logger =
+    private readonly ILogger<InterneTakenForAfdelingOrGroepController> _logger =
         logger ?? throw new ArgumentNullException(nameof(logger));
 
-    [ProducesResponseType(typeof(InterneTakenOverzichtResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(InterneTakenOverviewResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [HttpGet("afdelingen-groepen")]
     public async Task<IActionResult> GetAfdelingenGroepenOverzicht(
@@ -59,7 +59,7 @@ public class AfdelingenGroepenOverzichtController(
     }
 }
 
-public class AfdelingenGroepenOverzichtQuery : InterneTakenOverzichtQueryParameters
+public class AfdelingenGroepenOverzichtQuery : InterneTakenOverviewQueryParameters
 {
     public required string NaamActor { get; set; }
     public bool Afgerond { get; set; }

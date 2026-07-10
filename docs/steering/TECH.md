@@ -137,8 +137,8 @@ npm run format:ci    # Prettier check without writing
 - **Nullable:** Enabled project-wide — no suppression without justification
 - **Feature structure:**
   - `{Feature}Controller.cs` — API endpoint (inherits `ControllerBase`)
-  - `I{Feature}Service.cs` + `{Feature}Service.cs` — Business logic
-  - `{Feature}Model.cs` — Request/response DTOs
+  - Additional Service (`I{Feature}Service.cs` + `{Feature}Service.cs`) and Model classes can be added as needed to keep the feature organized and clean.
+- **Controller vs Service responsibility:** In a vertical slice architecture each feature decides what fits best. As a general guideline: services own domain logic (fetching, orchestrating, validating), while presentation mapping (e.g. `ToResponse`-style DTO transformations) often fits naturally in the controller. Neither placement is wrong — choose what keeps the feature simple and readable.
 - **Routing:** `[Route("api/{resource}")]`, lowercase URLs
 - **DI registration:** All services in `Config/ServiceCollectionExtensions.cs` as `AddScoped`
 
@@ -214,6 +214,7 @@ ITA is a Dutch government application and MUST comply with **WCAG 2.2 level AA**
 | Services | Service modules in `src/services/` MUST expose typed functions that return `Promise<T>` with explicit TypeScript types from `src/types/` |
 | Composables | MUST follow the `use-*.ts` naming convention in `src/composables/` |
 | Pattern reuse | When a new view requires behavioral logic similar to an existing view (e.g., pagination, state caching), the new view MUST reuse existing composables rather than reimplementing equivalent logic. If the existing composable does not fit, extend it or create a new composable after evaluation |
+| Refactor on touch | When adding to or modifying an existing component or service, evaluate whether the current structure is still appropriate — don't just follow the existing pattern. If the code has grown in complexity or responsibility since it was first written, consider whether a refactor would keep it clean and maintainable before adding more. Improvement is not limited to the lines being changed. |
 | Route definitions | MUST include `meta.title` and `meta.requiresITAAccess` (or `meta.requiresAuth` / `meta.requiresFunctioneelBeheerderAccess`) for authorization enforcement and page-title rendering |
 
 **Rationale:** Consistent use of NL Design System tokens ensures accessibility, government branding compliance (Digitoegankelijk), and a uniform user experience across all views.

@@ -79,13 +79,13 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         }
 
-        private const string StoragePath = "./auth.json";
+        internal const string AuthStatePath = "./auth.json";
 
 
         /// <summary>
         /// Detects if tests are running locally (not in CI/CD)
         /// </summary>
-        private static bool IsRunningLocally()
+        internal static bool IsRunningLocally()
         {
             // Check common CI environment variables
             var ciEnvironments = new[]
@@ -110,8 +110,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 .Build();
         }
 
-        // Initialize UniqueOtpHelper if TOTP secret is available
-        private static readonly UniqueOtpHelper? s_uniqueOtpHelper = CreateOtpHelperIfConfigured();
+        // Initialize UniqueOtpHelper if TOTP secret is available (internal so GlobalSetup can share it)
+        internal static readonly UniqueOtpHelper? s_uniqueOtpHelper = CreateOtpHelperIfConfigured();
         // this is used to build afdelingOptions test report 
 
         private static readonly ConcurrentDictionary<string, string> s_testReports = [];
@@ -122,15 +122,31 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         private readonly List<Func<Task>> _cleanupActions = [];
         protected static Microsoft.Extensions.Configuration.IConfiguration Configuration => s_configuration;
         /// <summary>
-        /// This is run before each test
+        /// Runs before each test. By default only starts tracing (authentication is handled
+        /// once at assembly level via <see cref="GlobalSetup"/>).
+        /// <para>
+        /// <b>Override for a different user role:</b><br/>
+        /// In your test class, override this method and call <see cref="HandleAuthenticationAsync"/>
+        /// with alternate credentials before calling <c>base.TestInitialize()</c>:
+        /// <code>
+        /// [TestInitialize]
+        /// public override async Task TestInitialize()
+        /// {
+        ///     await HandleAuthenticationAsync("other-user@example.com", "password");
+        ///     await base.TestInitialize();
+        /// }
+        /// </code>
+        /// </para>
         /// </summary>
-        /// <returns></returns>
         [TestInitialize]
         public virtual async Task TestInitialize()
         {
-            // Handle Azure AD authentication if credentials are configured
-            await HandleAuthenticationAsync();
-            // start tracing (after authentication to keep credentials out of traces)
+            // Ensure Expect timeout is always applied (30s), regardless of .runsettings file discovery.
+            // This accommodates slower CI runners and external API latency where detail pages
+            // fetch data from multiple external APIs before rendering.
+            SetDefaultExpectTimeout(30_000);
+
+            // start tracing (authentication is pre-loaded via StorageStatePath in ContextOptions)
             await Context.Tracing.StartAsync(new()
             {
                 Title = $"{TestContext.FullyQualifiedTestClassName}.{TestContext.TestName}",
@@ -525,25 +541,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
             return value;
         }
-        [TestInitialize]
-        public async Task TestInitializeWithAuth()
-        {
-            // Clear any existing auth state to force fresh login every time
-            if (File.Exists(StoragePath))
-            {
-                File.Delete(StoragePath);
-            }
-            await HandleAuthenticationAsync();
-        }
         public override BrowserNewContextOptions ContextOptions()
         {
             var baseUrl = s_configuration["TestSettings:TEST_BASE_URL"];
             return new(base.ContextOptions())
             {
-                BaseURL = baseUrl ?? "https://ita.test.icatt.nl", // Default fallback
-                // Don't reuse auth state - force fresh login every time to see the login flow
-                StorageStatePath = null,
+                BaseURL = baseUrl ?? "https://ita.test.icatt.nl",
                 ViewportSize = new() { Width = 1920, Height = 1080 },
+                StorageStatePath = File.Exists(AuthStatePath) ? AuthStatePath : null,
             };
         }
         protected void RegisterCleanup(Func<Task> cleanupFunc)
@@ -555,18 +560,21 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var totpSecret = s_configuration["TestSettings:TEST_TOTP_SECRET"];
             return string.IsNullOrEmpty(totpSecret) ? null : new UniqueOtpHelper(totpSecret);
         }
-        private async Task HandleAuthenticationAsync()
+        /// <summary>
+        /// Performs Azure AD authentication on the current page.
+        /// Called automatically by <see cref="GlobalSetup"/> for the default user.
+        /// Call from an overridden <see cref="TestInitialize"/> to log in as a different user.
+        /// </summary>
+        protected async Task HandleAuthenticationAsync(string? username = null, string? password = null)
         {
-            var username = s_configuration["TestSettings:TEST_USERNAME"];
-            var password = s_configuration["TestSettings:TEST_PASSWORD"];
-            // If no credentials are configured, skip authentication
+            username ??= s_configuration["TestSettings:TEST_USERNAME"];
+            password ??= s_configuration["TestSettings:TEST_PASSWORD"];
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 return;
             }
             try
             {
-                // Create login helper and perform fresh login every time
                 var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper ?? throw new InvalidOperationException("TOTP helper not initialized"));
                 await loginHelper.LoginAsync();
             }

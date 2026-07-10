@@ -23,7 +23,7 @@ public interface IOpenKlantApiClient
 
     Task<InternetakenResponse?> GetInternetakenAsync(string path);
     Task<Internetaak> GetInternetaakByIdAsync(Guid uuid);
-    Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query);
+    Task<InternetakenResponse> GetInternetakenPaginatedAsync(InterneTaakQuery query);
     Task<Internetaak> CreateInterneTaak(InternetaakPostRequest internetaakPostRequest);
     Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters);
     Task<Internetaak> PatchInternetaakStatusAsync(InternetakenPatchStatusRequest internetakenUpdateRequest, string uuid);
@@ -560,7 +560,7 @@ public partial class OpenKlantApiClient(
         }
     }
 
-    public async Task<InternetakenResponse> GetAllInternetakenAsync(InterneTaakQuery query)
+    public async Task<InternetakenResponse> GetInternetakenPaginatedAsync(InterneTaakQuery query)
     {
         var queryString = query.BuildQueryString();
         var response = await _httpClient.GetAsync($"/klantinteracties/api/v1/internetaken?{queryString}");

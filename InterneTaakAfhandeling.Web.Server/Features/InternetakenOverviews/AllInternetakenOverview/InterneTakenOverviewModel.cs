@@ -1,10 +1,11 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht;
+namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllInternetakenOverview;
 
 
 
-public class InterneTakenOverzichtQueryParameters
+public class InterneTakenOverviewQueryParameters
 {
     [Range(1, 100)]
     public int Page { get; set; } = 1;
@@ -14,18 +15,16 @@ public class InterneTakenOverzichtQueryParameters
 
 }
 
-public class InterneTakenOverzichtResponse
+public class InterneTakenOverviewResponse
 {
     public int Count { get; init; }
     public string? Next { get; init; }
     public string? Previous { get; init; }
-    public List<InterneTaakOverzichtItem> Results { get; init; } = [];
+    public List<InterneTaakOverviewItem> Results { get; init; } = [];
 }
 
-public class InterneTaakOverzichtItem
+public class InterneTaakOverviewItem
 {
-
-
     public string Uuid { get; set; } = string.Empty;
     public string? Nummer { get; set; } = string.Empty;
     public string? GevraagdeHandeling { get; set; } = string.Empty;
@@ -42,4 +41,6 @@ public class InterneTaakOverzichtItem
     public string? BehandelaarNaam { get; set; }
 
     public string? ContactmomentNummer { get; set; }
+
+    public UrgentieInfo? Urgentie { get; set; }
 }

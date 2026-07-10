@@ -4,7 +4,7 @@ using InterneTaakAfhandeling.Web.Server.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.AlleOverzicht
+namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllInternetakenOverview.AlleOverzicht
 {
     [Route("api/internetaken")]
     [ApiController]
@@ -19,10 +19,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.AlleO
         private readonly IInterneTakenOverzichtService _interneTakenOverzichtService = interneTakenOverzichtService ?? throw new ArgumentNullException(nameof(interneTakenOverzichtService));
         private readonly ILogger<AlleOverzichtController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        [ProducesResponseType(typeof(InterneTakenOverzichtResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(InterneTakenOverviewResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [HttpGet]
-        public async Task<IActionResult> GetAlleOverzicht([FromQuery] InterneTakenOverzichtQueryParameters queryParameters)
+        public async Task<IActionResult> GetAlleOverzicht([FromQuery] InterneTakenOverviewQueryParameters queryParameters)
         {
             try
             {
@@ -54,7 +54,4 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTakenOverzicht.AlleO
             }
         }
     }
-
-
-  
 }

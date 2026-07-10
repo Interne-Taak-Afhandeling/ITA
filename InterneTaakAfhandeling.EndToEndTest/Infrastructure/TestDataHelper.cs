@@ -1,4 +1,4 @@
-﻿using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Extensions;
 using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
@@ -9,6 +9,7 @@ using InterneTaakAfhandeling.Common.Services.Zgw;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 {
@@ -17,6 +18,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         private OpenKlantApiClient OpenKlantApiClient { get; }
         private ObjectApiClient ObjectApiClient { get; }
         private ZakenApiClient ZakenApiClient { get; }
+        private HttpClient OpenKlantHttpClient { get; }
         private string Username { get; }
         private ILogger<TestDataHelper> Logger { get; }
 
@@ -40,11 +42,19 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             Logger = loggerFactory.CreateLogger<TestDataHelper>();
 
             OpenKlantApiClient = CreateOpenKlantApiClient(openKlantBaseUrl, openKlantApiKey, loggerFactory);
+            OpenKlantHttpClient = CreateOpenKlantHttpClient(openKlantBaseUrl, openKlantApiKey);
             ObjectApiClient = CreateObjectApiClient(objectenApiBaseUrl, objectenApiKey, loggerFactory, l, a, g, m);
             ZakenApiClient = CreateZakenApiClient(zakenApiBaseUrl, zakenApiKey, zakenApiClientId, loggerFactory);
         }
 
         // Client Creation
+
+        private static HttpClient CreateOpenKlantHttpClient(string baseUrl, string apiKey)
+        {
+            var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", apiKey);
+            return httpClient;
+        }
 
         private static OpenKlantApiClient CreateOpenKlantApiClient(
             string baseUrl, 
@@ -91,16 +101,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public async Task<Guid> CreateContactverzoek(
             string onderwerp, 
-            bool attachZaak = true,
-            string? internetaakNummer = null)
+            bool attachZaak = true)
         {
-            var contactverzoekNummer = internetaakNummer ?? (attachZaak
-                ? TestDataConstants.ContactverzoekNummers.WithZaak
-                : TestDataConstants.ContactverzoekNummers.WithoutZaak);
+            var contactverzoekNummer = GenerateUniqueInternetaakNummer();
 
-            var contactmoment = await GetOrCreateContactmoment(
+            var contactmoment = await CreateContactmoment(
                 onderwerp, 
-                "This is a test contact request created during an end-to-end test run.");
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
 
             var submitterActor = await GetOrCreateSubmitterActor();
             
@@ -110,15 +118,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             
             var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
 
-            await CreateInternetaakIfNotExists(
+            await CreateInternetaak(
                 contactverzoekNummer,
                 contactmoment.Uuid,
                 new List<Guid> 
                 { 
                     Guid.Parse(medewerkerActor.Uuid), 
                     Guid.Parse(afdelingActor.Uuid) 
-                },
-                isExplicitNummer: internetaakNummer != null);
+                });
 
             if (attachZaak)
             {
@@ -128,13 +135,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return contactmoment.Uuid;
         }
 
-        public async Task<Guid> CreateContactverzoekWithAfdelingMedewerkerAndPartij(
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingMedewerkerAndPartij(
             string onderwerp,
             string bsn = TestDataConstants.Partijen.TestBsn,
             bool attachZaak = false)
         {
-            await CleanupExistingContactmomenten(onderwerp);
-
             var partij = await GetPartijByBsn(bsn);
             var contactmoment = await CreateContactmomentWithPartij(
                 onderwerp, 
@@ -147,96 +152,156 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
             var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
 
-            await CreateInternetaakIfNotExists(
-                TestDataConstants.ContactverzoekNummers.WithPartij,
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
                 new List<Guid> 
                 { 
                     Guid.Parse(medewerkerActor.Uuid), 
                     Guid.Parse(afdelingActor.Uuid) 
-                },
-                isExplicitNummer: true);
+                });
 
             if (attachZaak)
             {
                 await AttachZaakToContactmomentAsync(contactmoment.Uuid, TestDataConstants.Zaken.TestZaakIdentificatie);
             }
 
-            return contactmoment.Uuid;
+            return (contactmoment.Uuid, nummer);
         }
 
-        public async Task<Guid> CreateContactverzoekWithCurrentUserAssigned(string onderwerp)
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithCurrentUserAssigned(string onderwerp)
         {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await GetOrCreateContactmoment(
+            var contactmoment = await CreateContactmoment(
                 onderwerp,
-                "This is a test contact request created during an end-to-end test run.");
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
 
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
 
-            await CreateInternetaakIfNotExists(
-                TestDataConstants.ContactverzoekNummers.WithCurrentUserAssigned,
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
                 new List<Guid>
                 {
                     Guid.Parse(submitterActor.Uuid),
                     Guid.Parse(afdelingActor.Uuid)
-                },
-                isExplicitNummer: true);
+                });
 
-            return contactmoment.Uuid;
+            return (contactmoment.Uuid, nummer);
         }
 
-        public async Task<Guid> CreateContactverzoekWithTeamAssignmentOnly(string onderwerp)
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithTeamAssignmentOnly(string onderwerp)
         {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await GetOrCreateContactmoment(
+            var contactmoment = await CreateContactmoment(
                 onderwerp,
-                "This is a test contact request created during an end-to-end test run.");
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
 
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
 
-            await CreateInternetaakIfNotExists(
-                TestDataConstants.ContactverzoekNummers.WithTeamAssignmentOnly,
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
-                new List<Guid> { Guid.Parse(afdelingActor.Uuid) },
-                isExplicitNummer: true);
+                new List<Guid> { Guid.Parse(afdelingActor.Uuid) });
 
-            return contactmoment.Uuid;
+            return (contactmoment.Uuid, nummer);
         }
 
-        public async Task<Guid> CreateContactverzoekWithNoAssignments(string onderwerp)
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithNoAssignments(string onderwerp)
         {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await GetOrCreateContactmoment(
+            var contactmoment = await CreateContactmoment(
                 onderwerp,
-                "This is a test contact request created during an end-to-end test run.");
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
 
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
-            await CreateInternetaakIfNotExists(
-                TestDataConstants.ContactverzoekNummers.WithNoAssignments,
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
-                new List<Guid>(),
-                isExplicitNummer: true);
+                new List<Guid>());
 
-            return contactmoment.Uuid;
+            return (contactmoment.Uuid, nummer);
+        }
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepAndMedewerker(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var groepActor = await GetOrCreateGroepActor();
+                var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+                return new List<Guid> { Guid.Parse(medewerkerActor.Uuid), Guid.Parse(groepActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingAndMedewerker(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+                var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+                return new List<Guid> { Guid.Parse(medewerkerActor.Uuid), Guid.Parse(afdelingActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithAfdelingOnly(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+                return new List<Guid> { Guid.Parse(afdelingActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithGroepOnly(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var groepActor = await GetOrCreateGroepActor();
+                return new List<Guid> { Guid.Parse(groepActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithUnknownOeType(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var unknownOeActor = await GetOrCreateUnknownTypeOeActor();
+                return new List<Guid> { Guid.Parse(unknownOeActor.Uuid) };
+            });
+
+        public Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithMultipleOeActors(string onderwerp) =>
+            CreateContactverzoekWithActors(onderwerp, async () =>
+            {
+                var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+                var groepActor = await GetOrCreateGroepActor();
+                return new List<Guid> { Guid.Parse(afdelingActor.Uuid), Guid.Parse(groepActor.Uuid) };
+            });
+
+        private async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithActors(
+            string onderwerp,
+            Func<Task<List<Guid>>> resolveActorUuids)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var actorUuids = await resolveActorUuids();
+
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                actorUuids);
+
+            return (contactmoment.Uuid, nummer);
         }
 
         public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateVerwerktContactverzoekAsync(string onderwerp)
         {
-            await CleanupExistingContactmomenten(onderwerp);
-
             var contactmoment = await CreateContactmoment(
                 onderwerp,
                 "Test contactverzoek for readonly guard verification",
@@ -245,11 +310,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
-            await CreateInternetaakIfNotExists(
+            var nummer = await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
-                new List<Guid>(),
-                isExplicitNummer: false);
+                new List<Guid>());
 
             var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
                 ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
@@ -258,18 +322,36 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 new InternetakenPatchStatusRequest { Status = KnownInternetaakStatussen.Verwerkt },
                 internetaakUuid.ToString());
 
-            var internetaak = await GetInternetaakByIdAsync(internetaakUuid);
-            return (contactmoment.Uuid, internetaakUuid, internetaak.Nummer
-                ?? throw new InvalidOperationException("Internetaak nummer is null after creation"));
+            return (contactmoment.Uuid, internetaakUuid, nummer);
         }
 
-        public async Task<Guid> CreateContactverzoekWithTeamAssignmentNotCurrentUser(string onderwerp)
+        public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateTeVerwerkenContactverzoekAsync(string onderwerp)
         {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await GetOrCreateContactmoment(
+            var contactmoment = await CreateContactmoment(
                 onderwerp,
-                "This is a test contact request created during an end-to-end test run.");
+                "Test contactverzoek for heropenen E2E verification",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid>());
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+
+            return (contactmoment.Uuid, internetaakUuid, nummer);
+        }
+
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithTeamAssignmentNotCurrentUser(string onderwerp)
+        {
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
 
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
@@ -277,26 +359,24 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
             var otherMedewerkerActor = await GetOrCreateMedewerkerActorDirectly("surbhi@info.nl");
 
-            await CreateInternetaakIfNotExists(
-                TestDataConstants.ContactverzoekNummers.WithTeamAssignmentNotCurrentUser,
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
                 new List<Guid>
                 {
                     Guid.Parse(otherMedewerkerActor.Uuid),
                     Guid.Parse(afdelingActor.Uuid)
-                },
-                isExplicitNummer: true);
+                });
 
-            return contactmoment.Uuid;
+            return (contactmoment.Uuid, nummer);
         }
 
-        public async Task<Guid> CreateContactverzoekWithCurrentUserAssignedViaObjectRegisterId(string onderwerp)
+        public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithCurrentUserAssignedViaObjectRegisterId(string onderwerp)
         {
-            await CleanupExistingContactmomenten(onderwerp);
-
-            var contactmoment = await GetOrCreateContactmoment(
+            var contactmoment = await CreateContactmoment(
                 onderwerp,
-                "This is a test contact request created during an end-to-end test run.");
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
 
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
@@ -304,17 +384,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
             var medewerkerActorViaObjectRegisterId = await GetOrCreateMedewerkerActor(Username);
 
-            await CreateInternetaakIfNotExists(
-                TestDataConstants.ContactverzoekNummers.WithCurrentUserAssignedViaObjectRegisterId,
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
                 new List<Guid>
                 {
                     Guid.Parse(afdelingActor.Uuid),
                     Guid.Parse(medewerkerActorViaObjectRegisterId.Uuid)
-                },
-                isExplicitNummer: true);
+                });
 
-            return contactmoment.Uuid;
+            return (contactmoment.Uuid, nummer);
         }
 
 
@@ -404,13 +483,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         // Contactmoment Operations
 
-        private async Task<Klantcontact> GetOrCreateContactmoment(string onderwerp, string inhoud)
-        {
-            var existing = await QueryContactmoment(onderwerp);
-            return existing ?? await CreateContactmoment(onderwerp, inhoud, klantnaam: null)
-                ?? throw new Exception("Failed to create contactmoment for testing.");
-        }
-
         private async Task<Klantcontact> CreateContactmomentWithPartij(
             string onderwerp, 
             string inhoud, 
@@ -436,28 +508,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             });
         }
 
-        private async Task<Klantcontact?> QueryContactmoment(string onderwerp)
-        {
-            var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(
-                new KlantcontactQuery { Onderwerp = onderwerp });
-
-            // If multiple exist (from failed previous runs), clean them all up
-            if (contactmomenten.Count > 1)
-            {
-                try
-                {
-                    await CleanupExistingContactmomenten(onderwerp);
-                }
-                catch
-                {
-                    // Ignore cleanup failures
-                }
-                return null; // Force creation of a fresh one
-            }
-    
-            return contactmomenten.FirstOrDefault();
-        }
-
         private async Task CleanupExistingContactmomenten(string onderwerp)
         {
             var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(
@@ -465,12 +515,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             foreach (var existing in contactmomenten)
             {
+                var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(existing.Uuid);
+                if (internetaakUuid.HasValue)
+                {
+                    await OpenKlantApiClient.DeleteInterneTaakAsync(internetaakUuid.Value);
+                }
                 await OpenKlantApiClient.DeleteKlantcontactAsync(existing.Uuid);
             }
 
             var remaining = await OpenKlantApiClient.QueryKlantcontactAsync(
                 new KlantcontactQuery { Onderwerp = onderwerp });
-            
+
             if (remaining.Count > 0)
             {
                 throw new InvalidOperationException($"Failed to cleanup contactmomenten. Still found {remaining.Count} contactmomenten after deletion.");
@@ -486,11 +541,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 return; // Already connected
             }
 
-            await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+            // The API can transiently reject the request (400) when the
+            // contactmoment was just created. Retry once after a short delay.
+            try
             {
-                Actor = new ActorReference { Uuid = actor.Uuid },
-                Klantcontact = new KlantcontactReference { Uuid = contactmomentUuid }
-            });
+                await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+                {
+                    Actor = new ActorReference { Uuid = actor.Uuid },
+                    Klantcontact = new KlantcontactReference { Uuid = contactmomentUuid }
+                });
+            }
+            catch (Exception)
+            {
+                await Task.Delay(2000);
+                await OpenKlantApiClient.CreateActorKlantcontactAsync(new ActorKlantcontactRequest
+                {
+                    Actor = new ActorReference { Uuid = actor.Uuid },
+                    Klantcontact = new KlantcontactReference { Uuid = contactmomentUuid }
+                });
+            }
         }
 
         //  Actor Operations
@@ -520,6 +589,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                         CodeSoortObjectId = KnownMedewerkerIdentificators.EmailFromEntraId.CodeSoortObjectId
                     }
                 });
+        }
+
+        /// <summary>
+        /// Returns the display name of the current user's actor in OpenKlant.
+        /// This may differ from the hardcoded name if the actor was created externally.
+        /// </summary>
+        public async Task<string> GetCurrentUserActorNameAsync()
+        {
+            var actor = await GetOrCreateSubmitterActor();
+            return actor.Naam;
         }
 
         private async Task<Actor> GetOrCreateAfdelingActor(string afdelingName)
@@ -610,6 +689,66 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 });
         }
 
+        private async Task<Actor> GetOrCreateGroepActor()
+        {
+            var groepen = await ObjectApiClient.GetGroepen(1);
+            if (groepen.Results.Count == 0)
+                throw new InvalidOperationException("No groepen found in the Objects API — cannot create groep actor.");
+
+            var groep = groepen.Results.First().Record.Data;
+
+            return await GetOrCreateActor(
+                query: new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+                    ActoridentificatorCodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+                    ActoridentificatorCodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId,
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    ActoridentificatorObjectId = groep.Identificatie
+                },
+                request: new ActorRequest
+                {
+                    Naam = "e2e groep",
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    IndicatieActief = true,
+                    Actoridentificator = new Actoridentificator
+                    {
+                        ObjectId = groep.Identificatie,
+                        CodeObjecttype = KnownGroepIdentificators.ObjectRegisterId.CodeObjecttype,
+                        CodeRegister = KnownGroepIdentificators.ObjectRegisterId.CodeRegister,
+                        CodeSoortObjectId = KnownGroepIdentificators.ObjectRegisterId.CodeSoortObjectId
+                    }
+                });
+        }
+
+        private Task<Actor> GetOrCreateUnknownTypeOeActor()
+        {
+            return GetOrCreateActor(
+                query: new ActorQuery
+                {
+                    ActoridentificatorCodeObjecttype = "onbekend",
+                    ActoridentificatorCodeRegister = "obj",
+                    ActoridentificatorCodeSoortObjectId = "idf",
+                    IndicatieActief = true,
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    ActoridentificatorObjectId = "e2e-onbekend-oe-type"
+                },
+                request: new ActorRequest
+                {
+                    Naam = "e2e onbekende eenheid",
+                    SoortActor = SoortActor.organisatorische_eenheid,
+                    IndicatieActief = true,
+                    Actoridentificator = new Actoridentificator
+                    {
+                        ObjectId = "e2e-onbekend-oe-type",
+                        CodeObjecttype = "onbekend",
+                        CodeRegister = "obj",
+                        CodeSoortObjectId = "idf"
+                    }
+                });
+        }
+
         private async Task<Actor> GetOrCreateActor(ActorQuery query, ActorRequest request)
         {
             var actor = await OpenKlantApiClient.QueryActorAsync(query);
@@ -680,86 +819,23 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return $"{millisPart:00000000}{randomPart:00}";
         }
 
-        private async Task CreateInternetaakIfNotExists(
+        private async Task<string> CreateInternetaak(
             string nummer,
             Guid contactmomentUuid,
-            List<Guid> actorUuids,
-            bool isExplicitNummer = false)
+            List<Guid> actorUuids)
         {
-            // First check if internetaak with this nummer already exists (idempotent behavior)
-            var existing = await OpenKlantApiClient.QueryInterneTakenAsync(new InterneTaakQuery
+            await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
             {
-                Nummer = nummer
+                AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmomentUuid },
+                GevraagdeHandeling = "terugbellen svp",
+                Nummer = nummer,
+                Status = KnownInternetaakStatussen.TeVerwerken,
+                ToegewezenAanActoren = actorUuids.Select(id => new UuidObject { Uuid = id }).ToList(),
+                Toelichting = "Test contactverzoek from ITA E2E test"
             });
 
-            if (existing.Count > 1)
-            {
-                throw new InvalidOperationException($"Found {existing.Count} internetaken with nummer '{nummer}', expected at most 1.");
-            }
-
-            if (existing.Count > 0)
-            {
-                // Already exists - idempotent success
-                Logger.LogInformation("Internetaak with nummer '{Nummer}' already exists, skipping creation", nummer);
-                return;
-            }
-
-            // Doesn't exist, try to create it
-            var currentNummer = nummer;
-            Exception? lastConflictException = null;
-
-            for (var attempt = 1; attempt <= 3; attempt++)
-            {
-                try
-                {
-                    await OpenKlantApiClient.CreateInterneTaak(new InternetaakPostRequest
-                    {
-                        AanleidinggevendKlantcontact = new UuidObject { Uuid = contactmomentUuid },
-                        GevraagdeHandeling = "terugbellen svp",
-                        Nummer = currentNummer,
-                        Status = KnownInternetaakStatussen.TeVerwerken,
-                        ToegewezenAanActoren = actorUuids.Select(id => new UuidObject { Uuid = id }).ToList(),
-                        Toelichting = "Test contactverzoek from ITA E2E test"
-                    });
-
-                    Logger.LogInformation("Successfully created internetaak with nummer '{Nummer}'", currentNummer);
-                    return; // Success
-                }
-                catch (HttpRequestException ex) when (ex.Message.Contains("409") || ex.Message.Contains("conflict"))
-                {
-                    lastConflictException = ex;
-
-                    if (isExplicitNummer)
-                    {
-                        // Fail fast for explicit nummers - don't mutate them
-                        throw new InvalidOperationException(
-                            $"Cannot create internetaak with explicit nummer '{nummer}' because it already exists. " +
-                            "This breaks test contracts that expect this exact nummer for navigation/verification.", 
-                            ex);
-                    }
-
-                    // Only auto-generate new nummers when no explicit nummer was provided
-                    Logger.LogWarning("Internetaak nummer '{Nummer}' already exists, attempting with different nummer (attempt {Attempt}/3)", 
-                        currentNummer, attempt);
-                    
-                    if (attempt < 3)
-                    {
-                        currentNummer = GenerateUniqueInternetaakNummer();
-                        await Task.Delay(50);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Auth, connection, server errors, etc. - don't retry, rethrow immediately
-                    Logger.LogError(ex, "Failed to create internetaak due to non-retryable error: {Message}", ex.Message);
-                    throw;
-                }
-            }
-
-            // If we get here, we've exhausted retries for conflict errors (only for auto-generated nummers)
-            throw new InvalidOperationException(
-                $"Failed to create internetaak after {3} attempts due to nummer conflicts. Last conflict was with nummer '{currentNummer}'.", 
-                lastConflictException);
+            Logger.LogInformation("Successfully created internetaak with nummer '{Nummer}'", nummer);
+            return nummer;
         }
 
         // Zaak Operations
@@ -854,6 +930,223 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     onderwerpobject.Uuid, onderwerpobject.Onderwerpobjectidentificator?.ObjectId);
                 return null;
             }
+        }
+
+        // Digitale Adressen Operations
+
+        /// <summary>
+        /// Creates a digitale adres linked to a betrokkene via the OpenKlant API.
+        /// Returns the UUID of the created digitale adres for cleanup.
+        /// </summary>
+        public async Task<string> CreateDigitaalAdresForBetrokkeneAsync(
+            string betrokkeneUuid,
+            string adres,
+            string soortDigitaalAdres,
+            string omschrijving = "")
+        {
+            var request = new
+            {
+                verstrektDoorBetrokkene = new { uuid = betrokkeneUuid },
+                verstrektDoorPartij = (object?)null,
+                adres,
+                soortDigitaalAdres,
+                omschrijving
+            };
+
+            var response = await OpenKlantHttpClient.PostAsJsonAsync("digitaleadressen", request);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<DigitaleAdres>();
+            Logger.LogInformation("Created digitale adres {Uuid} ({SoortDigitaalAdres}: {Adres}) for betrokkene {BetrokkeneUuid}",
+                result!.Uuid, soortDigitaalAdres, adres, betrokkeneUuid);
+
+            return result.Uuid;
+        }
+
+        /// <summary>
+        /// Creates a digitale adres linked to a partij via the OpenKlant API.
+        /// Returns the UUID of the created digitale adres for cleanup.
+        /// </summary>
+        public async Task<string> CreateDigitaalAdresForPartijAsync(
+            string partijUuid,
+            string adres,
+            string soortDigitaalAdres,
+            string omschrijving = "")
+        {
+            var request = new
+            {
+                verstrektDoorBetrokkene = (object?)null,
+                verstrektDoorPartij = new { uuid = partijUuid },
+                adres,
+                soortDigitaalAdres,
+                omschrijving
+            };
+
+            var response = await OpenKlantHttpClient.PostAsJsonAsync("digitaleadressen", request);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<DigitaleAdres>();
+            Logger.LogInformation("Created digitale adres {Uuid} ({SoortDigitaalAdres}: {Adres}) for partij {PartijUuid}",
+                result!.Uuid, soortDigitaalAdres, adres, partijUuid);
+
+            return result.Uuid;
+        }
+
+        /// <summary>
+        /// Looks up a partij by BSN and returns the UUID.
+        /// </summary>
+        public async Task<string> GetPartijUuidByBsnAsync(string bsn = TestDataConstants.Partijen.TestBsn)
+        {
+            var partij = await GetPartijByBsn(bsn);
+            return partij.Uuid;
+        }
+
+        /// <summary>
+        /// Returns existing digitale adressen for a partij.
+        /// </summary>
+        public Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid)
+        {
+            return OpenKlantApiClient.GetPartijDigitaleAdressenAsync(partijUuid);
+        }
+
+        /// <summary>
+        /// Deletes a digitale adres from the OpenKlant API.
+        /// </summary>
+        public async Task DeleteDigitaalAdresAsync(string uuid)
+        {
+            try
+            {
+                var response = await OpenKlantHttpClient.DeleteAsync($"digitaleadressen/{uuid}");
+                response.EnsureSuccessStatusCode();
+                Logger.LogInformation("Deleted digitale adres {Uuid}", uuid);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Failed to delete digitale adres {Uuid}", uuid);
+            }
+        }
+
+        /// <summary>
+        /// Creates a contactverzoek with a partij and betrokkene's own digitale adressen.
+        /// Returns (contactmomentUuid, betrokkeneUuid, digitaalAdresUuid) for assertions and cleanup.
+        /// </summary>
+        public async Task<(Guid contactmomentUuid, string betrokkeneUuid, string digitaalAdresUuid)> CreateContactverzoekWithPartijAndOwnAdressenAsync(
+            string onderwerp,
+            string ownEmail,
+            string bsn = TestDataConstants.Partijen.TestBsn)
+        {
+            var partij = await GetPartijByBsn(bsn);
+            var contactmoment = await CreateContactmoment(onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                partij.Naam);
+
+            var betrokkene = await AttachPartijToContactmoment(Guid.Parse(partij.Uuid), contactmoment.Uuid);
+
+            // Create own digitale adres on the betrokkene
+            var digitaalAdresUuid = await CreateDigitaalAdresForBetrokkeneAsync(
+                betrokkene.Uuid,
+                ownEmail,
+                "email",
+                "Eigen e-mail");
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+
+            var nummer = GenerateUniqueInternetaakNummer();
+            await CreateInternetaak(
+                nummer,
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(medewerkerActor.Uuid),
+                    Guid.Parse(afdelingActor.Uuid)
+                });
+
+            return (contactmoment.Uuid, betrokkene.Uuid, digitaalAdresUuid);
+        }
+
+        /// <summary>
+        /// Creates a minimal partij without digitale adressen via the OpenKlant API.
+        /// Returns the UUID of the created partij for cleanup.
+        /// </summary>
+        public async Task<string> CreatePartijWithoutAdressenAsync()
+        {
+            var request = new
+            {
+                digitaleAdressen = Array.Empty<object>(),
+                voorkeursDigitaalAdres = (object?)null,
+                partijIdentificatoren = Array.Empty<object>(),
+                soortPartij = "persoon",
+                indicatieActief = true,
+                indicatieGeheimhouding = false,
+                voorkeurstaal = "nl",
+                bezoekadres = (object?)null,
+                correspondentieadres = (object?)null
+            };
+
+            var response = await OpenKlantHttpClient.PostAsJsonAsync("partijen", request);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<Common.Services.OpenKlantApi.Models.Partij>();
+            Logger.LogInformation("Created partij without adressen: {Uuid}", result!.Uuid);
+            return result.Uuid;
+        }
+
+        /// <summary>
+        /// Deletes a partij from the OpenKlant API.
+        /// </summary>
+        public async Task DeletePartijAsync(string uuid)
+        {
+            try
+            {
+                var response = await OpenKlantHttpClient.DeleteAsync($"partijen/{uuid}");
+                if (response.IsSuccessStatusCode)
+                {
+                    Logger.LogInformation("Deleted partij {Uuid}", uuid);
+                }
+                else
+                {
+                    Logger.LogWarning("Failed to delete partij {Uuid}: {StatusCode}", uuid, response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Failed to delete partij {Uuid}", uuid);
+            }
+        }
+
+        /// <summary>
+        /// Creates a contactverzoek with a specific partij UUID (without BSN lookup).
+        /// Used for testing scenarios where the partij has specific characteristics.
+        /// </summary>
+        public async Task<Guid> CreateContactverzoekWithSpecificPartijAsync(string onderwerp, string partijUuid)
+        {
+            var contactmoment = await CreateContactmoment(onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            await AttachPartijToContactmoment(Guid.Parse(partijUuid), contactmoment.Uuid);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor("Burgerzaken_ibz");
+            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+
+            var nummer = GenerateUniqueInternetaakNummer();
+            await CreateInternetaak(
+                nummer,
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(medewerkerActor.Uuid),
+                    Guid.Parse(afdelingActor.Uuid)
+                });
+
+            return contactmoment.Uuid;
         }
 
     }

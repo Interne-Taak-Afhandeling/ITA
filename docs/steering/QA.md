@@ -88,6 +88,12 @@ A Feature is only considered **fully complete** when both phases are done:
 1. ✅ Phase 1 — implementation verified and merged to main
 2. ✅ Phase 2 — E2E tests written, passing, and committed
 
+### Feature Completion Checklist
+
+In addition to the two verification phases, every Feature must satisfy these items before it can be closed. Each item is "if applicable" — skip items that don't apply to the Feature, but document why.
+
+This checklist is maintained in the [Feature issue template](/.github/ISSUE_TEMPLATE/FEATURE.md) and appears on every Feature automatically. See that template for the full list.
+
 ---
 
 ## Gherkin → Test Mapping
@@ -109,10 +115,7 @@ Every Gherkin scenario from a Task issue must map to at least one Playwright E2E
 
 Tasks are reviewed and merged into the feature branch. E2E testing happens at feature level in Phase 2.
 
-- [ ] Linting passes (`npm run lint:ci`)
-- [ ] Formatting passes (`npm run format:ci`)
-- [ ] PR approved by at least one reviewer
-- [ ] No unrelated changes or scope creep
+This checklist is maintained in the [Task issue template](/.github/ISSUE_TEMPLATE/TASK.md) and appears on every Task automatically. See that template for the full list.
 
 ### Feature-level DoD — Phase 1 (feature PR → main)
 

@@ -33,4 +33,9 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Features\MyInterneTakenOverview\" />
+    <Folder Include="Features\Urgentie\" />
+  </ItemGroup>
 </Project>

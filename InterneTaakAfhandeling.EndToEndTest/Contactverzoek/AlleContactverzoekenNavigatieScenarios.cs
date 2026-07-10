@@ -12,7 +12,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         {
             await Step("Given een medewerker met de rol 'Beheerder' is ingelogd");
             await Page.GotoAsync("/");
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
             await Step("When de navigatie wordt weergegeven");
             var navLink = Page.GetByRole(AriaRole.Link, new() { Name = "Alle contactverzoeken" });

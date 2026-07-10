@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <Playwright>
+    <BrowserName>chromium</BrowserName>
+    <!-- Global timeout for Expect assertions (default: 5000ms).
+         Raised to 30s to accommodate slower CI runners and external API latency
+         (detail pages fetch data from multiple external APIs before rendering).
+         This eliminates the need for per-assertion Timeout overrides. -->
+    <ExpectTimeout>30000</ExpectTimeout>
+    <LaunchOptions>
+      <Channel></Channel>
+    </LaunchOptions>
+  </Playwright>
+</RunSettings>

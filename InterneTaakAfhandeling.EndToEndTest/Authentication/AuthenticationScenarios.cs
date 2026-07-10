@@ -18,7 +18,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Authentication
         [TestMethod]
         public async Task CanLoginAndAccessHomePage()
         {
-
             await Step("Navigate to home page");
             await Page.GotoAsync("/");
 
@@ -29,18 +28,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Authentication
             Assert.IsFalse(currentUrl.Contains("login.microsoftonline.com"),
                 "User should be logged in and not redirected to Microsoft login page");
 
-            var pageTitle = await Page.TitleAsync();
-            var bodyText = await Page.Locator("body").TextContentAsync();
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(bodyText),
-                "Page should have content and not be blank");
-
+            // Wait for the heading first — proves the SPA has rendered
             await Step("Verify 'Mijn werkvoorraad' heading is present");
             var werkvoorraadHeading = Page.GetByRole(Microsoft.Playwright.AriaRole.Heading, new() { Name = "Mijn werkvoorraad" });
             await Expect(werkvoorraadHeading).ToBeVisibleAsync();
 
-            await Step("Wait on homepage for 3 seconds");
-            await Task.Delay(3000);
-
+            var bodyText = await Page.Locator("body").TextContentAsync();
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(bodyText),
+                "Page should have content and not be blank");
         }
 
 

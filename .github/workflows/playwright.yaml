@@ -34,7 +34,7 @@ jobs:
         run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
       - name: Run your tests
         id: e2e
-        run: dotnet test
+        run: dotnet test --settings playwright.runsettings
         env:
           "TestSettings:TEST_USERNAME": ${{ secrets.PLAYWRIGHT_USERNAME }}
           "TestSettings:TEST_PASSWORD": "${{ secrets.PLAYWRIGHT_PASSWORD }}"

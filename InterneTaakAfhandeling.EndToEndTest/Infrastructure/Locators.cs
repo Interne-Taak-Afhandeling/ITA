@@ -7,8 +7,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         // Dashboard locators
         public static ILocator GetDetailsLink(this IPage page, string onderwerp)
         {
-            var testRow = page.GetByRole(AriaRole.Row).Filter(new() { HasText = onderwerp });
-            return testRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" });
+            var testRow = page.GetByRole(AriaRole.Row).Filter(new() { HasText = onderwerp }).First;
+            return testRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "→" });
         }
 
         // Contactverzoek Details locators
@@ -72,6 +72,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var parentDiv = page.Locator("div.utrecht-data-list__item").Filter(new() { HasText = "Behandelaar" });
             return parentDiv.Locator("dd.utrecht-data-list__item-value");
         }
+
+        public static ILocator GetOrganisatorischeEenheidValue(this IPage page, string typeLabel)
+        {
+            // Scope by the dt key to avoid substring matches on other rows (e.g. onderwerp containing the label)
+            var parentDiv = page.Locator("div.utrecht-data-list__item")
+                .Filter(new() { Has = page.Locator("dt.utrecht-data-list__item-key").Filter(new() { HasText = typeLabel }) });
+            return parentDiv.Locator("dd.utrecht-data-list__item-value");
+        }
+
+        public static ILocator GetOrganisatorischeEenheidKey(this IPage page, string typeLabel) =>
+            page.Locator("dt.utrecht-data-list__item-key").Filter(new() { HasText = typeLabel });
 
         public static ILocator GetStatusLabel(this IPage page) => page.GetByText("Status");
 
@@ -175,5 +186,49 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetAfgehandeldMessage(this IPage page) =>
             page.GetByText("Dit contactverzoek is afgehandeld en kan niet meer worden gewijzigd.");
+
+        // Heropenen locators
+        public static ILocator GetHeropenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Heropenen" });
+
+        public static ILocator GetHeropenDialogBevestigenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Heropenen" });
+
+        public static ILocator GetHeropenRedenTextbox(this IPage page) =>
+            page.Locator("#reopen-reden");
+
+        public static ILocator GetContactverzoekHeropendMessage(this IPage page) =>
+            page.GetByRole(AriaRole.Status).Filter(new() { HasText = "Contactverzoek heropend" });
+
+        // Doorsturen form locators
+        public static ILocator GetDoorsturenAfdelingRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Afdeling" });
+
+        public static ILocator GetDoorsturenGroepRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Groep" });
+
+        public static ILocator GetDoorsturenMedewerkerRadio(this IPage page) =>
+            page.GetByRole(AriaRole.Radio, new() { Name = "Medewerker" });
+
+        public static ILocator GetAfdelingSelect(this IPage page) =>
+            page.Locator("#afdelingSelect");
+
+        public static ILocator GetGroepSelect(this IPage page) =>
+            page.Locator("#groepSelect");
+
+        public static ILocator GetMedewerkerCombobox(this IPage page) =>
+            page.Locator("#medewerker-combobox");
+
+        public static ILocator GetSecondaryPicker(this IPage page) =>
+            page.Locator("#secondaryPicker");
+
+        public static ILocator GetAfdelingGroepMedewerkerCombobox(this IPage page) =>
+            page.Locator("#afdeling-groep-medewerker-combobox");
+
+        public static ILocator GetGroepMedewerkerCombobox(this IPage page) =>
+            page.Locator("#groep-medewerker-combobox");
+
+        public static ILocator GetContactverzoekDoorsturenButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Contactverzoek doorsturen" });
     }
 }
