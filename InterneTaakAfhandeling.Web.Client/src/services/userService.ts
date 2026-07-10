@@ -1,14 +1,14 @@
 import { get, post } from "@/utils/fetchWrapper";
-import type { Internetaken } from "@/types/internetaken";
+import type { MyInterneTaakOverviewItem } from "@/types/internetaken";
 
 export const userService = {
-  getAssignedInternetaken: (): Promise<Internetaken[]> => {
-    return get<Internetaken[]>("/api/internetaken/aan-mij-toegewezen?afgerond=false");
+  getAssignedInternetaken: (): Promise<MyInterneTaakOverviewItem[]> => {
+    return get<MyInterneTaakOverviewItem[]>("/api/internetaken/aan-mij-toegewezen?afgerond=false");
   },
   assignInternetakenToSelf: (id: string): Promise<boolean> => {
     return post<boolean>(`/api/internetaken/${id}/aan-mij-toewijzen`, {});
   },
-  getAssignedAndFinishedInternetaken: (): Promise<Internetaken[]> => {
-    return get<Internetaken[]>("/api/internetaken/aan-mij-toegewezen?afgerond=true");
+  getAssignedAndFinishedInternetaken: (): Promise<MyInterneTaakOverviewItem[]> => {
+    return get<MyInterneTaakOverviewItem[]>("/api/internetaken/aan-mij-toegewezen?afgerond=true");
   }
 };

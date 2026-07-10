@@ -59,6 +59,16 @@ ITA gaat ervan uit dat emailadressen van medewerkers en organisatorische eenhede
 | medewerker.type                        | De url van het medewerker objecttype in de objecttypen api. Zie de objecttypen pagina in de documentatie voor meer informatie. |
 | medewerker.typeVersion                 | De versie van het medewerker objecttype dat gebruikt wordt (waarschijnlijk 1). |
 
+Urgentie settings
+---------------------------------
+
+Deze instellingen zijn optioneel — standaardwaarden worden gebruikt wanneer ze niet geconfigureerd zijn.
+
+| **Variabele**                        | **Waarde**                                                                                              |
+|--------------------------------------|---------------------------------------------------------------------------------------------------------|
+| urgentie.afhandeltermijnUren         | Aantal werkdaguren waarbinnen een contactverzoek afgehandeld dient te zijn (default: `48`). Weekenden worden uitgesloten van de berekening. |
+| urgentie.bijnaVerlopenDrempelUren    | Aantal resterende werkdaguren waarna het urgentielabel oranje wordt (default: `6`).                     |
+
 Database configuratie
 ---------------------------------
 | **Variabele**            | **Waarde**                                                                                  |

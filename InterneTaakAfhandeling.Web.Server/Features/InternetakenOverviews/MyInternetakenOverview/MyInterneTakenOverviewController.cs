@@ -1,8 +1,8 @@
-using InterneTaakAfhandeling.Web.Server.Authentication;
+﻿using InterneTaakAfhandeling.Web.Server.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
+namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInternetakenOverview
 {
     [Route("api/internetaken")]
     [ApiController]
@@ -13,12 +13,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.MyInterneTakenOverview
         private readonly IMyInterneTakenOverviewService _myInterneTakenOverviewService = myInterneTakenOverviewService ?? throw new ArgumentNullException(nameof(myInterneTakenOverviewService));
 
 
-        [ProducesResponseType(typeof(List<InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models.Internetaak>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<MyInterneTaakOverviewItem>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("aan-mij-toegewezen")]
         public async Task<IActionResult> GetInternetaken([FromQuery] bool afgerond)
         {
-            var result = await myInterneTakenOverviewService.GetInterneTakenByAssignedUser(user, afgerond);
+            var result = await _myInterneTakenOverviewService.GetInterneTakenByAssignedUser(user, afgerond);
             return Ok(result);
         }
 

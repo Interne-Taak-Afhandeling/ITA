@@ -1,4 +1,19 @@
-import type { InterneTaakOverviewItem } from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
+export interface InterneTaakOverviewItem {
+  uuid: string;
+  nummer: string;
+  gevraagdeHandeling: string;
+  status: string;
+  toegewezenOp: string;
+  afgehandeldOp?: string;
+  onderwerp?: string;
+  klantNaam?: string;
+  contactDatum?: string;
+  afdelingNaam?: string;
+  behandelaarNaam?: string;
+  heeftBehandelaar: boolean;
+  contactmomentNummer?: string;
+  urgentie?: UrgentieInfo | null;
+}
 
 // internetaken.ts
 export interface Internetaken {
@@ -334,4 +349,21 @@ export interface InterneTakenPaginated {
 export interface ForwardKlantContactResponse {
   internetaak: Internetaken;
   notificationResult: string;
+}
+
+export interface UrgentieInfo {
+  status: "success" | "warning" | "error";
+  label: string;
+}
+
+export interface MyInterneTaakOverviewItem {
+  uuid: string;
+  nummer?: string;
+  gevraagdeHandeling?: string;
+  status?: string;
+  toegewezenOp?: string;
+  afgehandeldOp?: string;
+  aanleidinggevendKlantcontact?: Internetaken["aanleidinggevendKlantcontact"];
+  urgentie?: UrgentieInfo | null;
+  afdelingNaam?: string | null;
 }

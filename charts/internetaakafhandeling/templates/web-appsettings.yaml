@@ -14,6 +14,10 @@ data:
         }
       },
       "AllowedHosts": "*",
+      "Urgentie": {
+        "AfhandeltermijnUren": {{ .Values.urgentie.afhandeltermijnUren }},
+        "BijnaVerlopenDrempelUren": {{ .Values.urgentie.bijnaVerlopenDrempelUren }}
+      },
       "Setting1": "{{ .Values.web.appsettings.setting1 }}",
       "Setting2": "{{ .Values.web.appsettings.setting2 }}"
     }

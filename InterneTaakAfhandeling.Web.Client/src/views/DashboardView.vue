@@ -28,15 +28,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import MyInterneTakenTable from "@/components/interne-taken-tables/MyInterneTakenTable.vue";
+import type { MyInterneTaakOverviewItem } from "@/types/internetaken";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import ScrollContainer from "@/components/ScrollContainer.vue";
 import { userService } from "@/services/userService";
-import type { Internetaken } from "@/types/internetaken";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 
-const assignedInternetaken = ref<Internetaken[]>([]);
+const assignedInternetaken = ref<MyInterneTaakOverviewItem[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 

@@ -667,7 +667,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Given user is on Historie - When user clicks on a contactverzoek from the list");
             var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = testOnderwerp }).First;
-            var detailsLink = contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" });
+            var detailsLink = contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "→" });
             await detailsLink.ClickAsync();
 
             await Step("Then the detail screen of the contact request shows read-only mode for closed contactverzoek");
@@ -1183,7 +1183,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Find the closed contactverzoek in the history list and click through");
             await Expect(Page.Locator($"text={onderwerp}")).ToBeVisibleAsync();
             var contactverzoekRow = Page.Locator("table tbody tr").Filter(new() { HasText = onderwerp }).First;
-            await contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "Klik hier" }).ClickAsync();
+            await contactverzoekRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "→" }).ClickAsync();
 
             await Step("Verify all action controls are hidden");
             await Expect(Page.GetAfgehandeldMessage()).ToBeVisibleAsync();
