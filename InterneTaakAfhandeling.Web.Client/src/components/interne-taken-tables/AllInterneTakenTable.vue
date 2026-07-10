@@ -25,7 +25,7 @@
 
       <utrecht-table-row
         v-for="taak in interneTaken"
-        :key="taak.uuid"       
+        :key="taak.uuid"
         @mousedown="onRowMouseDown"
         @click="
           taak.contactmomentNummer &&
@@ -76,7 +76,7 @@
 import { useRowNavigation } from "@/composables/use-row-navigation";
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
 import UrgentieBadge from "../UrgentieBadge.vue";
-  import type { UrgentieInfo, InterneTaakOverviewItem } from "@/types/internetaken";
+import type { InterneTaakOverviewItem } from "@/types/internetaken";
 
 defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
 
