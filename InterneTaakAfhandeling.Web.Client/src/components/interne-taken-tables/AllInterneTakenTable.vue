@@ -81,6 +81,4 @@ import type { InterneTaakOverviewItem } from "@/types/internetaken";
 defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
 
 const { onRowMouseDown, navigateOnRowClick } = useRowNavigation();
-
-
 </script>

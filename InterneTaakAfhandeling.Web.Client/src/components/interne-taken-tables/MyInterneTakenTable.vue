@@ -21,7 +21,7 @@
 
       <utrecht-table-row
         v-for="taak in interneTaken"
-        :key="taak.uuid"      
+        :key="taak.uuid"
         @mousedown="onRowMouseDown"
         @click="
           taak.aanleidinggevendKlantcontact?.nummer &&
