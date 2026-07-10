@@ -352,7 +352,7 @@ export interface ForwardKlantContactResponse {
 }
 
 export interface UrgentieInfo {
-  status: string;
+  status: "success" | "warning" | "error";
   label: string;
 }
 

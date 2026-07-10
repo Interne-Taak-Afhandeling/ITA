@@ -5,13 +5,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
 import { BadgeStatus as UtrechtBadgeStatus } from "@utrecht/component-library-vue";
-import type { UrgentieInfo } from "@/types/internetaken";
+import type { UrgentieInfo } from "../types/internetaken";
 
-const props = defineProps<{ urgentie: UrgentieInfo | null | undefined }>();
-
-
+defineProps<{
+  urgentie?: UrgentieInfo | null;
+}>();
 </script>
 
 <style lang="scss" scoped>

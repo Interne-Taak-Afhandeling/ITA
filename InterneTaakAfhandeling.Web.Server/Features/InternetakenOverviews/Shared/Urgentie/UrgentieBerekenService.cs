@@ -32,7 +32,7 @@ public class UrgentieBerekenService(
         {
             Status = status switch
             {
-                UrgentieStatus.BinnenTermijn => "succes",
+                UrgentieStatus.BinnenTermijn => "success",
                 UrgentieStatus.BijnaVerlopen => "warning",
                 UrgentieStatus.Verlopen => "error",
                 _ => ""
