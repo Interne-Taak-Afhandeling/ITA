@@ -3,6 +3,7 @@ using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Services.LogboekService;
@@ -65,11 +66,13 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                     {
                         var actorId = item.HeeftBetrekkingOp.Single().ObjectId;
                         var actor = await _openKlantApiClient.GetActorAsync(actorId);
-                        if (actor != null)
-                        {
-                            activiteit.UitgevoerdDoor = GetName(item);
-                            activiteit.Tekst = $"Contactverzoek opgepakt door {actor.Naam ?? "Onbekend"}";
-                        }
+                        activiteit.UitgevoerdDoor = GetName(item);
+
+                        activiteit.Tekst = actor == null
+                            ? "Contactverzoek toegewezen"
+                            : IsSameActor(item.Actor, actor)
+                                ? $"{GetName(item)} heeft toegewezen aan zichzelf"
+                                : $"{GetName(item)} heeft toegewezen aan {actor.Naam ?? "Onbekend"}";
 
                         break;
                     }
@@ -192,7 +195,7 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
         ActiviteitTypes.Verwerkt => "Afgerond",
         ActiviteitTypes.ZaakGekoppeld => "Zaak gekoppeld",
         ActiviteitTypes.ZaakkoppelingGewijzigd => "Zaak gewijzigd",
-        ActiviteitTypes.Toegewezen => "Opgepakt",
+        ActiviteitTypes.Toegewezen => "Toegewezen",
         ActiviteitTypes.InterneNotitie => "Interne notitie",
         ActiviteitTypes.Doorsturen => "Doorgestuurd",
         ActiviteitTypes.Heropend => "Heropend",
@@ -230,7 +233,18 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
 
     private static string GetName(ActiviteitData item) => item.Actor?.Naam ?? "Onbekend";
 
+    private static bool IsSameActor(ActiviteitActor? performer, Actor target)
+    {
+        var performerId = performer?.Actoridentificator;
+        var targetId = target.Actoridentificator;
 
+        return performerId != null && targetId != null
+            && performerId.CodeObjecttype == targetId.CodeObjecttype
+            && performerId.CodeRegister == targetId.CodeRegister
+            && performerId.CodeSoortObjectId == targetId.CodeSoortObjectId
+            && performerId.ObjectId == targetId.ObjectId;
+    }
+    
     #endregion
 }
 
