@@ -23,7 +23,7 @@ De Poller ondersteunt meerdere uitvoermodi via de omgevingsvariabele `POLLER_MOD
 | Waarde | Doel | K8s CronJob schedule |
 | ------ | ---- | -------------------- |
 | `nieuwe-internetaak-notificatie` (default) | Controleert op nieuwe internetaken en verstuurt e-mailnotificaties naar toegewezen medewerkers | `*/15 * * * *` (elke 15 min) |
-| `verlopen-contactverzoek-herinnering` | Verstuurt dagelijkse herinneringsmails voor verlopen contactverzoeken | `0 7 * * 1-5` (werkdagen 07:00) |
+| `verlopen-contactverzoek-herinnering-notificatie` | Verstuurt dagelijkse herinneringsmails voor verlopen contactverzoeken | `0 7 * * 1-5` (werkdagen 07:00) |
 
 **Lokaal draaien in een specifieke modus:**
 
@@ -32,13 +32,13 @@ De Poller ondersteunt meerdere uitvoermodi via de omgevingsvariabele `POLLER_MOD
 dotnet run --project InterneTaakAfhandeling.Poller
 
 # Dagelijkse herinnering voor verlopen contactverzoeken
-POLLER_MODE=verlopen-contactverzoek-herinnering dotnet run --project InterneTaakAfhandeling.Poller
+POLLER_MODE=verlopen-contactverzoek-herinnering-notificatie dotnet run --project InterneTaakAfhandeling.Poller
 ```
 
 Op Windows (PowerShell):
 
 ```powershell
-$env:POLLER_MODE = "verlopen-contactverzoek-herinnering"
+$env:POLLER_MODE = "verlopen-contactverzoek-herinnering-notificatie"
 dotnet run --project InterneTaakAfhandeling.Poller
 ```
 

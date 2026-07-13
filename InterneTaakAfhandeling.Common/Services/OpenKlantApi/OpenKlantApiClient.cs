@@ -188,7 +188,6 @@ public partial class OpenKlantApiClient(
         return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
     }
 
-
     public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
     {
         try
@@ -304,7 +303,6 @@ public partial class OpenKlantApiClient(
         return klantcontact;
     }
 
-
     public async Task<List<Klantcontact>> QueryKlantcontactAsync(KlantcontactQuery query)
     {
         var queryString = query.BuildQueryString();
@@ -314,7 +312,6 @@ public partial class OpenKlantApiClient(
         var klantcontacten = await response.Content.ReadFromJsonAsync<KlantcontactResponse>();
         return klantcontacten?.Results ?? [];
     }
-
 
     public async Task DeleteKlantcontactAsync(Guid uuid)
     {
@@ -508,7 +505,6 @@ public partial class OpenKlantApiClient(
         }
     }
 
-
     public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)
     {
         var response = await _httpClient.GetAsync($"internetaken/{uuid}");
@@ -536,11 +532,6 @@ public partial class OpenKlantApiClient(
             throw new InvalidOperationException($"Failed to update Internetaken: {e}");
         }
     }
-
-
-
-
-
 
     public async Task<Internetaak> CreateInterneTaak(InternetaakPostRequest request)
     {

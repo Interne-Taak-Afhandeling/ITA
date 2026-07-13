@@ -4,7 +4,7 @@ using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Poller.Data;
 using InterneTaakAfhandeling.Poller.Features;
 using InterneTaakAfhandeling.Poller.Features.NieuweInternetaakNotificatie;
-using InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
+using InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinneringNotificatie;
 using InterneTaakAfhandeling.Poller.Services.NotifierState;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -48,13 +48,13 @@ internal class Program
                 .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString))
                 .AddITAApiClients(configuration)
                 .AddSmtpClients(configuration)
-                .AddSingleton<VerlopenContactverzoekHerinneringsTemplateService>()
+                .AddSingleton<VerlopenContactverzoekHerinneringNotificatieTemplateService>()
                 .AddScoped<IVerlopenInternetakenProcessor, VerlopenInternetakenProcessor>()
                 .AddScoped<INieuweInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
                 .AddScoped<IContactmomentenService, ContactmomentenService>()
                 .AddKeyedScoped<IPollerJob, NieuweInternetaakNotificatiePollerJob>("nieuwe-internetaak-notificatie")
-                .AddKeyedScoped<IPollerJob, VerlopenContactverzoekHerinneringPollerJob>("verlopen-contactverzoek-herinnering");
+                .AddKeyedScoped<IPollerJob, VerlopenContactverzoekHerinneringNotificatiePollerJob>("verlopen-contactverzoek-herinnering-notificatie");
 
             var serviceProvider = services.BuildServiceProvider();
 

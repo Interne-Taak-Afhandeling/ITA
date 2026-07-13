@@ -160,7 +160,7 @@ web:
 # Poller — shared image and resource settings for all poller CronJobs.
 # Each CronJob sets POLLER_MODE to select its execution path:
 #   "nieuwe-internetaak-notificatie"        — check for new internetaken and send notifications
-#   "verlopen-contactverzoek-herinnering"   — send daily reminders for overdue contact requests
+#   "verlopen-contactverzoek-herinnering-notificatie" — send daily reminders for overdue contact requests
 poller:
   image:
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
@@ -182,7 +182,7 @@ nieuweInternetaakNotificatie:
     pollerMessage: "Poller uitgevoerd om:"
     hourThreshold: "-24"
 
-# VerlopenContactverzoekHerinnering — sends a daily reminder for overdue contact requests (weekdays 07:00)
-verlopenContactverzoekHerinnering:
+# VerlopenContactverzoekHerinneringNotificatie — sends a daily reminder for overdue contact requests (weekdays 07:00)
+verlopenContactverzoekHerinneringNotificatie:
   enabled: true
   schedule: "0 7 * * 1-5"

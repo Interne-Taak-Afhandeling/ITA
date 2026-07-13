@@ -1,13 +1,13 @@
-{{- if .Values.verlopenContactverzoekHerinnering.enabled }}
+{{- if .Values.verlopenContactverzoekHerinneringNotificatie.enabled }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "internetaakafhandeling.fullname" . }}-verlopen-contactverzoek-herinnering
+  name: {{ include "internetaakafhandeling.fullname" . }}-verlopen-contactverzoek-herinnering-notificatie
   labels:
     {{- include "internetaakafhandeling.labels" . | nindent 4 }}
     app.kubernetes.io/component: poller
 spec:
-  schedule: "{{ .Values.verlopenContactverzoekHerinnering.schedule }}"
+  schedule: "{{ .Values.verlopenContactverzoekHerinneringNotificatie.schedule }}"
   jobTemplate:
     spec:
       template:
@@ -17,12 +17,12 @@ spec:
             app.kubernetes.io/component: poller
         spec:
           containers:
-            - name: verlopen-contactverzoek-herinnering
+            - name: verlopen-contactverzoek-herinnering-notificatie
               image: "{{ .Values.poller.image.repository }}:{{ .Values.poller.image.tag }}"
               imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
               env:
                 - name: POLLER_MODE
-                  value: "verlopen-contactverzoek-herinnering"
+                  value: "verlopen-contactverzoek-herinnering-notificatie"
               {{- with .Values.poller.resources }}
               resources:
                 {{- toYaml . | nindent 16 }}

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
+namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinneringNotificatie;
 
 public interface IVerlopenInternetakenProcessor
 {
@@ -18,14 +18,14 @@ public sealed class VerlopenInternetakenProcessor(
     IOpenKlantApiClient openKlantApiClient,
 
     IInterneTaakEmailInputService emailInputService,
-    VerlopenContactverzoekHerinneringsTemplateService templateService,
+    VerlopenContactverzoekHerinneringNotificatieTemplateService templateService,
     IEmailService emailService,
     IConfiguration configuration,
     ILogger<VerlopenInternetakenProcessor> logger) : IVerlopenInternetakenProcessor
 {
     private readonly string _baseUrl = configuration.GetValue<string>("Ita:BaseUrl")
         ?? throw new InvalidOperationException("Ita:BaseUrl configuratie ontbreekt.");
-    private readonly VerlopenContactverzoekHerinneringsTemplateService _templateService = templateService;
+    private readonly VerlopenContactverzoekHerinneringNotificatieTemplateService _templateService = templateService;
 
     public async Task StuurHerinneringenVoorVerlopenInternetakenAsync(CancellationToken cancellationToken = default)
     {
@@ -53,9 +53,6 @@ public sealed class VerlopenInternetakenProcessor(
         return GroupVerlopenTakenByActor(verlopenInterneTaken);
 
     }
-
-
-
 
     private async Task<List<RecipientHerinneringData>> BuildHerrinneringsModels(DateTimeOffset now, Dictionary<string, (Actor Actor, List<Internetaak> Taken)> verlopenTakenByActor)
     {
@@ -87,7 +84,7 @@ public sealed class VerlopenInternetakenProcessor(
             });
 
         }
-
+        
         return recipients;
     }
 
@@ -144,7 +141,6 @@ public sealed class VerlopenInternetakenProcessor(
         return [.. allInternetaken.Where(taak => IsVerlopen(taak, now))]; ;
     }
 
-
     private async Task<(int verstuurd, int overgeslagen, int fouten)> StuurHerinneringenAsync(
         IReadOnlyList<RecipientHerinneringData> herinneringen,
         CancellationToken cancellationToken)
@@ -159,18 +155,23 @@ public sealed class VerlopenInternetakenProcessor(
 
             var werkvoorraadUrl = $"{_baseUrl.TrimEnd('/')}{herinnering.Link}";
 
-            var content = _templateService.GenereerMailBody(
+            var content = VerlopenContactverzoekHerinneringNotificatieTemplateService.GenereerMailBody(
                 herinnering.AantalVerlopenContactVerzoeken,
                 herinnering.MaxAantalWerkdagenOpenstaan,
                werkvoorraadUrl);
 
-            var onderwerp = _templateService.GenereerMailSubject(herinnering.AantalVerlopenContactVerzoeken);
+            var plainTextContent = VerlopenContactverzoekHerinneringNotificatieTemplateService.GenereerMailBodyPlainText(
+                herinnering.AantalVerlopenContactVerzoeken,
+                herinnering.MaxAantalWerkdagenOpenstaan,
+                werkvoorraadUrl);
+
+            var onderwerp = VerlopenContactverzoekHerinneringNotificatieTemplateService.GenereerMailSubject(herinnering.AantalVerlopenContactVerzoeken);
 
             foreach (var email in herinnering.EmailAdressen)
             {
                 try
                 {
-                    await emailService.SendEmailAsync(email, onderwerp, content);
+                    await emailService.SendEmailAsync(email, onderwerp, content, plainTextContent);
                     logger.LogInformation(
                         "Daily reminder: email sent for actor {ActorUuid} ({AantalCvs} contact requests)",
                         herinnering.ActorUuid,

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
+namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinneringNotificatie;
 
 public sealed class RecipientHerinneringData
 {

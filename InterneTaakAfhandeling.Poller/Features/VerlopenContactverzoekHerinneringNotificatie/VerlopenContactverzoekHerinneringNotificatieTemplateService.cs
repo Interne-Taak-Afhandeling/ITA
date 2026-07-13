@@ -1,11 +1,11 @@
 ﻿using System.Net;
 using System.Text;
 
-namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinnering;
+namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinneringNotificatie;
 
-public sealed class VerlopenContactverzoekHerinneringsTemplateService
+public sealed class VerlopenContactverzoekHerinneringNotificatieTemplateService
 {
-    public   string GenereerMailBody(int aantalCvs, int maxWerkdagen, string werkvoorraadUrl)
+    public static string GenereerMailBody(int aantalCvs, int maxWerkdagen, string werkvoorraadUrl)
     {
         var sb = new StringBuilder();
         sb.Append(@"<html>
@@ -36,7 +36,21 @@ public sealed class VerlopenContactverzoekHerinneringsTemplateService
         return sb.ToString();
     }
 
-    public   string GenereerMailSubject(int aantalVerlopenContactVerzoeken)
+    public static string GenereerMailBodyPlainText(int aantalCvs, int maxWerkdagen, string werkvoorraadUrl)
+    {
+        var sb = new StringBuilder();
+        sb.Append("Beste collega,\n\n");
+        sb.Append("Er staan ").Append(aantalCvs).Append(" contactverzoeken open die al verlopen zijn. Het langstlopende contactverzoek staat al ").Append(maxWerkdagen).Append(" werkdag");
+        if (maxWerkdagen != 1) sb.Append("en");
+        sb.Append(" open.\n\n");
+        sb.Append("Inwoners waarderen een snelle afhandeling van hun verzoeken.\n");
+        sb.Append("Neem contact op en handel deze contactverzoeken af.\n\n");
+        sb.Append("Ga naar je werkvoorraad: ").Append(werkvoorraadUrl).Append("\n\n");
+        sb.Append("Fijne werkdag");
+        return sb.ToString();
+    }
+
+    public static string GenereerMailSubject(int aantalVerlopenContactVerzoeken)
     {
        return aantalVerlopenContactVerzoeken == 1
                 ? "1 contactverzoek wacht op jou"
