@@ -53,8 +53,8 @@ internal class Program
                 .AddScoped<INieuweInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
                 .AddScoped<IContactmomentenService, ContactmomentenService>()
-                .AddKeyedScoped<IPollerJob, NieuweInternetaakNotificatiePollerJob>("nieuwe-internetaak-notificatie")
-                .AddKeyedScoped<IPollerJob, VerlopenContactverzoekHerinneringNotificatiePollerJob>("verlopen-contactverzoek-herinnering-notificatie");
+                .AddKeyedScoped<IPollerJob, InternetakenNotifier>("nieuwe-internetaak-notificatie")
+                .AddKeyedScoped<IPollerJob, VerlopenInternetakenProcessor>("verlopen-contactverzoek-herinnering-notificatie");
 
             var serviceProvider = services.BuildServiceProvider();
 

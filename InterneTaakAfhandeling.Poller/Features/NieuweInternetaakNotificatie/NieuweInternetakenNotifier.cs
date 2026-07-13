@@ -2,6 +2,7 @@ using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Poller.Features;
 using InterneTaakAfhandeling.Poller.Services.NotifierState;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,7 @@ public interface INieuweInternetakenProcessor
     Task NotifyAboutNewInternetakenAsync();
 }
 
-public class InternetakenNotifier : INieuweInternetakenProcessor
+public class InternetakenNotifier : INieuweInternetakenProcessor, IPollerJob
 {
     private readonly IOpenKlantApiClient _openKlantApiClient;
     private readonly IEmailService _emailService;
@@ -90,6 +91,8 @@ public class InternetakenNotifier : INieuweInternetakenProcessor
         await _notifierStateService.FinishJobAsync(processResult);
 
     }
+
+    public Task ExecuteAsync(CancellationToken cancellationToken = default) => NotifyAboutNewInternetakenAsync();
 
     public async Task<ProcessingResult> ProcessInternetakenAsync(Internetaak internetaak)
     {

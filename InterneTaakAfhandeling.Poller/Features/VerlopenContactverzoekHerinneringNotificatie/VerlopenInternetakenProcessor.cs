@@ -3,6 +3,7 @@ using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Poller.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -21,11 +22,13 @@ public sealed class VerlopenInternetakenProcessor(
     VerlopenContactverzoekHerinneringNotificatieTemplateService templateService,
     IEmailService emailService,
     IConfiguration configuration,
-    ILogger<VerlopenInternetakenProcessor> logger) : IVerlopenInternetakenProcessor
+    ILogger<VerlopenInternetakenProcessor> logger) : IVerlopenInternetakenProcessor, IPollerJob
 {
     private readonly string _baseUrl = configuration.GetValue<string>("Ita:BaseUrl")
         ?? throw new InvalidOperationException("Ita:BaseUrl configuratie ontbreekt.");
     private readonly VerlopenContactverzoekHerinneringNotificatieTemplateService _templateService = templateService;
+
+    public Task ExecuteAsync(CancellationToken cancellationToken = default) => StuurHerinneringenVoorVerlopenInternetakenAsync(cancellationToken);
 
     public async Task StuurHerinneringenVoorVerlopenInternetakenAsync(CancellationToken cancellationToken = default)
     {
