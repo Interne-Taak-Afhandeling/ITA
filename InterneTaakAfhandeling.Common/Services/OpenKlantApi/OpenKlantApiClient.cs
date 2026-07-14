@@ -287,9 +287,6 @@ public partial class OpenKlantApiClient(
         var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen,hadBetrokkenen.wasPartij");
         response.EnsureSuccessStatusCode();
 
-        var jsonString = await response.Content.ReadAsStringAsync();
-        _logger.LogInformation("API Response: {JsonString}", jsonString);
-
         var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
 
         _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
