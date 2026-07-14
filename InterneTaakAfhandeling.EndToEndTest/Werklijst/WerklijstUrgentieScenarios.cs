@@ -302,7 +302,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
             var expectedLabel = BusinessHours.ExpectedLabel(resterend);
 
             await Step($"Verify badge has status class '{expectedStatusClass}' and label '{expectedLabel}'");
-            await Expect(badge).ToHaveClassAsync(new Regex(Regex.Escape(expectedStatusClass)));
+            await Expect(badge).ToHaveClassAsync(new Regex($@"\b{Regex.Escape(expectedStatusClass)}\b"));
             await Expect(badge).ToHaveTextAsync(expectedLabel);
         }
     }

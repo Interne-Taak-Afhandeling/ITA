@@ -189,7 +189,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
             var afdelingActor = await GetOrCreateAfdelingActor(afdelingKey);
-            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
 
             await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
@@ -218,7 +218,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var submitterActor = await GetOrCreateSubmitterActor();
             await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
 
-            var medewerkerActor = await GetOrCreateMedewerkerActor("icatt-integratie-test@icatt.nl");
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
 
             await CreateInternetaak(
                 GenerateUniqueInternetaakNummer(),
