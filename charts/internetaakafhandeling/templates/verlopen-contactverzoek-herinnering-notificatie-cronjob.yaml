@@ -1,0 +1,48 @@
+{{- if .Values.verlopenContactverzoekHerinneringNotificatie.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "internetaakafhandeling.fullname" . }}-verlopen-contactverzoek-herinnering-notificatie
+  labels:
+    {{- include "internetaakafhandeling.labels" . | nindent 4 }}
+    app.kubernetes.io/component: poller
+spec:
+  schedule: "{{ .Values.verlopenContactverzoekHerinneringNotificatie.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "internetaakafhandeling.labels" . | nindent 12 }}
+            app.kubernetes.io/component: poller
+        spec:
+          containers:
+            - name: verlopen-contactverzoek-herinnering-notificatie
+              image: "{{ .Values.poller.image.repository }}:{{ .Values.poller.image.tag }}"
+              imagePullPolicy: {{ .Values.poller.image.pullPolicy }}
+              env:
+                - name: POLLER_MODE
+                  value: "verlopen-contactverzoek-herinnering-notificatie"
+              {{- with .Values.poller.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              envFrom:
+                - configMapRef:
+                    name: {{ include "internetaakafhandeling.fullname" . }}-config
+                - secretRef:
+                    name: {{ include "internetaakafhandeling.fullname" . }}-secrets
+          restartPolicy: OnFailure
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

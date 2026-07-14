@@ -16,6 +16,34 @@ Zet Docker-compose als startup project. In Visual Studio selecteer je het gewens
 - Start alleen de poller.
 - Database wordt gestart zonder debugging.
 
+### Poller Modes (POLLER_MODE)
+
+De Poller ondersteunt meerdere uitvoermodi via de omgevingsvariabele `POLLER_MODE`. Elke modus wordt in productie aangestuurd door een eigen Kubernetes CronJob.
+
+| Waarde | Doel | K8s CronJob schedule |
+| ------ | ---- | -------------------- |
+| `nieuwe-internetaak-notificatie` (default) | Controleert op nieuwe internetaken en verstuurt e-mailnotificaties naar toegewezen medewerkers | `*/15 * * * *` (elke 15 min) |
+| `verlopen-contactverzoek-herinnering-notificatie` | Verstuurt dagelijkse herinneringsmails voor verlopen contactverzoeken | `0 7 * * 1-5` (werkdagen 07:00) |
+
+**Lokaal draaien in een specifieke modus:**
+
+```bash
+# Standaard (nieuwe internetaak notificatie)
+dotnet run --project InterneTaakAfhandeling.Poller
+
+# Dagelijkse herinnering voor verlopen contactverzoeken
+POLLER_MODE=verlopen-contactverzoek-herinnering-notificatie dotnet run --project InterneTaakAfhandeling.Poller
+```
+
+Op Windows (PowerShell):
+
+```powershell
+$env:POLLER_MODE = "verlopen-contactverzoek-herinnering-notificatie"
+dotnet run --project InterneTaakAfhandeling.Poller
+```
+
+Bij een onbekende `POLLER_MODE`-waarde logt de Poller een fout en stopt zonder actie.
+
 ### Handmatig Starten met Docker Compose
 
 Je kunt de services ook handmatig starten via de command line (soms start de database later op en moet je poller of web opnieuw draaien):
