@@ -1,19 +1,12 @@
-﻿using System.Buffers.Text;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+﻿using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Poller.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinneringNotificatie;
 
-public interface IVerlopenInternetakenProcessor
-{
-    Task StuurHerinneringenVoorVerlopenInternetakenAsync(CancellationToken cancellationToken = default);
-}
 
 public sealed class VerlopenInternetakenProcessor(
     IOpenKlantApiClient openKlantApiClient,
@@ -22,15 +15,13 @@ public sealed class VerlopenInternetakenProcessor(
     VerlopenContactverzoekHerinneringNotificatieTemplateService templateService,
     IEmailService emailService,
     IConfiguration configuration,
-    ILogger<VerlopenInternetakenProcessor> logger) : IVerlopenInternetakenProcessor, IPollerJob
+    ILogger<VerlopenInternetakenProcessor> logger) : IPollerJob
 {
     private readonly string _baseUrl = configuration.GetValue<string>("Ita:BaseUrl")
         ?? throw new InvalidOperationException("Ita:BaseUrl configuratie ontbreekt.");
     private readonly VerlopenContactverzoekHerinneringNotificatieTemplateService _templateService = templateService;
 
-    public Task ExecuteAsync(CancellationToken cancellationToken = default) => StuurHerinneringenVoorVerlopenInternetakenAsync(cancellationToken);
-
-    public async Task StuurHerinneringenVoorVerlopenInternetakenAsync(CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Daily reminder: run started");
 
@@ -87,7 +78,7 @@ public sealed class VerlopenInternetakenProcessor(
             });
 
         }
-        
+
         return recipients;
     }
 

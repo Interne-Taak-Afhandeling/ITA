@@ -49,8 +49,6 @@ internal class Program
                 .AddITAApiClients(configuration)
                 .AddSmtpClients(configuration)
                 .AddSingleton<VerlopenContactverzoekHerinneringNotificatieTemplateService>()
-                .AddScoped<IVerlopenInternetakenProcessor, VerlopenInternetakenProcessor>()
-                .AddScoped<INieuweInternetakenProcessor, InternetakenNotifier>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
                 .AddScoped<IContactmomentenService, ContactmomentenService>()
                 .AddKeyedScoped<IPollerJob, InternetakenNotifier>("nieuwe-internetaak-notificatie")
