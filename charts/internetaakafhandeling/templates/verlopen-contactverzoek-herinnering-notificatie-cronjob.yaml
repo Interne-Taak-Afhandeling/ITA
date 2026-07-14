@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "internetaakafhandeling.fullname" . }}-verlopen-contactverzoek-herinnering-notificatie
+  name: {{ include "internetaakafhandeling.fullname" . }}-verlopen-cv-notify
   labels:
     {{- include "internetaakafhandeling.labels" . | nindent 4 }}
     app.kubernetes.io/component: poller

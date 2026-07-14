@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "internetaakafhandeling.fullname" . }}-nieuwe-internetaak-notificatie
+  name: {{ include "internetaakafhandeling.fullname" . }}-nieuw-cv-notify
   labels:
     {{- include "internetaakafhandeling.labels" . | nindent 4 }}
     app.kubernetes.io/component: poller
