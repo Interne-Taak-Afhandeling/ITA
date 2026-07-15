@@ -14,11 +14,16 @@ public interface ILogboekService
     Task LogContactRequestAction(KnownContactAction knownContactAction, Guid internetaakId);
 }
 
-public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient)
+public class LogboekService(
+    IObjectApiClient objectenApiClient,
+    IOpenKlantApiClient openKlantApiClient,
+    IZakenApiClient zakenApiClient,
+    ILogger<LogboekService> logger)
     : ILogboekService
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
     private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
+    private readonly ILogger<LogboekService> _logger = logger;
 
     public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
     {
@@ -65,8 +70,18 @@ public class LogboekService(IObjectApiClient objectenApiClient, IOpenKlantApiCli
                 case ActiviteitTypes.Toegewezen when item.HeeftBetrekkingOp.Count == 1:
                     {
                         var actorId = item.HeeftBetrekkingOp.Single().ObjectId;
-                        var actor = await _openKlantApiClient.GetActorAsync(actorId);
                         activiteit.UitgevoerdDoor = GetName(item);
+
+                        Actor? actor;
+                        try
+                        {
+                            actor = await _openKlantApiClient.GetActorAsync(actorId);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Kon toegewezen Actor {ActorId} niet ophalen voor Logboek-vermelding, val terug op neutrale tekst", actorId);
+                            actor = null;
+                        }
 
                         activiteit.Tekst = actor == null
                             ? "Contactverzoek toegewezen"
