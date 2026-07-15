@@ -7,7 +7,8 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 
 public interface IEmailService
 {
-    Task<EmailResult> SendEmailAsync(string to, string subject, string body);
+    Task<EmailResult> SendEmailAsync(string to, string subject, string body, string? plainTextBody = null);
+
     bool IsConfiguredCorrectly();
 }
 
@@ -21,18 +22,27 @@ public class EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailServi
         && _smtpSettings.Port > 0
         && !string.IsNullOrEmpty(_smtpSettings.FromEmail);
 
-    public async Task<EmailResult> SendEmailAsync(string to, string subject, string body)
+    public async Task<EmailResult> SendEmailAsync(string to, string subject, string body, string? plainTextBody = null)
     {
         try
         {
             var mailMessage = new MailMessage
             {
                 From = new MailAddress(_smtpSettings.FromEmail),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
+                Subject = subject
             };
             mailMessage.To.Add(to);
+
+            if (!string.IsNullOrEmpty(plainTextBody))
+            {
+                mailMessage.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(plainTextBody, null, "text/plain"));
+                mailMessage.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(body, null, "text/html"));
+            }
+            else
+            {
+                mailMessage.Body = body;
+                mailMessage.IsBodyHtml = true;
+            }
 
             using var smtpClient = new SmtpClient(_smtpSettings.Host, _smtpSettings.Port);
             smtpClient.Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password);
@@ -54,6 +64,7 @@ public class EmailService(IOptions<SmtpSettings> smtpOptions, ILogger<EmailServi
             return new EmailResult { Success = false, ErrorMessage = ex.Message };
         }
     }
+
     public static bool IsValidEmail(string email)
     {
         try
