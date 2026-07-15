@@ -161,10 +161,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Telefoon" });
             await Page.GetInformatieBurgerTextbox().FillAsync("Test information for save and close");
 
+            await Step("Verify legend text asks about closing the contactverzoek");
+            await Expect(Page.GetByText("Wil je het contactverzoek afsluiten?")).ToBeVisibleAsync();
+
             await Step("Select 'Ja' for afsluiten question");
             await Page.GetJaLabel().ClickAsync();
 
-            await Step("Click 'Contactmoment opslaan' button to trigger confirmation");
+            await Step("Verify submit button text reactively changes to 'Opslaan en afsluiten'");
+            await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Opslaan en afsluiten" })).ToBeVisibleAsync();
+
+            await Step("Click 'Opslaan en afsluiten' button to trigger confirmation");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
 
             await Step("Verify confirmation dialog is displayed");
@@ -202,7 +208,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Select 'Ja' for afsluiten question");
             await Page.GetJaLabel().ClickAsync();
 
-            await Step("Click 'Contactmoment opslaan' button to trigger confirmation");
+            await Step("Click 'Opslaan en afsluiten' button to trigger confirmation");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
 
             await Step("Verify confirmation dialog is displayed");
@@ -232,7 +238,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
 
         // Disabled: Closed (verwerkt) contactverzoeken are read-only. Once a contactverzoek is
-        // afgerond, the action controls (Contactmoment registreren, Doorsturen, Toewijzen, Zaak koppelen)
+        // afgerond, the action controls (Contact registreren, Doorsturen, Toewijzen, Zaak koppelen)
         // are hidden and no further modifications are allowed. This is by design (Feature #344).
         // [TestMethod("Validation that closed contactverzoek can still be updated")]
         // public async Task User_UpdateClosedContactverzoek_CanStillAddContactmoment()
@@ -250,7 +256,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         //     await Step("Select 'Ja' for afsluiten to close the contactverzoek");
         //     await Page.GetJaLabel().ClickAsync();
         //
-        //     await Step("Click 'Contactmoment opslaan' button to trigger confirmation");
+        //     await Step("Click 'Opslaan en afsluiten' button to trigger confirmation");
         //     await Page.GetContactmomentOpslaanButton().ClickAsync();
         //
         //     await Step("Verify confirmation dialog is displayed");
@@ -836,7 +842,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             var expectedName = await TestDataHelper.GetCurrentUserActorNameAsync();
             await Expect(Page.GetBehandelaarValue()).ToHaveTextAsync(expectedName);
 
-            await VerifyLogbookEntry("Opgepakt");
+            await VerifyLogbookEntry("Toegewezen");
         }
 
         [TestMethod("Assigning a Zaak to contact request - with logbook verification")]
@@ -957,7 +963,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Enter details in field 'Informatie voor burger / bedrijf' as 'test logboek'");
             await Page.GetInformatieBurgerTextbox().FillAsync("test logboek");
 
-            await Step("Click on 'Contactmoment opslaan' button");
+            await Step("Click on 'Opslaan en afsluiten' button");
             await Page.GetContactmomentOpslaanButton().ClickAsync();
 
             await Step("Verify confirmation dialog is shown");

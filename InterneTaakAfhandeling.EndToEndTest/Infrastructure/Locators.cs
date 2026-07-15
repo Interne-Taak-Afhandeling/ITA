@@ -37,7 +37,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         }
 
         public static ILocator GetContactmomentRegistrerenTab(this IPage page) =>
-            page.GetByText("Contactmoment registreren");
+            page.GetByText("Contact registreren");
 
         public static ILocator GetDoorsturenTab(this IPage page) => page.GetByText("Doorsturen");
 
@@ -108,7 +108,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             page.GetByText("Test contactverzoek from ITA E2E test");
 
         public static ILocator GetContactmomentOpslaanButton(this IPage page) =>
-            page.GetByRole(AriaRole.Button, new() { Name = "Contactmoment opslaan" });
+            page.GetByRole(AriaRole.Button, new() { Name = "Opslaan" });
 
         // Zaak connection locators
         public static ILocator GetGekoppeldeZaakKoppelenButton(this IPage page) =>
@@ -175,10 +175,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 : page.GetByRole(AriaRole.Status).Filter(new() { HasText = text });
 
         public static ILocator GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage(this IPage page) =>
-            page.GetByText("Contactmoment succesvol opgeslagen en afgerond");
-            
+            page.GetByText("Contact vastgelegd en contactverzoek afgerond");
+
         public static ILocator GetContactmomentSuccesvolBijgewerktMessage(this IPage page) =>
-            page.GetByText("Contactmoment succesvol bijgewerkt");
+            page.GetByText("Contact succesvol vastgelegd");
 
         // Message locators
         public static ILocator GetContactverzoekToegewezenMessage(this IPage page) =>
