@@ -23,7 +23,7 @@
       </utrecht-fieldset>
 
       <utrecht-fieldset>
-        <utrecht-legend>Wil je het contactmoment afsluiten?</utrecht-legend>
+        <utrecht-legend>Wil je het contactverzoek afsluiten?</utrecht-legend>
         <utrecht-form-field v-for="(label, key) in AFSLUITEN" :key="key" type="radio">
           <utrecht-radiobutton
             name="afsluiten"
