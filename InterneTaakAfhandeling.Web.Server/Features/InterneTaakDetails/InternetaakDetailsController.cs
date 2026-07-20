@@ -1,7 +1,9 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
+using InterneTaakAfhandeling.Web.Server.Guards;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,12 +12,16 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
     [Route("api/internetaken")]
     [ApiController]
     [Authorize]
-    public class InternetaakDetailsController(IInternetaakService internetakenService) : Controller
+    public class InternetaakDetailsController(
+        IInternetaakService internetakenService,
+        IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
+        ITAUser user) : Controller
     {
 
         private readonly IInternetaakService _internetakenService = internetakenService;
 
         [ProducesResponseType(typeof(InterneTaakDetailsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("{internetaakNummer}")]
@@ -34,6 +40,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
                 });
             }
 
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaak, user);
+
             if (internetaak.AanleidinggevendKlantcontact?.Nummer == null)
             {
                 return Conflict(new ProblemDetails
@@ -48,6 +56,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
         }
 
         [ProducesResponseType(typeof(InterneTaakDetailsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("by-klantcontact/{nummer}")]
@@ -78,6 +87,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
                     Status = StatusCodes.Status404NotFound
                 });
             }
+
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaak, user);
 
             if (internetaak.AanleidinggevendKlantcontact?.Nummer == null)
             {

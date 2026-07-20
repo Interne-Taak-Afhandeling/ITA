@@ -131,6 +131,8 @@ const fetchInternetaken = async () => {
     console.error("Error loading contactverzoek:", err);
     if (err instanceof Error && err.message === knownErrorMessages.notFound) {
       errorMessage.value = "Dit contactverzoek bestaat niet of is niet meer beschikbaar.";
+    } else if (err instanceof Error && err.message === knownErrorMessages.forbidden) {
+      errorMessage.value = "Je hebt geen toegang tot dit contactverzoek.";
     } else {
       errorMessage.value =
         "Er is iets misgegaan bij het ophalen van dit contactverzoek. Neem contact op met de beheerder als dit probleem zich blijft voordoen.";
