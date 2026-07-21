@@ -235,6 +235,7 @@ public partial class OpenKlantApiClient(
         }
     }
 
+    //todo: refactor this method to return null instead of throwing an exception when the actor is not found. It's up to the features how to deal with an actor that can't be found. The apiclient should not be opinionated on this.
     public async Task<Actor> GetActorAsync(string? uuid)
     {
         _logger.LogInformation("Fetching actor {Uuid}", uuid);
@@ -254,31 +255,6 @@ public partial class OpenKlantApiClient(
 
         return actor;
     }
-
-    // public async Task<Klantcontact> GetKlantcontactAsync(Guid uuid)
-    // {
-    //     _logger.LogInformation("Fetching klantcontact {Uuid}", uuid);
-
-    //     var response = await _httpClient.GetAsync($"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen");
-    //     response.EnsureSuccessStatusCode();
-
-    //     var jsonString = await response.Content.ReadAsStringAsync();
-    //     _logger.LogInformation("API Response: {JsonString}", jsonString);
-
-
-
-    //     var klantcontact = await response.Content.ReadFromJsonAsync<Klantcontact>();
-
-    //     _logger.LogInformation("Onderwerpobjecten count: {Count}", klantcontact?.GingOverOnderwerpobjecten?.Count ?? 0);
-    //     foreach (var obj in klantcontact?.GingOverOnderwerpobjecten ?? [])
-    //     {
-    //         _logger.LogInformation("Onderwerpobject: {Uuid}, Identificator: {Id}",
-    //             obj.Uuid,
-    //             SecureLogging.SanitizeAndTruncate(obj.Onderwerpobjectidentificator?.ObjectId));
-    //     }
-
-    //     return klantcontact;
-    // }
 
     public async Task<Klantcontact> GetKlantcontactAsync(Guid uuid)
     {
