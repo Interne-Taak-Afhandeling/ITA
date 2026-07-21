@@ -169,6 +169,65 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, nummer);
         }
 
+        // Assigns both afdeling and medewerker actors, and accepts an explicit ContactDatum so
+        // callers (werklijst urgentie E2E tests) can construct fixtures that land in a specific
+        // urgentie bucket regardless of which day the suite runs.
+        public async Task<(Guid ContactmomentUuid, string KlantcontactNummer, string AfdelingNaam)> CreateContactverzoekWithContactDatum(
+            string onderwerp,
+            DateTime plaatsgevondenOp,
+            string afdelingKey = "Burgerzaken_ibz")
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null,
+                plaatsgevondenOp: plaatsgevondenOp);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor(afdelingKey);
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
+
+            await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid>
+                {
+                    Guid.Parse(medewerkerActor.Uuid),
+                    Guid.Parse(afdelingActor.Uuid)
+                });
+
+            return (contactmoment.Uuid, contactmoment.Nummer!, afdelingActor.Naam!);
+        }
+
+        // Assigned directly to the current user (so it shows on "Mijn werkvoorraad") with no
+        // afdeling actor at all - used to verify the Afdeling column renders an empty cell
+        // rather than erroring when a contactverzoek has no linked department.
+        public async Task<(Guid ContactmomentUuid, string KlantcontactNummer)> CreateContactverzoekWithCurrentUserAssignedNoAfdeling(string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
+
+            await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(medewerkerActor.Uuid) });
+
+            return (contactmoment.Uuid, contactmoment.Nummer!);
+        }
+
         public async Task<(Guid ContactmomentUuid, string InternetaakNummer)> CreateContactverzoekWithCurrentUserAssigned(string onderwerp)
         {
             var contactmoment = await CreateContactmoment(
@@ -493,7 +552,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return contactmoment;
         }
 
-        private Task<Klantcontact> CreateContactmoment(string onderwerp, string inhoud, string? klantnaam)
+        private Task<Klantcontact> CreateContactmoment(string onderwerp, string inhoud, string? klantnaam, DateTime? plaatsgevondenOp = null)
         {
             return OpenKlantApiClient.CreateKlantcontactAsync(new KlantcontactRequest
             {
@@ -501,7 +560,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 Onderwerp = onderwerp,
                 Inhoud = inhoud,
                 Kanaal = "e-mail",
-                PlaatsgevondenOp = DateTime.UtcNow,
+                PlaatsgevondenOp = plaatsgevondenOp ?? DateTime.UtcNow,
                 Taal = "nl",
                 Vertrouwelijk = false,
                 Klantnaam = klantnaam

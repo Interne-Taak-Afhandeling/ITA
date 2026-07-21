@@ -11,6 +11,38 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return testRow.GetByRole(AriaRole.Link).Filter(new() { HasText = "→" });
         }
 
+        // Werklijst locators (urgentie badge, Afdeling/Klantcontactnummer columns, row click)
+        public static ILocator GetWerklijstRow(this IPage page, string onderwerp) =>
+            page.GetByRole(AriaRole.Row).Filter(new() { HasText = onderwerp }).First;
+
+        public static ILocator GetColumnHeader(this IPage page, string name) =>
+            page.GetByRole(AriaRole.Columnheader, new() { Name = name, Exact = true });
+
+        public static ILocator GetUrgentieBadge(this IPage page, string onderwerp) =>
+            page.GetWerklijstRow(onderwerp).Locator(".utrecht-badge-status");
+
+        // Locates a row's cell by matching column header text at runtime, since Afdeling and
+        // Klantcontactnummer sit at different column indices on the two worklist tables.
+        public static async Task<ILocator> GetColumnCellAsync(this IPage page, string onderwerp, string columnName)
+        {
+            // The table renders asynchronously after navigation; wait for the target row before
+            // scanning headers, since CountAsync/InnerTextAsync below don't auto-retry like
+            // Playwright's Expect assertions do.
+            await page.GetWerklijstRow(onderwerp).WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+            var headers = page.GetByRole(AriaRole.Columnheader);
+            var count = await headers.CountAsync();
+            for (var i = 0; i < count; i++)
+            {
+                var text = (await headers.Nth(i).InnerTextAsync()).Trim();
+                if (text == columnName)
+                {
+                    return page.GetWerklijstRow(onderwerp).GetByRole(AriaRole.Cell).Nth(i);
+                }
+            }
+            throw new InvalidOperationException($"Column header '{columnName}' not found in the worklist table.");
+        }
+
         // Contactverzoek Details locators
         public static ILocator GetKlantnaamLabel(this IPage page) => page.GetByText("Klantnaam");
 
