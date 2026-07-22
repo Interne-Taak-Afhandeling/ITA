@@ -65,7 +65,6 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IInternetaakGuardService, InternetaakGuardService>();
             services.AddScoped<IReopenContactRequestService, ReopenContactRequestService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
-            services.Configure<UrgentieOptions>(configuration.GetSection(UrgentieOptions.SectionName));
             services.AddScoped<IUrgentieBerekenService, UrgentieBerekenService>();
             services.AddSmtpClients(configuration);
             

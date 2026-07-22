@@ -3,6 +3,13 @@ namespace InterneTaakAfhandeling.Common.Helpers;
 public static class WerkdagenCalculator
 {
     /// <summary>
+    /// Aantal werkdaguren waarbinnen een contactverzoek afgehandeld dient te zijn (weekenden uitgezonderd).
+    /// Gedeeld tussen UI (Urgentie-badge) en de e-mailherinnering zodat beide dezelfde streefdatum hanteren.
+    /// </summary>
+    public const double AfhandeltermijnUren = 48;
+
+
+    /// <summary>
     /// Adds the given number of hours to a start time, skipping weekends entirely (24/7 on weekdays).
     /// </summary>
     public static DateTimeOffset AddWeekdayHours(DateTimeOffset start, TimeSpan hoursToAdd)

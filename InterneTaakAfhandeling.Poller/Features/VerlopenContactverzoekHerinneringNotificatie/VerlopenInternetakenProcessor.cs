@@ -192,11 +192,8 @@ public sealed class VerlopenInternetakenProcessor(
         return plaatsgevondenOp != null && CalculateStreefdatum(plaatsgevondenOp.Value) <= now;
     }
 
-    private static DateTimeOffset CalculateStreefdatum(DateTimeOffset start)
-    {
-        // Afhandeltermijn hardcoded at 48 hours; swap this registration for a configurable implementation in #329.
-        return WerkdagenCalculator.AddWeekdayHours(start, TimeSpan.FromHours(48));
-    }
+    private static DateTimeOffset CalculateStreefdatum(DateTimeOffset start) =>
+        WerkdagenCalculator.AddWeekdayHours(start, TimeSpan.FromHours(WerkdagenCalculator.AfhandeltermijnUren));
 
     private static int BerekenWerkdagenVerlopen(DateTimeOffset start, DateTimeOffset now)
     {
