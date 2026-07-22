@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+﻿using InterneTaakAfhandeling.Common.Helpers;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
@@ -74,7 +75,7 @@ public sealed class VerlopenInternetakenProcessor(
                 EmailAdressen = resolveResult.FoundEmails,
                 AantalVerlopenContactVerzoeken = entry.Taken.Count,
                 MaxAantalWerkdagenOpenstaan = entry.Taken.Max(taak =>
-                    BerekenWerkdagen(taak.AanleidinggevendKlantcontact?.PlaatsgevondenOp ?? now, now))
+                    BerekenWerkdagenVerlopen(taak.AanleidinggevendKlantcontact?.PlaatsgevondenOp ?? now, now))
             });
 
         }
@@ -188,37 +189,19 @@ public sealed class VerlopenInternetakenProcessor(
     private static bool IsVerlopen(Internetaak taak, DateTimeOffset now)
     {
         var plaatsgevondenOp = taak.AanleidinggevendKlantcontact?.PlaatsgevondenOp;
-        return plaatsgevondenOp != null && CalculateExpirationDateTime(plaatsgevondenOp.Value) <= now;
+        return plaatsgevondenOp != null && CalculateStreefdatum(plaatsgevondenOp.Value) <= now;
     }
 
-    private static DateTimeOffset CalculateExpirationDateTime(DateTimeOffset start)
+    private static DateTimeOffset CalculateStreefdatum(DateTimeOffset start) =>
+        WerkdagenCalculator.AddWeekdayHours(start, TimeSpan.FromHours(WerkdagenCalculator.AfhandeltermijnUren));
+
+    private static int BerekenWerkdagenVerlopen(DateTimeOffset start, DateTimeOffset now)
     {
-        // Afhandeltermijn hardcoded at 48 hours; swap this registration for a configurable implementation in #329.
-        var remaining = 48;
-        var current = start;
+        var streefdatum = CalculateStreefdatum(start);
+        var resterendeWerkdagUren = WerkdagenCalculator.BerekenResterendeWerkdagUren(now, streefdatum);
 
-        while (remaining > 0)
-        {
-            current = current.AddHours(1);
-            if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
-                remaining--;
-        }
-
-        return current;
-    }
-
-    private static int BerekenWerkdagen(DateTimeOffset start, DateTimeOffset end)
-    {
-        var days = 0;
-        var current = start.Date.AddDays(1);
-
-        while (current <= end.Date)
-        {
-            if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
-                days++;
-            current = current.AddDays(1);
-        }
-
-        return days;
+        return resterendeWerkdagUren >= 0
+            ? 0
+            : (int)Math.Ceiling(Math.Abs(resterendeWerkdagUren) / 24);
     }
 }
