@@ -1,9 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
-using InterneTaakAfhandeling.Web.Server.Guards;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,9 +11,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
     [ApiController]
     [Authorize]
     public class InternetaakDetailsController(
-        IInternetaakService internetakenService,
-        IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
-        ITAUser user) : Controller
+        IInternetaakService internetakenService) : Controller
     {
 
         private readonly IInternetaakService _internetakenService = internetakenService;
@@ -39,8 +35,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
                     Status = StatusCodes.Status404NotFound
                 });
             }
-
-            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaak, user);
 
             if (internetaak.AanleidinggevendKlantcontact?.Nummer == null)
             {
@@ -87,8 +81,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
                     Status = StatusCodes.Status404NotFound
                 });
             }
-
-            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaak, user);
 
             if (internetaak.AanleidinggevendKlantcontact?.Nummer == null)
             {
