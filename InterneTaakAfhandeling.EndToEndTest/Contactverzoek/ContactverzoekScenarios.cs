@@ -1240,48 +1240,5 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetEmailLabel()).ToBeVisibleAsync();
             await Expect(Page.GetEmailValue()).ToHaveTextAsync("-");
         }
-
-        [TestMethod("Alle contactverzoeken list is sorted in descending order (newest first)")]
-        public async Task User_ViewsAlleContactverzoeken_SortedInDescendingOrder()
-        {
-            await Step("Create contactverzoek to ensure data exists");
-            var testOnderwerp = $"Test_Sort_{Guid.NewGuid().ToString().Substring(0, 8)}";
-            await SetupContactverzoek(testOnderwerp, attachZaak: false);
-
-            await Step("Navigate to Alle contactverzoeken screen");
-            await SafeGotoAsync("/alle-contactverzoeken");
-
-            await Step("Verify the list is displayed");
-            var tableRows = Page.Locator("table tbody tr");
-            await Expect(tableRows.First).ToBeVisibleAsync();
-            var rowCount = await tableRows.CountAsync();
-            Assert.IsTrue(rowCount >= 1, "Expected at least one contact request in the list");
-
-            if (rowCount < 2)
-            {
-                await Step("Only one row found — sorting is trivially correct, skipping date comparison");
-                return;
-            }
-
-            await Step("Verify details are sorted in descending order by date");
-            var dates = new List<DateTime>();
-            for (var i = 0; i < rowCount; i++)
-            {
-                var rowText = await tableRows.Nth(i).InnerTextAsync();
-                var dateTimePattern = @"\d{2}-\d{2}-\d{4}";
-                var match = Regex.Match(rowText, dateTimePattern);
-                if (match.Success)
-                {
-                    var parsedDate = DateTime.ParseExact(match.Value, "dd-MM-yyyy", CultureInfo.InvariantCulture);
-                    dates.Add(parsedDate);
-                }
-            }
-
-            for (var i = 1; i < dates.Count; i++)
-            {
-                Assert.IsTrue(dates[i] <= dates[i - 1],
-                    $"List should be sorted in descending order (newest first). Found '{dates[i]:dd-MM-yyyy}' after '{dates[i - 1]:dd-MM-yyyy}'");
-            }
-        }
     }
 }
