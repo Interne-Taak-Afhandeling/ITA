@@ -164,5 +164,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
 
             Assert.AreEqual(0, emails.Count, "A 'verwerkt' contactverzoek must never trigger a reminder mail.");
         }
+
+        [TestMethod("Geen verlopen contactverzoeken — geen mails verstuurd")]
+        public async Task NoReminderMails_WhenNoOverdueContactverzoeken()
+        {
+            await Step("Trigger the daily reminder scheduler with no overdue contactverzoeken set up");
+            await SchedulerTrigger.TriggerDagelijkseHerinneringSchedulerAsync();
+
+            await Step("Check the Medewerker's testmailbox");
+            var emails = await TestMailbox.GetReceivedEmailsAsync(CurrentUserEmail);
+
+            Assert.AreEqual(0, emails.Count, "No reminder mails should be sent when there are no overdue contactverzoeken.");
+        }
     }
 }
