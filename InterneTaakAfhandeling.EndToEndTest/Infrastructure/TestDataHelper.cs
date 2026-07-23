@@ -460,6 +460,40 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, internetaakUuid, nummer);
         }
 
+        // Like CreateVerwerktContactverzoekAsync, but assigned to the current user's medewerker
+        // actor with an overdue PlaatsgevondenOp, so a daily-reminder test can verify a
+        // "verwerkt" contactverzoek never triggers a reminder even though its streefdatum has
+        // passed.
+        public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateVerwerktContactverzoekWithMedewerkerAsync(
+            string onderwerp,
+            DateTime plaatsgevondenOp)
+        {
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "Test contactverzoek for daily-reminder 'verwerkt' exclusion verification",
+                klantnaam: null,
+                plaatsgevondenOp: plaatsgevondenOp);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
+
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(medewerkerActor.Uuid) });
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+
+            await OpenKlantApiClient.PatchInternetaakStatusAsync(
+                new InternetakenPatchStatusRequest { Status = KnownInternetaakStatussen.Verwerkt },
+                internetaakUuid.ToString());
+
+            return (contactmoment.Uuid, internetaakUuid, nummer);
+        }
+
         public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateTeVerwerkenContactverzoekAsync(string onderwerp)
         {
             var contactmoment = await CreateContactmoment(

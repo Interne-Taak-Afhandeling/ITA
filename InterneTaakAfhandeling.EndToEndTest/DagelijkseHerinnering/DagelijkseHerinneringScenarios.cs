@@ -145,5 +145,24 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
             StringAssert.DoesNotMatch(mail.HtmlBody, new System.Text.RegularExpressions.Regex(System.Text.RegularExpressions.Regex.Escape(onderwerp)));
             StringAssert.Contains(mail.HtmlBody, InstructieZin);
         }
+
+        [TestMethod("Geen herinneringsmail voor ContactVerzoek met status \"verwerkt\"")]
+        public async Task NoReminderMail_ForVerwerktContactverzoek()
+        {
+            const string onderwerp = "E2E_DagelijkseHerinnering_Verwerkt";
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+
+            await Step("Setup an overdue contactverzoek with status 'verwerkt', assigned to the current Medewerker");
+            var (uuid, _, _) = await TestDataHelper.CreateVerwerktContactverzoekWithMedewerkerAsync(onderwerp, plaatsgevondenOp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await Step("Trigger the daily reminder scheduler");
+            await SchedulerTrigger.TriggerDagelijkseHerinneringSchedulerAsync();
+
+            await Step("Check the Medewerker's testmailbox");
+            var emails = await TestMailbox.GetReceivedEmailsAsync(CurrentUserEmail);
+
+            Assert.AreEqual(0, emails.Count, "A 'verwerkt' contactverzoek must never trigger a reminder mail.");
+        }
     }
 }
