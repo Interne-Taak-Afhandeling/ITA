@@ -231,6 +231,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, contactmoment.Nummer!);
         }
 
+        // Creates `count` separate overdue contactverzoeken all assigned to the current user, so
+        // the daily-reminder aggregation scenario can verify a single mail bundling multiple
+        // contactverzoeken rather than one mail per contactverzoek.
+        public async Task<List<Guid>> CreateMultipleContactverzoekenForMedewerker(
+            string onderwerpPrefix,
+            int count,
+            DateTime plaatsgevondenOp)
+        {
+            var contactmomentUuids = new List<Guid>();
+
+            for (var i = 0; i < count; i++)
+            {
+                var (uuid, _) = await CreateContactverzoekWithMedewerkerOnly($"{onderwerpPrefix}_{i}", plaatsgevondenOp);
+                contactmomentUuids.Add(uuid);
+            }
+
+            return contactmomentUuids;
+        }
+
         // Assigned directly to the current user (so it shows on "Mijn werkvoorraad") with no
         // afdeling actor at all - used to verify the Afdeling column renders an empty cell
         // rather than erroring when a contactverzoek has no linked department.

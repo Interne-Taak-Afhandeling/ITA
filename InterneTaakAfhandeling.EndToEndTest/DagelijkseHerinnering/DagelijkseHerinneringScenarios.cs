@@ -50,5 +50,30 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
             StringAssert.Contains(mail.HtmlBody, $"href=\"{MedewerkerWerkvoorraadLinkPath}");
             StringAssert.Contains(mail.PlainTextBody, AfsluitendeZin);
         }
+
+        [TestMethod("Geaggregeerde mail — meerdere verlopen contactverzoeken in één mail")]
+        public async Task Medewerker_ReceivesSingleAggregatedMail_ForMultipleOverdueContactverzoeken()
+        {
+            const string onderwerpPrefix = "E2E_DagelijkseHerinnering_Geaggregeerd";
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+
+            await Step("Setup 3 overdue contactverzoeken assigned to the current Medewerker");
+            var uuids = await TestDataHelper.CreateMultipleContactverzoekenForMedewerker(onderwerpPrefix, count: 3, plaatsgevondenOp);
+            foreach (var uuid in uuids)
+            {
+                RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+            }
+
+            await Step("Trigger the daily reminder scheduler");
+            await SchedulerTrigger.TriggerDagelijkseHerinneringSchedulerAsync();
+
+            await Step("Check the Medewerker's testmailbox");
+            var emails = await TestMailbox.GetReceivedEmailsAsync(CurrentUserEmail);
+
+            Assert.AreEqual(1, emails.Count, "Expected exactly one aggregated reminder mail, not one per contactverzoek.");
+            var mail = emails[0];
+            Assert.AreEqual("3 contactverzoeken wachten op jou", mail.Subject);
+            StringAssert.Contains(mail.HtmlBody, "werkdag");
+        }
     }
 }
