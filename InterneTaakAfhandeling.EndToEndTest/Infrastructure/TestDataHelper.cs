@@ -203,6 +203,82 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, contactmoment.Nummer!, afdelingActor.Naam!);
         }
 
+        // Medewerker-only assignment (no afdeling actor) with an explicit PlaatsgevondenOp, so
+        // daily-reminder E2E tests can construct a fixture that is overdue by a controlled
+        // number of business hours without also triggering the Afdeling/Groep reminder path.
+        public async Task<(Guid ContactmomentUuid, string KlantcontactNummer)> CreateContactverzoekWithMedewerkerOnly(
+            string onderwerp,
+            DateTime plaatsgevondenOp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null,
+                plaatsgevondenOp: plaatsgevondenOp);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
+
+            await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(medewerkerActor.Uuid) });
+
+            return (contactmoment.Uuid, contactmoment.Nummer!);
+        }
+
+        // Creates `count` separate overdue contactverzoeken all assigned to the current user, so
+        // the daily-reminder aggregation scenario can verify a single mail bundling multiple
+        // contactverzoeken rather than one mail per contactverzoek.
+        public async Task<List<Guid>> CreateMultipleContactverzoekenForMedewerker(
+            string onderwerpPrefix,
+            int count,
+            DateTime plaatsgevondenOp)
+        {
+            var contactmomentUuids = new List<Guid>();
+
+            for (var i = 0; i < count; i++)
+            {
+                var (uuid, _) = await CreateContactverzoekWithMedewerkerOnly($"{onderwerpPrefix}_{i}", plaatsgevondenOp);
+                contactmomentUuids.Add(uuid);
+            }
+
+            return contactmomentUuids;
+        }
+
+        // Afdeling-only assignment (no medewerker actor) with an explicit PlaatsgevondenOp, so
+        // daily-reminder E2E tests can verify the Afdeling/Groep reminder path in isolation from
+        // the Medewerker reminder path.
+        public async Task<(Guid ContactmomentUuid, string KlantcontactNummer, string AfdelingNaam)> CreateContactverzoekWithAfdelingOnlyAndContactDatum(
+            string onderwerp,
+            DateTime plaatsgevondenOp,
+            string afdelingKey = "Burgerzaken_ibz")
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null,
+                plaatsgevondenOp: plaatsgevondenOp);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var afdelingActor = await GetOrCreateAfdelingActor(afdelingKey);
+
+            await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(afdelingActor.Uuid) });
+
+            return (contactmoment.Uuid, contactmoment.Nummer!, afdelingActor.Naam!);
+        }
+
         // Assigned directly to the current user (so it shows on "Mijn werkvoorraad") with no
         // afdeling actor at all - used to verify the Afdeling column renders an empty cell
         // rather than erroring when a contactverzoek has no linked department.
@@ -373,6 +449,40 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 GenerateUniqueInternetaakNummer(),
                 contactmoment.Uuid,
                 new List<Guid>());
+
+            var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
+                ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");
+
+            await OpenKlantApiClient.PatchInternetaakStatusAsync(
+                new InternetakenPatchStatusRequest { Status = KnownInternetaakStatussen.Verwerkt },
+                internetaakUuid.ToString());
+
+            return (contactmoment.Uuid, internetaakUuid, nummer);
+        }
+
+        // Like CreateVerwerktContactverzoekAsync, but assigned to the current user's medewerker
+        // actor with an overdue PlaatsgevondenOp, so a daily-reminder test can verify a
+        // "verwerkt" contactverzoek never triggers a reminder even though its streefdatum has
+        // passed.
+        public async Task<(Guid ContactmomentUuid, Guid InternetaakUuid, string InternetaakNummer)> CreateVerwerktContactverzoekWithMedewerkerAsync(
+            string onderwerp,
+            DateTime plaatsgevondenOp)
+        {
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "Test contactverzoek for daily-reminder 'verwerkt' exclusion verification",
+                klantnaam: null,
+                plaatsgevondenOp: plaatsgevondenOp);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
+
+            var nummer = await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(medewerkerActor.Uuid) });
 
             var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(contactmoment.Uuid)
                 ?? throw new InvalidOperationException($"Internetaak not found after creation for contactmoment {contactmoment.Uuid}");

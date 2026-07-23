@@ -24,6 +24,17 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             }
         }
 
+        public static class Afdelingen
+        {
+            /// <summary>
+            /// Afdeling key (as passed to GetOrCreateAfdelingActor) for an afdeling without a
+            /// valid email address configured in the test objectenregister.
+            /// Set to a valid value when test data is configured; tests using this are marked
+            /// Inconclusive until then.
+            /// </summary>
+            public const string ZonderEmailKey = "";
+        }
+
         public static class Doorsturen
         {
             /// <summary>
