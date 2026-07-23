@@ -23,7 +23,7 @@
       </utrecht-fieldset>
 
       <utrecht-fieldset>
-        <utrecht-legend>Wil je het contactmoment afsluiten?</utrecht-legend>
+        <utrecht-legend>Wil je het contactverzoek afsluiten?</utrecht-legend>
         <utrecht-form-field v-for="(label, key) in AFSLUITEN" :key="key" type="radio">
           <utrecht-radiobutton
             name="afsluiten"
@@ -64,9 +64,9 @@
     </utrecht-fieldset>
 
     <utrecht-button-group>
-      <utrecht-button type="submit" appearance="primary-action-button"
-        >Contactmoment opslaan</utrecht-button
-      >
+      <utrecht-button type="submit" appearance="primary-action-button">{{
+        submitButtonText
+      }}</utrecht-button>
     </utrecht-button-group>
   </form>
 
@@ -144,6 +144,9 @@ const isInformatieBurgerRequired = computed(
       registerContactmomentForm.value.afsluiten === AFSLUITEN.nee
     )
 );
+const submitButtonText = computed(() =>
+  registerContactmomentForm.value.afsluiten === AFSLUITEN.ja ? "Opslaan en afsluiten" : "Opslaan"
+);
 const submit = () =>
   registerContactmomentForm.value.afsluiten === AFSLUITEN.ja
     ? bevestigingsModalRef.value?.show()
@@ -153,7 +156,7 @@ async function saveContactmoment() {
   isLoading.value = true;
   try {
     await klantcontactService.createRelatedKlantcontact(getKlantcontactPayload());
-    toast.add({ text: "Contactmoment succesvol bijgewerkt", type: "ok" });
+    toast.add({ text: "Contact succesvol vastgelegd", type: "ok" });
     resetForm();
     emit("success");
   } catch (err: unknown) {
@@ -169,7 +172,7 @@ async function finishContactmoment() {
     await klantcontactService.createRelatedKlantcontactAndCloseInterneTaak(
       getKlantcontactPayload()
     );
-    toast.add({ text: "Contactmoment succesvol opgeslagen en afgerond", type: "ok" });
+    toast.add({ text: "Contact vastgelegd en contactverzoek afgerond", type: "ok" });
     router.back();
   } catch (err: unknown) {
     handleError(err);

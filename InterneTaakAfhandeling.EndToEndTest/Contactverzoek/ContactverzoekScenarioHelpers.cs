@@ -150,7 +150,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
         private async Task NavigateToContactmomentRegistrerenTab()
         {
-            await Step("Navigate to Contactmoment Registreren tab");
+            await Step("Navigate to Contact Registreren tab");
             await Page.GetContactmomentRegistrerenTab().ClickAsync();
             // Wait for tab panel content to render (radio button proves panel loaded)
             await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeVisibleAsync();
@@ -359,7 +359,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
         private async Task VerifyContactmomentSavedSuccessfully(string logboekText, string? expectedInformatieText = null)
         {
             await Step("Verify success message");
-            await Expect(Page.GetByText("Contactmoment succesvol bijgewerkt")).ToBeVisibleAsync();
+            await Expect(Page.GetByText("Contact succesvol vastgelegd")).ToBeVisibleAsync();
 
             await Step($"Verify '{logboekText}' is displayed in Logboek");
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Logboek contactverzoek" })).ToBeVisibleAsync();

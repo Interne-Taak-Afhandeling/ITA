@@ -26,7 +26,7 @@ import ItaRadioTabs from "./ItaRadioTabs.vue";
 const { taak } = defineProps<{ taak: Internetaken }>();
 const emit = defineEmits<{ success: [] }>();
 const HANDLINGS = {
-  contactmoment: "Contactmoment registreren",
+  contactmoment: "Contact registreren",
   contactmomentDoorsturen: "Doorsturen",
   interneToelichting: "Alleen toelichting"
 } as const;
