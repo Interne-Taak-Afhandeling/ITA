@@ -2,6 +2,8 @@
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
+using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Guards;
 using Microsoft.Extensions.Logging;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
@@ -11,7 +13,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
         Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters);
         Task<Internetaak?> GetByKlantcontactNummer(string klantcontactNummer);
     }
-    public class InternetaakDetailsService(IOpenKlantApiClient openKlantApiClient, IZakenApiClient zakenApiClient, IContactmomentenService contactmomentenService, ILogger<InternetaakDetailsService> logger) : IInternetaakService
+
+    public class InternetaakDetailsService(
+        IOpenKlantApiClient openKlantApiClient,
+        IZakenApiClient zakenApiClient,
+        IContactmomentenService contactmomentenService,
+        IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
+        ITAUser user,
+        ILogger<InternetaakDetailsService> logger) : IInternetaakService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
@@ -34,6 +43,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
             }
 
             var interntaak = internetaken.Single();
+
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(interntaak, user);
 
             await EnrichWithZaakAsync(interntaak);
             await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);
@@ -69,6 +80,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
             }
 
             var interntaak = internetaken.Single();
+
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(interntaak, user);
 
             await EnrichWithZaakAsync(interntaak);
             await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);

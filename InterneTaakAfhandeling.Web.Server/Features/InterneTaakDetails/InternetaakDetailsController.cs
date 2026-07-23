@@ -10,12 +10,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
     [Route("api/internetaken")]
     [ApiController]
     [Authorize]
-    public class InternetaakDetailsController(IInternetaakService internetakenService) : Controller
+    public class InternetaakDetailsController(
+        IInternetaakService internetakenService) : Controller
     {
 
         private readonly IInternetaakService _internetakenService = internetakenService;
 
         [ProducesResponseType(typeof(InterneTaakDetailsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("{internetaakNummer}")]
@@ -48,6 +50,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
         }
 
         [ProducesResponseType(typeof(InterneTaakDetailsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         [HttpGet("by-klantcontact/{nummer}")]

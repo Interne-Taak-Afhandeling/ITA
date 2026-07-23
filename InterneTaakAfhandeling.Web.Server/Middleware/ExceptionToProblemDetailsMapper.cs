@@ -53,7 +53,12 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
             {
                 problemDetails.Extensions["errorCode"] = unprocessableEx.Code;
             }
-             
+
+            if (exception is GeenToegangException geenToegangEx)
+            {
+                problemDetails.Extensions["errorCode"] = geenToegangEx.Code;
+            }
+
             if (exception is ValidationException validationEx)
             {
                 var validationProblemDetails = new ValidationProblemDetails
@@ -92,6 +97,7 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
             ConflictException => StatusCodes.Status409Conflict,
             UnprocessableEntityException => StatusCodes.Status422UnprocessableEntity,
             ValidationException => StatusCodes.Status400BadRequest,
+            GeenToegangException => StatusCodes.Status403Forbidden,
             _ => StatusCodes.Status500InternalServerError
         };
 
@@ -100,6 +106,7 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
             ConflictException => "Conflict Error",
             UnprocessableEntityException => "Unprocessable Entity",
             ValidationException => "Validation Error",
+            GeenToegangException => "Geen toegang",
             _ => "An unexpected error occurred"
         };
 
@@ -108,6 +115,7 @@ namespace InterneTaakAfhandeling.Web.Server.Middleware
             ConflictException => "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409",
             UnprocessableEntityException => "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422",
             ValidationException => "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
+            GeenToegangException => "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",
             _ => "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"
         };
     }

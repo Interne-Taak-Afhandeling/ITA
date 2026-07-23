@@ -63,6 +63,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<IMedewerkersOverzichtService, MedewerkersOverzichtService>();
             services.AddScoped<ILogboekService, LogboekService>();
             services.AddScoped<IInternetaakGuardService, InternetaakGuardService>();
+            services.AddScoped<IContactverzoekAutorisatieGuardService, ContactverzoekAutorisatieGuardService>();
             services.AddScoped<IReopenContactRequestService, ReopenContactRequestService>();
             services.AddScoped<IMyInterneTakenOverviewService, MyInterneTakenOverviewService>();
             services.AddScoped<IUrgentieBerekenService, UrgentieBerekenService>();
