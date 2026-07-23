@@ -25,6 +25,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
         private const string MedewerkerWerkvoorraadLinkPath = "/afdelings-contacten";
         private const string AfdelingWerkvoorraadLinkPath = "/";
         private const string AfsluitendeZin = "Fijne werkdag";
+        private const string InstructieZin = "Neem contact op en handel deze contactverzoeken af.";
 
         private string CurrentUserEmail => Configuration["TestSettings:TEST_USERNAME"]
             ?? throw new InvalidOperationException("TEST_USERNAME is missing from the configuration");
@@ -119,6 +120,30 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
             await Step($"Check the '{afdelingNaam}' Afdeling's testmailbox");
             var afdelingEmails = await TestMailbox.GetReceivedEmailsAsync($"afdeling-{afdelingNaam}@test.icatt.nl");
             Assert.AreEqual(1, afdelingEmails.Count, "Expected the Afdeling to also receive a reminder mail.");
+        }
+
+        [TestMethod("Mailbody bevat geen persoonsgegevens van contactverzoeken")]
+        public async Task ReminderMail_ContainsNoPersonalData()
+        {
+            const string onderwerp = "E2E_DagelijkseHerinnering_GeenPersoonsgegevens";
+            const string klantnaam = "Jan Janssen";
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+
+            await Step("Setup an overdue contactverzoek with a named klant and gespreksinhoud");
+            var (uuid, _) = await TestDataHelper.CreateContactverzoekWithMedewerkerOnly(onderwerp, plaatsgevondenOp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await Step("Trigger the daily reminder scheduler");
+            await SchedulerTrigger.TriggerDagelijkseHerinneringSchedulerAsync();
+
+            await Step("Check the Medewerker's testmailbox");
+            var emails = await TestMailbox.GetReceivedEmailsAsync(CurrentUserEmail);
+
+            Assert.AreEqual(1, emails.Count);
+            var mail = emails[0];
+            StringAssert.DoesNotMatch(mail.HtmlBody, new System.Text.RegularExpressions.Regex(System.Text.RegularExpressions.Regex.Escape(klantnaam)));
+            StringAssert.DoesNotMatch(mail.HtmlBody, new System.Text.RegularExpressions.Regex(System.Text.RegularExpressions.Regex.Escape(onderwerp)));
+            StringAssert.Contains(mail.HtmlBody, InstructieZin);
         }
     }
 }
