@@ -203,6 +203,34 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, contactmoment.Nummer!, afdelingActor.Naam!);
         }
 
+        // Medewerker-only assignment (no afdeling actor) with an explicit PlaatsgevondenOp, so
+        // daily-reminder E2E tests can construct a fixture that is overdue by a controlled
+        // number of business hours without also triggering the Afdeling/Groep reminder path.
+        public async Task<(Guid ContactmomentUuid, string KlantcontactNummer)> CreateContactverzoekWithMedewerkerOnly(
+            string onderwerp,
+            DateTime plaatsgevondenOp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null,
+                plaatsgevondenOp: plaatsgevondenOp);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
+
+            await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(medewerkerActor.Uuid) });
+
+            return (contactmoment.Uuid, contactmoment.Nummer!);
+        }
+
         // Assigned directly to the current user (so it shows on "Mijn werkvoorraad") with no
         // afdeling actor at all - used to verify the Afdeling column renders an empty cell
         // rather than erroring when a contactverzoek has no linked department.
