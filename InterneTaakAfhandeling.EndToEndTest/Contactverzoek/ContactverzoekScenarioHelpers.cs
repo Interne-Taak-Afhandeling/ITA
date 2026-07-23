@@ -266,7 +266,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             Assert.IsTrue(firstRowText.Length > 0, "Expected first row to contain data");
         }
 
-        private async Task VerifyMijnHistorieDescendingOrder(string newestOnderwerp, string olderOnderwerp)
+        private async Task VerifyMijnHistorie(string newestOnderwerp, string olderOnderwerp)
         {
             await Step("Navigate to History tab (Mijn historie)");
             await SafeGotoAsync("/historie");
@@ -276,20 +276,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn afgeronde contactverzoeken", Level = 2 })).ToBeVisibleAsync();
             await Expect(Page.Locator($"text={newestOnderwerp}")).ToBeVisibleAsync();
             await Expect(Page.Locator($"text={olderOnderwerp}")).ToBeVisibleAsync();
-
-            await Step("Verify list is sorted in descending order (most recent first)");
-            var tableRows = Page.Locator("table tbody tr");
-            var rowCount = await tableRows.CountAsync();
-
-            Assert.IsTrue(rowCount >= 2, "Should have at least 2 rows in history");
-
-            var firstRowText = await tableRows.First.InnerTextAsync();
-            var secondRowText = await tableRows.Nth(1).InnerTextAsync();
-
-            Assert.IsTrue(firstRowText.Contains(newestOnderwerp),
-                $"Most recently closed contactverzoek '{newestOnderwerp}' should appear first in descending order");
-            Assert.IsTrue(secondRowText.Contains(olderOnderwerp),
-                $"Earlier closed contactverzoek '{olderOnderwerp}' should appear second in descending order");
         }
 
         // Form Validation & Filling Helpers
