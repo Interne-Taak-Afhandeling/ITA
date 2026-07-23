@@ -176,5 +176,40 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
 
             Assert.AreEqual(0, emails.Count, "No reminder mails should be sent when there are no overdue contactverzoeken.");
         }
+
+        [TestMethod("Afdeling zonder e-mailadres — notificatie overgeslagen, overige ontvangers niet geblokkeerd")]
+        public async Task AfdelingWithoutEmail_SkipsNotification_WithoutBlockingOtherRecipients()
+        {
+            if (string.IsNullOrEmpty(TestDataConstants.Afdelingen.ZonderEmailKey))
+            {
+                Assert.Inconclusive(
+                    "TestDataConstants.Afdelingen.ZonderEmailKey is not configured. " +
+                    "Set this constant to an afdeling without an email address in the test objectenregister.");
+            }
+
+            const string afdelingOnderwerp = "E2E_DagelijkseHerinnering_AfdelingZonderEmail";
+            const string medewerkerOnderwerp = "E2E_DagelijkseHerinnering_AndereMedewerker";
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+
+            await Step("Setup an overdue contactverzoek for an Afdeling without an email address");
+            var (afdelingUuid, _, afdelingNaam) = await TestDataHelper.CreateContactverzoekWithAfdelingOnlyAndContactDatum(
+                afdelingOnderwerp, plaatsgevondenOp, TestDataConstants.Afdelingen.ZonderEmailKey);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(afdelingUuid.ToString()));
+
+            await Step("Setup an overdue contactverzoek for another Medewerker");
+            var (medewerkerUuid, _) = await TestDataHelper.CreateContactverzoekWithMedewerkerOnly(medewerkerOnderwerp, plaatsgevondenOp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(medewerkerUuid.ToString()));
+
+            await Step("Trigger the daily reminder scheduler");
+            await SchedulerTrigger.TriggerDagelijkseHerinneringSchedulerAsync();
+
+            await Step("Check the Medewerker's testmailbox — must still receive their reminder");
+            var medewerkerEmails = await TestMailbox.GetReceivedEmailsAsync(CurrentUserEmail);
+            Assert.AreEqual(1, medewerkerEmails.Count, "The other Medewerker's reminder must not be blocked by the Afdeling's missing email.");
+
+            await Step($"Check that '{afdelingNaam}' received no mail");
+            var afdelingEmails = await TestMailbox.GetReceivedEmailsAsync($"afdeling-{afdelingNaam}@test.icatt.nl");
+            Assert.AreEqual(0, afdelingEmails.Count, "No mail should be sent when the Afdeling has no valid email address.");
+        }
     }
 }
