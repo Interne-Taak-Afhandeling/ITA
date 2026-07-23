@@ -23,6 +23,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
     public class DagelijkseHerinneringScenarios : ITAPlaywrightTest
     {
         private const string MedewerkerWerkvoorraadLinkPath = "/afdelings-contacten";
+        private const string AfdelingWerkvoorraadLinkPath = "/";
         private const string AfsluitendeZin = "Fijne werkdag";
 
         private string CurrentUserEmail => Configuration["TestSettings:TEST_USERNAME"]
@@ -74,6 +75,28 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
             var mail = emails[0];
             Assert.AreEqual("3 contactverzoeken wachten op jou", mail.Subject);
             StringAssert.Contains(mail.HtmlBody, "werkdag");
+        }
+
+        [TestMethod("Afdeling ontvangt herinneringsmail voor niet-toegewezen verlopen ContactVerzoek")]
+        public async Task Afdeling_ReceivesReminderMail_ForUnassignedOverdueContactverzoek()
+        {
+            const string onderwerp = "E2E_DagelijkseHerinnering_Afdeling";
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+
+            await Step("Setup an overdue contactverzoek assigned only to an Afdeling, no Medewerker");
+            var (uuid, _, afdelingNaam) = await TestDataHelper.CreateContactverzoekWithAfdelingOnlyAndContactDatum(onderwerp, plaatsgevondenOp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await Step("Trigger the daily reminder scheduler");
+            await SchedulerTrigger.TriggerDagelijkseHerinneringSchedulerAsync();
+
+            await Step($"Check the '{afdelingNaam}' Afdeling's testmailbox");
+            // TODO: resolve the Afdeling's real email address via the Objects API once
+            // TestMailbox is wired to a real mailbox — placeholder until then.
+            var emails = await TestMailbox.GetReceivedEmailsAsync($"afdeling-{afdelingNaam}@test.icatt.nl");
+
+            Assert.AreEqual(1, emails.Count, "Expected exactly one reminder mail for the Afdeling.");
+            StringAssert.Contains(emails[0].HtmlBody, $"href=\"{AfdelingWerkvoorraadLinkPath}");
         }
     }
 }
