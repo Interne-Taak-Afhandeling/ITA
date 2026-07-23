@@ -98,5 +98,27 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
             Assert.AreEqual(1, emails.Count, "Expected exactly one reminder mail for the Afdeling.");
             StringAssert.Contains(emails[0].HtmlBody, $"href=\"{AfdelingWerkvoorraadLinkPath}");
         }
+
+        [TestMethod("Dual-assignment — zowel Medewerker als Afdeling ontvangen een herinneringsmail")]
+        public async Task BothMedewerkerAndAfdeling_ReceiveReminderMail_ForDualAssignedContactverzoek()
+        {
+            const string onderwerp = "E2E_DagelijkseHerinnering_DualAssignment";
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+
+            await Step("Setup an overdue contactverzoek assigned to both a Medewerker and an Afdeling");
+            var (uuid, _, afdelingNaam) = await TestDataHelper.CreateContactverzoekWithContactDatum(onderwerp, plaatsgevondenOp);
+            RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
+
+            await Step("Trigger the daily reminder scheduler");
+            await SchedulerTrigger.TriggerDagelijkseHerinneringSchedulerAsync();
+
+            await Step("Check the Medewerker's testmailbox");
+            var medewerkerEmails = await TestMailbox.GetReceivedEmailsAsync(CurrentUserEmail);
+            Assert.AreEqual(1, medewerkerEmails.Count, "Expected the Medewerker to receive a reminder mail.");
+
+            await Step($"Check the '{afdelingNaam}' Afdeling's testmailbox");
+            var afdelingEmails = await TestMailbox.GetReceivedEmailsAsync($"afdeling-{afdelingNaam}@test.icatt.nl");
+            Assert.AreEqual(1, afdelingEmails.Count, "Expected the Afdeling to also receive a reminder mail.");
+        }
     }
 }
