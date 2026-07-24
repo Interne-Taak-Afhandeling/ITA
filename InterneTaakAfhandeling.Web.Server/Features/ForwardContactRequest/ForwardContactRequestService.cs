@@ -102,8 +102,8 @@ public class ForwardContactRequestService(
     private static string GetResultMessageWhenNoEmails(ActorEmailResolutionResult actorEmailResult)
     {
         return actorEmailResult.Errors.Any()
-            ? $"Het contactverzoek is doorgestuurd, maar niet elke e-mailnotificatie kon verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}"
-            : "Contactverzoek succesvol doorgestuurd";
+            ? $"Het contactverzoek is doorgestuurd, maar er kon geen e-mailnotificatie verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}"
+            : "Het contactverzoek is doorgestuurd, maar er kon geen e-mailnotificatie verstuurd worden: geen geldig e-mailadres gevonden voor medewerker of groep.";
     }
 
     private static string GetResultMessage(EmailResult[] results, ActorEmailResolutionResult actorEmailResult)

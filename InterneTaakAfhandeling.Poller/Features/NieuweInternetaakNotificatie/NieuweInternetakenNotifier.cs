@@ -127,7 +127,7 @@ public class InternetakenNotifier : IPollerJob
             }
             else
             {
-                _logger.LogInformation("No actor emails found for internetaken: {Number}, skipping", internetaak.Nummer);
+                _logger.LogWarning("No actor emails found for internetaken: {Number}, skipping", internetaak.Nummer);
                 errorMessage = "No actor emails found";
             }
         }
