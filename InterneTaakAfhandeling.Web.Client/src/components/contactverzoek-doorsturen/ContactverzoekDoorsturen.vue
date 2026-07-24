@@ -71,8 +71,8 @@ type FORWARD_OPTIONS = typeof FORWARD_OPTIONS;
 
 const formRef = useTemplateRef("forwardForm");
 
-const afdelingen = ref<{ label: string; value: string }[]>([]);
-const groepen = ref<{ label: string; value: string }[]>([]);
+const afdelingen = ref<{ label: string; value: string; heeftGroepsmailbox: boolean }[]>([]);
+const groepen = ref<{ label: string; value: string; heeftGroepsmailbox: boolean }[]>([]);
 
 const isLoading = ref(false);
 const isSubmitting = ref(false);
@@ -131,25 +131,33 @@ function sortListByNaam<T extends { naam: string }>(list: T[]): T[] {
 }
 
 const fetchAfdelingen = async () => {
-  const response = await get<{ naam: string; identificatie: string }[]>("/api/afdelingen");
+  const response =
+    await get<{ naam: string; identificatie: string; heeftGroepsmailbox: boolean }[]>(
+      "/api/afdelingen"
+    );
   const sortedResponse = sortListByNaam(response);
   afdelingen.value = [
-    { label: "Selecteer een afdeling", value: "" },
+    { label: "Selecteer een afdeling", value: "", heeftGroepsmailbox: true },
     ...sortedResponse.map((afdeling) => ({
       label: afdeling.naam,
-      value: afdeling.identificatie
+      value: afdeling.identificatie,
+      heeftGroepsmailbox: afdeling.heeftGroepsmailbox
     }))
   ];
 };
 
 const fetchGroepen = async () => {
-  const response = await get<{ naam: string; identificatie: string }[]>("/api/groepen");
+  const response =
+    await get<{ naam: string; identificatie: string; heeftGroepsmailbox: boolean }[]>(
+      "/api/groepen"
+    );
   const sortedResponse = sortListByNaam(response);
   groepen.value = [
-    { label: "Selecteer een groep", value: "" },
+    { label: "Selecteer een groep", value: "", heeftGroepsmailbox: true },
     ...sortedResponse.map((groep) => ({
       label: groep.naam,
-      value: groep.identificatie
+      value: groep.identificatie,
+      heeftGroepsmailbox: groep.heeftGroepsmailbox
     }))
   ];
 };
