@@ -18,6 +18,8 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
         public async Task<ActorEmailResolutionResult> ResolveActorsEmailAsync(IReadOnlyList<Actor> actors)
         {
             var result = new ActorEmailResolutionResult();
+            var medewerkerEmails = new List<string>();
+            var groepEmails = new List<string>();
 
             foreach (var actor in actors)
             {
@@ -27,7 +29,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
                 {
                     if (EmailService.IsValidEmail(actorIdentificator.ObjectId))
                     {
-                        result.FoundEmails.Add(actorIdentificator.ObjectId);
+                        medewerkerEmails.Add(actorIdentificator.ObjectId);
                     }
                     else
                     {
@@ -55,7 +57,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
 
                     if (!string.IsNullOrEmpty(email) && EmailService.IsValidEmail(email))
                     {
-                        result.FoundEmails.Add(email);
+                        groepEmails.Add(email);
                     }
                     else
                     {
@@ -83,7 +85,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
 
                     if (!string.IsNullOrEmpty(email) && EmailService.IsValidEmail(email))
                     {
-                        result.FoundEmails.Add(email);
+                        groepEmails.Add(email);
                     }
                     else
                     {
@@ -110,7 +112,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
                     {
                         if (!string.IsNullOrEmpty(x) && EmailService.IsValidEmail(x))
                         {
-                            result.FoundEmails.Add(x);
+                            medewerkerEmails.Add(x);
                         }
                         else
                         {
@@ -120,6 +122,11 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
 
                 }
             }
+
+            // Precedence: een medewerker-e-mail gaat altijd voor de afdelings-/groepsmailbox,
+            // zodat er nooit meer dan één partij een notificatie ontvangt. Resolveert de
+            // medewerker niet naar een geldig adres, dan valt het systeem terug op de groep.
+            result.FoundEmails.AddRange(medewerkerEmails.Count > 0 ? medewerkerEmails : groepEmails);
 
             return result;
         }
