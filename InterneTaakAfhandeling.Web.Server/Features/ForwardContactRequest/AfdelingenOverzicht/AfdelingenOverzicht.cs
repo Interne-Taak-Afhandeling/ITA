@@ -32,7 +32,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.Afdel
             {
                 var afdelingen = await GetAfdelingenRecursive(1);
   
-                var result = afdelingen.Select(x => new { x.Naam, x.Identificatie }).ToList();
+                var result = afdelingen.Select(x => new { x.Naam, x.Identificatie, HeeftGroepsmailbox = !string.IsNullOrWhiteSpace(x.Email) }).ToList();
                 return Ok(result);
             }
             catch (Exception ex)
