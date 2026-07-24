@@ -1,4 +1,5 @@
-﻿using InterneTaakAfhandeling.Common.Helpers;
+﻿using System.ComponentModel.DataAnnotations;
+using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
@@ -27,6 +28,8 @@ public class ForwardContactRequestService(
     public async Task<ForwardContactRequestResponse> ForwardAsync(Guid internetaakId,
         ForwardContactRequestModel request)
     {
+        await EnsureMedewerkerVerplichtBijOntbrekendeGroepsmailbox(request);
+
         var actors = await GetTargetActors(request);
 
         var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
@@ -118,6 +121,29 @@ public class ForwardContactRequestService(
             return $"Het contactverzoek is doorgestuurd, maar niet elke e-mailnotificatie kon verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}";
 
         return "Contactverzoek succesvol doorgestuurd";
+    }
+
+    private async Task EnsureMedewerkerVerplichtBijOntbrekendeGroepsmailbox(ForwardContactRequestModel request)
+    {
+        if (!string.IsNullOrWhiteSpace(request.Medewerker))
+            return;
+
+        if (!string.IsNullOrWhiteSpace(request.Afdeling))
+        {
+            var afdeling = (await objectApiClient.GetAfdelingenByIdentificatie(request.Afdeling)).FirstOrDefault();
+            if (afdeling != null && string.IsNullOrWhiteSpace(afdeling.Email))
+            {
+                throw new ValidationException($"Selecteer een medewerker: afdeling '{afdeling.Naam}' heeft geen groepsmailbox.");
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(request.Groep))
+        {
+            var groep = (await objectApiClient.GetGroepenByIdentificatie(request.Groep)).FirstOrDefault();
+            if (groep != null && string.IsNullOrWhiteSpace(groep.Email))
+            {
+                throw new ValidationException($"Selecteer een medewerker: groep '{groep.Naam}' heeft geen groepsmailbox.");
+            }
+        }
     }
 
     private async Task<List<Actor>> GetTargetActors(ForwardContactRequestModel request)
