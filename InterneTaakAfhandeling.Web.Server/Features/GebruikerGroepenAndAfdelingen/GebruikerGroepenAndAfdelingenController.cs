@@ -1,4 +1,4 @@
-using InterneTaakAfhandeling.Common.Exceptions;
+﻿using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
@@ -31,9 +31,10 @@ namespace InterneTaakAfhandeling.Web.Server.Features.GebruikerGroepenAndAfdeling
                 throw new ConflictException($"Meerdere medewerkers gevonden met dezelfde identificatie {SecureLogging.SanitizeAndTruncate(user.ObjectregisterMedewerkerId, 5)}");
             }
 
-            var result = results.Single();
-            //return new List<string>();
-            return (result.Afdelingen ?? Enumerable.Empty<MedewerkerAfdeling>())
+            var result = results.SingleOrDefault();
+            return result == null
+                ? []
+                : (result.Afdelingen ?? Enumerable.Empty<MedewerkerAfdeling>())
                 .Select(a => a.Afdelingnaam)
                 .Concat((result.Groepen ?? Enumerable.Empty<MedewerkerGroep>())
                     .Select(g => g.Groepsnaam))
