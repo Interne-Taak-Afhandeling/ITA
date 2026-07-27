@@ -15,9 +15,7 @@
       <small-spinner />
     </utrecht-form-field>
     <utrecht-form-field v-else-if="medewerkerOptions?.length">
-      <utrecht-form-label for="groep-medewerker-combobox">{{
-        medewerkerLabel
-      }}</utrecht-form-label>
+      <utrecht-form-label for="groep-medewerker-combobox">{{ medewerkerLabel }}</utrecht-form-label>
       <utrecht-combobox
         id="groep-medewerker-combobox"
         :options="medewerkerOptions"
@@ -32,8 +30,8 @@
     </utrecht-form-field>
     <utrecht-form-field v-else-if="!selectedGroepHeeftMailbox">
       <utrecht-alert type="warning">
-        Deze groep heeft geen groepsmailbox en er zijn geen medewerkers beschikbaar om te
-        koppelen. Kies een andere groep of neem contact op met functioneel beheer.
+        Deze groep heeft geen groepsmailbox en er zijn geen medewerkers beschikbaar om te koppelen.
+        Kies een andere groep of neem contact op met functioneel beheer.
       </utrecht-alert>
     </utrecht-form-field>
     <input v-if="selectedMedewerker" type="hidden" name="medewerker" :value="selectedMedewerker" />
