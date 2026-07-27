@@ -70,7 +70,7 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
 
                     if (objectRecords.Count == 0)
                     {
-                        result.Errors.Add($"Geen afdeling gevonden in overigeobjecten voor actorIdentificator {actorIdentificator.ObjectId}");
+                        result.Errors.Add($"Geen groep gevonden in overigeobjecten voor actorIdentificator {actorIdentificator.ObjectId}");
                         continue;
                     }
 
@@ -123,9 +123,9 @@ namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
                 }
             }
 
-            // Precedence: een medewerker-e-mail gaat altijd voor de afdelings-/groepsmailbox,
-            // zodat er nooit meer dan één partij een notificatie ontvangt. Resolveert de
-            // medewerker niet naar een geldig adres, dan valt het systeem terug op de groep.
+            // Precedence: a medewerker email always takes priority over the afdeling/groep mailbox,
+            // so that no more than one party ever receives a notification. If the medewerker doesn't
+            // resolve to a valid address, the system falls back to the groep.
             result.FoundEmails.AddRange(medewerkerEmails.Count > 0 ? medewerkerEmails : groepEmails);
 
             return result;

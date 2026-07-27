@@ -28,7 +28,7 @@ public class ForwardContactRequestService(
     public async Task<ForwardContactRequestResponse> ForwardAsync(Guid internetaakId,
         ForwardContactRequestModel request)
     {
-        await EnsureMedewerkerVerplichtBijOntbrekendeGroepsmailbox(request);
+        await RequireMedewerkerIfNoGroepsmailbox(request);
 
         var actors = await GetTargetActors(request);
 
@@ -123,7 +123,7 @@ public class ForwardContactRequestService(
         return "Contactverzoek succesvol doorgestuurd";
     }
 
-    private async Task EnsureMedewerkerVerplichtBijOntbrekendeGroepsmailbox(ForwardContactRequestModel request)
+    private async Task RequireMedewerkerIfNoGroepsmailbox(ForwardContactRequestModel request)
     {
         if (!string.IsNullOrWhiteSpace(request.Medewerker))
             return;
