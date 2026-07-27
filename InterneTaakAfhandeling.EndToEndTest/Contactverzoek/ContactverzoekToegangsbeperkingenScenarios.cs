@@ -1,5 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
+using EndToEndTest.Common.Infrastructure;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using Microsoft.Playwright;
 
@@ -18,6 +19,30 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         private const string AndereAfdelingPlaceholder = "Financien_ibz";
         private const string GeenToegangMelding = "Je hebt geen toegang tot dit contactverzoek";
         private const string NietGevondenMelding = "Dit contactverzoek bestaat niet of is niet meer beschikbaar";
+
+        private static UniqueOtpHelper? s_nonAdminOtpHelper;
+
+        // Shared auth state (auth.json) logs every test in as the default beheerder account, and
+        // AzureAdLoginHelper.LoginAsync() no-ops if a session is already active. Clearing storage
+        // first forces a real Azure AD login as the non-admin account instead of silently staying
+        // logged in as beheerder. Uses its own UniqueOtpHelper because s_uniqueOtpHelper is bound to
+        // TEST_TOTP_SECRET (beheerder's secret), not TEST_TOTP_SECRET_NON_ADMIN.
+        private async Task AuthenticateAsNonAdminAsync()
+        {
+            var username = Configuration["TestSettings:TEST_USERNAME_NON_ADMIN"]
+                ?? throw new InvalidOperationException("Missing TestSettings:TEST_USERNAME_NON_ADMIN (non-admin test account required; see Task #544).");
+            var password = Configuration["TestSettings:TEST_PASSWORD_NON_ADMIN"]
+                ?? throw new InvalidOperationException("Missing TestSettings:TEST_PASSWORD_NON_ADMIN (non-admin test account required; see Task #544).");
+            var totpSecret = Configuration["TestSettings:TEST_TOTP_SECRET_NON_ADMIN"]
+                ?? throw new InvalidOperationException("Missing TestSettings:TEST_TOTP_SECRET_NON_ADMIN (non-admin TOTP required; see Task #544).");
+
+            await Context.ClearCookiesAsync();
+            await Page.EvaluateAsync("() => { localStorage.clear(); sessionStorage.clear(); }");
+
+            s_nonAdminOtpHelper ??= new UniqueOtpHelper(totpSecret);
+            var loginHelper = new AzureAdLoginHelper(Page, username, password, s_nonAdminOtpHelper);
+            await loginHelper.LoginAsync();
+        }
 
         [TestMethod("Beheerder kan Contactverzoek van elke afdeling inzien")]
         public async Task Beheerder_CanAccessContactverzoek_VanAndereAfdeling()
@@ -55,9 +80,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         [TestMethod("Behandelaar kan Contactverzoek van eigen afdeling inzien")]
         public async Task Behandelaar_CanAccessContactverzoek_VanEigenAfdeling()
         {
-            await HandleAuthenticationAsync(
-                Configuration["TestSettings:TEST_USERNAME_NON_ADMIN"],
-                Configuration["TestSettings:TEST_PASSWORD_NON_ADMIN"]);
+            await AuthenticateAsNonAdminAsync();
 
             await Step("Given een Contactverzoek toegewezen aan de eigen afdeling van de behandelaar");
             var onderwerp = $"Test_Toegang_EigenAfdeling_{Guid.NewGuid().ToString()[..8]}";
@@ -77,9 +100,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         [TestMethod("Behandelaar kan Contactverzoek van andere afdeling niet inzien")]
         public async Task Behandelaar_CanNotAccessContactverzoek_VanAndereAfdeling()
         {
-            await HandleAuthenticationAsync(
-                Configuration["TestSettings:TEST_USERNAME_NON_ADMIN"],
-                Configuration["TestSettings:TEST_PASSWORD_NON_ADMIN"]);
+            await AuthenticateAsNonAdminAsync();
 
             await Step("Given een Contactverzoek toegewezen aan een andere afdeling dan de behandelaar");
             var onderwerp = $"Test_GeenToegang_AndereAfdeling_{Guid.NewGuid().ToString()[..8]}";
@@ -101,9 +122,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         [TestMethod("Geen-toegang-melding is onderscheiden van niet-gevonden")]
         public async Task GeenToegangMelding_IsOnderscheidenVanNietGevonden()
         {
-            await HandleAuthenticationAsync(
-                Configuration["TestSettings:TEST_USERNAME_NON_ADMIN"],
-                Configuration["TestSettings:TEST_PASSWORD_NON_ADMIN"]);
+            await AuthenticateAsNonAdminAsync();
 
             await Step("Given een Contactverzoek toegewezen aan een andere afdeling dan de behandelaar");
             var onderwerp = $"Test_GeenToegang_VsNietGevonden_{Guid.NewGuid().ToString()[..8]}";
@@ -123,9 +142,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         [TestMethod("Geen inhoudelijke gegevens in API-response bij geen toegang")]
         public async Task ApiResponse_BevatGeenInhoudelijkeGegevens_BijGeenToegang()
         {
-            await HandleAuthenticationAsync(
-                Configuration["TestSettings:TEST_USERNAME_NON_ADMIN"],
-                Configuration["TestSettings:TEST_PASSWORD_NON_ADMIN"]);
+            await AuthenticateAsNonAdminAsync();
 
             await Step("Given een Contactverzoek toegewezen aan een andere afdeling dan de behandelaar");
             var onderwerp = $"Test_ApiGeenToegang_{Guid.NewGuid().ToString()[..8]}";
@@ -153,9 +170,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         [TestMethod("Directe URL-navigatie respecteert autorisatie")]
         public async Task DirecteUrlNavigatie_RespecteertAutorisatie()
         {
-            await HandleAuthenticationAsync(
-                Configuration["TestSettings:TEST_USERNAME_NON_ADMIN"],
-                Configuration["TestSettings:TEST_PASSWORD_NON_ADMIN"]);
+            await AuthenticateAsNonAdminAsync();
 
             await Step("Given een Contactverzoek toegewezen aan een andere afdeling dan de behandelaar");
             var onderwerp = $"Test_DirecteUrl_{Guid.NewGuid().ToString()[..8]}";
@@ -170,6 +185,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Then wordt de geen-toegang-melding getoond en wordt niet doorgestuurd");
             await Expect(Page.GetGeenToegangAlert()).ToBeVisibleAsync();
             await Expect(Page).ToHaveURLAsync(new Regex(Regex.Escape(directUrl)));
+            Assert.AreEqual(directUrl, new Uri(Page.Url).AbsolutePath, "Expected to stay on the same detail URL path (no redirect).");
         }
     }
 }
