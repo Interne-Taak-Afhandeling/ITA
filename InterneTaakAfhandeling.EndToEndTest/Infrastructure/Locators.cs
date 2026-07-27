@@ -219,6 +219,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         public static ILocator GetAfgehandeldMessage(this IPage page) =>
             page.GetByText("Dit contactverzoek is afgehandeld en kan niet meer worden gewijzigd.");
 
+        // Feature #514 — geen-toegang error alert on the Contactverzoek detail page
+        public static ILocator GetGeenToegangAlert(this IPage page) =>
+            page.GetByRole(AriaRole.Alert).Filter(new() { HasText = "Je hebt geen toegang tot dit contactverzoek" });
+
         // Heropenen locators
         public static ILocator GetHeropenButton(this IPage page) =>
             page.GetByRole(AriaRole.Button, new() { Name = "Heropenen" });
