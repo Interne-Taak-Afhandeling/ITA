@@ -2,6 +2,7 @@
 using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -20,7 +21,7 @@ public class ForwardContactRequestService(
     IEmailService emailService,
     IEmailContentService emailContentService,
     ILogger<ForwardContactRequestService> logger,
-    IInterneTaakEmailInputService emailInputService,
+    IActorEmailResolutionService actorEmailResolutionService,
     IConfiguration configuration) : IForwardContactRequestService
 {
     private readonly string _itaBaseUrl = configuration.GetValue<string>("Ita:BaseUrl")
@@ -28,9 +29,17 @@ public class ForwardContactRequestService(
     public async Task<ForwardContactRequestResponse> ForwardAsync(Guid internetaakId,
         ForwardContactRequestModel request)
     {
-        await RequireMedewerkerIfNoGroepsmailbox(request);
-
         var actors = await GetTargetActors(request);
+
+        var actorEmailResult = await actorEmailResolutionService.ResolveActorsEmailAsync(actors);
+
+        if (actorEmailResult?.FoundEmails.Count < 1)
+        {
+            var errorMessage = GetResultMessageWhenNoEmails(actorEmailResult);
+            logger.LogWarning("No valid email addresses found for actors: {Actors}. Error: {ErrorMessage}", actors, errorMessage);
+            var doelType = !string.IsNullOrWhiteSpace(request.Afdeling) ? "afdeling" : "groep";
+            throw new ValidationException($"Selecteer een medewerker: de geselecteerde {doelType} heeft geen mailbox.");
+        }
 
         var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
 
@@ -54,7 +63,7 @@ public class ForwardContactRequestService(
         //Although the AanleidinggevendKlantcontact was returned from the patch endpoint, it does not contain all details (like Nummer) that are needed for the email notification. Therefore, we need to fetch the full Klantcontact details.
         updatedInternetaak.AanleidinggevendKlantcontact = await openKlantApiClient.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
         
-        var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
+        var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actorEmailResult!);
 
         return new ForwardContactRequestResponse
         {
@@ -65,17 +74,12 @@ public class ForwardContactRequestService(
 
     private const string GenericError = "Het contactverzoek is doorgestuurd, maar hiervan kon geen e-mailnotificatie verstuurd worden";
 
-    private async Task<string> NotifyInternetaakActors(Internetaak internetaken, IReadOnlyList<Actor> actors)
+    private async Task<string> NotifyInternetaakActors(Internetaak internetaken, ActorEmailResolutionResult actorEmailResult)
     {
         try
         {
             if (!emailService.IsConfiguredCorrectly())
                 return GenericError;
-
-            var actorEmailResult = await emailInputService.ResolveActorsEmailAsync(actors);
-
-            if (!actorEmailResult.FoundEmails.Any())
-                return GetResultMessageWhenNoEmails(actorEmailResult);
 
             var contactmomentNummer = (internetaken.AanleidinggevendKlantcontact?.Nummer) ?? throw new InvalidOperationException(
                     $"AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {internetaken.Nummer}");
@@ -103,7 +107,7 @@ public class ForwardContactRequestService(
     {
         return actorEmailResult.Errors.Any()
             ? $"Het contactverzoek is doorgestuurd, maar er kon geen e-mailnotificatie verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}"
-            : "Het contactverzoek is doorgestuurd, maar er kon geen e-mailnotificatie verstuurd worden: geen geldig e-mailadres gevonden voor medewerker of groep.";
+            : "Het contactverzoek is doorgestuurd, maar er kon geen e-mailnotificatie verstuurd worden: geen geldig e-mailadres gevonden voor medewerker, afdeling of groep.";
     }
 
     private static string GetResultMessage(EmailResult[] results, ActorEmailResolutionResult actorEmailResult)
@@ -121,29 +125,6 @@ public class ForwardContactRequestService(
             return $"Het contactverzoek is doorgestuurd, maar niet elke e-mailnotificatie kon verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}";
 
         return "Contactverzoek succesvol doorgestuurd";
-    }
-
-    private async Task RequireMedewerkerIfNoGroepsmailbox(ForwardContactRequestModel request)
-    {
-        if (!string.IsNullOrWhiteSpace(request.Medewerker))
-            return;
-
-        if (!string.IsNullOrWhiteSpace(request.Afdeling))
-        {
-            var afdeling = (await objectApiClient.GetAfdelingenByIdentificatie(request.Afdeling)).FirstOrDefault();
-            if (afdeling != null && string.IsNullOrWhiteSpace(afdeling.Email))
-            {
-                throw new ValidationException($"Selecteer een medewerker: afdeling '{afdeling.Naam}' heeft geen groepsmailbox.");
-            }
-        }
-        else if (!string.IsNullOrWhiteSpace(request.Groep))
-        {
-            var groep = (await objectApiClient.GetGroepenByIdentificatie(request.Groep)).FirstOrDefault();
-            if (groep != null && string.IsNullOrWhiteSpace(groep.Email))
-            {
-                throw new ValidationException($"Selecteer een medewerker: groep '{groep.Naam}' heeft geen groepsmailbox.");
-            }
-        }
     }
 
     private async Task<List<Actor>> GetTargetActors(ForwardContactRequestModel request)

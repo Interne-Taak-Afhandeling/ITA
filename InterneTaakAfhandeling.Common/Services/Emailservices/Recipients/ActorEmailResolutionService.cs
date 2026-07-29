@@ -1,19 +1,18 @@
-﻿using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
+﻿using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
 
-namespace InterneTaakAfhandeling.Common.Services.Emailservices.Content
+namespace InterneTaakAfhandeling.Common.Services.Emailservices.Recipients
 {
-    public interface IInterneTaakEmailInputService
+    public interface IActorEmailResolutionService
     {
         Task<ActorEmailResolutionResult> ResolveActorsEmailAsync(IReadOnlyList<Actor> actors);
     }
 
-    public class InterneTaakEmailInputService(
+    public class ActorEmailResolutionService(
             IObjectApiClient objectApiClient
-            ) : IInterneTaakEmailInputService
+            ) : IActorEmailResolutionService
     {
         public async Task<ActorEmailResolutionResult> ResolveActorsEmailAsync(IReadOnlyList<Actor> actors)
         {

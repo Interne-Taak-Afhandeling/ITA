@@ -1,4 +1,5 @@
 ﻿using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
@@ -18,7 +19,7 @@ public class InternetakenNotifier : IPollerJob
     private readonly string _itaBaseUrl;
     private readonly IEmailContentService _emailContentService;
     private readonly INotifierStateService _notifierStateService;
-    private readonly IInterneTaakEmailInputService _emailInputService;
+    private readonly IActorEmailResolutionService _actorEmailResolutionService;
 
     public InternetakenNotifier(
         IOpenKlantApiClient openKlantApiClient,
@@ -27,7 +28,7 @@ public class InternetakenNotifier : IPollerJob
         ILogger<InternetakenNotifier> logger,
         IEmailContentService emailContentService,
         INotifierStateService notifierStateService,
-        IInterneTaakEmailInputService emailInputService)
+        IActorEmailResolutionService actorEmailResolutionService)
     {
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
@@ -38,7 +39,7 @@ public class InternetakenNotifier : IPollerJob
             ?? throw new ArgumentException("Ita:BaseUrl configuration is missing");
         _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
         _notifierStateService = notifierStateService ?? throw new ArgumentNullException(nameof(notifierStateService));
-        _emailInputService = emailInputService;
+        _actorEmailResolutionService = actorEmailResolutionService;
     }
 
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
@@ -102,7 +103,7 @@ public class InternetakenNotifier : IPollerJob
             }
 
             var actors = await GetActorsAsync(internetaak);
-            var actorEmailsResult = await _emailInputService.ResolveActorsEmailAsync(actors);
+            var actorEmailsResult = await _actorEmailResolutionService.ResolveActorsEmailAsync(actors);
             var actorEmails = actorEmailsResult.FoundEmails;
 
             foreach (var error in actorEmailsResult.Errors)

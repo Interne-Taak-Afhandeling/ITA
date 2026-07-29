@@ -1,4 +1,5 @@
 ﻿using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,7 @@ public static class SmtpClientExtensions
             .Bind(configuration.GetSection("Email:SmtpSettings"));
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IEmailContentService, EmailContentService>();
-        services.AddSingleton<IInterneTaakEmailInputService, InterneTaakEmailInputService>();
+        services.AddSingleton<IActorEmailResolutionService, ActorEmailResolutionService>();
         return services;
     }
 }
