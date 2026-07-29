@@ -421,7 +421,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         /// </summary>
         private async Task<bool> SelectOptionUntilElementVisible(ILocator selectLocator, ILocator targetElement, int maxAttempts = 10)
         {
-            for (var i = 1; i <= maxAttempts; i++)
+            var optionCount = await selectLocator.Locator("option").CountAsync();
+            var limit = optionCount > 1 ? optionCount - 1 : maxAttempts; // skip index 0 (placeholder)
+
+            for (var i = 1; i <= limit; i++)
             {
                 try
                 {
