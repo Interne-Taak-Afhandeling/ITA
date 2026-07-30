@@ -590,7 +590,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         // /// <summary>
         // /// Authenticates as a non-admin user using credentials from configuration.
         // /// Use in an overridden <see cref="TestInitialize"/> before calling <c>base.TestInitialize()</c>
-        // /// to run a test as a medewerker zonder beheerder role.
+        // /// to run a test as a medewerker without beheerder role.
         // /// Requires <c>TestSettings:TEST_NONADMIN_USERNAME</c> and <c>TestSettings:TEST_NONADMIN_PASSWORD</c>
         // /// to be configured.
         // /// </summary>
