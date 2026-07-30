@@ -65,11 +65,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.AlleContactverzoeken
         //   Playwright tests only what is rendered in the browser. SMTP-delivered e-mail
         //   content is not accessible and cannot be asserted.
 
-        // TODO: Requires a non-admin test user account to be configured in the test infrastructure.
-        // The current ITAPlaywrightTest base class only supports a single authenticated user (Beheerder).
+        // TODO: Uncomment when non-admin test user account is configured (see AuthenticateAsNonAdminAsync in ITAPlaywrightTest).
         // [TestMethod("Medewerker zonder beheerderrol wordt geblokkeerd bij directe URL")]
         // public async Task NietBeheerder_WordtGeblokkeerd_BijDirecteUrlAlleContactverzoeken()
         // {
+        //     await AuthenticateAsNonAdminAsync();
+        //
         //     await Step("Navigate directly to /alle-contactverzoeken as non-admin");
         //     await Page.GotoAsync("/alle-contactverzoeken");
         //     await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
