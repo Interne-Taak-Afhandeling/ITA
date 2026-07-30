@@ -1,5 +1,5 @@
 ﻿using InterneTaakAfhandeling.Common.Helpers;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
@@ -12,7 +12,7 @@ namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinneri
 public sealed class VerlopenInternetakenProcessor(
     IOpenKlantApiClient openKlantApiClient,
 
-    IInterneTaakEmailInputService emailInputService,
+    IActorEmailResolutionService actorEmailResolutionService,
     VerlopenContactverzoekHerinneringNotificatieTemplateService templateService,
     IEmailService emailService,
     IConfiguration configuration,
@@ -55,7 +55,7 @@ public sealed class VerlopenInternetakenProcessor(
 
         foreach (var (_, entry) in verlopenTakenByActor)
         {
-            var resolveResult = await emailInputService.ResolveActorsEmailAsync([entry.Actor]);
+            var resolveResult = await actorEmailResolutionService.ResolveActorsEmailAsync([entry.Actor]);
 
             foreach (var error in resolveResult.Errors)
             {

@@ -1,6 +1,8 @@
-﻿using InterneTaakAfhandeling.Common.Helpers;
+﻿using System.ComponentModel.DataAnnotations;
+using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.Services;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
+using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -19,7 +21,7 @@ public class ForwardContactRequestService(
     IEmailService emailService,
     IEmailContentService emailContentService,
     ILogger<ForwardContactRequestService> logger,
-    IInterneTaakEmailInputService emailInputService,
+    IActorEmailResolutionService actorEmailResolutionService,
     IConfiguration configuration) : IForwardContactRequestService
 {
     private readonly string _itaBaseUrl = configuration.GetValue<string>("Ita:BaseUrl")
@@ -29,6 +31,45 @@ public class ForwardContactRequestService(
     {
         var actors = await GetTargetActors(request);
 
+        var actorEmailResult = await actorEmailResolutionService.ResolveActorsEmailAsync(actors);
+
+        // Reject the request upfront if no actor resolves to a usable email address. 
+        // Then, the internetaak is patched with the new actors and, on success, those recipients are notified by email.
+        ValidateEmailRecipients(actorEmailResult, request);
+
+        var (updatedInternetaak, errorResponse) = await PatchInternetaakActors(internetaakId, actors);
+        if (errorResponse != null)
+            return errorResponse;
+
+        //Although the AanleidinggevendKlantcontact was returned from the patch endpoint, it does not contain all details (like Nummer) that are needed for the email notification. Therefore, we need to fetch the full Klantcontact details.
+        updatedInternetaak.AanleidinggevendKlantcontact = await openKlantApiClient.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
+        
+        var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actorEmailResult);
+
+        return new ForwardContactRequestResponse
+        {
+            Internetaak = updatedInternetaak,
+            NotificationResult = notficationResult
+        };
+    }
+
+    private void ValidateEmailRecipients(ActorEmailResolutionResult actorEmailResult, ForwardContactRequestModel request)
+    {
+        if (actorEmailResult.Errors.Count != 0)
+        {
+            logger.LogWarning("Email address resolution errors: \n{Errors}", string.Join("\n", actorEmailResult.Errors));
+        }
+
+        if (actorEmailResult.FoundEmails.Count < 1)
+        {
+            var doelType = !string.IsNullOrWhiteSpace(request.Afdeling) ? "afdeling" : "groep";
+            throw new ValidationException($"Selecteer een medewerker: de geselecteerde {doelType} heeft geen mailbox.");
+        }
+    }
+
+    private async Task<(Internetaak UpdatedInternetaak, ForwardContactRequestResponse? errorResponse)> PatchInternetaakActors(
+        Guid internetaakId, List<Actor> actors)
+    {
         var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
 
         var internetakenUpdateRequest = new InternetakenPatchActorsRequest
@@ -41,38 +82,24 @@ public class ForwardContactRequestService(
         if (updatedInternetaak.AanleidinggevendKlantcontact?.Uuid == null)
         {
             logger.LogError("Uuid van AanleidinggevendKlantcontact onbekend voor internetaak {Uuid}", internetaak.Uuid);
-            return new ForwardContactRequestResponse
+            return (updatedInternetaak, new ForwardContactRequestResponse
             {
                 Internetaak = updatedInternetaak,
                 NotificationResult = GenericError
-            };
+            });
         }
 
-        //Although the AanleidinggevendKlantcontact was returned from the patch endpoint, it does not contain all details (like Nummer) that are needed for the email notification. Therefore, we need to fetch the full Klantcontact details.
-        updatedInternetaak.AanleidinggevendKlantcontact = await openKlantApiClient.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
-        
-        var notficationResult = await NotifyInternetaakActors(updatedInternetaak, actors);
-
-        return new ForwardContactRequestResponse
-        {
-            Internetaak = updatedInternetaak,
-            NotificationResult = notficationResult
-        };
+        return (updatedInternetaak, null);
     }
 
     private const string GenericError = "Het contactverzoek is doorgestuurd, maar hiervan kon geen e-mailnotificatie verstuurd worden";
 
-    private async Task<string> NotifyInternetaakActors(Internetaak internetaken, IReadOnlyList<Actor> actors)
+    private async Task<string> NotifyInternetaakActors(Internetaak internetaken, ActorEmailResolutionResult actorEmailResult)
     {
         try
         {
             if (!emailService.IsConfiguredCorrectly())
                 return GenericError;
-
-            var actorEmailResult = await emailInputService.ResolveActorsEmailAsync(actors);
-
-            if (!actorEmailResult.FoundEmails.Any())
-                return GetResultMessageWhenNoEmails(actorEmailResult);
 
             var contactmomentNummer = (internetaken.AanleidinggevendKlantcontact?.Nummer) ?? throw new InvalidOperationException(
                     $"AanleidinggevendKlantcontact.Nummer ontbreekt voor internetaak {internetaken.Nummer}");
@@ -94,13 +121,6 @@ public class ForwardContactRequestService(
     {
         var tasks = emails.Select(email => emailService.SendEmailAsync(email, subject, content));
         return await Task.WhenAll(tasks);
-    }
-
-    private static string GetResultMessageWhenNoEmails(ActorEmailResolutionResult actorEmailResult)
-    {
-        return actorEmailResult.Errors.Any()
-            ? $"Het contactverzoek is doorgestuurd, maar niet elke e-mailnotificatie kon verstuurd worden: \n{string.Join("\n", actorEmailResult.Errors)}"
-            : "Contactverzoek succesvol doorgestuurd";
     }
 
     private static string GetResultMessage(EmailResult[] results, ActorEmailResolutionResult actorEmailResult)
