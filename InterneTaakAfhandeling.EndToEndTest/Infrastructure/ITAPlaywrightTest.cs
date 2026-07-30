@@ -585,5 +585,28 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     $"Error: {ex.Message}", ex);
             }
         }
+
+        // TODO: Uncomment when non-admin test user account is configured in the test infrastructure (planned in a few weeks).
+        // /// <summary>
+        // /// Authenticates as a non-admin user using credentials from configuration.
+        // /// Use in an overridden <see cref="TestInitialize"/> before calling <c>base.TestInitialize()</c>
+        // /// to run a test as a medewerker without beheerder role.
+        // /// Requires <c>TestSettings:TEST_NONADMIN_USERNAME</c> and <c>TestSettings:TEST_NONADMIN_PASSWORD</c>
+        // /// to be configured.
+        // /// </summary>
+        // protected async Task AuthenticateAsNonAdminAsync()
+        // {
+        //     var username = s_configuration["TestSettings:TEST_NONADMIN_USERNAME"];
+        //     var password = s_configuration["TestSettings:TEST_NONADMIN_PASSWORD"];
+        //
+        //     if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        //     {
+        //         Assert.Inconclusive(
+        //             "Non-admin test user is not configured. " +
+        //             "Set TestSettings:TEST_NONADMIN_USERNAME and TestSettings:TEST_NONADMIN_PASSWORD to enable this test.");
+        //     }
+        //
+        //     await HandleAuthenticationAsync(username, password);
+        // }
     }
 }
