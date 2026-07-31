@@ -456,17 +456,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await listbox.GetByRole(AriaRole.Option).First.ClickAsync();
         }
 
-        private async Task SelectFirstSecondaryOption()
-        {
-            var secondaryPicker = Page.GetSecondaryPicker();
-            var isVisible = await secondaryPicker.IsVisibleAsync();
-            if (isVisible)
-            {
-                await secondaryPicker.SelectOptionAsync(new SelectOptionValue { Index = 1 });
-            }
-            // If secondaryPicker is not visible, there's only one option and it's auto-selected via hidden input
-        }
-
         private async Task SafeGotoAsync(string url)
         {
             PlaywrightException? lastException = null;
