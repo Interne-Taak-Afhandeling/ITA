@@ -262,5 +262,21 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetContactverzoekDoorsturenButton(this IPage page) =>
             page.GetByRole(AriaRole.Button, new() { Name = "Contactverzoek doorsturen" });
+
+        // Groepsmailbox status locators (Feature #512)
+        public static ILocator GetAfdelingMedewerkerLabel(this IPage page) =>
+            page.Locator("label[for='afdeling-groep-medewerker-combobox']");
+
+        public static ILocator GetGroepMedewerkerLabel(this IPage page) =>
+            page.Locator("label[for='groep-medewerker-combobox']");
+
+        public static ILocator GetGroepsmailboxToelichtingAlert(this IPage page) =>
+            page.Locator(".utrecht-alert--info");
+
+        public static ILocator GetGroepsmailboxBlokkerendeMelding(this IPage page) =>
+            page.Locator(".utrecht-alert--warning");
+
+        public static ILocator GetErrorToast(this IPage page) =>
+            page.Locator("output[role='status']").Filter(new() { Has = page.Locator(".utrecht-alert--error") });
     }
 }
