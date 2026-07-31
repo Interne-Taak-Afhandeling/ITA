@@ -363,11 +363,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await SetupContactverzoek(onderwerp);
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
-            await Step("Select 'Groep' mode and pick the first real groep");
-            await Page.GetDoorsturenGroepRadio().ClickAsync();
-            await Page.GetGroepSelect().SelectOptionAsync(new SelectOptionValue { Index = 1 });
+            await Step("Find an afdeling with a groepsmailbox (a mailbox alone is sufficient to resolve cleanly)");
+            var found = await SelectOptionUntilMedewerkerLabelIsAsync(
+                Page.GetAfdelingSelect(), Page.GetAfdelingMedewerkerLabel(), MedewerkerOptioneelLabel);
+            Assert.IsTrue(found, "No afdeling with a groepsmailbox (and attached medewerkers) found in test environment");
 
-            await Step("Submit the forward form");
+            await Step("Submit the forward form, leaving the optional medewerkerveld empty");
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
             await Step("Verify the exact, unchanged success message is shown");
