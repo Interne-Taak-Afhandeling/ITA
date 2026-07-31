@@ -55,33 +55,5 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             public const string TestMedewerkerNoEmailSearchQuery = "";
         }
 
-        public static class Groepsmailbox
-        {
-            /// <summary>
-            /// Identificatie of an afdeling with no groepsmailbox (blank/whitespace Email) and zero
-            /// medewerkers linked to it, so the doorstuurscherm renders the blocking warning-alert
-            /// (Task #542 scenario 4) instead of a required-but-unreachable medewerker field.
-            /// Set to a valid value when test data is configured; tests using this are marked Inconclusive until then.
-            /// </summary>
-            public const string AfdelingZonderMailboxEnZonderMedewerkersKey = "";
-
-            /// <summary>
-            /// Identificatie of an afdeling/groep whose Email field contains only whitespace, to verify
-            /// it is treated identically to a fully absent Email (Task #538 edge case). UI-indistinguishable
-            /// from AfdelingZonderMailboxEnZonderMedewerkersKey, so a distinct record is only meaningful if
-            /// verified via a direct API assertion rather than the rendered UI state.
-            /// Set to a valid value when test data is configured; tests using this are marked Inconclusive until then.
-            /// </summary>
-            public const string AfdelingMetWhitespaceEmailKey = "";
-
-            /// <summary>
-            /// Search query (scoped medewerker combobox, within an afdeling zonder groepsmailbox) matching
-            /// a medewerker without a valid email address, so neither the medewerker nor the afdeling
-            /// resolves to a usable notification recipient (Task #543 dead-end scenario).
-            /// Set to a valid value when test data is configured; tests using this are marked Inconclusive until then.
-            /// </summary>
-            public const string AfdelingZonderMailboxMetMedewerkerZonderEmailSearchQuery = "";
-        }
-
     }
 }

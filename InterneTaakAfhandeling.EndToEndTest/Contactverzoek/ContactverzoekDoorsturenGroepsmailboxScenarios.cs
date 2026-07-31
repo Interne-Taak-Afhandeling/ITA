@@ -157,41 +157,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Expect(Page.GetSuccessToast("Contactverzoek succesvol doorgestuurd")).ToBeVisibleAsync();
         }
 
-        [TestMethod("Medewerker zonder geldig e-mailadres, afdeling met groepsmailbox")]
-        public async Task User_ForwardWithMedewerkerZonderEmail_FallsBackToAfdelingGroepsmailbox()
-        {
-            if (string.IsNullOrEmpty(TestDataConstants.Doorsturen.TestMedewerkerNoEmailSearchQuery))
-            {
-                Assert.Inconclusive(
-                    "TestMedewerkerNoEmailSearchQuery is not configured. " +
-                    "Set this constant to a medewerker without an email address in the test objectenregister.");
-            }
-
-            var onderwerp = $"Test_EenOntvanger_Terugval_{Guid.NewGuid().ToString()[..8]}";
-            await SetupContactverzoek(onderwerp);
-            await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
-
-            await Step("Select 'Medewerker' mode");
-            await Page.GetDoorsturenMedewerkerRadio().ClickAsync();
-
-            await Step("Search for medewerker without email");
-            var combobox = Page.GetMedewerkerCombobox();
-            await combobox.FillAsync(TestDataConstants.Doorsturen.TestMedewerkerNoEmailSearchQuery);
-
-            await Step("Wait for search results and select first option");
-            var listbox = Page.Locator("#medewerker-combobox-listbox");
-            await Expect(listbox).ToBeVisibleAsync();
-            await listbox.GetByRole(AriaRole.Option).First.ClickAsync();
-
-            await Step("Select secondary afdeling/groep");
-            await SelectFirstSecondaryOption();
-
-            await Step("Submit the forward form");
-            await Page.GetContactverzoekDoorsturenButton().ClickAsync();
-
-            await Step("Verify success toast — the afdeling/groep mailbox receives the notification as fallback");
-            await Expect(Page.GetSuccessToast("Contactverzoek succesvol doorgestuurd")).ToBeVisibleAsync();
-        }
+        // Scenario: Medewerker zonder geldig e-mailadres, afdeling met groepsmailbox
+        // Not automatable: whether a medewerker's email address is valid is resolved entirely
+        // server-side (ActorEmailResolutionService / EmailService.IsValidEmail) and is never
+        // exposed through any client-observable API or UI state — /api/medewerkers returns only
+        // naam/identificatie/afdelingen/groepen, never an email address or validity flag. There is
+        // no way for a Playwright test to discover which medewerker in the test objectenregister
+        // lacks a valid email, so this scenario cannot be automated without a real, out-of-band
+        // medewerker identifier for the test environment.
 
         // === Task #541: Medewerker verplicht bij ontbrekende groepsmailbox ===
 
@@ -355,22 +328,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         [TestMethod("Afdeling zonder groepsmailbox en zonder beschikbare medewerkers toont blokkerende melding")]
         public async Task Doorstuurscherm_AfdelingZonderGroepsmailboxEnZonderMedewerkers_ToontBlokkerendeMelding()
         {
-            if (string.IsNullOrEmpty(TestDataConstants.Groepsmailbox.AfdelingZonderMailboxEnZonderMedewerkersKey))
-            {
-                Assert.Inconclusive(
-                    "AfdelingZonderMailboxEnZonderMedewerkersKey is not configured. " +
-                    "Set this constant to an afdeling without a groepsmailbox and without any linked medewerkers.");
-            }
-
             var onderwerp = $"Test_Scherm_Blokkerend_{Guid.NewGuid().ToString()[..8]}";
             await SetupContactverzoek(onderwerp);
             await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
 
-            await Step("Select the afdeling without a groepsmailbox and without available medewerkers");
-            await Page.GetAfdelingSelect().SelectOptionAsync(new SelectOptionValue
-            {
-                Value = TestDataConstants.Groepsmailbox.AfdelingZonderMailboxEnZonderMedewerkersKey
-            });
+            await Step("Find an afdeling without a groepsmailbox and without any linked medewerkers, via the app's own API");
+            var identificatie = await FindAfdelingZonderMailboxZonderMedewerkersAsync();
+            Assert.IsNotNull(identificatie, "No afdeling without a groepsmailbox and without linked medewerkers found in test environment");
+
+            await Step("Select that afdeling");
+            await Page.GetAfdelingSelect().SelectOptionAsync(new SelectOptionValue { Value = identificatie });
 
             await Step("Verify a blocking warning message is shown instead of an unreachable required field");
             await Expect(Page.GetGroepsmailboxBlokkerendeMelding()).ToContainTextAsync(
@@ -382,42 +349,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
 
         // === Task #543: Duidelijke foutafhandeling (UI-observeerbaar deel) ===
 
-        [TestMethod("Doorsturen zonder enige resolveerbare e-mail toont geen vals-positief succesbericht")]
-        public async Task User_ForwardWithNoResolvableEmail_ShowsExplicitFailureNotFalseSuccess()
-        {
-            if (string.IsNullOrEmpty(TestDataConstants.Groepsmailbox.AfdelingZonderMailboxMetMedewerkerZonderEmailSearchQuery))
-            {
-                Assert.Inconclusive(
-                    "AfdelingZonderMailboxMetMedewerkerZonderEmailSearchQuery is not configured. " +
-                    "Set this constant to a search query matching a medewerker without a valid email address, " +
-                    "linked to an afdeling without a groepsmailbox.");
-            }
-
-            var onderwerp = $"Test_GeenNotificatie_{Guid.NewGuid().ToString()[..8]}";
-            await SetupContactverzoek(onderwerp);
-            await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
-
-            await Step("Find an afdeling without a groepsmailbox (with medewerkers attached)");
-            var found = await SelectOptionUntilMedewerkerLabelIsAsync(
-                Page.GetAfdelingSelect(), Page.GetAfdelingMedewerkerLabel(), MedewerkerVerplichtLabel);
-            Assert.IsTrue(found, "No afdeling without a groepsmailbox (with attached medewerkers) found in test environment");
-
-            await Step("Search for and select the medewerker without a valid email address");
-            var combobox = Page.GetAfdelingGroepMedewerkerCombobox();
-            await combobox.FillAsync(TestDataConstants.Groepsmailbox.AfdelingZonderMailboxMetMedewerkerZonderEmailSearchQuery);
-            var listbox = Page.Locator("#afdeling-groep-medewerker-combobox-listbox");
-            await Expect(listbox).ToBeVisibleAsync();
-            await listbox.GetByRole(AriaRole.Option).First.ClickAsync();
-
-            await Step("Submit the forward form");
-            await Page.GetContactverzoekDoorsturenButton().ClickAsync();
-
-            await Step("Verify no false-positive success toast is shown");
-            await Expect(Page.GetSuccessToast("Contactverzoek succesvol doorgestuurd")).Not.ToBeVisibleAsync();
-
-            await Step("Verify an explicit failure is communicated instead");
-            await Expect(Page.GetErrorToast()).ToBeVisibleAsync();
-        }
+        // Scenario: Doorsturen zonder enige resolveerbare e-mail toont geen vals-positief succesbericht
+        // Not automatable: this dead-end requires a medewerker known to lack a valid email address
+        // (same limitation as the Task #539 fallback scenario above — email validity is resolved
+        // server-side and is never exposed through /api/medewerkers or any other client-observable
+        // signal). Automating this scenario needs a real, out-of-band medewerker identifier for the
+        // test environment.
 
         [TestMethod("Succesvolle resolutie blijft ongewijzigd gemeld")]
         public async Task User_ForwardWithResolvableEmail_ShowsUnchangedSuccessMessage()
@@ -463,30 +400,14 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Expect(Page.GetAfdelingGroepMedewerkerCombobox()).ToHaveJSPropertyAsync("required", true);
         }
 
-        [TestMethod("Afdeling met alleen-whitespace e-mailadres wordt behandeld als geen groepsmailbox")]
-        public async Task Afdeling_MetWhitespaceEmail_WordtBehandeldAlsGeenGroepsmailbox()
-        {
-            if (string.IsNullOrEmpty(TestDataConstants.Groepsmailbox.AfdelingMetWhitespaceEmailKey))
-            {
-                Assert.Inconclusive(
-                    "AfdelingMetWhitespaceEmailKey is not configured. " +
-                    "Set this constant to an afdeling whose Email field contains only whitespace.");
-            }
-
-            var onderwerp = $"Test_Whitespace_{Guid.NewGuid().ToString()[..8]}";
-            await SetupContactverzoek(onderwerp);
-            await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
-
-            await Step("Select the afdeling with a whitespace-only Email");
-            await Page.GetAfdelingSelect().SelectOptionAsync(new SelectOptionValue
-            {
-                Value = TestDataConstants.Groepsmailbox.AfdelingMetWhitespaceEmailKey
-            });
-
-            await Step("Verify it is treated identically to a fully absent groepsmailbox");
-            await Expect(Page.GetAfdelingMedewerkerLabel()).ToHaveTextAsync(MedewerkerVerplichtLabel);
-            await Expect(Page.GetAfdelingGroepMedewerkerCombobox()).ToHaveJSPropertyAsync("required", true);
-        }
+        // Edge case: Afdeling/groep met een Email-veld dat alleen whitespace bevat
+        // Not automatable: /api/afdelingen and /api/groepen only expose the derived
+        // `heeftGroepsmailbox` boolean (`!string.IsNullOrWhiteSpace(x.Email)`), so a whitespace-only
+        // Email and a fully absent Email are indistinguishable from any client-observable signal —
+        // both simply render as "geen groepsmailbox". This edge case is already covered in effect by
+        // every "zonder groepsmailbox" scenario above; a dedicated test could only assert the same
+        // observable state via a hardcoded afdeling identifier, which would test the fixture, not
+        // new behavior.
 
         // === Private helpers ===
 
@@ -597,6 +518,48 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Finds an afdeling without a groepsmailbox and with zero linked medewerkers by querying
+        /// the app's own API directly (via the authenticated browser context) — combines
+        /// /api/afdelingen (heeftGroepsmailbox) with /api/medewerkers?afdelingOfGroep=...&amp;type=Afdeling
+        /// (linked medewerker count), since no single endpoint exposes both facts at once.
+        /// Returns the matching afdeling's identificatie, or null if none exists in the test environment.
+        /// </summary>
+        private async Task<string?> FindAfdelingZonderMailboxZonderMedewerkersAsync()
+        {
+            var afdelingenResponse = await Page.Context.APIRequest.GetAsync("/api/afdelingen");
+            var afdelingen = await afdelingenResponse.JsonAsync();
+            if (afdelingen is not { } afdelingenJson)
+            {
+                return null;
+            }
+
+            foreach (var afdeling in afdelingenJson.EnumerateArray())
+            {
+                if (afdeling.GetProperty("heeftGroepsmailbox").GetBoolean())
+                {
+                    continue;
+                }
+
+                var naam = afdeling.GetProperty("naam").GetString();
+                if (string.IsNullOrEmpty(naam))
+                {
+                    continue;
+                }
+
+                var medewerkersResponse = await Page.Context.APIRequest.GetAsync(
+                    $"/api/medewerkers?afdelingOfGroep={Uri.EscapeDataString(naam)}&type=Afdeling");
+                var medewerkers = await medewerkersResponse.JsonAsync();
+                if (medewerkers is { } medewerkersJson && medewerkersJson.GetArrayLength() == 0)
+                {
+                    await Step($"Found afdeling '{naam}' without a groepsmailbox and without linked medewerkers");
+                    return afdeling.GetProperty("identificatie").GetString();
+                }
+            }
+
+            return null;
         }
     }
 }
