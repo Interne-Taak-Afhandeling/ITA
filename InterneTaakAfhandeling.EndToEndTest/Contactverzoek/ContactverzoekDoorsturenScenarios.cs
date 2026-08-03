@@ -181,8 +181,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Select 'Groep' mode");
             await Page.GetDoorsturenGroepRadio().ClickAsync();
 
-            await Step("Select a groep from dropdown (first non-placeholder)");
-            await Page.GetGroepSelect().SelectOptionAsync(new SelectOptionValue { Index = 1 });
+            await Step("Select a groep with a groepsmailbox (submitting without a medewerker requires one, per Feature #512)");
+            var identificatie = await FindGroepMetGroepsmailboxAsync();
+            Assert.IsNotNull(identificatie, "No groep with a groepsmailbox found in test environment");
+            await Page.GetGroepSelect().SelectOptionAsync(new SelectOptionValue { Value = identificatie });
 
             await Step("Submit the forward form");
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
@@ -448,6 +450,32 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Finds a groep with a groepsmailbox by querying the app's own API directly (via the
+        /// authenticated browser context) — since Feature #512, submitting without a medewerker
+        /// requires the selected groep to have a groepsmailbox. Returns the matching groep's
+        /// identificatie, or null if none exists in the test environment.
+        /// </summary>
+        private async Task<string?> FindGroepMetGroepsmailboxAsync()
+        {
+            var groepenResponse = await Page.Context.APIRequest.GetAsync("/api/groepen");
+            var groepen = await groepenResponse.JsonAsync();
+            if (groepen is not { } groepenJson)
+            {
+                return null;
+            }
+
+            foreach (var groep in groepenJson.EnumerateArray())
+            {
+                if (groep.GetProperty("heeftGroepsmailbox").GetBoolean())
+                {
+                    return groep.GetProperty("identificatie").GetString();
+                }
+            }
+
+            return null;
         }
     }
 }
