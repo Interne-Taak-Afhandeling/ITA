@@ -63,6 +63,8 @@
               >
             </li>
 
+            <klantcontact-zoek-popover />
+
             <li
               class="user-name utrecht-nav-list__item utrecht-link utrecht-link--html-a utrecht-nav-list__link"
             >
@@ -87,6 +89,7 @@
 import { computed } from "vue";
 import { injectResources } from "@/resources";
 import { useAuthStore } from "@/stores/auth";
+import KlantcontactZoekPopover from "@/components/KlantcontactZoekPopover.vue";
 
 const resources = injectResources();
 const authStore = useAuthStore();
