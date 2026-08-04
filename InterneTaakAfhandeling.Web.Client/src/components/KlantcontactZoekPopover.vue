@@ -3,14 +3,14 @@
     <button
       ref="buttonRef"
       type="button"
-      class="utrecht-button utrecht-button--subtle klantcontact-zoek__button"
+      class="utrecht-button klantcontact-zoek__button"
       aria-haspopup="true"
       :aria-expanded="open"
       aria-label="Zoek contactverzoek op klantcontactnummer"
       title="Zoek contactverzoek op klantcontactnummer"
       @click="toggle"
     >
-      <utrecht-icon icon="external" />
+      <utrecht-icon icon="search-klantcontact" />
     </button>
 
     <div
@@ -19,28 +19,29 @@
       class="klantcontact-zoek__panel"
       aria-label="Zoek contactverzoek op klantcontactnummer"
     >
-      <form @submit.prevent="onSearch">
-        <utrecht-form-field>
+      <form class="klantcontact-zoek__form" @submit.prevent="onSearch">
+        <utrecht-form-field class="klantcontact-zoek__field">
           <utrecht-form-label for="klantcontact-nummer-input"
             >Klantcontactnummer</utrecht-form-label
           >
-          <utrecht-textbox
-            id="klantcontact-nummer-input"
-            ref="inputRef"
-            v-model="nummer"
-            type="text"
-            required
-          />
-        </utrecht-form-field>
+          <div class="klantcontact-zoek__row">
+            <utrecht-textbox
+              id="klantcontact-nummer-input"
+              ref="inputRef"
+              v-model="nummer"
+              type="text"
+            />
 
-        <utrecht-button
-          type="submit"
-          appearance="primary-action-button"
-          :busy="isSearching"
-          :disabled="isSearching"
-        >
-          Zoeken
-        </utrecht-button>
+            <utrecht-button
+              type="submit"
+              appearance="secondary-action-button"
+              :busy="isSearching"
+              :disabled="isSearching"
+            >
+              Zoeken
+            </utrecht-button>
+          </div>
+        </utrecht-form-field>
 
         <p v-if="errorMessage" class="klantcontact-zoek__error" role="alert" aria-live="polite">
           {{ errorMessage }}
@@ -116,7 +117,7 @@ async function onSearch() {
       errorMessage.value = "Je hebt geen toegang tot dit contactverzoek.";
     } else {
       errorMessage.value =
-        "Er is iets misgegaan bij het opzoeken van dit contactverzoek. Neem contact op met de beheerder als dit probleem zich blijft voordoen.";
+        "Geen contactverzoek gevonden voor dit klantcontactnummer.";
     }
   } finally {
     isSearching.value = false;
@@ -127,17 +128,30 @@ async function onSearch() {
 <style lang="scss" scoped>
 .klantcontact-zoek {
   position: relative;
-  border-inline-start: 1px solid var(--utrecht-form-control-border-color, currentColor);
-  padding-inline-start: 1rem;
+  align-items: center;
+  border-inline-start: 1px solid currentColor;
+  padding-inline-start: var(--utrecht-space-column-sm);
 }
 
 .klantcontact-zoek__button {
-  inline-size: 2rem;
-  block-size: 2rem;
+  --utrecht-button-icon-size: var(--utrecht-accordion-button-icon-size);
+  --utrecht-button-min-block-size: var(--utrecht-space-column-3xl);
+  --utrecht-button-min-inline-size: var(--utrecht-space-column-3xl);
+  background-color: var(--utrecht-color-blue-60);
+  color: var(--utrecht-page-header-color);
+  border: none;
   border-radius: 50%;
+  padding: var(--utrecht-space-column-2xs);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+}
+
+.klantcontact-zoek__button:hover,
+.klantcontact-zoek__button:focus-visible {
+  background-color: var(--utrecht-document-background-color);
+  color: var(--utrecht-page-header-background-color);
 }
 
 .klantcontact-zoek__panel {
@@ -146,14 +160,20 @@ async function onSearch() {
   inset-inline-end: 0;
   z-index: 10;
   min-inline-size: 16rem;
-  background-color: var(--utrecht-document-background-color, Canvas);
-  border: 1px solid var(--utrecht-form-control-border-color, currentColor);
+  background-color: var(--utrecht-document-background-color);
+  color: var(--utrecht-color-grey-15);
   border-radius: var(--utrecht-form-control-border-radius, 0);
-  padding: 1rem;
+  padding: var(--utrecht-space-column-sm);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+.klantcontact-zoek__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--utrecht-space-column-xs);
+}
+
 .klantcontact-zoek__error {
-  margin-block-start: 0.5rem;
+  margin-block-start: var(--utrecht-space-row-xs);
 }
 </style>
