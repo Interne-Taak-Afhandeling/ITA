@@ -18,4 +18,20 @@
 <symbol id="add-plus" viewBox="0 0 448 512">
 <path d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/>
 </symbol>
+  <symbol
+    id="search-klantcontact"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  ><!--Adapted from Tabler Icons (MIT License) https://tabler.io/icons - zoom-code, lens glyph replaced with a hash--><title>search-klantcontact</title>
+    <path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+    <path d="M21 21l-6 -6" />
+    <path d="M7 5l0 10" />
+    <path d="M14 5l0 10" />
+    <path d="M5 7.5l11 0" />
+    <path d="M5 12.5l11 0" />
+  </symbol>
 </svg>
