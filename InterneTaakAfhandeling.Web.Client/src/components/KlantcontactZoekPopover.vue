@@ -116,8 +116,7 @@ async function onSearch() {
     if (err instanceof Error && err.message === knownErrorMessages.forbidden) {
       errorMessage.value = "Je hebt geen toegang tot dit contactverzoek.";
     } else {
-      errorMessage.value =
-        "Geen contactverzoek gevonden voor dit klantcontactnummer.";
+      errorMessage.value = "Geen contactverzoek gevonden voor dit klantcontactnummer.";
     }
   } finally {
     isSearching.value = false;
