@@ -10,7 +10,7 @@
       title="Zoek contactverzoek op klantcontactnummer"
       @click="toggle"
     >
-      <utrecht-icon icon="search-klantcontact" />
+      <utrecht-icon icon="magnifying-glass" />
     </button>
 
     <div
@@ -90,7 +90,7 @@ async function toggle() {
   open.value = true;
   errorMessage.value = null;
   await nextTick();
-  inputRef.value?.$el?.querySelector("input")?.focus();
+  inputRef.value?.$el?.focus();
 }
 
 function close() {
@@ -129,28 +129,20 @@ async function onSearch() {
 .klantcontact-zoek {
   position: relative;
   align-items: center;
-  border-inline-start: 1px solid currentColor;
-  padding-inline-start: var(--utrecht-space-column-sm);
 }
 
 .klantcontact-zoek__button {
-  --utrecht-button-icon-size: var(--utrecht-accordion-button-icon-size);
-  --utrecht-button-min-block-size: var(--utrecht-space-column-3xl);
-  --utrecht-button-min-inline-size: var(--utrecht-space-column-3xl);
-  background-color: var(--utrecht-color-blue-60);
+  background-color: var(--utrecht-page-header-background-color);
   color: var(--utrecht-page-header-color);
-  border: none;
+  border-color: var(--utrecht-page-header-color);
   border-radius: 50%;
-  padding: var(--utrecht-space-column-2xs);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  padding-block: var(--utrecht-space-block-2xs);
+  padding-inline: var(--utrecht-space-inline-2xs);
 }
 
 .klantcontact-zoek__button:hover,
 .klantcontact-zoek__button:focus-visible {
-  background-color: var(--utrecht-document-background-color);
+  background-color: var(--utrecht-page-header-color);
   color: var(--utrecht-page-header-background-color);
 }
 
