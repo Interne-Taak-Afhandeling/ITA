@@ -231,6 +231,35 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, contactmoment.Nummer!);
         }
 
+        // Creates two internetaken pointing at the same klantcontact, so tests can verify the
+        // ambiguity/conflict behavior when a klantcontactnummer resolves to multiple internetaken.
+        public async Task<(Guid ContactmomentUuid, string KlantcontactNummer)> CreateDuplicateKlantcontactInternetakenAsync(
+            string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
+
+            await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(medewerkerActor.Uuid) });
+            await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(medewerkerActor.Uuid) });
+
+            return (contactmoment.Uuid, contactmoment.Nummer!);
+        }
+
         // Creates `count` separate overdue contactverzoeken all assigned to the current user, so
         // the daily-reminder aggregation scenario can verify a single mail bundling multiple
         // contactverzoeken rather than one mail per contactverzoek.

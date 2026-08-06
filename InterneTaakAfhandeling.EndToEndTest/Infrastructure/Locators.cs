@@ -278,5 +278,21 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public static ILocator GetErrorToast(this IPage page) =>
             page.Locator("output[role='status']").Filter(new() { Has = page.Locator(".utrecht-alert--error") });
+
+        // Klantcontactnummer zoekpopover locators (Feature #467)
+        public static ILocator GetKlantcontactZoekButton(this IPage page) =>
+            page.GetByRole(AriaRole.Button, new() { Name = "Zoek contactverzoek op klantcontactnummer" });
+
+        public static ILocator GetKlantcontactZoekInput(this IPage page) =>
+            page.Locator("#klantcontact-nummer-input");
+
+        public static ILocator GetKlantcontactZoekZoekenButton(this IPage page) =>
+            page.Locator(".klantcontact-zoek__panel").GetByRole(AriaRole.Button, new() { Name = "Zoeken" });
+
+        public static ILocator GetKlantcontactZoekErrorMessage(this IPage page) =>
+            page.Locator(".klantcontact-zoek__error");
+
+        public static ILocator GetKlantcontactZoekIconUse(this IPage page) =>
+            page.Locator(".klantcontact-zoek__button svg use");
     }
 }
