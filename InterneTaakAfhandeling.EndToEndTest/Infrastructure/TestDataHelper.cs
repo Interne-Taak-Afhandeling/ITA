@@ -231,6 +231,35 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return (contactmoment.Uuid, contactmoment.Nummer!);
         }
 
+        // Creates two internetaken pointing at the same klantcontact, so tests can verify the
+        // ambiguity/conflict behavior when a klantcontactnummer resolves to multiple internetaken.
+        public async Task<(Guid ContactmomentUuid, string KlantcontactNummer)> CreateDuplicateKlantcontactInternetakenAsync(
+            string onderwerp)
+        {
+            await CleanupExistingContactmomenten(onderwerp);
+
+            var contactmoment = await CreateContactmoment(
+                onderwerp,
+                "This is a test contact request created during an end-to-end test run.",
+                klantnaam: null);
+
+            var submitterActor = await GetOrCreateSubmitterActor();
+            await ConnectActorToContactmoment(submitterActor, contactmoment.Uuid);
+
+            var medewerkerActor = await GetOrCreateMedewerkerActor(Username);
+
+            await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(medewerkerActor.Uuid) });
+            await CreateInternetaak(
+                GenerateUniqueInternetaakNummer(),
+                contactmoment.Uuid,
+                new List<Guid> { Guid.Parse(medewerkerActor.Uuid) });
+
+            return (contactmoment.Uuid, contactmoment.Nummer!);
+        }
+
         // Creates `count` separate overdue contactverzoeken all assigned to the current user, so
         // the daily-reminder aggregation scenario can verify a single mail bundling multiple
         // contactverzoeken rather than one mail per contactverzoek.
@@ -632,7 +661,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         {
             var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
             var internetaak = contactmoment?.Expand?.LeiddeTotInterneTaken?.FirstOrDefault();
-            
+
             if (internetaak?.Uuid == null)
             {
                 return null;
@@ -643,9 +672,36 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 return parsedGuid;
             }
 
-            Logger.LogWarning("Invalid UUID string received for internetaak: '{UuidString}' from contactmoment {ContactmomentUuid}", 
+            Logger.LogWarning("Invalid UUID string received for internetaak: '{UuidString}' from contactmoment {ContactmomentUuid}",
                 internetaak.Uuid, contactmomentUuid);
             return null;
+        }
+
+        private async Task<List<Guid>> GetInternetaakUuidsFromContactmomentAsync(Guid contactmomentUuid)
+        {
+            var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
+            var internetaken = contactmoment?.Expand?.LeiddeTotInterneTaken;
+
+            if (internetaken == null || internetaken.Count == 0)
+            {
+                return new List<Guid>();
+            }
+
+            var uuids = new List<Guid>();
+            foreach (var internetaak in internetaken)
+            {
+                if (internetaak.Uuid != null && Guid.TryParse(internetaak.Uuid, out var parsedGuid))
+                {
+                    uuids.Add(parsedGuid);
+                }
+                else
+                {
+                    Logger.LogWarning("Invalid UUID string received for internetaak: '{UuidString}' from contactmoment {ContactmomentUuid}",
+                        internetaak.Uuid, contactmomentUuid);
+                }
+            }
+
+            return uuids;
         }
 
   
@@ -684,10 +740,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
             foreach (var existing in contactmomenten)
             {
-                var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(existing.Uuid);
-                if (internetaakUuid.HasValue)
+                var internetaakUuids = await GetInternetaakUuidsFromContactmomentAsync(existing.Uuid);
+                foreach (var internetaakUuid in internetaakUuids)
                 {
-                    await OpenKlantApiClient.DeleteInterneTaakAsync(internetaakUuid.Value);
+                    await OpenKlantApiClient.DeleteInterneTaakAsync(internetaakUuid);
                 }
                 await OpenKlantApiClient.DeleteKlantcontactAsync(existing.Uuid);
             }
