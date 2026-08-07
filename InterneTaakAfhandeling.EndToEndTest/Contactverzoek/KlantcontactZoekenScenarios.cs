@@ -60,7 +60,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
 
         // Scenario: Eén klantcontactnummer verwijst naar meerdere Contactverzoeken
         [TestMethod("Eén klantcontactnummer verwijst naar meerdere Contactverzoeken")]
-        public async Task Medewerker_ZoektOpDubbelKlantcontactnummer_ToontGenericeFoutmelding()
+        public async Task Medewerker_ZoektOpDubbelKlantcontactnummer_ToontGeneriekeFoutmelding()
         {
             var onderwerp = $"Test_KlantcontactZoeken_Ambigu_{Guid.NewGuid().ToString()[..8]}";
             var (contactmomentUuid, klantcontactNummer) =
