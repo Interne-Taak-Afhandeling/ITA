@@ -77,6 +77,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.AlleContactverzoeken
         //     await Step("Verify redirect to forbidden page");
         //     var forbiddenHeading = Page.GetByRole(AriaRole.Heading, new() { Name = "Toegang geweigerd" });
         //     await Expect(forbiddenHeading).ToBeVisibleAsync();
+        
         // }
 
         // TODO: Requires unauthenticated browser context (no stored auth session).
