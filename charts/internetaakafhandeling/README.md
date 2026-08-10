@@ -54,14 +54,14 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | medewerker.type | string | `""` | De url van het medewerker objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie voor meer informatie |
 | medewerker.typeVersion | int | `1` | De versie van het medewerker objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
 | nameOverride | string | `""` |  |
+| nieuweInternetaakNotificatie.notification.hourThreshold | string | `"-24"` |  |
+| nieuweInternetaakNotificatie.notification.pollerMessage | string | `"Poller uitgevoerd om:"` |  |
+| nieuweInternetaakNotificatie.schedule | string | `"*/15 * * * *"` |  |
 | nodeSelector | object | `{}` |  |
 | poller.image.pullPolicy | string | `"Always"` |  |
 | poller.image.repository | string | `"ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"` |  |
 | poller.image.tag | string | `"latest"` |  |
-| poller.notification.hourThreshold | string | `"-24"` |  |
-| poller.notification.pollerMessage | string | `"Poller uitgevoerd om:"` |  |
 | poller.resources | object | `{}` |  |
-| poller.schedule | string | `"*/15 * * * *"` |  |
 | postgresql.auth.database | string | `"interneTaakAfhandeling"` |  |
 | postgresql.auth.password | string | `""` |  |
 | postgresql.auth.postgresPassword | string | `""` |  |
@@ -80,6 +80,8 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | smtp.port | string | `"25"` |  |
 | smtp.username | string | `""` |  |
 | tolerations | list | `[]` |  |
+| verlopenContactverzoekHerinneringNotificatie.enabled | bool | `true` |  |
+| verlopenContactverzoekHerinneringNotificatie.schedule | string | `"0 7 * * 1-5"` |  |
 | web.appsettings.setting1 | string | `""` |  |
 | web.appsettings.setting2 | string | `""` |  |
 | web.image.pullPolicy | string | `"Always"` |  |
