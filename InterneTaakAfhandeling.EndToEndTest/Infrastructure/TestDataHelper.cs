@@ -630,10 +630,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var uuid = Guid.Parse(klantcontactUuid);
             try
             {
-                var internetaakUuid = await GetInternetaakUuidFromContactmomentAsync(uuid);
-                if (internetaakUuid.HasValue)
+                var internetaakUuids = await GetInternetaakUuidsFromContactmomentAsync(uuid);
+                foreach (var internetaakUuid in internetaakUuids)
                 {
-                    await OpenKlantApiClient.DeleteInterneTaakAsync(internetaakUuid.Value);
+                    await OpenKlantApiClient.DeleteInterneTaakAsync(internetaakUuid);
                 }
             }
             catch (Exception) { }
