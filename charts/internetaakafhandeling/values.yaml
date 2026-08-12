@@ -170,12 +170,15 @@ poller:
 
 # NieuweInternetaakNotificatie — notifies assignees when a new internetaak is created (every 15 min)
 nieuweInternetaakNotificatie:
+  # -- Cron expression controlling how often the poller checks for new internetaken
   schedule: "*/15 * * * *"
   notification:
+    # -- Message written to the logs when a poller run starts
     pollerMessage: "Poller uitgevoerd om:"
-    hourThreshold: "-24"
 
 # VerlopenContactverzoekHerinneringNotificatie — sends a daily reminder for overdue contact requests (weekdays 07:00)
 verlopenContactverzoekHerinneringNotificatie:
+  # -- Set to false to disable the daily reminder email for overdue contact requests (per medewerker and per afdeling/groep)
   enabled: true
+  # -- Cron expression controlling when the daily reminder email is sent
   schedule: "0 7 * * 1-5"
