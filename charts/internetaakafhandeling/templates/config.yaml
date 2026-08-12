@@ -43,7 +43,6 @@ data:
   
   # Notification settings
   pollerMessage: {{ .Values.nieuweInternetaakNotificatie.notification.pollerMessage | quote }}
-  InternetakenNotifier__HourThreshold: {{ .Values.nieuweInternetaakNotificatie.notification.hourThreshold | quote }}
 
   # ITA Base URL for email
   Ita__BaseUrl: {{ .Values.ita.baseUrl | quote }}

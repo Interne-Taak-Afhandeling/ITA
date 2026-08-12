@@ -30,6 +30,8 @@ Notificatie settings
 | smtp.enableSsl       | true/false                                                                                               |
 | smtp.fromEmail       | Afzenderadres voor mails die door ITA verstuurd worden                                                   |
 | ita.baseUrl          | De base URL van de ITA website, gebruikt voor deeplinks in email notificaties naar contactverzoeken. Bijvoorbeeld: `https://itawebsite.nl` |
+| nieuweInternetaakNotificatie.schedule                         | Optioneel, default `"*/15 * * * *"` (elke 15 minuten). Cron-expressie die bepaalt hoe vaak er gecontroleerd wordt op nieuwe internetaken om een notificatie-e-mail voor te versturen. |
+| nieuweInternetaakNotificatie.notification.pollerMessage       | Optioneel, default `"Poller uitgevoerd om:"`. Tekst die bij het starten van elke poller-run naar de logs geschreven wordt. |
 | verlopenContactverzoekHerinneringNotificatie.enabled  | Optioneel, default `true`. Zet op `false` om de dagelijkse e-mailherinnering voor verlopen contactverzoeken (per medewerker en per afdeling/groep) volledig uit te schakelen. |
 | verlopenContactverzoekHerinneringNotificatie.schedule | Optioneel, default `"0 7 * * 1-5"` (elke werkdag om 07:00). Cron-expressie die bepaalt wanneer de dagelijkse herinneringsmail wordt verstuurd.
 
