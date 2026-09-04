@@ -408,3 +408,5 @@ secrets/
 .idea/
 charts/internetaakafhandeling/charts/*.tgz
 *package.g.props
+
+.claude/worktrees/
