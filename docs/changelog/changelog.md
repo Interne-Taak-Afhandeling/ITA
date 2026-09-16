@@ -1,6 +1,12 @@
 # Changelog
 
+## v3.3.2
+
+- [Telefoonnummer en e-mailadres: geen rekening met isStandaardAdres van OpenKlant #568](https://github.com/Interne-Taak-Afhandeling/ITA/issues/568)
+
+
 ## v3.3.0
+
 - [Feature: Betrouwbaar doorsturen aan afdeling/groep danwel medewerker #512](https://github.com/Interne-Taak-Afhandeling/ITA/issues/512)
 - [Feature: Toegang tot Contactverzoeken beperkt tot eigen afdeling/groep #514](https://github.com/Interne-Taak-Afhandeling/ITA/issues/514)
 - [Feature: Medewerker en Afdeling/Groep ontvangen dagelijkse e-mailherinnering voor verlopen contactverzoeken #413](https://github.com/Interne-Taak-Afhandeling/ITA/issues/413)
