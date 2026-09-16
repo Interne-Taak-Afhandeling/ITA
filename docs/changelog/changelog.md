@@ -3,7 +3,7 @@
 
 ## v3.3.2
 
-- [Telefoonnummer en e-mailadres: geen rekening met isStandaardAdres van OpenKlant #568](https://github.com/Interne-Taak-Afhandeling/ITA/issues/568)
+- [Telefoonnummer en e-mailadres: geen rekening gehouden met isStandaardAdres van OpenKlant #568](https://github.com/Interne-Taak-Afhandeling/ITA/issues/568)
 
 ## v3.3.1
 
