@@ -7,6 +7,7 @@
 - [Feature: Medewerker leest begrijpelijke actie- en statuslabels bij contactverzoekafhandeling #501](https://github.com/Interne-Taak-Afhandeling/ITA/issues/501)
 - [Feature: Werklijst urgentie-status en verbeterde kolommen #402](https://github.com/Interne-Taak-Afhandeling/ITA/issues/402) 
 - [Feature: Toon afdeling/groep op een contactverzoek #411](https://github.com/Interne-Taak-Afhandeling/ITA/issues/411)
+- [Feature: Zoeken op klantcontactnummer om een eerder Contactverzoek terug te vinden #467](https://github.com/Interne-Taak-Afhandeling/ITA/issues/467)
 
 ## v3.2.0
 
