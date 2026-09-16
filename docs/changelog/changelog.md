@@ -8,6 +8,7 @@
 - [Feature: Werklijst urgentie-status en verbeterde kolommen #402](https://github.com/Interne-Taak-Afhandeling/ITA/issues/402) 
 - [Feature: Toon afdeling/groep op een contactverzoek #411](https://github.com/Interne-Taak-Afhandeling/ITA/issues/411)
 - [Feature: Zoeken op klantcontactnummer om een eerder Contactverzoek terug te vinden #467](https://github.com/Interne-Taak-Afhandeling/ITA/issues/467)
+- [Telefoonnummer en e-mailadres: geen rekening met isStandaardAdres van OpenKlant #568](https://github.com/Interne-Taak-Afhandeling/ITA/issues/568)
 
 ## v3.2.0
 
