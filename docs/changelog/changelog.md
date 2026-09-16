@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.3.1
+- Technical dependency updates
+
 ## v3.3.0
 - [Feature: Betrouwbaar doorsturen aan afdeling/groep danwel medewerker #512](https://github.com/Interne-Taak-Afhandeling/ITA/issues/512)
 - [Feature: Toegang tot Contactverzoeken beperkt tot eigen afdeling/groep #514](https://github.com/Interne-Taak-Afhandeling/ITA/issues/514)
