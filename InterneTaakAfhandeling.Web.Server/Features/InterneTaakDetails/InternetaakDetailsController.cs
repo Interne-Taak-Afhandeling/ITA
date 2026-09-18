@@ -152,12 +152,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
         private static string? ResolveEmail(Klantcontact? klantcontact) =>
             klantcontact?.Expand?.HadBetrokkenen?.FirstOrDefault()?.Expand?.DigitaleAdressen?
                 .Where(a => a.SoortDigitaalAdres == "email" && !string.IsNullOrEmpty(a.Adres))
+                .OrderByDescending(a => a.IsStandaardAdres)
                 .Select(a => a.Adres)
                 .FirstOrDefault();
 
         private static List<TelefoonnummerItem> ResolveTelefoonnummers(Klantcontact? klantcontact) =>
             klantcontact?.Expand?.HadBetrokkenen?.FirstOrDefault()?.Expand?.DigitaleAdressen?
                 .Where(a => a.SoortDigitaalAdres == "telefoonnummer" && !string.IsNullOrEmpty(a.Adres))
+                .OrderByDescending(a => a.IsStandaardAdres)
                 .Select((a, i) => new TelefoonnummerItem
                 {
                     Adres = a.Adres!,
