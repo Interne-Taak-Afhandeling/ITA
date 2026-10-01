@@ -71,7 +71,7 @@ public sealed class VerlopenInternetakenProcessor(
             recipients.Add(new RecipientHerinneringData
             {
                 ActorUuid = entry.Actor.Uuid,
-                Link = entry.Actor.SoortActor == SoortActor.medewerker ? "/afdelings-contacten" : "/",
+                Link = entry.Actor.SoortActor == SoortActor.medewerker ? "/" : "/afdelings-contacten",
                 EmailAdressen = resolveResult.FoundEmails,
                 AantalVerlopenContactVerzoeken = entry.Taken.Count,
                 MaxAantalWerkdagenOpenstaan = entry.Taken.Max(taak =>

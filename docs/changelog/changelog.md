@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v3.3.3
+
+- [Bug: Link in herinneringsmail voor medewerker komt uit bij Afdelingswerkvoorraad #574](https://github.com/Interne-Taak-Afhandeling/ITA/issues/574)
+
 ## v3.3.2
 
 - [Telefoonnummer en e-mailadres: geen rekening gehouden met isStandaardAdres van OpenKlant #568](https://github.com/Interne-Taak-Afhandeling/ITA/issues/568)
