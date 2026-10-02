@@ -48,7 +48,10 @@ public static class GlobalSetup
 
         var otpHelper = ITAPlaywrightTest.s_uniqueOtpHelper ?? new UniqueOtpHelper(totpSecret);
         var loginHelper = new AzureAdLoginHelper(page, username, password, otpHelper);
-        await loginHelper.LoginAsync();
+
+        var loginTask = loginHelper.LoginAsync();
+        await ClickIcattIfPromptedAsync(page);
+        await loginTask;
 
         // Save authenticated state so all tests can reuse it
         await browserContext.StorageStateAsync(new()
@@ -63,6 +66,25 @@ public static class GlobalSetup
         if (File.Exists(ITAPlaywrightTest.AuthStatePath))
         {
             File.Delete(ITAPlaywrightTest.AuthStatePath);
+        }
+    }
+
+    private static async Task ClickIcattIfPromptedAsync(IPage page)
+    {
+        var icattButton = page.Locator("#social-oidc-icatt").First;
+        try
+        {
+            await icattButton.WaitForAsync(new()
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = 10000
+            });
+
+            await icattButton.ClickAsync();
+        }
+        catch (PlaywrightException)
+        {
+            // ICATT chooser not shown in this run; continue.
         }
     }
 }
