@@ -28,7 +28,7 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction CaseLinked(Guid zaakId, ITAUser loggedByUser)
+    public static KnownContactAction CaseLinked(string zaakId, ITAUser loggedByUser)
     {
         return new KnownContactAction
         {
@@ -42,13 +42,13 @@ public class KnownContactAction
                     CodeRegister = "openzaak",
                     CodeObjecttype = "zgw-Zaak",
                     CodeSoortObjectId = "uuid",
-                    ObjectId = zaakId.ToString()
+                    ObjectId = zaakId
                 }
             ]
         };
     }
 
-    public static KnownContactAction CaseModified(Guid zaakId, ITAUser loggedByUser)
+    public static KnownContactAction CaseModified(string zaakId, ITAUser loggedByUser)
     {
         return new KnownContactAction
         {
@@ -62,7 +62,7 @@ public class KnownContactAction
                     CodeRegister = "openzaak",
                     CodeObjecttype = "zgw-Zaak",
                     CodeSoortObjectId = "uuid",
-                    ObjectId = zaakId.ToString()
+                    ObjectId = zaakId
                 }
             ]
         };
