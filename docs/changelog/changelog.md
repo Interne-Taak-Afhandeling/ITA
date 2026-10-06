@@ -5,6 +5,8 @@
 
 - [Bug: Link in herinneringsmail voor medewerker komt uit bij Afdelingswerkvoorraad #574](https://github.com/Interne-Taak-Afhandeling/ITA/issues/574)
 
+- [Bug: Zaak koppelen aan contactverzoek faalt met "Unrecognized Guid format" als zaak-uuid geen GUID is #578](https://github.com/Interne-Taak-Afhandeling/ITA/issues/578)
+
 ## v3.3.2
 
 - [Telefoonnummer en e-mailadres: geen rekening gehouden met isStandaardAdres van OpenKlant #568](https://github.com/Interne-Taak-Afhandeling/ITA/issues/568)
