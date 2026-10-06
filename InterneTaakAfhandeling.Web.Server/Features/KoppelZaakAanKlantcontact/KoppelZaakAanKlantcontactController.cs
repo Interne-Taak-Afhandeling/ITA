@@ -191,26 +191,26 @@ public class KoppelZaakAanKlantcontactController : Controller
         
         if (bestaandZaakOnderwerpobject?.Uuid != null)
         {
-            var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
+            var safeZaakUuid = SecureLogging.SanitizeAndTruncate(zaakUuid, 50);
             _logger.LogInformation(
                 "Bijwerken bestaand zaak-onderwerpobject {SafeOnderwerpUuid} met nieuwe zaak {SafeZaakUuid}",
                 bestaandZaakOnderwerpobject.Uuid, safeZaakUuid);
 
             var modifiedKlantContact = await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid.Value, request);
-            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid), _user),
+            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(zaakUuid, _user),
                 Guid.Parse(internetaakId));
             return modifiedKlantContact;
         }
         else
         {
-            var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
+            var safeZaakUuid = SecureLogging.SanitizeAndTruncate(zaakUuid, 50);
             _logger.LogInformation(
                 "Aanmaken nieuw onderwerpobject voor zaak {SafeZaakUuid} en klantcontact {SafeKlantUuid}",
                 safeZaakUuid, klantcontact.Uuid);
 
             var linkedKlantContact = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
 
-            await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(Guid.Parse(zaakUuid), _user),
+            await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(zaakUuid, _user),
                 Guid.Parse(internetaakId));
 
             return linkedKlantContact;
