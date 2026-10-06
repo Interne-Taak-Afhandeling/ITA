@@ -2,10 +2,10 @@ name: Build & Release Internetaakafhandeling
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "test"]
     tags: ["v*.*.*"]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "test"]
   workflow_dispatch:   
 
 env:
