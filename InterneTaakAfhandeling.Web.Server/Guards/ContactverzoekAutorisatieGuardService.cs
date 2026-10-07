@@ -61,14 +61,17 @@ public class ContactverzoekAutorisatieGuardService(
 
     private static List<string> GetAfdelingEnGroepNamenVanTaak(Internetaak internetaak)
     {
+        // ToegewezenAanActoren first: these are fully loaded: naam, actoridentificator). ToegewezenAanActor is
+        // only a reference (uuid) to one of the same actoren. DistinctBy keeps the first occurrence, so with the
+        // reference first, an internetaak assigned only to an afdeling lost its afdeling data and returned a 403.
         var actoren = new List<Actor>();
-        if (internetaak.ToegewezenAanActor != null)
-        {
-            actoren.Add(internetaak.ToegewezenAanActor);
-        }
         if (internetaak.ToegewezenAanActoren != null)
         {
             actoren.AddRange(internetaak.ToegewezenAanActoren);
+        }
+        if (internetaak.ToegewezenAanActor != null)
+        {
+            actoren.Add(internetaak.ToegewezenAanActor);
         }
 
         return actoren

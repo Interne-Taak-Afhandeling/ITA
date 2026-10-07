@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.3.4
+
+- [Bug: PodiumD Contact (ITA) contact request on department without an employee cannot be opened #582](https://github.com/Interne-Taak-Afhandeling/ITA/issues/582)
 
 ## v3.3.3
 
