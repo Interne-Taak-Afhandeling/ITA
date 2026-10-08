@@ -61,11 +61,8 @@ public class ContactverzoekAutorisatieGuardService(
 
     private static List<string> GetAfdelingEnGroepNamenVanTaak(Internetaak internetaak)
     {
+        // Only ToegewezenAanActoren: ToegewezenAanActor is deprecated in OpenKlant and is not loaded (uuid only).
         var actoren = new List<Actor>();
-        if (internetaak.ToegewezenAanActor != null)
-        {
-            actoren.Add(internetaak.ToegewezenAanActor);
-        }
         if (internetaak.ToegewezenAanActoren != null)
         {
             actoren.AddRange(internetaak.ToegewezenAanActoren);
