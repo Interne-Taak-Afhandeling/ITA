@@ -20,6 +20,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
         IContactmomentenService contactmomentenService,
         IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
         ITAUser user,
+        PartijIdentificatorConfig partijIdentificatorConfig,
         ILogger<InternetaakDetailsService> logger) : IInternetaakService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
@@ -48,6 +49,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 
             await EnrichWithZaakAsync(interntaak);
             await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);
+            await EnrichWithPartijIdentificatieAsync(interntaak);
 
             return interntaak;
         }
@@ -85,8 +87,39 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 
             await EnrichWithZaakAsync(interntaak);
             await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);
+            await EnrichWithPartijIdentificatieAsync(interntaak);
 
             return interntaak;
+        }
+
+        private async Task EnrichWithPartijIdentificatieAsync(Internetaak internetaak)
+        {
+            if (!partijIdentificatorConfig.Tonen)
+            {
+                return;
+            }
+
+            var partijUuid = internetaak.AanleidinggevendKlantcontact?.Expand?.HadBetrokkenen?
+                .Select(b => b.Expand?.WasPartij?.Uuid)
+                .FirstOrDefault(uuid => !string.IsNullOrEmpty(uuid));
+
+            if (partijUuid == null) {
+                return;
+            } 
+
+            var identificatoren = await _openKlantApiClient.GetPartijIdentificatorenAsync(partijUuid);
+
+            string? Waarde(string codeSoortObjectId) => identificatoren
+                .Where(i => i.CodeSoortObjectId == codeSoortObjectId)
+                .Select(i => i.ObjectId)
+                .FirstOrDefault(id => !string.IsNullOrWhiteSpace(id));
+
+            internetaak.PartijIdentificatie = new PartijIdentificatie
+            {
+                Bsn = Waarde(KnownPartijIdentificatorSoorten.Bsn),
+                KvkNummer = Waarde(KnownPartijIdentificatorSoorten.KvkNummer),
+                Vestigingsnummer = Waarde(KnownPartijIdentificatorSoorten.Vestigingsnummer)
+            };
         }
 
         private async Task EnrichWithZaakAsync(Internetaak? interntaak)

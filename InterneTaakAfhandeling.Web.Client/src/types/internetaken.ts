@@ -33,6 +33,9 @@ export interface Internetaken {
   organisatorischeEenheidType?: string | null;
   klantNaam?: string | null;
   organisatienaam?: string | null;
+  bsn?: string | null;
+  kvkNummer?: string | null;
+  vestigingsnummer?: string | null;
   email?: string | null;
   telefoonnummer1?: TelefoonnummerItem | null;
   telefoonnummer2?: TelefoonnummerItem | null;

@@ -15,6 +15,27 @@
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
+      <utrecht-data-list-item v-if="bsn">
+        <utrecht-data-list-key>BSN</utrecht-data-list-key>
+        <utrecht-data-list-value :value="bsn">
+          {{ bsn }}
+        </utrecht-data-list-value>
+      </utrecht-data-list-item>
+
+      <utrecht-data-list-item v-if="kvkNummer">
+        <utrecht-data-list-key>KVK-nummer</utrecht-data-list-key>
+        <utrecht-data-list-value :value="kvkNummer">
+          {{ kvkNummer }}
+        </utrecht-data-list-value>
+      </utrecht-data-list-item>
+
+      <utrecht-data-list-item v-if="vestigingsnummer">
+        <utrecht-data-list-key>Vestigingsnummer</utrecht-data-list-key>
+        <utrecht-data-list-value :value="vestigingsnummer">
+          {{ vestigingsnummer }}
+        </utrecht-data-list-value>
+      </utrecht-data-list-item>
+
       <utrecht-data-list-item>
         <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
         <utrecht-data-list-value :value="email" v-title-on-overflow>
@@ -91,6 +112,9 @@ defineProps<{
   status: string;
   klantNaam?: string | null;
   organisatienaam?: string | null;
+  bsn?: string | null;
+  kvkNummer?: string | null;
+  vestigingsnummer?: string | null;
   email?: string | null;
   telefoonnummer1?: string | null;
   telefoonnummer2?: string | null;

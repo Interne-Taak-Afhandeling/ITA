@@ -47,6 +47,9 @@ data:
   # ITA Base URL for email
   Ita__BaseUrl: {{ .Values.ita.baseUrl | quote }}
 
+  # Show partij-identificatoren (BSN/KVK) on a contactverzoek
+  PARTIJ_IDENTIFICATOR_TONEN: {{ .Values.web.partijIdentificatorTonen | default false | quote }}
+
   LogBoekOptions__Type: {{ .Values.logboek.type | quote }}
   LogBoekOptions__TypeVersion: {{ .Values.logboek.typeVersion | toString | quote }}
 

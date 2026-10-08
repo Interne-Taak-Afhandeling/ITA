@@ -38,6 +38,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddSwaggerGen(); 
             services.AddHealthChecks();
             services.AddSingleton<ResourcesConfig>();
+            services.AddSingleton<PartijIdentificatorConfig>();
             services.AddAuth(options =>
           {
               options.Authority = GetRequiredConfigValue(configuration, "OIDC_AUTHORITY");
