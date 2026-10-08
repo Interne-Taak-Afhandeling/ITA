@@ -40,6 +40,8 @@ public interface IOpenKlantApiClient
 
     Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid);
 
+    Task<List<PartijIdentificator>> GetPartijIdentificatorenAsync(string partijUuid);
+
 }
 
 public partial class OpenKlantApiClient(
@@ -474,6 +476,39 @@ public partial class OpenKlantApiClient(
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error fetching digitale adressen for partij {PartijUuid}: {Message}", partijUuid, ex.Message);
+            return [];
+        }
+    }
+
+    public async Task<List<PartijIdentificator>> GetPartijIdentificatorenAsync(string partijUuid)
+    {
+        try
+        {
+            _logger.LogDebug("Fetching partij-identificatoren for partij {PartijUuid}", partijUuid);
+
+            using var response = await _httpClient.GetAsync($"partijen/{partijUuid}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to fetch partij {PartijUuid}: {StatusCode}", partijUuid, response.StatusCode);
+                return [];
+            }
+
+            var partij = await response.Content.ReadFromJsonAsync<PartijMetIdentificatoren>();
+
+            return partij?.PartijIdentificatoren?
+                .Select(i => i.PartijIdentificator)
+                .OfType<PartijIdentificator>()
+                .ToList() ?? [];
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // No identificator values in the log: these can contain a BSN
+            _logger.LogWarning(ex, "Error fetching partij-identificatoren for partij {PartijUuid}", partijUuid);
             return [];
         }
     }

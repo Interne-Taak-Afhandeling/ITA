@@ -1,5 +1,16 @@
 # Changelog
 
+## New release
+
+- [Partijindicator (BSN/KVK) tonen bij contactverzoek #562](https://github.com/Interne-Taak-Afhandeling/ITA/issues/562)
+
+### Helm chart additions
+- `web.partijIdentificatorTonen` toegevoegd (env var `PARTIJ_IDENTIFICATOR_TONEN`). Default `false`, bestaand gedrag ongewijzigd. Zet op `true` om bij een contactverzoek het BSN of het KVK-nummer en/of vestigingsnummer van de gekoppelde partij te tonen:
+  ```yaml
+  web:
+    partijIdentificatorTonen: true
+  ```
+
 ## v3.3.4
 
 - [Bug: PodiumD Contact (ITA) contact request on department without an employee cannot be opened #582](https://github.com/Interne-Taak-Afhandeling/ITA/issues/582)

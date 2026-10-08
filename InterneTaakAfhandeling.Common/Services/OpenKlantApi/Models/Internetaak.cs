@@ -37,6 +37,8 @@ public class Internetaak
     public DateTimeOffset? AfgehandeldOp { get; set; }
 
     public Zaak? Zaak { get; set; }
+
+    public PartijIdentificatie? PartijIdentificatie { get; set; }
 }
 
 public class InternetakenUpdateRequest
