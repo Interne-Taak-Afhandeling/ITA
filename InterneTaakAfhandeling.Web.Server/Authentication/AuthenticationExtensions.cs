@@ -1,4 +1,4 @@
-using Duende.IdentityModel;
+﻿using Duende.IdentityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection.PortableExecutable;
@@ -80,6 +80,7 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                     options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 
                     options.Authority = authOptions.Authority;
+                    options.RequireHttpsMetadata = false; // TEMP: local Keycloak over http — do not commit
                     options.ClientId = authOptions.ClientId;
                     options.ClientSecret = authOptions.ClientSecret;
                     options.SignedOutRedirectUri = SignOutCallback;
@@ -106,6 +107,12 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                             ctx.Response.Headers.Location = ctx.ProtocolMessage.CreateAuthenticationRequestUrl();
                             ctx.HandleResponse();
                         }
+                        return Task.CompletedTask;
+                    };
+                    options.Events.OnRedirectToIdentityProviderForSignOut = (ctx) =>
+                    {
+                        // Keycloak requires id_token_hint or client_id in the end-session request
+                        ctx.ProtocolMessage.ClientId = authOptions.ClientId;
                         return Task.CompletedTask;
                     };
                 });
