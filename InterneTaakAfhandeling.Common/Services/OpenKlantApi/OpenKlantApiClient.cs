@@ -38,10 +38,7 @@ public interface IOpenKlantApiClient
 
     Task<ActorKlantcontact> CreateActorKlantcontactAsync(ActorKlantcontactRequest request);
 
-    Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid);
-
-    Task<List<PartijIdentificator>> GetPartijIdentificatorenAsync(string partijUuid);
-
+    Task<T> GetAsync<T>(string path) where T : class;
 }
 
 public partial class OpenKlantApiClient(
@@ -427,6 +424,7 @@ public partial class OpenKlantApiClient(
         }
     }
 
+    // only used in e2e tests, not used in production code
     public async Task<List<Partij>> GetPartijenByBsnAsync(string bsn)
     {
         try
@@ -451,66 +449,13 @@ public partial class OpenKlantApiClient(
         }
     }
 
-    public async Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid)
+    public async Task<T> GetAsync<T>(string path) where T : class
     {
-        try
-        {
-            _logger.LogDebug("Fetching digitale adressen for partij {PartijUuid}", partijUuid);
+        using var response = await _httpClient.GetAsync(path);
+        response.EnsureSuccessStatusCode();
 
-            using var response = await _httpClient.GetAsync($"partijen/{partijUuid}?expand=digitaleAdressen");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogWarning("Failed to fetch partij {PartijUuid}: {StatusCode}", partijUuid, response.StatusCode);
-                return [];
-            }
-
-            var partij = await response.Content.ReadFromJsonAsync<Partij>();
-
-            return partij?.Expand?.DigitaleAdressen ?? [];
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error fetching digitale adressen for partij {PartijUuid}: {Message}", partijUuid, ex.Message);
-            return [];
-        }
-    }
-
-    public async Task<List<PartijIdentificator>> GetPartijIdentificatorenAsync(string partijUuid)
-    {
-        try
-        {
-            _logger.LogDebug("Fetching partij-identificatoren for partij {PartijUuid}", partijUuid);
-
-            using var response = await _httpClient.GetAsync($"partijen/{partijUuid}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogWarning("Failed to fetch partij {PartijUuid}: {StatusCode}", partijUuid, response.StatusCode);
-                return [];
-            }
-
-            var partij = await response.Content.ReadFromJsonAsync<PartijMetIdentificatoren>();
-
-            return partij?.PartijIdentificatoren?
-                .Select(i => i.PartijIdentificator)
-                .OfType<PartijIdentificator>()
-                .ToList() ?? [];
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            // No identificator values in the log: these can contain a BSN
-            _logger.LogWarning(ex, "Error fetching partij-identificatoren for partij {PartijUuid}", partijUuid);
-            return [];
-        }
+        var result = await response.Content.ReadFromJsonAsync<T>();
+        return result ?? throw new InvalidOperationException($"GET {path} returned null body");
     }
 
     public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)

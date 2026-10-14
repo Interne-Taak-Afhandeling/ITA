@@ -1229,9 +1229,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         /// <summary>
         /// Returns existing digitale adressen for a partij.
         /// </summary>
-        public Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid)
+        public async Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid)
         {
-            return OpenKlantApiClient.GetPartijDigitaleAdressenAsync(partijUuid);
+            var partij = await OpenKlantApiClient.GetAsync<Partij>($"partijen/{partijUuid}?expand=digitaleAdressen");
+            return partij.Expand?.DigitaleAdressen ?? [];
         }
 
         /// <summary>

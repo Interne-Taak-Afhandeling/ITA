@@ -103,23 +103,35 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 .Select(b => b.Expand?.WasPartij?.Uuid)
                 .FirstOrDefault(uuid => !string.IsNullOrEmpty(uuid));
 
-            if (partijUuid == null) {
-                return;
-            } 
-
-            var identificatoren = await _openKlantApiClient.GetPartijIdentificatorenAsync(partijUuid);
-
-            string? Waarde(string codeSoortObjectId) => identificatoren
-                .Where(i => i.CodeSoortObjectId == codeSoortObjectId)
-                .Select(i => i.ObjectId)
-                .FirstOrDefault(id => !string.IsNullOrWhiteSpace(id));
-
-            internetaak.PartijIdentificatie = new PartijIdentificatie
+            if (partijUuid == null) 
             {
-                Bsn = Waarde(KnownPartijIdentificatorSoorten.Bsn),
-                KvkNummer = Waarde(KnownPartijIdentificatorSoorten.KvkNummer),
-                Vestigingsnummer = Waarde(KnownPartijIdentificatorSoorten.Vestigingsnummer)
-            };
+                return;
+            }
+
+            try
+            {
+                var partij = await _openKlantApiClient.GetAsync<PartijMetIdentificatoren>($"partijen/{partijUuid}");
+                var identificatoren = partij.PartijIdentificatoren?
+                    .Select(i => i.PartijIdentificator)
+                    .OfType<PartijIdentificator>()
+                    .ToList() ?? [];
+
+                string? Waarde(string codeSoortObjectId) => identificatoren
+                    .Where(i => i.CodeSoortObjectId == codeSoortObjectId)
+                    .Select(i => i.ObjectId)
+                    .FirstOrDefault(id => !string.IsNullOrWhiteSpace(id));
+
+                internetaak.PartijIdentificatie = new PartijIdentificatie
+                {
+                    Bsn = Waarde(KnownPartijIdentificatorSoorten.Bsn),
+                    KvkNummer = Waarde(KnownPartijIdentificatorSoorten.KvkNummer),
+                    Vestigingsnummer = Waarde(KnownPartijIdentificatorSoorten.Vestigingsnummer)
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Ophalen partij-identificatoren gefaald voor partij {PartijUuid}", partijUuid);
+            }
         }
 
         private async Task EnrichWithZaakAsync(Internetaak? interntaak)
@@ -158,7 +170,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                         _logger.LogInformation("Fallback: ophalen digitale adressen van partij {PartijUuid} voor betrokkene {BetrokkeneUuid}",
                             partijUuid, betrokkene.Uuid);
 
-                        partijAdressen = await _openKlantApiClient.GetPartijDigitaleAdressenAsync(partijUuid);
+                        var partij = await _openKlantApiClient.GetAsync<Partij>($"partijen/{partijUuid}?expand=digitaleAdressen");
+                        partijAdressen = partij.Expand?.DigitaleAdressen ?? [];
                         partijAdressenCache[partijUuid] = partijAdressen;
                     }
 
@@ -176,5 +189,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 }
             }
         }
+
+        private record PartijMetIdentificatoren(List<PartijIdentificatorItem>? PartijIdentificatoren);
+        private record PartijIdentificatorItem(PartijIdentificator? PartijIdentificator);
+        private record PartijIdentificator(string? CodeSoortObjectId, string? ObjectId);
     }
 }
