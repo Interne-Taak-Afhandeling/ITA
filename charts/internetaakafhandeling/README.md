@@ -70,6 +70,8 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | smtp.port | string | `"25"` |  |
 | smtp.username | string | `""` |  |
 | tolerations | list | `[]` |  |
+| urgentie.afhandeltermijnUren | string | `""` | Aantal werkdaguren waarbinnen een contactverzoek afgehandeld dient te zijn (weekenden uitgezonderd). Default: 48. |
+| urgentie.bijnaVerlopenDrempelUren | string | `""` | Aantal resterende werkdaguren waarna het urgentielabel oranje wordt. Default: 6. |
 | verlopenContactverzoekHerinneringNotificatie.enabled | bool | `true` | Set to false to disable the daily reminder email for overdue contact requests (per medewerker and per afdeling/groep) |
 | verlopenContactverzoekHerinneringNotificatie.schedule | string | `"0 7 * * 1-5"` | Cron expression controlling when the daily reminder email is sent |
 | web.appsettings.setting1 | string | `""` |  |
