@@ -1,0 +1,74 @@
+name: Release notes
+
+# Keeps the draft GitHub Release "Next release" up to date with everything merged into main
+# since the latest published release, and checks every PR to main so it can be placed in those notes.
+# See .github/scripts/release-notes.cjs.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize]
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "Start of the range, e.g. v3.1.3 (default: the latest published release)"
+        required: false
+      to:
+        description: "End of the range, e.g. v3.2.0 (default: the current commit)"
+        required: false
+      dry-run:
+        description: "Only show the result in the job summary, don't update the draft release"
+        type: boolean
+        default: true
+
+permissions: {}
+
+jobs:
+  # Every PR to main must say which issue it closes ("Closes #123"), or "geen-release-note".
+  # Make this job a required status check on main. Dependabot PRs are skipped.
+  check-pr:
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read # read the issues GitHub has linked to the PR
+    concurrency:
+      group: release-notes-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { checkPr } = require("./.github/scripts/release-notes.cjs");
+            await checkPr({ github, context, core });
+
+  draft:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+      issues: read
+    concurrency:
+      group: release-notes-draft
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - uses: actions/github-script@v7
+        env:
+          FROM_REF: ${{ inputs.from }}
+          TO_REF: ${{ inputs.to }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        with:
+          script: |
+            const { draft } = require("./.github/scripts/release-notes.cjs");
+            await draft({ github, context, core });
