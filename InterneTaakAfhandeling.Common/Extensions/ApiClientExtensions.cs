@@ -2,10 +2,12 @@
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.Urgentie;
 using InterneTaakAfhandeling.Common.Services.ZakenApi;
 using InterneTaakAfhandeling.Common.Services.Zgw;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace InterneTaakAfhandeling.Common.Extensions
 {
@@ -69,6 +71,12 @@ namespace InterneTaakAfhandeling.Common.Extensions
              .Bind(configuration.GetSection("MedewerkerOptions"))
              .ValidateDataAnnotations()
              .ValidateOnStart();
+
+            services.AddOptions<UrgentieOptions>()
+                .Bind(configuration.GetSection("Urgentie"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+            services.AddSingleton<IValidateOptions<UrgentieOptions>, UrgentieOptionsValidator>();
 
             return services;
         }

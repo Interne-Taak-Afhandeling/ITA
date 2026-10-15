@@ -58,3 +58,13 @@ data:
 
   MedewerkerOptions__Type: {{ .Values.medewerker.type | quote }}
   MedewerkerOptions__TypeVersion: {{ .Values.medewerker.typeVersion | toString | quote }}
+
+  # Urgentie - afhandeltermijn en drempel voor "bijna verlopen" (optioneel, defaults in de app)
+  {{- with .Values.urgentie }}
+  {{- if .afhandeltermijnUren }}
+  Urgentie__AfhandeltermijnUren: {{ .afhandeltermijnUren | toString | quote }}
+  {{- end }}
+  {{- if .bijnaVerlopenDrempelUren }}
+  Urgentie__BijnaVerlopenDrempelUren: {{ .bijnaVerlopenDrempelUren | toString | quote }}
+  {{- end }}
+  {{- end }}
