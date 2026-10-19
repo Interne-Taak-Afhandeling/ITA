@@ -80,7 +80,6 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                     options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 
                     options.Authority = authOptions.Authority;
-                    options.RequireHttpsMetadata = false; // TEMP: local Keycloak over http — do not commit
                     options.ClientId = authOptions.ClientId;
                     options.ClientSecret = authOptions.ClientSecret;
                     options.SignedOutRedirectUri = SignOutCallback;
