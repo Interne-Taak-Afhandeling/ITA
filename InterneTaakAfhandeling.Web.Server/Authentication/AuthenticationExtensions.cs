@@ -1,4 +1,4 @@
-using Duende.IdentityModel;
+﻿using Duende.IdentityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection.PortableExecutable;
@@ -106,6 +106,12 @@ namespace InterneTaakAfhandeling.Web.Server.Authentication
                             ctx.Response.Headers.Location = ctx.ProtocolMessage.CreateAuthenticationRequestUrl();
                             ctx.HandleResponse();
                         }
+                        return Task.CompletedTask;
+                    };
+                    options.Events.OnRedirectToIdentityProviderForSignOut = (ctx) =>
+                    {
+                        // Keycloak requires id_token_hint or client_id in the end-session request
+                        ctx.ProtocolMessage.ClientId = authOptions.ClientId;
                         return Task.CompletedTask;
                     };
                 });
