@@ -1,4 +1,4 @@
-name: Release notes
+name: Generate draft release notes
 
 # Keeps the draft GitHub Release "Next release" up to date with everything merged into main
 # since the latest published release, and checks every PR to main so it can be placed in those notes.
