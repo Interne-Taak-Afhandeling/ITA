@@ -1,5 +1,8 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Services.Klantcontacten;
+using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.Services.Actors;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllInternetakenOverview
@@ -11,23 +14,29 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
 
     public class InterneTakenOverzichtService : IInterneTakenOverzichtService
     {
-        private readonly IOpenKlantApiClient _openKlantApiClient;
         private readonly IUrgentieBerekenService _urgentieBerekenService;
+        private readonly IKlantcontactService _klantcontactService;
+        private readonly IInternetaakService  _internetaakService;
+        private readonly IActorService _actorService;
         private readonly ILogger<InterneTakenOverzichtService> _logger;
 
         public InterneTakenOverzichtService(
-            IOpenKlantApiClient openKlantApiClient,
             IUrgentieBerekenService urgentieBerekenService,
+            IKlantcontactService klantcontactService,
+            IInternetaakService internetaakService,
+            IActorService actorService,
             ILogger<InterneTakenOverzichtService> logger)
         {
-            _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _urgentieBerekenService = urgentieBerekenService ?? throw new ArgumentNullException(nameof(urgentieBerekenService));
+            _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
+            _internetaakService = internetaakService ?? throw new ArgumentNullException(nameof(internetaakService));
+            _actorService = actorService ?? throw new ArgumentNullException(nameof(actorService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<InterneTakenOverviewResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery)
         {                   
-            var internetakenResponse = await _openKlantApiClient.GetInternetakenPaginatedAsync(interneTakenQuery);
+            var internetakenResponse = await _internetaakService.GetInternetakenPaginatedAsync(interneTakenQuery);
 
             var OverzichtItems = (await Task.WhenAll(internetakenResponse.Results
                 .Select(ExtendAndMapInternetaakToOverzichtItemAsync))).ToList();
@@ -120,7 +129,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
         {
             try
             {
-                return await _openKlantApiClient.GetKlantcontactAsync(uuid);
+                return await _klantcontactService.GetKlantcontactAsync(uuid);
             }
             catch (Exception ex)
             {
@@ -133,7 +142,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
         {
             try
             {
-                return await _openKlantApiClient.GetActorAsync(uuid);
+                return await _actorService.GetActorAsync(uuid);
             }
             catch (Exception ex)
             {

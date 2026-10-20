@@ -1,4 +1,4 @@
-﻿namespace InterneTaakAfhandeling.Web.Server.Exceptions
+﻿namespace InterneTaakAfhandeling.Common.Exceptions
 {
    //public class ConflictException : Exception
    // {

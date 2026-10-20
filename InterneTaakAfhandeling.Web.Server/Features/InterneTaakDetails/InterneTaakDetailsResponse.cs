@@ -1,7 +1,7 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
+﻿using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi.Models;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken;
+namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails;
 
 public class InterneTaakDetailsResponse
 {

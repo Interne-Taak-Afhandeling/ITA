@@ -1,14 +1,16 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.ZakenApi;
+using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Guards;
 using Microsoft.Extensions.Logging;
+using InterneTaakAfhandeling.Common.Services.ContactMomenten;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
+namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
 {
-    public interface IInternetaakService
+    public interface IInternetaakDetailsService
     {
         Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters);
         Task<Internetaak?> GetByKlantcontactNummer(string klantcontactNummer);
@@ -21,11 +23,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
         IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
         ITAUser user,
         PartijIdentificatorConfig partijIdentificatorConfig,
-        ILogger<InternetaakDetailsService> logger) : IInternetaakService
+        IInternetaakService internetaakService,
+        ILogger<InternetaakDetailsService> logger) : IInternetaakDetailsService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
         private readonly IContactmomentenService _contactmomentenService = contactmomentenService;
+        private readonly IInternetaakService _internetaakService = internetaakService;
         private readonly ILogger<InternetaakDetailsService> _logger = logger;
 
         public async Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters)
@@ -35,7 +39,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 Nummer = interneTaakQueryParameters.Nummer
             };
 
-            var internetaken = await _openKlantApiClient.QueryInterneTakenAsync(interneTaakQuery);
+            var internetaken = await _internetaakService.QueryInterneTakenAsync(interneTaakQuery);
 
 
             if (internetaken?.Count != 1)
@@ -61,7 +65,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 Klantcontact__Nummer = klantcontactNummer
             };
 
-            var internetaken = await _openKlantApiClient.QueryInterneTakenAsync(query);
+            var internetaken = await _internetaakService.QueryInterneTakenAsync(query);
 
             if (internetaken == null || internetaken.Count == 0)
             {
@@ -91,7 +95,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 
             return interntaak;
         }
-
+        
         private async Task EnrichWithPartijIdentificatieAsync(Internetaak internetaak)
         {
             if (!partijIdentificatorConfig.Tonen)
@@ -99,7 +103,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 return;
             }
 
-            var partijUuid = internetaak.AanleidinggevendKlantcontact?.Expand?.HadBetrokkenen?
+            var partijUuid = internetaak.AanleidinggevendKlantcontact.Expand?.HadBetrokkenen?
                 .Select(b => b.Expand?.WasPartij?.Uuid)
                 .FirstOrDefault(uuid => !string.IsNullOrEmpty(uuid));
 
@@ -111,7 +115,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
             try
             {
                 var partij = await _openKlantApiClient.GetAsync<PartijMetIdentificatoren>($"partijen/{partijUuid}");
-                var identificatoren = partij.PartijIdentificatoren?
+                var identificatoren = partij?.PartijIdentificatoren?
                     .Select(i => i.PartijIdentificator)
                     .OfType<PartijIdentificator>()
                     .ToList() ?? [];
@@ -171,7 +175,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                             partijUuid, betrokkene.Uuid);
 
                         var partij = await _openKlantApiClient.GetAsync<Partij>($"partijen/{partijUuid}?expand=digitaleAdressen");
-                        partijAdressen = partij.Expand?.DigitaleAdressen ?? [];
+                        partijAdressen = partij?.Expand?.DigitaleAdressen ?? [];
                         partijAdressenCache[partijUuid] = partijAdressen;
                     }
 

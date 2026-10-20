@@ -1,6 +1,6 @@
 ﻿using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.Services.Email.Content;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
 using InterneTaakAfhandeling.Poller.Data;
 using InterneTaakAfhandeling.Poller.Features;
 using InterneTaakAfhandeling.Poller.Features.NieuweInternetaakNotificatie;
@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using InterneTaakAfhandeling.Common.Services.ContactMomenten;
 
 internal class Program
 {
@@ -47,6 +48,7 @@ internal class Program
                 .AddHttpClient() // Add HttpClient factory
                 .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString))
                 .AddITAApiClients(configuration)
+                .AddITAOpenKlantServices()
                 .AddSmtpClients(configuration)
                 .AddSingleton<VerlopenContactverzoekHerinneringNotificatieTemplateService>()
                 .AddScoped<INotifierStateService, NotifierStateService>()

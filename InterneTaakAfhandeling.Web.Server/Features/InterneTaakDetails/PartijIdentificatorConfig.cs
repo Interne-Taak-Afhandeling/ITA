@@ -1,4 +1,4 @@
-﻿namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
+﻿namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails;
 
 public class PartijIdentificatorConfig(IConfiguration configuration)
 {
