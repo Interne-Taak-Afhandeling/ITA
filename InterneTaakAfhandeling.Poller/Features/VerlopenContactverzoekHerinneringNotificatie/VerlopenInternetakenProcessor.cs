@@ -3,8 +3,10 @@ using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.Urgentie;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinneringNotificatie;
 
@@ -16,11 +18,13 @@ public sealed class VerlopenInternetakenProcessor(
     VerlopenContactverzoekHerinneringNotificatieTemplateService templateService,
     IEmailService emailService,
     IConfiguration configuration,
+    IOptions<UrgentieOptions> urgentieOptions,
     ILogger<VerlopenInternetakenProcessor> logger) : IPollerJob
 {
     private readonly string _baseUrl = configuration.GetValue<string>("Ita:BaseUrl")
         ?? throw new InvalidOperationException("Ita:BaseUrl configuratie ontbreekt.");
     private readonly VerlopenContactverzoekHerinneringNotificatieTemplateService _templateService = templateService;
+    private readonly double _afhandeltermijnUren = urgentieOptions.Value.AfhandeltermijnUren;
 
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
@@ -186,16 +190,16 @@ public sealed class VerlopenInternetakenProcessor(
         return (verstuurd, overgeslagen, fouten);
     }
 
-    private static bool IsVerlopen(Internetaak taak, DateTimeOffset now)
+    private bool IsVerlopen(Internetaak taak, DateTimeOffset now)
     {
         var plaatsgevondenOp = taak.AanleidinggevendKlantcontact?.PlaatsgevondenOp;
         return plaatsgevondenOp != null && CalculateStreefdatum(plaatsgevondenOp.Value) <= now;
     }
 
-    private static DateTimeOffset CalculateStreefdatum(DateTimeOffset start) =>
-        WerkdagenCalculator.AddWeekdayHours(start, TimeSpan.FromHours(WerkdagenCalculator.AfhandeltermijnUren));
+    private DateTimeOffset CalculateStreefdatum(DateTimeOffset start) =>
+        WerkdagenCalculator.BerekenStreefdatum(start, _afhandeltermijnUren);
 
-    private static int BerekenWerkdagenVerlopen(DateTimeOffset start, DateTimeOffset now)
+    private int BerekenWerkdagenVerlopen(DateTimeOffset start, DateTimeOffset now)
     {
         var streefdatum = CalculateStreefdatum(start);
         var resterendeWerkdagUren = WerkdagenCalculator.BerekenResterendeWerkdagUren(now, streefdatum);

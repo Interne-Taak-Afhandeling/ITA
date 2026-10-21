@@ -3,11 +3,12 @@ namespace InterneTaakAfhandeling.Common.Helpers;
 public static class WerkdagenCalculator
 {
     /// <summary>
-    /// Aantal werkdaguren waarbinnen een contactverzoek afgehandeld dient te zijn (weekenden uitgezonderd).
-    /// Gedeeld tussen UI (Urgentie-badge) en de e-mailherinnering zodat beide dezelfde streefdatum hanteren.
+    /// Berekent de streefdatum: aanvangsdatum plus de afhandeltermijn in werkdaguren.
+    /// Enige plek waar "startdatum + termijn" tot een streefdatum wordt samengevoegd,
+    /// zodat werklijst (badge) en herinneringsmail dezelfde datum hanteren.
     /// </summary>
-    public const double AfhandeltermijnUren = 48;
-
+    public static DateTimeOffset BerekenStreefdatum(DateTimeOffset start, double afhandeltermijnUren) =>
+        AddWeekdayHours(start, TimeSpan.FromHours(afhandeltermijnUren));
 
     /// <summary>
     /// Adds the given number of hours to a start time, skipping weekends entirely (24/7 on weekdays).

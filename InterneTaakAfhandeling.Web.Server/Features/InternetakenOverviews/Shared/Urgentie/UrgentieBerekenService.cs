@@ -1,14 +1,14 @@
-﻿using InterneTaakAfhandeling.Common.Helpers;
+using InterneTaakAfhandeling.Common.Helpers;
+using InterneTaakAfhandeling.Common.Services.Urgentie;
+using Microsoft.Extensions.Options;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
-public class UrgentieBerekenService(ILogger<UrgentieBerekenService> logger) : IUrgentieBerekenService
+public class UrgentieBerekenService(
+    IOptions<UrgentieOptions> urgentieOptions,
+    ILogger<UrgentieBerekenService> logger) : IUrgentieBerekenService
 {
-    /// <summary>
-    /// Aantal resterende werkdaguren waarna het urgentielabel oranje wordt.
-    /// </summary>
-    private const double BijnaVerlopenDrempelUren = 6;
-
+    private readonly UrgentieOptions _options = urgentieOptions.Value;
     private readonly ILogger<UrgentieBerekenService> _logger = logger;
 
     public UrgentieInfo? Bereken(DateTimeOffset? contactDatum)
@@ -18,15 +18,14 @@ public class UrgentieBerekenService(ILogger<UrgentieBerekenService> logger) : IU
            return null;
         }
 
-        var afhandeltermijn = TimeSpan.FromHours(WerkdagenCalculator.AfhandeltermijnUren);
-        var streefdatum = WerkdagenCalculator.AddWeekdayHours(contactDatum.Value, afhandeltermijn);
+        var streefdatum = WerkdagenCalculator.BerekenStreefdatum(contactDatum.Value, _options.AfhandeltermijnUren);
         var now = DateTimeOffset.UtcNow.ToOffset(streefdatum.Offset);
         var resterendeWerkdagUren = WerkdagenCalculator.BerekenResterendeWerkdagUren(now, streefdatum);
 
         var status = resterendeWerkdagUren switch
         {
             <= 0 => UrgentieStatus.Verlopen,
-            var u when u <= BijnaVerlopenDrempelUren => UrgentieStatus.BijnaVerlopen,
+            var u when u <= _options.BijnaVerlopenDrempelUren => UrgentieStatus.BijnaVerlopen,
             _ => UrgentieStatus.BinnenTermijn
         };
 
