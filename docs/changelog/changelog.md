@@ -1,5 +1,9 @@
 # Changelog
 
+> Release notes for new versions are published on
+> [GitHub Releases](https://github.com/Interne-Taak-Afhandeling/ITA/releases).
+> This page contains the release notes of earlier versions and is no longer updated.
+
 ## v3.3.4
 
 - [Bug: PodiumD Contact (ITA) contact request on department without an employee cannot be opened #582](https://github.com/Interne-Taak-Afhandeling/ITA/issues/582)

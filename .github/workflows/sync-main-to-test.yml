@@ -1,0 +1,50 @@
+name: Sync main to test
+
+# After every merge into main, make sure there is an open PR from main to test,
+# so test gets main's latest changes.
+# The following setting needs to be enabled: Settings -> Actions -> General -> "Allow GitHub Actions to create and approve pull requests".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+# Run one at a time: when two merges land close together, the second run waits
+# for the first, finds the PR it opened, and doesn't open a second one.
+concurrency:
+  group: sync-main-to-test
+  cancel-in-progress: false
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Open a PR from main to test when needed
+        run: |
+          ahead=$(gh api "repos/$GH_REPO/compare/test...main" --jq .ahead_by)
+          if [ "$ahead" -eq 0 ]; then
+            echo "test already contains everything in main"
+            exit 0
+          fi
+
+          existing=$(gh pr list --base test --head main --state open --json url --jq '.[0].url // empty')
+          if [ -n "$existing" ]; then
+            echo "Sync PR already open, it includes the new commits: $existing"
+            exit 0
+          fi
+
+          cat > body.md <<'EOF'
+          Brings `test` up to date with `main`. Opened automatically after a merge into `main`; new commits on `main` are added to this PR by themselves.
+
+          - Merge with **Create a merge commit**, not squash or rebase. Otherwise `test` and `main` drift apart and the next sync conflicts.
+          - Merge conflict? Don't resolve it in the GitHub editor: that would commit to `main`. Instead, create a branch from `main`, merge `test` into it locally, resolve the conflict there, and open a PR from that branch to `test`.
+          EOF
+
+          gh pr create --base test --head main --title "Sync main -> test" --body-file body.md
