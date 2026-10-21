@@ -18,8 +18,7 @@ public class UrgentieBerekenService(
            return null;
         }
 
-        var afhandeltermijn = TimeSpan.FromHours(_options.AfhandeltermijnUren);
-        var streefdatum = WerkdagenCalculator.AddWeekdayHours(contactDatum.Value, afhandeltermijn);
+        var streefdatum = WerkdagenCalculator.BerekenStreefdatum(contactDatum.Value, _options.AfhandeltermijnUren);
         var now = DateTimeOffset.UtcNow.ToOffset(streefdatum.Offset);
         var resterendeWerkdagUren = WerkdagenCalculator.BerekenResterendeWerkdagUren(now, streefdatum);
 

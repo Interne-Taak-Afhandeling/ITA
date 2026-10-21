@@ -197,7 +197,7 @@ public sealed class VerlopenInternetakenProcessor(
     }
 
     private DateTimeOffset CalculateStreefdatum(DateTimeOffset start) =>
-        WerkdagenCalculator.AddWeekdayHours(start, TimeSpan.FromHours(_afhandeltermijnUren));
+        WerkdagenCalculator.BerekenStreefdatum(start, _afhandeltermijnUren);
 
     private int BerekenWerkdagenVerlopen(DateTimeOffset start, DateTimeOffset now)
     {

@@ -73,6 +73,8 @@ Deze instellingen zijn optioneel — standaardwaarden worden gebruikt wanneer ze
 | urgentie.afhandeltermijnUren         | Aantal werkdaguren waarbinnen een contactverzoek afgehandeld dient te zijn (default: `48`). Weekenden worden uitgesloten van de berekening. |
 | urgentie.bijnaVerlopenDrempelUren    | Aantal resterende werkdaguren waarna het urgentielabel oranje wordt (default: `6`).                     |
 
+**Validatie bij opstarten.** Een waarde van `0`, een negatief getal of een niet-numerieke waarde wordt afgewezen; de applicatie start in dat geval niet en logt een foutmelding die naar de ongeldige sleutel verwijst. Een `bijnaVerlopenDrempelUren` die groter of gelijk is aan `afhandeltermijnUren` is geldig maar ongebruikelijk (elk nieuw contactverzoek wordt dan direct als bijna-verlopen gemarkeerd); de applicatie start in dat geval wel en logt een waarschuwing.
+
 Database configuratie
 ---------------------------------
 | **Variabele**            | **Waarde**                                                                                  |
