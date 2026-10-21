@@ -2,6 +2,11 @@
 Omgevingsvariabelen
 ===================
 
+**Nieuwe variabelen sinds laatste release**
+---------------------------------
+- web.partijIdentificatorTonen
+
+
 **Alle variabelen zijn verplicht, tenzij anders vermeld.** 
 
 OpenID Connect settings
