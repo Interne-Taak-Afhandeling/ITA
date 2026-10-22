@@ -9,10 +9,10 @@ namespace InterneTaakAfhandeling.Common.Services.Klantcontacten
 {
     public interface IKlantcontactService
     {
-        Task<Klantcontact?> GetEersteKlantcontactInKetenAsync(Guid klantcontactUuid);
+      
         Task<List<Klantcontact>> BouwKlantcontactKetenAsync(Guid startKlantcontactUuid);
         Task<Klantcontact> GetKlantcontactAsync(Guid uuid);
-        Task<List<Klantcontact>> QueryKlantcontactAsync(KlantcontactQuery query);
+   
         Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid);
     }
 
@@ -27,25 +27,6 @@ namespace InterneTaakAfhandeling.Common.Services.Klantcontacten
         {
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        public async Task<Klantcontact?> GetEersteKlantcontactInKetenAsync(Guid klantcontactUuid)
-        {
-            try
-            {
-                var ketenVolgorde = await BouwKlantcontactKetenAsync(klantcontactUuid);
-
-                // Eerste klantcontact is de laatste in de lijst (oudste eerst)
-                return ketenVolgorde.Count > 0 ? ketenVolgorde[ketenVolgorde.Count - 1] : null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Fout bij bepalen eerste klantcontact in keten met startpunt {ParsedKlantcontactUuid}",
-                    klantcontactUuid);
-                throw new ConflictException(
-                    $"Fout bij bepalen eerste klantcontact in keten: {ex.Message}",
-                    "KLANTCONTACT_KETEN_BEPALEN_FOUT");
-            }
         }
 
         public async Task<List<Klantcontact>> BouwKlantcontactKetenAsync(Guid startKlantcontactUuid)
@@ -78,12 +59,7 @@ namespace InterneTaakAfhandeling.Common.Services.Klantcontacten
 
             return klantcontact;
         }
-        
-        public async Task<List<Klantcontact>> QueryKlantcontactAsync(KlantcontactQuery query)
-        {
-            var klantcontacten = await _openKlantApiClient.GetAsync<KlantcontactResponse>($"klantcontacten?{query.BuildQueryString()}");
-            return klantcontacten?.Results ?? [];
-        }
+               
         
         public async Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid)
         {
