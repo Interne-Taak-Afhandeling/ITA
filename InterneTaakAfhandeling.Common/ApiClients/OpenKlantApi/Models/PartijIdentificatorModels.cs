@@ -2,9 +2,9 @@ namespace InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 
 public class PartijIdentificatie
 {
-    public string? Bsn { get; init; }
-    public string? KvkNummer { get; init; }
-    public string? Vestigingsnummer { get; init; }
+    public List<string> Bsn { get; init; } = [];
+    public List<string> KvkNummer { get; init; } = [];
+    public List<string> Vestigingsnummer { get; init; } = [];
 }
 
 public static class KnownPartijIdentificatorSoorten

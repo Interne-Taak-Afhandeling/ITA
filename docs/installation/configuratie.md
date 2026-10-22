@@ -27,7 +27,7 @@ Contactverzoek settings
 ---------------------------------
 | **Variabele**                | **Waarde**                                                                                                  |
 |------------------------------|-------------------------------------------------------------------------------------------------------------|
-| web.partijIdentificatorTonen | Optioneel, default `false`. Zet op `true` om bij een contactverzoek het BSN (persoon) of het KVK-nummer en/of vestigingsnummer (bedrijf) van de gekoppelde partij te tonen. Zonder gekoppelde partij wordt niets getoond. |
+| web.partijIdentificatorTonen | Optioneel, default `false`. Zet op `true` om bij een contactverzoek het BSN (persoon) of het KVK-nummer en/of vestigingsnummer (bedrijf) van de gekoppelde partij te tonen. Heeft het contactverzoek meerdere gekoppelde partijen, of een partij meerdere identificatoren van dezelfde soort, dan worden ze allemaal getoond. Zonder gekoppelde partij wordt niets getoond. |
 
 Notificatie settings
 ---------------------------------

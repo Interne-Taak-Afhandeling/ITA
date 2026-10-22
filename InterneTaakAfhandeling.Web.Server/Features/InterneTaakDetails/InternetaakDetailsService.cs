@@ -103,38 +103,60 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
                 return;
             }
 
-            var partijUuid = internetaak.AanleidinggevendKlantcontact.Expand?.HadBetrokkenen?
+            var partijUuids = internetaak.AanleidinggevendKlantcontact.Expand?.HadBetrokkenen?
                 .Select(b => b.Expand?.WasPartij?.Uuid)
-                .FirstOrDefault(uuid => !string.IsNullOrEmpty(uuid));
+                .OfType<string>()
+                .Where(uuid => uuid.Length > 0)
+                .Distinct()
+                .ToList() ?? [];
 
-            if (partijUuid == null) 
+            if (partijUuids.Count == 0)
             {
                 return;
             }
 
+            var fetchedIdentificatoren = (await Task.WhenAll(partijUuids.Select(GetPartijIdentificatorenAsync)))
+                .OfType<List<PartijIdentificator>>()
+                .ToList();
+
+            if (fetchedIdentificatoren.Count == 0)
+            {
+                return;
+            }
+
+            var identificatoren = fetchedIdentificatoren.SelectMany(i => i).ToList();
+
+            List<string> Waarden(string codeSoortObjectId) => [.. identificatoren
+                .Where(i => i.CodeSoortObjectId == codeSoortObjectId)
+                .Select(i => i.ObjectId)
+                .OfType<string>()
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()];
+
+            internetaak.PartijIdentificatie = new PartijIdentificatie
+            {
+                Bsn = Waarden(KnownPartijIdentificatorSoorten.Bsn),
+                KvkNummer = Waarden(KnownPartijIdentificatorSoorten.KvkNummer),
+                Vestigingsnummer = Waarden(KnownPartijIdentificatorSoorten.Vestigingsnummer)
+            };
+        }
+
+        // Returns null when the lookup fails, so one failing partij does not hide the identificatoren of the others
+        private async Task<List<PartijIdentificator>?> GetPartijIdentificatorenAsync(string partijUuid)
+        {
             try
             {
                 var partij = await _openKlantApiClient.GetAsync<PartijMetIdentificatoren>($"partijen/{partijUuid}");
-                var identificatoren = partij?.PartijIdentificatoren?
+
+                return partij?.PartijIdentificatoren?
                     .Select(i => i.PartijIdentificator)
                     .OfType<PartijIdentificator>()
                     .ToList() ?? [];
-
-                string? Waarde(string codeSoortObjectId) => identificatoren
-                    .Where(i => i.CodeSoortObjectId == codeSoortObjectId)
-                    .Select(i => i.ObjectId)
-                    .FirstOrDefault(id => !string.IsNullOrWhiteSpace(id));
-
-                internetaak.PartijIdentificatie = new PartijIdentificatie
-                {
-                    Bsn = Waarde(KnownPartijIdentificatorSoorten.Bsn),
-                    KvkNummer = Waarde(KnownPartijIdentificatorSoorten.KvkNummer),
-                    Vestigingsnummer = Waarde(KnownPartijIdentificatorSoorten.Vestigingsnummer)
-                };
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Ophalen partij-identificatoren gefaald voor partij {PartijUuid}", partijUuid);
+                return null;
             }
         }
 

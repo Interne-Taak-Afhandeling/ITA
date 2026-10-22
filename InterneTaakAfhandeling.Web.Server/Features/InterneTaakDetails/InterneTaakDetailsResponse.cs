@@ -25,9 +25,9 @@ public class InterneTaakDetailsResponse
     public string? KlantNaam { get; init; }
     public string? Organisatienaam { get; init; }
     // Only filled when PARTIJ_IDENTIFICATOR_TONEN is enabled
-    public string? Bsn { get; init; }
-    public string? KvkNummer { get; init; }
-    public string? Vestigingsnummer { get; init; }
+    public List<string> Bsn { get; init; } = [];
+    public List<string> KvkNummer { get; init; } = [];
+    public List<string> Vestigingsnummer { get; init; } = [];
     public string? Email { get; init; }
     public TelefoonnummerItem? Telefoonnummer1 { get; init; }
     public TelefoonnummerItem? Telefoonnummer2 { get; init; }
