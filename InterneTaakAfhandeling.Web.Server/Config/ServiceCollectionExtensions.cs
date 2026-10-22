@@ -19,8 +19,6 @@ using InterneTaakAfhandeling.Web.Server.Middleware;
 using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.EntityFrameworkCore;
-using InterneTaakAfhandeling.Common.Services.ContactMomenten;
-
 
 
 namespace InterneTaakAfhandeling.Web.Server.Config
@@ -58,8 +56,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddITAApiClients(configuration);
             services.AddITAOpenKlantServices();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
-            services.AddScoped<IInternetaakDetailsService, InternetaakDetailsService>();
-            services.AddScoped<IContactmomentenService, ContactmomentenService>();
+            services.AddScoped<IInternetaakDetailsService, InternetaakDetailsService>();          
             services.AddScoped<IInterneTakenOverzichtService, InterneTakenOverzichtService>();
             services.AddScoped<IAssignInternetaakToMeService, AssignInternetaakToMeService>();
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();

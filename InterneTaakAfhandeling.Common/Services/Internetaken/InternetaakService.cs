@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
 using InterneTaakAfhandeling.Common.Services.Actors;
 using InterneTaakAfhandeling.Common.Services.Klantcontacten;
@@ -11,7 +11,6 @@ namespace InterneTaakAfhandeling.Common.Services.Internetaken
     public interface IInternetaakService
     {
         Task<List<Internetaak>> QueryInterneTakenAsync(InterneTaakQuery interneTaakQueryParameters);
-        Task<InternetakenResponse> GetInternetakenPaginatedAsync(InterneTaakQuery query);
         Task<InternetakenResponse?> GetInternetakenAsync(string path);
         Task<Internetaak> GetInternetaakByIdAsync(Guid uuid);
     }
@@ -61,29 +60,7 @@ namespace InterneTaakAfhandeling.Common.Services.Internetaken
             return response.Results;
 
         }
-        
-        public async Task<InternetakenResponse> GetInternetakenPaginatedAsync(InterneTaakQuery query)
-        {
-            var queryString = query.BuildQueryString();
-            var response = await _openKlantApiClient.GetAsyncHttpResponse($"/klantinteracties/api/v1/internetaken?{queryString}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                };
-
-                return JsonSerializer.Deserialize<InternetakenResponse>(content, options)
-                       ?? new InternetakenResponse { Results = new List<Internetaak>(), Count = 0 };
-            }
-
-            throw new HttpRequestException($"Failed to fetch internetaken: {response.ReasonPhrase}", null, response.StatusCode);
-        }
-        
+       
         public async Task<InternetakenResponse?> GetInternetakenAsync(string path)
         {
             try

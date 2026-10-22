@@ -13,7 +13,7 @@ namespace InterneTaakAfhandeling.Common.Services.Klantcontacten
         Task<List<Klantcontact>> BouwKlantcontactKetenAsync(Guid startKlantcontactUuid);
         Task<Klantcontact> GetKlantcontactAsync(Guid uuid);
    
-        Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid);
+ 
     }
 
     public class KlantcontactService : IKlantcontactService
@@ -61,19 +61,7 @@ namespace InterneTaakAfhandeling.Common.Services.Klantcontacten
         }
                
         
-        public async Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid)
-        {
-            var response = await _openKlantApiClient.GetAsyncHttpResponse($"onderwerpobjecten/{uuid}");
-
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                return null;
-            }
-
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
-        }
-
+     
         private async Task VoegKlantcontactenToeAanKeten(
             Guid klantcontactUuid,
             List<Klantcontact> keten,

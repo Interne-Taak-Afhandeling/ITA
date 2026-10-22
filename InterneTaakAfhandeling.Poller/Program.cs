@@ -11,7 +11,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using InterneTaakAfhandeling.Common.Services.ContactMomenten;
 
 internal class Program
 {
@@ -52,7 +51,6 @@ internal class Program
                 .AddSmtpClients(configuration)
                 .AddSingleton<VerlopenContactverzoekHerinneringNotificatieTemplateService>()
                 .AddScoped<INotifierStateService, NotifierStateService>()
-                .AddScoped<IContactmomentenService, ContactmomentenService>()
                 .AddKeyedScoped<IPollerJob, InternetakenNotifier>("nieuwe-internetaak-notificatie")
                 .AddKeyedScoped<IPollerJob, VerlopenInternetakenProcessor>("verlopen-contactverzoek-herinnering-notificatie");
 

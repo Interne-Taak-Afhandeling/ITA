@@ -146,6 +146,23 @@ public class KoppelZaakAanKlantcontactController : Controller
         }
     }
 
+
+
+    private async Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid)
+    {
+        var response = await _openKlantApiClient.GetAsyncHttpResponse($"onderwerpobjecten/{uuid}");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
+    }
+
+
+
     private async Task<Onderwerpobject> KoppelZaakAanOnderwerpobject(Klantcontact klantcontact, string zaakUuid,
         string internetaakId)
     {
@@ -159,7 +176,7 @@ public class KoppelZaakAanKlantcontactController : Controller
             {
                 if (onderwerpobjectRef?.Uuid == null) continue;
 
-                var onderwerpobject = await _klantcontactService.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
+                var onderwerpobject = await GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
 
                 if (onderwerpobject?.Onderwerpobjectidentificator != null &&
                     onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&

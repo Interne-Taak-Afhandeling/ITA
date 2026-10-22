@@ -5,8 +5,6 @@ using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
 using InterneTaakAfhandeling.Common.ApiClients.ZakenApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Guards;
-using Microsoft.Extensions.Logging;
-using InterneTaakAfhandeling.Common.Services.ContactMomenten;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
 {
@@ -19,7 +17,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
     public class InternetaakDetailsService(
         IOpenKlantApiClient openKlantApiClient,
         IZakenApiClient zakenApiClient,
-        IContactmomentenService contactmomentenService,
         IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
         ITAUser user,
         PartijIdentificatorConfig partijIdentificatorConfig,
@@ -28,7 +25,6 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
-        private readonly IContactmomentenService _contactmomentenService = contactmomentenService;
         private readonly IInternetaakService _internetaakService = internetaakService;
         private readonly ILogger<InternetaakDetailsService> _logger = logger;
 
@@ -160,11 +156,28 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
             }
         }
 
+
+
+        private static string? GetZaakOnderwerpObject(Klantcontact klantContact)
+        {
+            return klantContact
+                .Expand?
+                .GingOverOnderwerpobjecten?
+                .Where(x =>
+                    x.Onderwerpobjectidentificator?.CodeObjecttype == KnownZgwIdentificators.OnderwerpobjectidentificatorCodeObjecttype &&
+                    x.Onderwerpobjectidentificator?.CodeRegister == KnownZgwIdentificators.OnderwerpobjectidentificatorCodeRegister
+                )
+                .FirstOrDefault()?
+                .Onderwerpobjectidentificator?
+                .ObjectId;
+        }
+
+
         private async Task EnrichWithZaakAsync(Internetaak? interntaak)
         {
             if (interntaak?.AanleidinggevendKlantcontact != null)
             {
-                var onderwerpObjectId = _contactmomentenService.GetZaakOnderwerpObject(interntaak.AanleidinggevendKlantcontact);
+                var onderwerpObjectId = GetZaakOnderwerpObject(interntaak.AanleidinggevendKlantcontact);
 
                 if (!string.IsNullOrEmpty(onderwerpObjectId))
                 {
