@@ -1,5 +1,9 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using System.Text.Json;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.Actors;
+using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.Services.Klantcontacten;
 using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllInternetakenOverview
@@ -11,23 +15,32 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
 
     public class InterneTakenOverzichtService : IInterneTakenOverzichtService
     {
-        private readonly IOpenKlantApiClient _openKlantApiClient;
         private readonly IUrgentieBerekenService _urgentieBerekenService;
+        private readonly IKlantcontactService _klantcontactService;
+        private readonly IInternetaakService  _internetaakService;
+        private readonly IActorService _actorService;
         private readonly ILogger<InterneTakenOverzichtService> _logger;
+        private readonly IOpenKlantApiClient _openKlantApiClient;
 
         public InterneTakenOverzichtService(
-            IOpenKlantApiClient openKlantApiClient,
             IUrgentieBerekenService urgentieBerekenService,
-            ILogger<InterneTakenOverzichtService> logger)
+            IKlantcontactService klantcontactService,
+            IInternetaakService internetaakService,
+            IActorService actorService,
+            ILogger<InterneTakenOverzichtService> logger,
+            IOpenKlantApiClient openKlantApiClient)
         {
-            _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _urgentieBerekenService = urgentieBerekenService ?? throw new ArgumentNullException(nameof(urgentieBerekenService));
+            _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
+            _internetaakService = internetaakService ?? throw new ArgumentNullException(nameof(internetaakService));
+            _actorService = actorService ?? throw new ArgumentNullException(nameof(actorService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         }
 
         public async Task<InterneTakenOverviewResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery)
         {                   
-            var internetakenResponse = await _openKlantApiClient.GetInternetakenPaginatedAsync(interneTakenQuery);
+            var internetakenResponse = await GetInternetakenPaginatedAsync(interneTakenQuery);
 
             var OverzichtItems = (await Task.WhenAll(internetakenResponse.Results
                 .Select(ExtendAndMapInternetaakToOverzichtItemAsync))).ToList();
@@ -39,6 +52,29 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
                 Previous = internetakenResponse.Previous,
                 Results = OverzichtItems
             };
+        }
+
+
+        private async Task<InternetakenResponse> GetInternetakenPaginatedAsync(InterneTaakQuery query)
+        {
+            var queryString = query.BuildQueryString();
+            var response = await _openKlantApiClient.GetAsyncHttpResponse($"/klantinteracties/api/v1/internetaken?{queryString}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+
+                return JsonSerializer.Deserialize<InternetakenResponse>(content, options)
+                       ?? new InternetakenResponse { Results = new List<Internetaak>(), Count = 0 };
+            }
+
+            throw new HttpRequestException($"Failed to fetch internetaken: {response.ReasonPhrase}", null, response.StatusCode);
         }
 
         private async Task<InterneTaakOverviewItem> ExtendAndMapInternetaakToOverzichtItemAsync(Internetaak internetaak)
@@ -120,7 +156,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
         {
             try
             {
-                return await _openKlantApiClient.GetKlantcontactAsync(uuid);
+                return await _klantcontactService.GetKlantcontactAsync(uuid);
             }
             catch (Exception ex)
             {
@@ -133,7 +169,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
         {
             try
             {
-                return await _openKlantApiClient.GetActorAsync(uuid);
+                return await _actorService.GetActorAsync(uuid);
             }
             catch (Exception ex)
             {

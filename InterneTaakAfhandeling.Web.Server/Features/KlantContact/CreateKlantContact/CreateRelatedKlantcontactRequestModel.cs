@@ -1,4 +1,4 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact.CreateKlantContact
 {

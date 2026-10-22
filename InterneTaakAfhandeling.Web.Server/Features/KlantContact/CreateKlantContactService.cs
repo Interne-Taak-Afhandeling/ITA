@@ -1,12 +1,12 @@
-﻿using InterneTaakAfhandeling.Common.Exceptions;
+﻿using InterneTaakAfhandeling.Common.Services.Klantcontacten;
+using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Helpers;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Middleware;
-using InterneTaakAfhandeling.Web.Server.Services;
-using static InterneTaakAfhandeling.Common.Services.OpenKlantApi.OpenKlantApiClient;
-using InterneTaakAfhandeling.Common.Services;
-
+using static InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.OpenKlantApiClient;
+using InterneTaakAfhandeling.Common.ApiClients;
+using InterneTaakAfhandeling.Common.Services.Actors;
 
 
 namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
@@ -26,16 +26,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
     {
         private readonly IOpenKlantApiClient _openKlantApiClient;
         private readonly IKlantcontactService _klantcontactService;
+        private readonly IActorService _actorService;
         private readonly ILogger<CreateKlantContactService> _logger;   
 
         public CreateKlantContactService(
             IOpenKlantApiClient openKlantApiClient,
             IKlantcontactService klantcontactService,
+            IActorService actorService,
             ILogger<CreateKlantContactService> logger         
             )
         {
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
             _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
+            _actorService = actorService ?? throw new ArgumentNullException(nameof(actorService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));     
         }
 
@@ -260,7 +263,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.KlantContact
 
             if (!string.IsNullOrWhiteSpace(userEmail))
             {
-                var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                var fromEntra = await _actorService.QueryActorAsync(new ActorQuery
                 {
                     ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
                     ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,

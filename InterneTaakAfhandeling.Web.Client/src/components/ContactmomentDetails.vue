@@ -15,6 +15,18 @@
         </utrecht-data-list-value>
       </utrecht-data-list-item>
 
+      <utrecht-data-list-item
+        v-for="identificator in partijIdentificatoren"
+        :key="identificator.label"
+      >
+        <utrecht-data-list-key>{{ identificator.label }}</utrecht-data-list-key>
+        <utrecht-data-list-value :value="identificator.values.join(', ')">
+          <ul role="list" class="ita-plain-list">
+            <li v-for="waarde in identificator.values" :key="waarde">{{ waarde }}</li>
+          </ul>
+        </utrecht-data-list-value>
+      </utrecht-data-list-item>
+
       <utrecht-data-list-item>
         <utrecht-data-list-key>E-mailadres</utrecht-data-list-key>
         <utrecht-data-list-value :value="email" v-title-on-overflow>
@@ -84,13 +96,17 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import DateTimeOrNvt from "./DateTimeOrNvt.vue";
 import { vTitleOnOverflow } from "@/directives/v-title-on-overflow";
 
-defineProps<{
+const props = defineProps<{
   status: string;
   klantNaam?: string | null;
   organisatienaam?: string | null;
+  bsn?: string[];
+  kvkNummer?: string[];
+  vestigingsnummer?: string[];
   email?: string | null;
   telefoonnummer1?: string | null;
   telefoonnummer2?: string | null;
@@ -102,6 +118,15 @@ defineProps<{
   organisatorischeEenheidNaam?: string | null;
   organisatorischeEenheidType?: string | null;
 }>();
+
+// A contactverzoek can have several partijen and a partij several identificatoren, so each soort is a list
+const partijIdentificatoren = computed(() =>
+  [
+    { label: "BSN", values: props.bsn ?? [] },
+    { label: "KVK-nummer", values: props.kvkNummer ?? [] },
+    { label: "Vestigingsnummer", values: props.vestigingsnummer ?? [] }
+  ].filter((identificator) => identificator.values.length > 0)
+);
 </script>
 
 <style lang="scss" scoped>
@@ -128,6 +153,12 @@ defineProps<{
   &[title]:not([title=""]) {
     user-select: all;
   }
+}
+
+.ita-plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .ita-data-list__group {

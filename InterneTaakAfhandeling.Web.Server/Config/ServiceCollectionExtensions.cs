@@ -1,24 +1,24 @@
-﻿using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails;
+using InterneTaakAfhandeling.Common.Services.Klantcontacten;
+using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.Extensions;
+using InterneTaakAfhandeling.Common.Services.Email.Content;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Data;
 using InterneTaakAfhandeling.Web.Server.Features;
 using InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe;
 using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.MedewerkersOverzicht;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
 using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllInternetakenOverview;
 using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInternetakenOverview;
 using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
 using InterneTaakAfhandeling.Web.Server.Features.ReopenContactRequest;
 using InterneTaakAfhandeling.Web.Server.Middleware;
-using InterneTaakAfhandeling.Web.Server.Services;
 using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.EntityFrameworkCore;
-
 
 
 namespace InterneTaakAfhandeling.Web.Server.Config
@@ -38,6 +38,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddSwaggerGen(); 
             services.AddHealthChecks();
             services.AddSingleton<ResourcesConfig>();
+            services.AddSingleton<PartijIdentificatorConfig>();
             services.AddAuth(options =>
           {
               options.Authority = GetRequiredConfigValue(configuration, "OIDC_AUTHORITY");
@@ -53,11 +54,10 @@ namespace InterneTaakAfhandeling.Web.Server.Config
 
 
             services.AddITAApiClients(configuration);
+            services.AddITAOpenKlantServices();
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
-            services.AddScoped<IInternetaakService, InternetaakDetailsService>();
-            services.AddScoped<IContactmomentenService, ContactmomentenService>();
+            services.AddScoped<IInternetaakDetailsService, InternetaakDetailsService>();          
             services.AddScoped<IInterneTakenOverzichtService, InterneTakenOverzichtService>();
-            services.AddScoped<IKlantcontactService, KlantcontactService>();     
             services.AddScoped<IAssignInternetaakToMeService, AssignInternetaakToMeService>();
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<IMedewerkersOverzichtService, MedewerkersOverzichtService>();

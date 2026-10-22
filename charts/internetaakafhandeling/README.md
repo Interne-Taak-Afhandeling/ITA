@@ -86,6 +86,7 @@ Helm chart for InterneTaakAfhandeling including Web API and Poller
 | web.oidc.nameClaimType | string | `""` |  |
 | web.oidc.objectregisterMedewerkerIdClaimType | string | `""` |  |
 | web.oidc.roleClaimType | string | `""` |  |
+| web.partijIdentificatorTonen | bool | `false` |  |
 | web.resources | object | `{}` |  |
 | web.service.port | int | `80` |  |
 | web.service.type | string | `"ClusterIP"` |  |

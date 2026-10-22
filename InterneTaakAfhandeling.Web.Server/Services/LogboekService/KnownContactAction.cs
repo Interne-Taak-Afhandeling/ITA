@@ -1,9 +1,9 @@
-﻿using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
+﻿using InterneTaakAfhandeling.Common.ApiClients;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
