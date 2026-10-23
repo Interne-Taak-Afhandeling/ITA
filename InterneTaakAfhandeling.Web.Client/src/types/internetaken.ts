@@ -352,6 +352,8 @@ export interface InterneTakenPaginated {
 export interface ForwardKlantContactResponse {
   internetaak: Internetaken;
   notificationResult: string;
+  notificationSentToAllRecipients: boolean;
+  recipients: string[];
 }
 
 export interface UrgentieInfo {

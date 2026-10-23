@@ -13,7 +13,7 @@
 
   <ContactverzoekInterneNotitie :taak="taak" @success="succes()" v-if="isInterneToelichting" />
 
-  <ContactverzoekDoorsturen :taak="taak" @success="succes()" v-if="isForwardContactmoment" />
+  <ContactverzoekDoorsturen :taak="taak" v-if="isForwardContactmoment" />
 </template>
 
 <script setup lang="ts">

@@ -1,5 +1,6 @@
 <template>
   <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
+  <werklijst-bevestiging />
 
   <div class="ita-dashboard-tables">
     <section>
@@ -27,6 +28,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import WerklijstBevestiging from "@/components/WerklijstBevestiging.vue";
 import MyInterneTakenTable from "@/components/interne-taken-tables/MyInterneTakenTable.vue";
 import type { MyInterneTaakOverviewItem } from "@/types/internetaken";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
