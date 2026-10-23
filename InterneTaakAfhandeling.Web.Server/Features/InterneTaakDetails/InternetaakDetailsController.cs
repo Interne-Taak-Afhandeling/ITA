@@ -1,20 +1,19 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Web.Server.Features.InterneTaak;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
+namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
 {
     [Route("api/internetaken")]
     [ApiController]
     [Authorize]
     public class InternetaakDetailsController(
-        IInternetaakService internetakenService) : Controller
+        IInternetaakDetailsService internetakenService) : Controller
     {
 
-        private readonly IInternetaakService _internetakenService = internetakenService;
+        private readonly IInternetaakDetailsService _internetakenService = internetakenService;
 
         [ProducesResponseType(typeof(InterneTaakDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -128,6 +127,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken
                 OrganisatorischeEenheidType = oeType,
                 KlantNaam = klantNaam,
                 Organisatienaam = ResolveOrganisatienaam(klantcontact, klantNaam),
+                Bsn = internetaak.PartijIdentificatie?.Bsn ?? [],
+                KvkNummer = internetaak.PartijIdentificatie?.KvkNummer ?? [],
+                Vestigingsnummer = internetaak.PartijIdentificatie?.Vestigingsnummer ?? [],
                 Email = ResolveEmail(klantcontact),
                 Telefoonnummer1 = telefoonnummers.Count > 0 ? telefoonnummers[0] : null,
                 Telefoonnummer2 = telefoonnummers.Count > 1 ? telefoonnummers[1] : null,

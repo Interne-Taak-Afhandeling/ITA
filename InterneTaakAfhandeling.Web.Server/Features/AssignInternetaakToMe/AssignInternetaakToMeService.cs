@@ -1,7 +1,9 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Common.Services;
+using InterneTaakAfhandeling.Common.ApiClients;
+using InterneTaakAfhandeling.Common.Services.Actors;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
 {
@@ -9,13 +11,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
     {
         Task<(Internetaak internetaak, Actor currentUserActor)> ToSelfAsync(Guid internetaakId, ITAUser user);
     }
-    public class AssignInternetaakToMeService(IOpenKlantApiClient openKlantApiClient) : IAssignInternetaakToMeService
+    public class AssignInternetaakToMeService(IOpenKlantApiClient openKlantApiClient, IActorService actorService, IInternetaakService internetaakService) : IAssignInternetaakToMeService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         public async Task<(Internetaak internetaak, Actor currentUserActor)> ToSelfAsync(Guid internetaakId, ITAUser user)
         {
             var currentUserActor = await GetActor(user) ?? await CreateEntraActor(user);
-            var internetaak = await _openKlantApiClient.GetInternetaakByIdAsync(internetaakId) ?? throw new Exception($"Internetaken with ID {internetaakId} not found.");
+            var internetaak = await internetaakService.GetInternetaakByIdAsync(internetaakId) ?? throw new Exception($"Internetaken with ID {internetaakId} not found.");
 
             var actors = await GetAssignedOrganisationalUnitActors(internetaak);
 
@@ -38,9 +40,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
             return (updatedInternetaak, currentUserActor);
         }
 
-        private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Common.Services.OpenKlantApi.Models.Internetaak internetaken)
+        private async Task<List<Actor>> GetAssignedOrganisationalUnitActors(Common.ApiClients.OpenKlantApi.Models.Internetaak internetaken)
         {
-            var internetaakActorTasks = internetaken.ToegewezenAanActoren?.Select(x => _openKlantApiClient.GetActorAsync(x.Uuid)) ?? [];
+            var internetaakActorTasks = internetaken.ToegewezenAanActoren?.Select(x => actorService.GetActorAsync(x.Uuid)) ?? [];
             var notMedewerkerActors = (await Task.WhenAll(internetaakActorTasks)).Where(x => x.SoortActor != SoortActor.medewerker).ToList() ?? [];
             return notMedewerkerActors;
         }
@@ -50,7 +52,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
 
             if (!string.IsNullOrWhiteSpace(user.Email))
             {
-                var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                var fromEntra = await actorService.QueryActorAsync(new ActorQuery
                 {
                     ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
                     ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,

@@ -1,6 +1,8 @@
+using InterneTaakAfhandeling.Common.Services.Internetaken;
 using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.Services.Actors;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 
@@ -9,11 +11,13 @@ namespace InterneTaakAfhandeling.Web.Server.Features.ReopenContactRequest;
 public class ReopenContactRequestService(
     IOpenKlantApiClient openKlantApiClient,
     ILogboekService logboekService,
+    IActorService actorService,
+    IInternetaakService internetaakService,
     ILogger<ReopenContactRequestService> logger) : IReopenContactRequestService
 {
     public async Task<ReopenResult> ReopenAsync(Guid internetaakId, string reden, ITAUser user)
     {
-        var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
+        var internetaak = await internetaakService.GetInternetaakByIdAsync(internetaakId);
 
         var actors = await ResolveActorsAsync(internetaak);
         var medewerkerActors = actors.Where(a => a.SoortActor == SoortActor.medewerker).ToList();
@@ -80,7 +84,7 @@ public class ReopenContactRequestService(
         var resolvedActors = await Task.WhenAll(
             internetaak.ToegewezenAanActoren
                 .Where(a => !string.IsNullOrEmpty(a.Uuid))
-                .Select(a => openKlantApiClient.GetActorAsync(a.Uuid))
+                .Select(a => actorService.GetActorAsync(a.Uuid))
         );
 
         return resolvedActors.ToList();

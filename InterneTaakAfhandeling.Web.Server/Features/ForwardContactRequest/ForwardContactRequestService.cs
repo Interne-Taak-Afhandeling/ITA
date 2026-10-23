@@ -1,12 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using InterneTaakAfhandeling.Common.Services.Klantcontacten;
+using InterneTaakAfhandeling.Common.Services.Internetaken;
+using System.ComponentModel.DataAnnotations;
 using InterneTaakAfhandeling.Common.Helpers;
-using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
-using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients;
+using InterneTaakAfhandeling.Common.Services.Actors;
+using InterneTaakAfhandeling.Common.Services.Email.Content;
+using InterneTaakAfhandeling.Common.Services.Email.Recipients;
+using InterneTaakAfhandeling.Common.Services.Email.SmtpMailService;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
@@ -22,6 +25,9 @@ public class ForwardContactRequestService(
     IEmailContentService emailContentService,
     ILogger<ForwardContactRequestService> logger,
     IActorEmailResolutionService actorEmailResolutionService,
+    IActorService actorService,
+    IKlantcontactService klantcontactService,
+    IInternetaakService internetaakService,
     IConfiguration configuration) : IForwardContactRequestService
 {
     private readonly string _itaBaseUrl = configuration.GetValue<string>("Ita:BaseUrl")
@@ -57,7 +63,7 @@ public class ForwardContactRequestService(
         }
 
         //Although the AanleidinggevendKlantcontact was returned from the patch endpoint, it does not contain all details (like Nummer) that are needed for the email notification. Therefore, we need to fetch the full Klantcontact details.
-        updatedInternetaak.AanleidinggevendKlantcontact = await openKlantApiClient.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
+        updatedInternetaak.AanleidinggevendKlantcontact = await klantcontactService.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
 
         var (notficationResult, notificationSentToAllRecipients) = await NotifyInternetaakActors(updatedInternetaak, actorEmailResult);
 
@@ -86,7 +92,7 @@ public class ForwardContactRequestService(
 
     private async Task<Internetaak> PatchInternetaakActors(Guid internetaakId, List<Actor> actors)
     {
-        var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
+        var internetaak = await internetaakService.GetInternetaakByIdAsync(internetaakId);
 
         var internetakenUpdateRequest = new InternetakenPatchActorsRequest
         {
@@ -168,7 +174,7 @@ public class ForwardContactRequestService(
 
     private async Task<Actor> GetOrCreateMedewerkerActorByObjectRegisterId(string identificatie)
     {
-        var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
+        var actor = await actorService.QueryActorAsync(new ActorQuery
         {
             ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
             ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,
@@ -209,7 +215,7 @@ public class ForwardContactRequestService(
 
     private async Task<Actor> GetOrCreateMedewerkerActor(string email)
     {
-        var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
+        var actor = await actorService.QueryActorAsync(new ActorQuery
         {
             ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
             ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
@@ -241,7 +247,7 @@ public class ForwardContactRequestService(
 
     private async Task<Actor> GetOrCreateAfdelingActor(string identificatie)
     {
-        var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
+        var actor = await actorService.QueryActorAsync(new ActorQuery
         {
             IndicatieActief = true,
             SoortActor = SoortActor.organisatorische_eenheid,
@@ -278,7 +284,7 @@ public class ForwardContactRequestService(
 
     private async Task<Actor> GetOrCreateGroepActor(string identificatie)
     {
-        var actor = await openKlantApiClient.QueryActorAsync(new ActorQuery
+        var actor = await actorService.QueryActorAsync(new ActorQuery
         {
             IndicatieActief = true,
             SoortActor = SoortActor.organisatorische_eenheid,

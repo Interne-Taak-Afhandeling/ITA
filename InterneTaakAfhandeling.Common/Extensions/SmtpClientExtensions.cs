@@ -1,6 +1,6 @@
-﻿using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
-using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
+﻿using InterneTaakAfhandeling.Common.Services.Email.Content;
+using InterneTaakAfhandeling.Common.Services.Email.Recipients;
+using InterneTaakAfhandeling.Common.Services.Email.SmtpMailService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

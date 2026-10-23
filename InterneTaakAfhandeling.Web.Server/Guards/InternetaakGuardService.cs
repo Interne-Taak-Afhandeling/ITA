@@ -1,15 +1,16 @@
+using InterneTaakAfhandeling.Common.Services.Internetaken;
 using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Guards;
 
 public class InternetaakGuardService(
-    IOpenKlantApiClient openKlantApiClient,
+    IInternetaakService internetaakService,
     ILogger<InternetaakGuardService> logger) : IInternetaakGuardService
 {
     public async Task GuardAgainstVerwerktAsync(Guid internetaakId)
     {
-        var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
+        var internetaak = await internetaakService.GetInternetaakByIdAsync(internetaakId);
 
         if (internetaak.Status == KnownInternetaakStatussen.Verwerkt)
         {
@@ -25,7 +26,7 @@ public class InternetaakGuardService(
 
     public async Task GuardAgainstNietVerwerktAsync(Guid internetaakId)
     {
-        var internetaak = await openKlantApiClient.GetInternetaakByIdAsync(internetaakId);
+        var internetaak = await internetaakService.GetInternetaakByIdAsync(internetaakId);
 
         if (internetaak.Status != KnownInternetaakStatussen.Verwerkt)
         {
