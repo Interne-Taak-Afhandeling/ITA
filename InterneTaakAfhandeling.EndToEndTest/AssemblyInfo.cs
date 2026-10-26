@@ -86,5 +86,9 @@ public static class GlobalSetup
         {
             // ICATT chooser not shown in this run; continue.
         }
+        catch (TimeoutException)
+        {
+            // ICATT chooser not shown in this run; continue.
+        }
     }
 }

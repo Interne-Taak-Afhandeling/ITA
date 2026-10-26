@@ -43,7 +43,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             }
 
             await NavigateToContactmomentRegistrerenTab();
-            await Page.Locator("#kanalen").SelectOptionAsync(new[] { "Telefoon" });
+            await SelectKanaalAsync("Telefoon");
             await Page.Locator("#informatie-burger").FillAsync(informatieText);
             await Page.GetByLabel("Ja").ClickAsync();
             await Page.GetContactmomentOpslaanButton().ClickAsync();
@@ -51,6 +51,18 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
 
             await VerifyInternetaakStatusInOpenKlant(internetaakUuid.Value, "verwerkt", shouldHaveAfgehandeldOp: true);
+        }
+
+        // The kanalen <select> starts with only the placeholder option and is populated
+        // asynchronously once the /api/kanalen fetch resolves. Waiting purely on the select
+        // element being visible/enabled is not enough — Playwright's SelectOptionAsync retries
+        // forever if the target option simply isn't attached to the DOM yet. Explicitly wait for
+        // the specific <option> to attach before selecting it.
+        private async Task SelectKanaalAsync(string kanaal)
+        {
+            var kanaalOption = Page.Locator("#kanalen").Locator("option", new() { HasText = kanaal });
+            await kanaalOption.WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            await Page.Locator("#kanalen").SelectOptionAsync(new[] { kanaal });
         }
 
         private async Task<(Guid internetaakUuid, string internetaakNummer)> SetupAndResolveContactverzoek(string onderwerp)
@@ -82,7 +94,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await NavigateToContactmomentRegistrerenTab();
             await Expect(Page.GetContactOpnemenGeluktRadio()).ToBeCheckedAsync();
 
-            await Page.Locator("#kanalen").SelectOptionAsync(new[] { kanaal });
+            await SelectKanaalAsync(kanaal);
             await Page.Locator("#informatie-burger").FillAsync(informatie);
             await Page.GetByLabel("Ja").ClickAsync();
             await Page.GetContactmomentOpslaanButton().ClickAsync();

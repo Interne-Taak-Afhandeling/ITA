@@ -3,6 +3,7 @@ using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using ITA.InterneTaakAfhandeling.EndToEndTest.Helpers;
 using Microsoft.Playwright;
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
@@ -42,6 +43,40 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
                     await Expect(logbookSection.GetByText(displayedDateTime)).ToBeVisibleAsync();
                 }
             }
+        }
+
+        // Helper method for making POST calls through the real browser fetch() instead of
+        // Playwright's separate APIRequestContext. The backend's OIDC challenge handler treats
+        // requests without a "Sec-Fetch-Dest: document"-style browser fingerprint as non-browser
+        // traffic, which short-circuits to a 401 before the application's own guard logic (e.g.
+        // the verwerkt/409 checks) ever runs. Using Page.EvaluateAsync to invoke fetch() from
+        // within the page ensures the request is indistinguishable from genuine frontend traffic
+        // and carries the existing auth cookies via credentials: 'same-origin'.
+        private async Task<(int Status, string Body)> PostViaBrowserFetchAsync(string url, object? jsonBody = null)
+        {
+            // Ensure the page has fully settled (no pending navigation) before evaluating script,
+            // otherwise Playwright can throw "Execution context was destroyed" if a navigation
+            // (e.g. client-side routing/bootstrap redirect) is still in flight.
+            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            var bodyJson = jsonBody is null ? "null" : JsonSerializer.Serialize(jsonBody);
+            var script = @"
+                async (args) => {
+                    const [url, bodyJson] = args;
+                    const options = {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                    };
+                    if (bodyJson !== 'null') {
+                        options.body = bodyJson;
+                    }
+                    const resp = await fetch(url, options);
+                    const text = await resp.text();
+                    return { status: resp.status, body: text };
+                }";
+            var result = await Page.EvaluateAsync<JsonElement>(script, new object[] { url, bodyJson });
+            return (result.GetProperty("status").GetInt32(), result.GetProperty("body").GetString() ?? "");
         }
 
         // Test Methods
@@ -1009,10 +1044,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await SafeGotoAsync("/");
 
             await Step("Make direct API call to aan-mij-toewijzen on verwerkt contactverzoek");
-            var response = await Page.Context.APIRequest.PostAsync($"/api/internetaken/{internetaakUuid}/aan-mij-toewijzen");
+            var (status, body) = await PostViaBrowserFetchAsync($"/api/internetaken/{internetaakUuid}/aan-mij-toewijzen");
 
-            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when assigning verwerkt contactverzoek");
-            var body = await response.TextAsync();
+            Assert.AreEqual(409, status, "Expected HTTP 409 when assigning verwerkt contactverzoek");
             Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
         }
 
@@ -1026,12 +1060,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await SafeGotoAsync("/");
 
             await Step("Make direct API call to notitie endpoint on verwerkt contactverzoek");
-            var response = await Page.Context.APIRequest.PostAsync(
+            var (status, body) = await PostViaBrowserFetchAsync(
                 $"/api/internetaken/{internetaakUuid}/notitie",
-                new() { DataObject = new { Notitie = "test notitie" } });
+                new { Notitie = "test notitie" });
 
-            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when adding notitie to verwerkt contactverzoek");
-            var body = await response.TextAsync();
+            Assert.AreEqual(409, status, "Expected HTTP 409 when adding notitie to verwerkt contactverzoek");
             Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
         }
 
@@ -1045,12 +1078,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await SafeGotoAsync("/");
 
             await Step("Make direct API call to forward endpoint on verwerkt contactverzoek");
-            var response = await Page.Context.APIRequest.PostAsync(
+            var (status, body) = await PostViaBrowserFetchAsync(
                 $"/api/internetaken/{internetaakUuid}/forward",
-                new() { DataObject = new { Afdeling = "Burgerzaken_ibz" } });
+                new { Afdeling = "Burgerzaken_ibz" });
 
-            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when forwarding verwerkt contactverzoek");
-            var body = await response.TextAsync();
+            Assert.AreEqual(409, status, "Expected HTTP 409 when forwarding verwerkt contactverzoek");
             Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
         }
 
@@ -1065,20 +1097,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Make direct API call to koppel-zaak endpoint on verwerkt contactverzoek");
             // All required fields must be present for the body to deserialize before the guard can run
-            var response = await Page.Context.APIRequest.PostAsync(
+            var (status, body) = await PostViaBrowserFetchAsync(
                 "/api/internetaken/koppel-zaak",
-                new()
+                new
                 {
-                    DataObject = new
-                    {
-                        InternetaakId = internetaakUuid.ToString(),
-                        ZaakIdentificatie = "ZAAK-GUARD-TEST",
-                        AanleidinggevendKlantcontactUuid = contactmomentUuid
-                    }
+                    InternetaakId = internetaakUuid.ToString(),
+                    ZaakIdentificatie = "ZAAK-GUARD-TEST",
+                    AanleidinggevendKlantcontactUuid = contactmomentUuid
                 });
 
-            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when linking zaak to verwerkt contactverzoek");
-            var body = await response.TextAsync();
+            Assert.AreEqual(409, status, "Expected HTTP 409 when linking zaak to verwerkt contactverzoek");
             Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
         }
 
@@ -1093,29 +1121,25 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
 
             await Step("Make direct API call to close-with-klantcontact on verwerkt contactverzoek");
             // All required fields must be present for deserialization to succeed before the guard runs
-            var response = await Page.Context.APIRequest.PostAsync(
+            var (status, body) = await PostViaBrowserFetchAsync(
                 "/api/internetaken/close-with-klantcontact",
-                new()
+                new
                 {
-                    DataObject = new
+                    InterneTaakId = internetaakUuid,
+                    AanleidinggevendKlantcontactUuid = contactmomentUuid,
+                    KlantcontactRequest = new
                     {
-                        InterneTaakId = internetaakUuid,
-                        AanleidinggevendKlantcontactUuid = contactmomentUuid,
-                        KlantcontactRequest = new
-                        {
-                            IndicatieContactGelukt = true,
-                            Onderwerp = "guard-test",
-                            Inhoud = "guard-test",
-                            Kanaal = "e-mail",
-                            PlaatsgevondenOp = DateTime.UtcNow,
-                            Taal = "nl",
-                            Vertrouwelijk = false
-                        }
+                        IndicatieContactGelukt = true,
+                        Onderwerp = "guard-test",
+                        Inhoud = "guard-test",
+                        Kanaal = "e-mail",
+                        PlaatsgevondenOp = DateTime.UtcNow,
+                        Taal = "nl",
+                        Vertrouwelijk = false
                     }
                 });
 
-            Assert.AreEqual(409, response.Status, "Expected HTTP 409 when registering contactmoment on verwerkt contactverzoek");
-            var body = await response.TextAsync();
+            Assert.AreEqual(409, status, "Expected HTTP 409 when registering contactmoment on verwerkt contactverzoek");
             Assert.IsTrue(body.Contains("verwerkt"), "Response body should reference 'verwerkt' status");
         }
 
@@ -1132,10 +1156,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await SafeGotoAsync("/");
 
             await Step("Make direct API call to aan-mij-toewijzen on te_verwerken contactverzoek");
-            var response = await Page.Context.APIRequest.PostAsync($"/api/internetaken/{internetaakUuid}/aan-mij-toewijzen");
+            var (status, _) = await PostViaBrowserFetchAsync($"/api/internetaken/{internetaakUuid}/aan-mij-toewijzen");
 
-            Assert.IsTrue(response.Status is >= 200 and < 300,
-                $"Expected success response for te_verwerken contactverzoek, got HTTP {response.Status}");
+            Assert.IsTrue(status is >= 200 and < 300,
+                $"Expected success response for te_verwerken contactverzoek, got HTTP {status}");
         }
 
         [TestMethod("Action controls are hidden and informational message is shown for verwerkt contactverzoek")]
