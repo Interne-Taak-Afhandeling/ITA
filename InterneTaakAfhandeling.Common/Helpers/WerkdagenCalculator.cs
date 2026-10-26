@@ -7,7 +7,7 @@ public static class WerkdagenCalculator
     /// Enige plek waar "startdatum + termijn" tot een streefdatum wordt samengevoegd,
     /// zodat werklijst (badge) en herinneringsmail dezelfde datum hanteren.
     /// </summary>
-    public static DateTimeOffset BerekenStreefdatum(DateTimeOffset start, double afhandeltermijnUren) =>
+    public static DateTimeOffset BerekenStreefdatum(DateTimeOffset start, int afhandeltermijnUren) =>
         AddWeekdayHours(start, TimeSpan.FromHours(afhandeltermijnUren));
 
     /// <summary>

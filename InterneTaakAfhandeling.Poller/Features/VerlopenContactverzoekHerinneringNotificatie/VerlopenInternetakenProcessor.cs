@@ -24,7 +24,7 @@ public sealed class VerlopenInternetakenProcessor(
     private readonly string _baseUrl = configuration.GetValue<string>("Ita:BaseUrl")
         ?? throw new InvalidOperationException("Ita:BaseUrl configuratie ontbreekt.");
     private readonly VerlopenContactverzoekHerinneringNotificatieTemplateService _templateService = templateService;
-    private readonly double _afhandeltermijnUren = urgentieOptions.Value.AfhandeltermijnUren;
+    private readonly int _afhandeltermijnUren = urgentieOptions.Value.AfhandeltermijnUren;
 
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {

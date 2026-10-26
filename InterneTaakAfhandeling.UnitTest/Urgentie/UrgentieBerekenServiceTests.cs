@@ -63,7 +63,7 @@ public class UrgentieBerekenServiceTests
             "De urgentiestatus moet verschillen zodra de termijn wordt gewijzigd — anders werkt de configuratie niet door.");
     }
 
-    private static UrgentieBerekenService CreateService(double afhandeltermijnUren, double bijnaVerlopenDrempelUren)
+    private static UrgentieBerekenService CreateService(int afhandeltermijnUren, int bijnaVerlopenDrempelUren)
     {
         var options = Options.Create(new UrgentieOptions
         {

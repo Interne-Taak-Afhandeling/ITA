@@ -8,18 +8,18 @@ namespace InterneTaakAfhandeling.Common.Services.Urgentie;
 /// </summary>
 public class UrgentieOptions
 {
-    public const double DefaultAfhandeltermijnUren = 48;
-    public const double DefaultBijnaVerlopenDrempelUren = 6;
+    public const int DefaultAfhandeltermijnUren = 48;
+    public const int DefaultBijnaVerlopenDrempelUren = 6;
 
     /// <summary>
     /// Aantal werkdaguren waarbinnen een contactverzoek afgehandeld dient te zijn. Weekenden tellen niet mee.
     /// </summary>
-    [Range(double.Epsilon, double.MaxValue, ErrorMessage = "Urgentie:AfhandeltermijnUren moet een positief getal zijn.")]
-    public double AfhandeltermijnUren { get; set; } = DefaultAfhandeltermijnUren;
+    [Range(1, int.MaxValue, ErrorMessage = "Urgentie:AfhandeltermijnUren moet een positief geheel getal zijn.")]
+    public int AfhandeltermijnUren { get; set; } = DefaultAfhandeltermijnUren;
 
     /// <summary>
     /// Aantal resterende werkdaguren waarna het urgentielabel oranje wordt.
     /// </summary>
-    [Range(double.Epsilon, double.MaxValue, ErrorMessage = "Urgentie:BijnaVerlopenDrempelUren moet een positief getal zijn.")]
-    public double BijnaVerlopenDrempelUren { get; set; } = DefaultBijnaVerlopenDrempelUren;
+    [Range(1, int.MaxValue, ErrorMessage = "Urgentie:BijnaVerlopenDrempelUren moet een positief geheel getal zijn.")]
+    public int BijnaVerlopenDrempelUren { get; set; } = DefaultBijnaVerlopenDrempelUren;
 }
