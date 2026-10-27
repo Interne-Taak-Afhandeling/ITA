@@ -65,7 +65,7 @@ assignees: ""
 
 <!-- Each item is "if applicable" — skip items that don't apply, but document why. Source: docs/steering/QA.md -->
 
-- [ ] **Changelog** — An entry has been added to the top of the changelog with the feature/bug name and a link to the GitHub issue. If there are new environment variables or other upgrade-relevant changes, they are mentioned here.
+- [ ] **Release notes** — The issue title is the line in the release notes, so it describes what changes for users. New environment variables or other upgrade-relevant changes are mentioned in the description of the draft GitHub Release. The PR description contains `Closes #<this issue>`.
 - [ ] **Manual** — Installation & configuration manual have been updated. Environment variables and anything else needed to install/run ITA are explained.
 - [ ] **Helm** — New release variables have been included in the Helm charts/values files.
 - [ ] **Readme** — README has been updated with information on how to run the applications locally.
@@ -82,6 +82,9 @@ assignees: ""
 <!-- Onderliggende taken — link issues zodra ze aangemaakt worden. -->
 
 - [ ]
+
+### Exclude from release notes
+- [ ] Leave this issue out of the release notes
 
 ---
 
