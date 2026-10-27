@@ -89,7 +89,7 @@ import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import InterneToelichtingField from "./InterneToelichtingField.vue";
-import { useReturnToWerklijst } from "@/composables/use-back-navigation";
+import { useReturnToWerklijst } from "@/composables/use-return-to-werklijst";
 
 const { returnToWerklijst } = useReturnToWerklijst();
 const emit = defineEmits<{ success: [] }>();

@@ -27,9 +27,8 @@ public class ForwardContactRequestModel : IValidatableObject
 
 public class ForwardContactRequestResponse
 {
-    public Internetaak? Internetaak { get; init; }
-    public required string NotificationResult { get; init; }
-    public bool NotificationSentToAllRecipients { get; init; }
+    public required string NotificationResultMessage { get; init; }
+    public bool AllNotificationsSent { get; init; }
     public List<string> Recipients { get; init; } = [];
 }
 

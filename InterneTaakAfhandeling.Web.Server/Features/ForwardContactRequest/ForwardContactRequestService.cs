@@ -56,8 +56,7 @@ public class ForwardContactRequestService(
             logger.LogError("Uuid van AanleidinggevendKlantcontact onbekend voor internetaak {Uuid}", updatedInternetaak.Uuid);
             return new ForwardContactRequestResponse
             {
-                Internetaak = updatedInternetaak,
-                NotificationResult = GenericError,
+                NotificationResultMessage = GenericError,
                 Recipients = recipients
             };
         }
@@ -65,13 +64,12 @@ public class ForwardContactRequestService(
         //Although the AanleidinggevendKlantcontact was returned from the patch endpoint, it does not contain all details (like Nummer) that are needed for the email notification. Therefore, we need to fetch the full Klantcontact details.
         updatedInternetaak.AanleidinggevendKlantcontact = await klantcontactService.GetKlantcontactAsync(updatedInternetaak.AanleidinggevendKlantcontact.Uuid);
 
-        var (notficationResult, notificationSentToAllRecipients) = await NotifyInternetaakActors(updatedInternetaak, actorEmailResult);
+        var (notificationResultMessage, allNotificationsSent) = await NotifyInternetaakActors(updatedInternetaak, actorEmailResult);
 
         return new ForwardContactRequestResponse
         {
-            Internetaak = updatedInternetaak,
-            NotificationResult = notficationResult,
-            NotificationSentToAllRecipients = notificationSentToAllRecipients,
+            NotificationResultMessage = notificationResultMessage,
+            AllNotificationsSent = allNotificationsSent,
             Recipients = recipients
         };
     }
@@ -104,7 +102,7 @@ public class ForwardContactRequestService(
 
     private const string GenericError = "Het contactverzoek is doorgestuurd, maar hiervan kon geen e-mailnotificatie verstuurd worden";
 
-    private async Task<(string Message, bool SentToAllRecipients)> NotifyInternetaakActors(Internetaak internetaken, ActorEmailResolutionResult actorEmailResult)
+    private async Task<(string Message, bool AllNotificationsSent)> NotifyInternetaakActors(Internetaak internetaken, ActorEmailResolutionResult actorEmailResult)
     {
         try
         {
@@ -133,7 +131,7 @@ public class ForwardContactRequestService(
         return await Task.WhenAll(tasks);
     }
 
-    private static (string Message, bool SentToAllRecipients) GetResultMessage(EmailResult[] results, ActorEmailResolutionResult actorEmailResult)
+    private static (string Message, bool AllNotificationsSent) GetResultMessage(EmailResult[] results, ActorEmailResolutionResult actorEmailResult)
     {
         var failedEmails = results.Where(r => !r.Success).ToList();
         var anySuccess = results.Length > 0 && results.Length != failedEmails.Count;

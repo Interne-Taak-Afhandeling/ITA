@@ -51,8 +51,8 @@ import { ref, onMounted } from "vue";
 import { toast } from "@/components/toast/toast.ts";
 import InterneToelichtingField from "../InterneToelichtingField.vue";
 import type { ForwardKlantContactResponse, Internetaken } from "@/types/internetaken";
-import { useReturnToWerklijst } from "@/composables/use-back-navigation";
-import type { WerklijstBevestiging } from "@/composables/use-werklijst-bevestiging";
+import { useReturnToWerklijst } from "@/composables/use-return-to-werklijst";
+import type { WerklijstBevestigingData } from "@/composables/use-werklijst-bevestiging";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { get } from "@/utils/fetchWrapper";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
@@ -106,15 +106,15 @@ async function forwardContactverzoek(submitEvent: Event) {
   }
 }
 
-function getBevestiging(response: ForwardKlantContactResponse): WerklijstBevestiging {
+function getBevestiging(response: ForwardKlantContactResponse): WerklijstBevestigingData {
   const nummer = taak.aanleidinggevendKlantcontact?.nummer;
   const recipients = response.recipients?.length ? ` naar ${response.recipients.join(" / ")}` : "";
-  const notificatie = response.notificationSentToAllRecipients
+  const notificatie = response.allNotificationsSent
     ? "De e-mailnotificatie is verstuurd."
-    : response.notificationResult;
+    : response.notificationResultMessage;
 
   return {
-    type: response.notificationSentToAllRecipients ? "ok" : "warning",
+    type: response.allNotificationsSent ? "ok" : "warning",
     tekst: `${nummer ? `Contactverzoek ${nummer}` : "Het contactverzoek"} is doorgestuurd${recipients}.\n${notificatie}`
   };
 }

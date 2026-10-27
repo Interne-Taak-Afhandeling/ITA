@@ -1,5 +1,5 @@
 <template>
-  <div role="status" class="ita-werklijst-bevestiging">
+  <div ref="root" role="status" tabindex="-1" class="ita-werklijst-bevestiging">
     <utrecht-alert v-if="isVisible && bevestiging" :type="bevestiging.type" role="none">
       <div class="ita-werklijst-bevestiging__content">
         <span class="preserve-newline">{{ bevestiging.tekst }}</span>
@@ -16,33 +16,31 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, useTemplateRef } from "vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
 import { useWerklijstBevestiging } from "@/composables/use-werklijst-bevestiging";
 
 const { bevestiging, clearWerklijstBevestiging } = useWerklijstBevestiging();
 const isVisible = ref(false);
+const root = useTemplateRef<HTMLElement>("root");
 
-function focusPageTitle() {
-  const heading = document.querySelector<HTMLElement>("main h1");
-  if (!heading) return;
-  heading.tabIndex = -1;
-  heading.focus();
-}
-
+// The focused close button disappears, so keep focus at the spot where the confirmation was
 function sluiten() {
   clearWerklijstBevestiging();
-  focusPageTitle();
+  root.value?.focus();
 }
 
 onMounted(async () => {
   await nextTick();
   isVisible.value = true;
-  if (bevestiging.value) focusPageTitle();
 });
 </script>
 
 <style lang="scss" scoped>
+.ita-werklijst-bevestiging:focus {
+  outline: none;
+}
+
 .ita-werklijst-bevestiging:not(:empty) {
   margin-block-end: 1rem;
 }

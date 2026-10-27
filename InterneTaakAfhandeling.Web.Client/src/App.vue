@@ -15,7 +15,9 @@ import { RouterView } from "vue-router";
 import TheHeader from "./components/TheHeader.vue";
 import ToastSection from "./components/toast/ToastSection.vue";
 import { setupPreviousRoute } from "./composables/use-back-navigation";
-import { setupWerklijstBevestiging } from "./composables/use-werklijst-bevestiging";
+import { setupLastWerklijstRoute } from "./composables/use-return-to-werklijst";
+import { clearBevestigingOnNavigate } from "./composables/use-werklijst-bevestiging";
 setupPreviousRoute();
-setupWerklijstBevestiging();
+setupLastWerklijstRoute();
+clearBevestigingOnNavigate();
 </script>
