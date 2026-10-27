@@ -1,8 +1,8 @@
-﻿using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Web.Server.Exceptions;
 using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +20,8 @@ public class CloseInterneTaakWithKlantContactController(
     ILogger<CloseInterneTaakWithKlantContactController> logger,
     IOpenKlantApiClient openKlantApiClient,
     IInternetaakGuardService internetaakGuardService,
-    ILogboekService logboekService) : Controller
+    ILogboekService logboekService,
+    IInternetaakService internetaakService) : Controller
 {
     private readonly ICreateKlantContactService _createKlantContactService =
         createKlantContactService ?? throw new ArgumentNullException(nameof(createKlantContactService));
@@ -38,6 +39,9 @@ public class CloseInterneTaakWithKlantContactController(
 
     private readonly IInternetaakGuardService _internetaakGuardService =
         internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
+    
+    private readonly IInternetaakService _internetaakService = 
+        internetaakService ?? throw new ArgumentNullException(nameof(internetaakService));
 
     [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
@@ -54,7 +58,7 @@ public class CloseInterneTaakWithKlantContactController(
                 request.AanleidinggevendKlantcontactUuid);
 
             //check if the internetaak that will be closed and the klantcontact to which the new klantcontact will be related belong to eachother
-            var interneTaak = await openKlantApiClient.GetInternetaakByIdAsync(request.InterneTaakId);
+            var interneTaak = await _internetaakService.GetInternetaakByIdAsync(request.InterneTaakId);
 
             if (interneTaak?.Uuid != request.InterneTaakId.ToString())
                 return BadRequest(new ProblemDetails

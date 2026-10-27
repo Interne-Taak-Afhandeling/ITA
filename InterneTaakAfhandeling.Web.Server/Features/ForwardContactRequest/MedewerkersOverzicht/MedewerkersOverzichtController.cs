@@ -1,4 +1,4 @@
-﻿using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
+﻿using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,10 +1,11 @@
-﻿using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi;
+﻿using InterneTaakAfhandeling.Common.ApiClients;
+using InterneTaakAfhandeling.Common.Services.Actors;
+using InterneTaakAfhandeling.Common.Services.Klantcontacten;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 
@@ -16,13 +17,15 @@ public interface ILogboekService
 
 public class LogboekService(
     IObjectApiClient objectenApiClient,
-    IOpenKlantApiClient openKlantApiClient,
     IZakenApiClient zakenApiClient,
+    IActorService actorService,
+    IKlantcontactService klantcontactService,
     ILogger<LogboekService> logger)
     : ILogboekService
 {
     private readonly IObjectApiClient _objectenApiClient = objectenApiClient;
-    private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
+    private readonly IActorService _actorService = actorService;
+    private readonly IKlantcontactService _klantcontactService = klantcontactService;
     private readonly ILogger<LogboekService> _logger = logger;
 
     public async Task<List<Activiteit>> GetLogboek(Guid internetaakId)
@@ -50,7 +53,7 @@ public class LogboekService(
                 case ActiviteitTypes.Klantcontact when item.HeeftBetrekkingOp.Count == 1:
                     {
                         var contactmoment =
-                            await _openKlantApiClient.GetKlantcontactAsync(Guid.Parse(item.HeeftBetrekkingOp.Single().ObjectId));
+                            await _klantcontactService.GetKlantcontactAsync(Guid.Parse(item.HeeftBetrekkingOp.Single().ObjectId));
                         if (contactmoment != null)
                         {
                             activiteit.Id = contactmoment.Uuid.ToString();
@@ -75,7 +78,7 @@ public class LogboekService(
                         Actor? actor;
                         try
                         {
-                            actor = await _openKlantApiClient.GetActorAsync(actorId);
+                            actor = await _actorService.GetActorAsync(actorId);
                         }
                         catch (Exception ex)
                         {

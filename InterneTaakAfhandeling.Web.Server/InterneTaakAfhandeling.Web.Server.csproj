@@ -12,6 +12,17 @@
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Features\MyInterneTakenOverview\**" />
+    <Compile Remove="Features\Urgentie\**" />
+    <Content Remove="Features\MyInterneTakenOverview\**" />
+    <Content Remove="Features\Urgentie\**" />
+    <EmbeddedResource Remove="Features\MyInterneTakenOverview\**" />
+    <EmbeddedResource Remove="Features\Urgentie\**" />
+    <None Remove="Features\MyInterneTakenOverview\**" />
+    <None Remove="Features\Urgentie\**" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Duende.AccessTokenManagement.OpenIdConnect" Version="3.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.SpaProxy">
@@ -32,10 +43,5 @@
     <ProjectReference Include="..\InterneTaakAfhandeling.Web.Client\InterneTaakAfhandeling.Web.Client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Features\MyInterneTakenOverview\" />
-    <Folder Include="Features\Urgentie\" />
   </ItemGroup>
 </Project>
