@@ -40,9 +40,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
         {
             const string onderwerp = "E2E_Werklijst_Urgentie_Groen";
             var now = DateTime.UtcNow;
-            var contactDatum = BusinessHours.SubtractBusinessHours(now, hours: 10);
+            // Zit comfortabel binnen de termijn: ruim voor de bijna-verlopen drempel kickt in.
+            var hoursElapsed = Math.Max(1, (UrgentieSettings.AfhandeltermijnUren - UrgentieSettings.BijnaVerlopenDrempelUren) / 2);
+            var contactDatum = BusinessHours.SubtractBusinessHours(now, hoursElapsed);
 
-            await Step("Setup contactverzoek with ContactDatum ~10 business hours ago");
+            await Step($"Setup contactverzoek with ContactDatum ~{hoursElapsed} business hours ago (binnen termijn)");
             var (uuid, _, _) = await TestDataHelper.CreateContactverzoekWithContactDatum(onderwerp, contactDatum);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
@@ -57,9 +59,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
         {
             const string onderwerp = "E2E_Werklijst_Urgentie_Oranje";
             var now = DateTime.UtcNow;
-            var contactDatum = BusinessHours.SubtractBusinessHours(now, hours: 44);
+            // Binnen de bijna-verlopen drempel (resterende uren = drempel / 2, veilig onder de volledige drempel).
+            var hoursRemaining = Math.Max(0.5, UrgentieSettings.BijnaVerlopenDrempelUren / 2);
+            var hoursElapsed = UrgentieSettings.AfhandeltermijnUren - hoursRemaining;
+            var contactDatum = BusinessHours.SubtractBusinessHours(now, hoursElapsed);
 
-            await Step("Setup contactverzoek with ContactDatum ~44 business hours ago (4h remaining)");
+            await Step($"Setup contactverzoek with ContactDatum ~{hoursElapsed} business hours ago ({hoursRemaining}h remaining)");
             var (uuid, _, _) = await TestDataHelper.CreateContactverzoekWithContactDatum(onderwerp, contactDatum);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
@@ -74,9 +79,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
         {
             const string onderwerp = "E2E_Werklijst_Urgentie_Rood";
             var now = DateTime.UtcNow;
-            var contactDatum = BusinessHours.SubtractBusinessHours(now, hours: 53);
+            // Enkele uren voorbij de termijn.
+            var hoursOverdue = 5;
+            var hoursElapsed = UrgentieSettings.AfhandeltermijnUren + hoursOverdue;
+            var contactDatum = BusinessHours.SubtractBusinessHours(now, hoursElapsed);
 
-            await Step("Setup contactverzoek with ContactDatum ~53 business hours ago (5h verlopen)");
+            await Step($"Setup contactverzoek with ContactDatum ~{hoursElapsed} business hours ago ({hoursOverdue}h verlopen)");
             var (uuid, _, _) = await TestDataHelper.CreateContactverzoekWithContactDatum(onderwerp, contactDatum);
             RegisterCleanup(async () => await TestDataHelper.DeleteContactverzoekAsync(uuid.ToString()));
 
@@ -98,7 +106,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
             // than a tautology.
             const string onderwerp = "E2E_Werklijst_Urgentie_WeekendUitgesloten";
             var now = DateTime.UtcNow;
-            var contactDatum = BusinessHours.SubtractBusinessHours(now, hours: 130);
+            // Minstens één volledig weekend (>5 werkdagen = >120h) voorbij de termijn,
+            // ongeacht welke termijn is ingesteld.
+            var hoursElapsed = Math.Max(130, UrgentieSettings.AfhandeltermijnUren + 125);
+            var contactDatum = BusinessHours.SubtractBusinessHours(now, hoursElapsed);
 
             await Step("Setup contactverzoek with ContactDatum spanning at least one full weekend");
             var (uuid, _, _) = await TestDataHelper.CreateContactverzoekWithContactDatum(onderwerp, contactDatum);
@@ -115,10 +126,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
         {
             const string onderwerp = "E2E_Werklijst_Urgentie_CeilingAfronding";
             var now = DateTime.UtcNow;
-            // 47.5 business hours elapsed leaves 0.5h remaining - comfortably inside the (0h, 1h]
-            // bucket that must ceiling to "nog 1u", with a 30-minute safety margin against
-            // execution drift between fixture creation and assertion.
-            var contactDatum = BusinessHours.SubtractBusinessHours(now, hours: 47.5);
+            // 0.5h resterend binnen de (0h, 1h] bucket die naar "nog 1u" moet afronden,
+            // met een halfuursmarge tegen executiedrift tussen fixture-creatie en assertie.
+            var contactDatum = BusinessHours.SubtractBusinessHours(now, hours: UrgentieSettings.AfhandeltermijnUren - 0.5);
 
             await Step("Setup contactverzoek with ContactDatum leaving ~0.5 business hours remaining");
             var (uuid, _, _) = await TestDataHelper.CreateContactverzoekWithContactDatum(onderwerp, contactDatum);
@@ -135,7 +145,8 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
         public async Task User_SeesUrgentieBadge_OnBothWerklijstViews()
         {
             const string onderwerp = "E2E_Werklijst_Urgentie_BeideWeergaven";
-            var contactDatum = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 10);
+            var hoursElapsed = Math.Max(1, (UrgentieSettings.AfhandeltermijnUren - UrgentieSettings.BijnaVerlopenDrempelUren) / 2);
+            var contactDatum = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hoursElapsed);
 
             await Step("Setup contactverzoek assigned to current user");
             var (uuid, _, _) = await TestDataHelper.CreateContactverzoekWithContactDatum(onderwerp, contactDatum);
