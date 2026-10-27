@@ -18,4 +18,6 @@ assignees: ''
 
 ## DoD
 - [ ] documentation
-- [ ] changelog
+
+### Exclude from release notes
+- [ ] Leave this issue out of the release notes

@@ -48,3 +48,6 @@ assignees: ""
 ## Regression Risk
 
 ## <!-- What else could break if we fix this? -->
+
+### Exclude from release notes
+- [ ] Leave this issue out of the release notes

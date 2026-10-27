@@ -1,4 +1,12 @@
 ﻿using System.Net.Http.Headers;
+using InterneTaakAfhandeling.Common.Services.Actors;
+using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.Services.Klantcontacten;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi;
+using InterneTaakAfhandeling.Common.ApiClients.Zgw;
 using InterneTaakAfhandeling.Common.Services.ObjectApi;
 using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -14,6 +22,16 @@ namespace InterneTaakAfhandeling.Common.Extensions
 
     public static class ApiClientExtensions
     {
+        // Shared OpenKlant lookup services, used by both Web.Server and the Poller.
+        public static IServiceCollection AddITAOpenKlantServices(this IServiceCollection services)
+        {
+            services.AddScoped<IActorService, ActorService>();
+            services.AddScoped<IKlantcontactService, KlantcontactService>();
+            services.AddScoped<IInternetaakService, InternetaakService>();
+
+            return services;
+        }
+
         public static IServiceCollection AddITAApiClients(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddHttpClient<IOpenKlantApiClient, OpenKlantApiClient>(client =>

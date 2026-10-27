@@ -1,8 +1,10 @@
-﻿using InterneTaakAfhandeling.Common.Services.Emailservices.Content;
-using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
-using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.Services.Klantcontacten;
+using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.Services.Actors;
+using InterneTaakAfhandeling.Common.Services.Email.Content;
+using InterneTaakAfhandeling.Common.Services.Email.Recipients;
+using InterneTaakAfhandeling.Common.Services.Email.SmtpMailService;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Poller.Features;
 using InterneTaakAfhandeling.Poller.Services.NotifierState;
 using Microsoft.Extensions.Configuration;
@@ -12,7 +14,6 @@ namespace InterneTaakAfhandeling.Poller.Features.NieuweInternetaakNotificatie;
 
 public class InternetakenNotifier : IPollerJob
 {
-    private readonly IOpenKlantApiClient _openKlantApiClient;
     private readonly IEmailService _emailService;
     private readonly ILogger<InternetakenNotifier> _logger;
     private readonly string _apiBaseUrl;
@@ -20,17 +21,21 @@ public class InternetakenNotifier : IPollerJob
     private readonly IEmailContentService _emailContentService;
     private readonly INotifierStateService _notifierStateService;
     private readonly IActorEmailResolutionService _actorEmailResolutionService;
+    private readonly IActorService _actorService;
+    private readonly IKlantcontactService _klantcontactService;
+    private readonly IInternetaakService _internetaakService;
 
     public InternetakenNotifier(
-        IOpenKlantApiClient openKlantApiClient,
         IConfiguration configuration,
         IEmailService emailService,
         ILogger<InternetakenNotifier> logger,
         IEmailContentService emailContentService,
         INotifierStateService notifierStateService,
-        IActorEmailResolutionService actorEmailResolutionService)
+        IActorEmailResolutionService actorEmailResolutionService,
+        IActorService actorService,
+        IKlantcontactService klantcontactService,
+        IInternetaakService internetaakService)
     {
-        _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _apiBaseUrl = configuration.GetValue<string>("OpenKlantApi:BaseUrl")
@@ -40,6 +45,9 @@ public class InternetakenNotifier : IPollerJob
         _emailContentService = emailContentService ?? throw new ArgumentNullException(nameof(emailContentService));
         _notifierStateService = notifierStateService ?? throw new ArgumentNullException(nameof(notifierStateService));
         _actorEmailResolutionService = actorEmailResolutionService;
+        _actorService = actorService ?? throw new ArgumentNullException(nameof(actorService));
+        _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
+        _internetaakService = internetaakService ?? throw new ArgumentNullException(nameof(internetaakService));
     }
 
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
@@ -53,7 +61,7 @@ public class InternetakenNotifier : IPollerJob
 
         while (!string.IsNullOrEmpty(page))
         {
-            var response = await _openKlantApiClient.GetInternetakenAsync(page);
+            var response = await _internetaakService.GetInternetakenAsync(page);
             if (response?.Results == null || response.Results.Count == 0)
                 break;
             var newInternetaken = response.Results.Where(item => item.ToegewezenOp > notifierState.LastInternetakenToegewezenOp);
@@ -99,7 +107,7 @@ public class InternetakenNotifier : IPollerJob
 
             if (internetaak.AanleidinggevendKlantcontact?.Uuid != null)
             {
-                internetaak.AanleidinggevendKlantcontact = await _openKlantApiClient.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+                internetaak.AanleidinggevendKlantcontact = await _klantcontactService.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
             }
 
             var actors = await GetActorsAsync(internetaak);
@@ -148,7 +156,7 @@ public class InternetakenNotifier : IPollerJob
 
         foreach (var item in internetaken.ToegewezenAanActoren ?? [])
         {
-            var actor = await _openKlantApiClient.GetActorAsync(item.Uuid);
+            var actor = await _actorService.GetActorAsync(item.Uuid);
             actoren.Add(actor);
         }
 

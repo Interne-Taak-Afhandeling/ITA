@@ -1,8 +1,9 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services;
+﻿using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients;
+using InterneTaakAfhandeling.Common.Services.Actors;
 using InterneTaakAfhandeling.Web.Server.Authentication;
-using InterneTaakAfhandeling.Web.Server.Features.Internetaken;
 using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInternetakenOverview
@@ -12,12 +13,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInt
         Task<IReadOnlyList<MyInterneTaakOverviewItem>> GetInterneTakenByAssignedUser(ITAUser user, bool afgerond);
     }
     public class MyInterneTakenOverviewService(
-        IOpenKlantApiClient openKlantApiClient,
         IUrgentieBerekenService urgentieBerekenService,
+        IActorService actorService,
+        IInternetaakService internetaakService,
         ILogger<MyInterneTakenOverviewService> logger) : IMyInterneTakenOverviewService
     {
-        private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IUrgentieBerekenService _urgentieBerekenService = urgentieBerekenService;
+        private readonly IActorService _actorService = actorService;
+        private readonly IInternetaakService _internetaakService = internetaakService;
         private readonly ILogger<MyInterneTakenOverviewService> _logger = logger;
 
 
@@ -34,7 +37,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInt
                         ToegewezenAanActor__Uuid = Guid.Parse(actorId),
                         Status = afgerond ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken
                     };
-                    return _openKlantApiClient.QueryInterneTakenAsync(query);
+                    return _internetaakService.QueryInterneTakenAsync(query);
                 });
 
             var results = await Task.WhenAll(internetakenTasks);
@@ -91,7 +94,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInt
         {
             try
             {
-                return await _openKlantApiClient.GetActorAsync(uuid);
+                return await _actorService.GetActorAsync(uuid);
             }
             catch (Exception ex)
             {
@@ -106,7 +109,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInt
 
             if (!string.IsNullOrWhiteSpace(user.Email))
             {
-                var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                var fromEntra = await _actorService.QueryActorAsync(new ActorQuery
                 {
                     ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
                     ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
@@ -121,7 +124,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInt
                     actorIds.Add(fromEntra.Uuid);
                 }
 
-                var fromHandmatig = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                var fromHandmatig = await _actorService.QueryActorAsync(new ActorQuery
                 {
                     ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailHandmatig.CodeObjecttype,
                     ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailHandmatig.CodeRegister,
@@ -139,7 +142,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInt
 
             if (!string.IsNullOrWhiteSpace(user.ObjectregisterMedewerkerId))
             {
-                var fromObjecten = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+                var fromObjecten = await _actorService.QueryActorAsync(new ActorQuery
                 {
                     ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.ObjectRegisterId.CodeObjecttype,
                     ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.ObjectRegisterId.CodeRegister,

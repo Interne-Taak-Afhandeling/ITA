@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using ITA.InterneTaakAfhandeling.EndToEndTest.Helpers;
 using Microsoft.Playwright;

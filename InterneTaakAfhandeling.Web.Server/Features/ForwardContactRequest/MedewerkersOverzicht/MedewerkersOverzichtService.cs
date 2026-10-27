@@ -1,6 +1,6 @@
-﻿using InterneTaakAfhandeling.Common.Services.ObjectApi;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+﻿using InterneTaakAfhandeling.Common.ApiClients.ObjectApi;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest.MedewerkersOverzicht;
 

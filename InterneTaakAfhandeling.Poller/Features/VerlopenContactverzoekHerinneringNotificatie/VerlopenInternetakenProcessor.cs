@@ -1,4 +1,9 @@
-﻿using InterneTaakAfhandeling.Common.Helpers;
+﻿using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.Helpers;
+using InterneTaakAfhandeling.Common.Services.Email.Recipients;
+using InterneTaakAfhandeling.Common.Services.Email.SmtpMailService;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.Emailservices.Recipients;
 using InterneTaakAfhandeling.Common.Services.Emailservices.SmtpMailService;
 using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
@@ -12,7 +17,7 @@ namespace InterneTaakAfhandeling.Poller.Features.VerlopenContactverzoekHerinneri
 
 
 public sealed class VerlopenInternetakenProcessor(
-    IOpenKlantApiClient openKlantApiClient,
+    IInternetaakService internetaakService,
 
     IActorEmailResolutionService actorEmailResolutionService,
     VerlopenContactverzoekHerinneringNotificatieTemplateService templateService,
@@ -128,7 +133,7 @@ public sealed class VerlopenInternetakenProcessor(
         var page = 1;
         while (true)
         {
-            var results = await openKlantApiClient.QueryInterneTakenAsync(
+            var results = await internetaakService.QueryInterneTakenAsync(
                 new InterneTaakQuery { Status = KnownInternetaakStatussen.TeVerwerken, Page = page });
 
             if (results.Count == 0) break;
