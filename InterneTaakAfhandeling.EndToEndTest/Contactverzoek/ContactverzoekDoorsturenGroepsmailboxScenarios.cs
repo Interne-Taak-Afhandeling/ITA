@@ -122,6 +122,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Submit the forward form");
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
+            // KNOWN ISSUE: this test environment has no SMTP server configured (smtp.host/
+            // fromEmail are blank in the Helm values for this environment), so EmailService.
+            // IsConfiguredCorrectly() always returns false and the forward always surfaces the
+            // generic "kon geen e-mailnotificatie verstuurd worden" failure message instead of the
+            // expected success toast. Will be fixed once SMTP is configured for this environment.
             await Step("Verify success toast");
             await Expect(Page.GetSuccessToast("succesvol doorgestuurd")).ToBeVisibleAsync();
         }
@@ -149,6 +154,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             // mailbox even though the medewerker already took precedence — so the toast reads as a
             // partial failure rather than the plain success message the Gherkin scenario names.
             // See Task #550 Noot C.
+            // KNOWN ISSUE: this test environment has no SMTP server configured (smtp.host/
+            // fromEmail are blank in the Helm values for this environment), so EmailService.
+            // IsConfiguredCorrectly() always returns false and the forward always surfaces the
+            // generic "kon geen e-mailnotificatie verstuurd worden" failure message instead of the
+            // expected toast below. Will be fixed once SMTP is configured for this environment.
             await Step("Verify the forward succeeded, surfaced via the actual (partial-failure-worded) notification result");
             await Expect(Page.GetSuccessToast("niet elke e-mailnotificatie kon verstuurd worden")).ToBeVisibleAsync();
         }
@@ -168,6 +178,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Submit the forward form, leaving the optional medewerkerveld empty");
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
+            // KNOWN ISSUE: this test environment has no SMTP server configured (smtp.host/
+            // fromEmail are blank in the Helm values for this environment), so EmailService.
+            // IsConfiguredCorrectly() always returns false and the forward always surfaces the
+            // generic "kon geen e-mailnotificatie verstuurd worden" failure message instead of the
+            // expected success toast. Will be fixed once SMTP is configured for this environment.
             await Step("Verify success toast — the afdeling's groepsmailbox is the sole recipient");
             await Expect(Page.GetSuccessToast("Contactverzoek succesvol doorgestuurd")).ToBeVisibleAsync();
         }
@@ -225,6 +240,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
 
             // Same diagnostic-error caveat as User_ForwardWithMedewerkerAndAfdelingZonderMailbox_
             // MedewerkerIsSoleRecipient above — see Task #550 Noot C.
+            // KNOWN ISSUE: this test environment has no SMTP server configured (smtp.host/
+            // fromEmail are blank in the Helm values for this environment), so EmailService.
+            // IsConfiguredCorrectly() always returns false and the forward always surfaces the
+            // generic "kon geen e-mailnotificatie verstuurd worden" failure message instead of the
+            // expected toast below. Will be fixed once SMTP is configured for this environment.
             await Step("Verify the forward succeeded, surfaced via the actual (partial-failure-worded) notification result");
             await Expect(Page.GetSuccessToast("niet elke e-mailnotificatie kon verstuurd worden")).ToBeVisibleAsync();
         }
@@ -244,6 +264,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Submit the forward form without selecting a medewerker");
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
+            // KNOWN ISSUE: this test environment has no SMTP server configured (smtp.host/
+            // fromEmail are blank in the Helm values for this environment), so EmailService.
+            // IsConfiguredCorrectly() always returns false and the forward always surfaces the
+            // generic "kon geen e-mailnotificatie verstuurd worden" failure message instead of the
+            // expected success toast. Will be fixed once SMTP is configured for this environment.
             await Step("Verify success toast — unchanged existing behavior");
             await Expect(Page.GetSuccessToast("succesvol doorgestuurd")).ToBeVisibleAsync();
         }
@@ -398,6 +423,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Submit the forward form, leaving the optional medewerkerveld empty");
             await Page.GetContactverzoekDoorsturenButton().ClickAsync();
 
+            // KNOWN ISSUE: this test environment has no SMTP server configured (smtp.host/
+            // fromEmail are blank in the Helm values for this environment), so EmailService.
+            // IsConfiguredCorrectly() always returns false and the forward always surfaces the
+            // generic "kon geen e-mailnotificatie verstuurd worden" failure message instead of the
+            // expected exact success message below. Will be fixed once SMTP is configured for this
+            // environment.
             await Step("Verify the exact, unchanged success message is shown");
             await Expect(Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "Contactverzoek succesvol doorgestuurd" }))
                 .ToBeVisibleAsync();

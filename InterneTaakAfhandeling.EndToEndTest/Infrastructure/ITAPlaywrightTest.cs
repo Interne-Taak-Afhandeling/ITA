@@ -567,15 +567,23 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         /// </summary>
         protected async Task HandleAuthenticationAsync(string? username = null, string? password = null)
         {
+            await EnsureIcattSelectedAsync(Page);
+
             username ??= s_configuration["TestSettings:TEST_USERNAME"];
             password ??= s_configuration["TestSettings:TEST_PASSWORD"];
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 return;
             }
+
             try
             {
-                var loginHelper = new AzureAdLoginHelper(Page, username, password, s_uniqueOtpHelper ?? throw new InvalidOperationException("TOTP helper not initialized"));
+                var loginHelper = new AzureAdLoginHelper(
+                    Page,
+                    username,
+                    password,
+                    s_uniqueOtpHelper ?? throw new InvalidOperationException("TOTP helper not initialized"));
+
                 await loginHelper.LoginAsync();
             }
             catch (Exception ex)
@@ -584,6 +592,24 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                     $"Azure AD authentication failed. Check your test credentials and ensure the application is accessible. " +
                     $"Error: {ex.Message}", ex);
             }
+        }
+
+        /// <summary>
+        /// Opens the login entry page and selects the ICATT identity provider.
+        /// This is required before username/password login.
+        /// </summary>
+        internal static async Task EnsureIcattSelectedAsync(IPage page)
+        {
+            await page.GotoAsync("/");
+
+            var icattButton = page.Locator("#social-oidc-icatt").First;
+            await icattButton.WaitForAsync(new()
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = 15000
+            });
+
+            await icattButton.ClickAsync();
         }
     }
 }
