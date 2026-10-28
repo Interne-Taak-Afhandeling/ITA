@@ -845,7 +845,12 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         },
         request: new ActorRequest
         {
-            Naam = "e2e afdeling",
+            // Must match the real afdeling name (not a generic placeholder), because the
+            // Afdelingshistorie/Afdelingswerkvoorraad screens filter internetaken by
+            // Actoren__Naam == <selected department name from the user's real department list>.
+            // A mismatched Naam here means contactverzoeken created in tests can never be found
+            // when filtering by department name.
+            Naam = afdeling.Record.Data.Naam,
             SoortActor = SoortActor.organisatorische_eenheid,
             IndicatieActief = true,
             Actoridentificator = new Actoridentificator
