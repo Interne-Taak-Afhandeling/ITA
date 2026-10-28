@@ -87,11 +87,11 @@ import type { CreateKlantcontactRequest, Internetaken } from "@/types/internetak
 import { computed, ref, onMounted } from "vue";
 import { toast } from "./toast/toast";
 import BevestigingsModal from "./BevestigingsModal.vue";
-import { useRouter } from "vue-router";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import InterneToelichtingField from "./InterneToelichtingField.vue";
+import { useReturnToWerklijst } from "@/composables/use-return-to-werklijst";
 
-const router = useRouter();
+const { returnToWerklijst } = useReturnToWerklijst();
 const emit = defineEmits<{ success: [] }>();
 const { taak } = defineProps<{ taak: Internetaken }>();
 
@@ -172,8 +172,11 @@ async function finishContactmoment() {
     await klantcontactService.createRelatedKlantcontactAndCloseInterneTaak(
       getKlantcontactPayload()
     );
-    toast.add({ text: "Contact vastgelegd en contactverzoek afgerond", type: "ok" });
-    router.back();
+    const nummer = taak.aanleidinggevendKlantcontact?.nummer;
+    await returnToWerklijst({
+      type: "ok",
+      tekst: `${nummer ? `Contactverzoek ${nummer}` : "Het contactverzoek"} is afgehandeld.`
+    });
   } catch (err: unknown) {
     handleError(err);
   } finally {

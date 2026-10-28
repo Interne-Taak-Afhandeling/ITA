@@ -3,7 +3,7 @@
   <utrecht-alert v-else-if="error" type="error">
     {{ error }}
   </utrecht-alert>
-  <form v-else @submit.prevent="forwardContactverzoek" ref="forwardForm">
+  <form v-else @submit.prevent="forwardContactverzoek">
     <utrecht-fieldset>
       <utrecht-fieldset>
         <utrecht-legend>Contactmoment doorzetten naar</utrecht-legend>
@@ -47,10 +47,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, useTemplateRef } from "vue";
+import { ref, onMounted } from "vue";
 import { toast } from "@/components/toast/toast.ts";
 import InterneToelichtingField from "../InterneToelichtingField.vue";
-import type { Internetaken } from "@/types/internetaken";
+import type { ForwardKlantContactResponse, Internetaken } from "@/types/internetaken";
+import { useReturnToWerklijst } from "@/composables/use-return-to-werklijst";
+import type { WerklijstBevestigingData } from "@/composables/use-werklijst-bevestiging";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import { get } from "@/utils/fetchWrapper";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
@@ -59,8 +61,8 @@ import ContactverzoekDoorsturenAfdeling from "./ContactverzoekDoorsturenAfdeling
 import ContactverzoekDoorsturenGroep from "./ContactverzoekDoorsturenGroep.vue";
 import ContactverzoekDoorsturenMedewerker from "./ContactverzoekDoorsturenMedewerker.vue";
 
-const emit = defineEmits<{ success: [] }>();
 const { taak } = defineProps<{ taak: Internetaken }>();
+const { returnToWerklijst } = useReturnToWerklijst();
 
 const FORWARD_OPTIONS = {
   afdeling: "Afdeling",
@@ -68,8 +70,6 @@ const FORWARD_OPTIONS = {
   medewerker: "Medewerker"
 } as const;
 type FORWARD_OPTIONS = typeof FORWARD_OPTIONS;
-
-const formRef = useTemplateRef("forwardForm");
 
 const afdelingen = ref<{ label: string; value: string; heeftGroepsmailbox: boolean }[]>([]);
 const groepen = ref<{ label: string; value: string; heeftGroepsmailbox: boolean }[]>([]);
@@ -80,11 +80,6 @@ const error = ref<string | null>(null);
 
 // Form state
 const forwardTo = ref<FORWARD_OPTIONS[keyof FORWARD_OPTIONS]>(FORWARD_OPTIONS.afdeling);
-
-function resetForm() {
-  forwardTo.value = FORWARD_OPTIONS.afdeling;
-  formRef.value?.reset();
-}
 
 function mapFormDataToObj<K extends string>(formData: FormData, keys: K[]): { [k in K]: string } {
   const obj = {} as Record<K, string>;
@@ -103,14 +98,25 @@ async function forwardContactverzoek(submitEvent: Event) {
   isSubmitting.value = true;
   try {
     const response = await klantcontactService.forwardKlantContact(taak.uuid, payload);
-    toast.add({ text: response.notificationResult, type: "ok", timeout: 5000 });
-    resetForm();
-    emit("success");
+    await returnToWerklijst(getBevestiging(response));
   } catch (err: unknown) {
     handleSubmitError(err);
   } finally {
     isSubmitting.value = false;
   }
+}
+
+function getBevestiging(response: ForwardKlantContactResponse): WerklijstBevestigingData {
+  const nummer = taak.aanleidinggevendKlantcontact?.nummer;
+  const recipients = response.recipients?.length ? ` naar ${response.recipients.join(" / ")}` : "";
+  const notificatie = response.allNotificationsSent
+    ? "De e-mailnotificatie is verstuurd."
+    : response.notificationResultMessage;
+
+  return {
+    type: response.allNotificationsSent ? "ok" : "warning",
+    tekst: `${nummer ? `Contactverzoek ${nummer}` : "Het contactverzoek"} is doorgestuurd${recipients}.\n${notificatie}`
+  };
 }
 
 function handleSubmitError(err: unknown) {
