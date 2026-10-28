@@ -1,5 +1,6 @@
 <template>
   <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
+  <werklijst-bevestiging />
 
   <div v-if="isLoading" class="spinner-container">
     <simple-spinner />
@@ -37,6 +38,7 @@
 import { onMounted, watch } from "vue";
 import SimpleSpinner from "@/components/SimpleSpinner.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
+import WerklijstBevestiging from "@/components/WerklijstBevestiging.vue";
 import UtrechtPagination from "@/components/UtrechtPagination.vue";
 import { get } from "@/utils/fetchWrapper";
 import AllInterneTakenTable from "@/components/interne-taken-tables/AllInterneTakenTable.vue";
