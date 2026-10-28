@@ -133,11 +133,26 @@ namespace EndToEndTest.Common.Infrastructure
                 await Expect(verifyButton).ToBeEnabledAsync(new() { Timeout = 10000 });
                 await verifyButton.ClickAsync();
 
-                var resultLocator = declineStaySignedInButton
-                    .Or(nieuwContactmomentSelector)
-                    .Or(errorMessageSelector);
+                // Race the possible outcomes independently rather than combining them with
+                // .Or().First — the error alert element is typically always present in the DOM
+                // (just hidden when inactive) and can sort first in DOM order, which would make
+                // .Or().First latch onto it and wait forever for it to become visible even on a
+                // successful login. Waiting on each outcome separately and taking whichever
+                // resolves first avoids that trap.
+                const int resultTimeoutMs = 15000;
+                var declineTask = declineStaySignedInButton.WaitForAsync(new() { Timeout = resultTimeoutMs });
+                var nieuwContactmomentTask = nieuwContactmomentSelector.WaitForAsync(new() { Timeout = resultTimeoutMs });
+                var errorTask = errorMessageSelector.WaitForAsync(new() { Timeout = resultTimeoutMs });
 
-                await resultLocator.First.WaitForAsync(new() { Timeout = 15000 });
+                var completedTask = await Task.WhenAny(declineTask, nieuwContactmomentTask, errorTask);
+
+                // Observe the losing tasks' exceptions (timeouts) so they don't surface later
+                // as unobserved task exceptions once they complete/fault in the background.
+                _ = declineTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+                _ = nieuwContactmomentTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+                _ = errorTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+
+                await completedTask; // propagate exception (e.g. timeout) if that's what "won"
 
                 if (await errorMessageSelector.IsVisibleAsync())
                 {
