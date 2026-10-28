@@ -16,7 +16,15 @@ namespace EndToEndTest.Common.Infrastructure
 
         public UniqueOtpHelper(string totpSecret)
         {
-            var secretBytes = Base32Encoding.ToBytes(totpSecret);
+            // Secrets copied from setup UIs often contain spaces or are lowercase;
+            // Base32Encoding.ToBytes requires clean, uppercase Base32 without padding/spaces.
+            var sanitized = totpSecret
+                .Replace(" ", "")
+                .Replace("-", "")
+                .Trim()
+                .ToUpperInvariant();
+
+            var secretBytes = Base32Encoding.ToBytes(sanitized);
             _otp = new Totp(secretBytes);
         }
 
@@ -31,15 +39,18 @@ namespace EndToEndTest.Common.Infrastructure
             await _semaphore.WaitAsync();
             try
             {
-                var remainingSeconds = _otp.RemainingSeconds();
-                var newCode = _otp.ComputeTotp();
-
-                if (newCode == _oldCode || remainingSeconds < MinRemainingSeconds)
+                string newCode;
+                while (true)
                 {
-                    // Either the code was already used, or it's about to expire.
-                    // Wait for the next TOTP window so we get a fresh code with max lifetime.
+                    var remainingSeconds = _otp.RemainingSeconds();
+                    newCode = _otp.ComputeTotp(DateTime.UtcNow);
+
+                    if (newCode != _oldCode && remainingSeconds >= MinRemainingSeconds)
+                    {
+                        break;
+                    }
+
                     await Task.Delay(TimeSpan.FromSeconds(remainingSeconds + 1));
-                    newCode = _otp.ComputeTotp();
                 }
 
                 _oldCode = newCode;

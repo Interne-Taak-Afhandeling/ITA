@@ -1,4 +1,5 @@
 ﻿using Microsoft.Playwright;
+using static Microsoft.Playwright.Assertions;
 
 namespace EndToEndTest.Common.Infrastructure
 {
@@ -98,15 +99,62 @@ namespace EndToEndTest.Common.Infrastructure
                 await totpBoxSelector.WaitForAsync();
             }
 
-            // Generate TOTP code
-            var totpCode = await _uniqueOtpHelper.GetUniqueCode();
-            // Fill in the TOTP code
-            await totpBoxSelector.FillAsync(totpCode);
-            await verifyButton.ClickAsync();
+            // Some identity broker flows (e.g. Keycloak) perform an extra redirect/reload right
+            // around the moment the code field first appears. Let the page settle and re-confirm
+            // the code field is still the final, stable one before we generate/fill a code,
+            // otherwise we risk submitting a (correctly computed) code against a sign-in session
+            // that has already been superseded by a subsequent navigation.
+            try
+            {
+                await _page.WaitForLoadStateAsync(LoadState.NetworkIdle, new() { Timeout = 5000 });
+            }
+            catch (TimeoutException)
+            {
+                // Some pages keep long-lived connections open and never reach network idle; ignore.
+            }
 
-            await declineStaySignedInButton
-                .Or(nieuwContactmomentSelector)
-                .WaitForAsync();
+            await totpBoxSelector.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+            var errorMessageSelector = _page.Locator("#error, [role='alert'], .error, .alert");
+
+            var maxAttempts = 2;
+            for (var attempt = 1; attempt <= maxAttempts; attempt++)
+            {
+                // Generate TOTP code immediately before filling — any delay here
+                // (page settle waits, etc.) eats into the code's validity window.
+                await totpBoxSelector.FillAsync("");
+                var totpCode = await _uniqueOtpHelper.GetUniqueCode();
+                await totpBoxSelector.FillAsync(totpCode);
+                await Expect(totpBoxSelector).ToHaveValueAsync(totpCode);
+
+                // The Verify button can remain disabled for a brief moment after
+                // fill while client-side validation runs; wait for it to be
+                // enabled before clicking to avoid a no-op click.
+                await Expect(verifyButton).ToBeEnabledAsync(new() { Timeout = 10000 });
+                await verifyButton.ClickAsync();
+
+                var resultLocator = declineStaySignedInButton
+                    .Or(nieuwContactmomentSelector)
+                    .Or(errorMessageSelector);
+
+                await resultLocator.First.WaitForAsync(new() { Timeout = 15000 });
+
+                if (await errorMessageSelector.IsVisibleAsync())
+                {
+                    if (attempt == maxAttempts)
+                    {
+                        var errorText = await errorMessageSelector.TextContentAsync();
+                        throw new Exception($"OTP verification failed after {maxAttempts} attempts: {errorText}");
+                    }
+
+                    // Code was likely stale/reused; wait for the field to clear
+                    // (or clear it ourselves) and retry with a fresh code.
+                    await totpBoxSelector.FillAsync("");
+                    continue;
+                }
+
+                break;
+            }
 
             if (await declineStaySignedInButton.IsVisibleAsync())
             {
