@@ -138,8 +138,11 @@ namespace EndToEndTest.Common.Infrastructure
                 // (just hidden when inactive) and can sort first in DOM order, which would make
                 // .Or().First latch onto it and wait forever for it to become visible even on a
                 // successful login. Waiting on each outcome separately and taking whichever
-                // resolves first avoids that trap.
-                const int resultTimeoutMs = 15000;
+                // resolves first avoids that trap. 30s matches the timeout the original,
+                // known-working implementation effectively relied on (Playwright's default
+                // actionability timeout) — CI runners can be noticeably slower than local runs,
+                // and a shorter timeout here risks false failures before the landing page settles.
+                const int resultTimeoutMs = 30000;
                 var declineTask = declineStaySignedInButton.WaitForAsync(new() { Timeout = resultTimeoutMs });
                 var nieuwContactmomentTask = nieuwContactmomentSelector.WaitForAsync(new() { Timeout = resultTimeoutMs });
                 var errorTask = errorMessageSelector.WaitForAsync(new() { Timeout = resultTimeoutMs });
@@ -152,7 +155,31 @@ namespace EndToEndTest.Common.Infrastructure
                 _ = nieuwContactmomentTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
                 _ = errorTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
 
-                await completedTask; // propagate exception (e.g. timeout) if that's what "won"
+                try
+                {
+                    await completedTask; // propagate exception (e.g. timeout) if that's what "won"
+                }
+                catch (TimeoutException)
+                {
+                    // None of the expected post-verify outcomes appeared in time. Surface the
+                    // current page URL/title so CI logs show what state the browser was actually
+                    // in, instead of just "waiting for X to be visible" with no further context.
+                    var currentUrl = _page.Url;
+                    string? currentTitle = null;
+                    try { currentTitle = await _page.TitleAsync(); } catch { /* best-effort */ }
+
+                    if (attempt == maxAttempts)
+                    {
+                        throw new TimeoutException(
+                            $"Timed out waiting for a post-2FA-verify outcome (decline/\"Nieuw contactmoment\"/error) " +
+                            $"after {maxAttempts} attempts. Current page: url='{currentUrl}', title='{currentTitle}'.");
+                    }
+
+                    // Treat an unresolved post-verify state the same as a detected error: retry
+                    // once with a fresh code in case the first one was stale/already consumed.
+                    await totpBoxSelector.FillAsync("");
+                    continue;
+                }
 
                 if (await errorMessageSelector.IsVisibleAsync())
                 {
