@@ -28,10 +28,10 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
       - run: dotnet build
       - name: Ensure browsers are installed
-        run: pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps
+        run: pwsh bin/Debug/net10.0/playwright.ps1 install --with-deps
       - name: Run your tests
         id: e2e
         run: dotnet test --settings playwright.runsettings
@@ -58,13 +58,13 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # directory of your reports
-          path: "./InterneTaakAfhandeling.EndToEndTest/bin/Debug/net8.0/playwright-traces"
+          path: "./InterneTaakAfhandeling.EndToEndTest/bin/Debug/net10.0/playwright-traces"
       - name: Upload Playwright screenshots
         if: always() # Ensures this runs even if the tests fail
         uses: actions/upload-artifact@v4
         with:
           name: playwright-screenshots
-          path: InterneTaakAfhandeling.EndToEndTest/bin/Debug/net8.0/screenshots/
+          path: InterneTaakAfhandeling.EndToEndTest/bin/Debug/net10.0/screenshots/
   deploy:
     if: ${{ always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     needs: test

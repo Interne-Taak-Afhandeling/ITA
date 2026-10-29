@@ -4,7 +4,7 @@ Automated end-to-end tests for the ITA application using Playwright and MSTest w
 
 ## Prerequisites
 
-- .NET 8.0 SDK
+- .NET 10.0 SDK
 
 ## Setup
 
@@ -22,7 +22,7 @@ Automated end-to-end tests for the ITA application using Playwright and MSTest w
 
    ```bash
    dotnet build
-   pwsh bin/Debug/net8.0/playwright.ps1 install
+   pwsh bin/Debug/net10.0/playwright.ps1 install
    ```
 
 ## Running Tests
