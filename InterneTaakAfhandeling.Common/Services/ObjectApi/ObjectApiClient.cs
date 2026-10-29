@@ -219,7 +219,16 @@ public class ObjectApiClient(
             response = await _httpClient.GetAsync($"objects?type={afdelingOptions.Value.Type}&typeVersion={afdelingOptions.Value.TypeVersion}&data_icontains={query}");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<ObjectModels<Afdeling>>();
-            return result!;
+
+            // Defensive filter: the register can contain legacy/incomplete records that match
+            // the substring query but lack a Naam/Identificatie under the current schema. Drop
+            // those here so callers never have to deal with afdelingen missing these fields.
+            result!.Results = result.Results
+                .Where(r => !string.IsNullOrWhiteSpace(r.Record.Data.Naam) && !string.IsNullOrWhiteSpace(r.Record.Data.Identificatie))
+                .ToList();
+            result.Count = result.Results.Count;
+
+            return result;
         }
         catch (HttpRequestException ex)
         {

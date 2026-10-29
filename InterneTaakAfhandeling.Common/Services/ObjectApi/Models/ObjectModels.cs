@@ -89,15 +89,21 @@ namespace InterneTaakAfhandeling.Common.Services.ObjectApi.Models
     public class Groep
     {
         public string? Email { get; set; }
-        public required string Naam { get; set; }
-        public required string Identificatie { get; set; }
+        // Not marked `required`: the test/objecten register can contain legacy or
+        // partially-migrated records that match a substring query (data_icontains)
+        // but lack these fields under the current schema. Making them nullable
+        // prevents a single malformed record from throwing during deserialization
+        // of the entire results list; callers should filter out null/empty values.
+        public string? Naam { get; set; }
+        public string? Identificatie { get; set; }
     }
 
     public class Afdeling
     {
         public string? Email { get; set; }
-        public required string Naam { get; set; }
-        public required string Identificatie { get; set; }
+        // See comment on Groep.Naam/Identificatie above — same rationale applies here.
+        public string? Naam { get; set; }
+        public string? Identificatie { get; set; }
     }
 
     public class Vervanging
