@@ -168,11 +168,20 @@ namespace EndToEndTest.Common.Infrastructure
                     string? currentTitle = null;
                     try { currentTitle = await _page.TitleAsync(); } catch { /* best-effort */ }
 
-                    if (attempt == maxAttempts)
+                    // Only retry if we're demonstrably still on the code-entry screen — if the
+                    // page has already navigated away (e.g. to an unexpected intermediate screen),
+                    // the totp textbox may no longer exist at all, and blindly calling FillAsync on
+                    // it here would itself hang for the full timeout instead of failing fast.
+                    // IsVisibleAsync() has no timeout and returns immediately (true/false), so it's
+                    // safe to call even if the element is no longer present.
+                    var stillOnCodeScreen = await totpBoxSelector.IsVisibleAsync();
+
+                    if (attempt == maxAttempts || !stillOnCodeScreen)
                     {
                         throw new TimeoutException(
                             $"Timed out waiting for a post-2FA-verify outcome (decline/\"Nieuw contactmoment\"/error) " +
-                            $"after {maxAttempts} attempts. Current page: url='{currentUrl}', title='{currentTitle}'.");
+                            $"after attempt {attempt}/{maxAttempts} (stillOnCodeScreen={stillOnCodeScreen}). " +
+                            $"Current page: url='{currentUrl}', title='{currentTitle}'.");
                     }
 
                     // Treat an unresolved post-verify state the same as a detected error: retry
