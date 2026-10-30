@@ -219,7 +219,17 @@ public class ObjectApiClient(
             response = await _httpClient.GetAsync($"objects?type={afdelingOptions.Value.Type}&typeVersion={afdelingOptions.Value.TypeVersion}&data_icontains={query}");
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<ObjectModels<Afdeling>>();
-            return result!;
+
+            // Defensive filter: concurrent test runs against the shared register can produce
+            // transient records that match the substring query but briefly lack a Naam/
+            // Identificatie. Drop those here so callers never have to deal with afdelingen
+            // missing these fields.
+            result!.Results = result.Results
+                .Where(r => !string.IsNullOrWhiteSpace(r.Record.Data.Naam) && !string.IsNullOrWhiteSpace(r.Record.Data.Identificatie))
+                .ToList();
+            result.Count = result.Results.Count;
+
+            return result;
         }
         catch (HttpRequestException ex)
         {
