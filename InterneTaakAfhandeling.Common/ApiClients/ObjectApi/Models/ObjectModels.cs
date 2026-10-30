@@ -89,22 +89,15 @@ namespace InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models
     public class Groep
     {
         public string? Email { get; set; }
-        // Not marked `required`: concurrent E2E test runs against the shared test
-        // objectenregister can transiently create/update records that match a
-        // data_icontains substring query while mid-write (missing naam/identificatie
-        // for a brief window). Making these nullable prevents one such transient
-        // record from throwing during deserialization of the entire results list;
-        // callers should filter out null/empty values (see ObjectApiClient.FindAfdelingen).
-        public string? Naam { get; set; }
-        public string? Identificatie { get; set; }
+        public required string Naam { get; set; }
+        public required string Identificatie { get; set; }
     }
 
     public class Afdeling
     {
         public string? Email { get; set; }
-        // See comment on Groep.Naam/Identificatie above — same rationale applies here.
-        public string? Naam { get; set; }
-        public string? Identificatie { get; set; }
+        public required string Naam { get; set; }
+        public required string Identificatie { get; set; }
     }
 
     public class Vervanging
