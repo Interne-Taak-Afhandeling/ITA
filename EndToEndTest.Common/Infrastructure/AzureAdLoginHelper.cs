@@ -29,11 +29,27 @@ namespace EndToEndTest.Common.Infrastructure
             var uitloggenLink = _page.GetByRole(AriaRole.Link, new() { Name = "Uitloggen" });
             var usernameInput = _page.Locator("input[name='loginfmt']");
 
-            await uitloggenLink.Or(usernameInput).WaitForAsync();
+            // Some runs land on an intermediate Keycloak/broker "Sign in to your account" page
+            // (generic username/password fields + an "Or sign in with ICATT" identity-provider
+            // button) before being redirected to the actual Azure AD login (loginfmt) page.
+            // Detect it and click through to Azure AD instead of hanging forever waiting for
+            // a loginfmt field that will never appear on this intermediate page. Uses the same
+            // specific selector as the known-working GlobalSetup.ClickIcattIfPromptedAsync race
+            // (a generic role-based "ICATT" selector previously used here could match unrelated
+            // elements or race unpredictably with concurrent callers).
+            var icattIdpButton = _page.Locator("#social-oidc-icatt").First;
+
+            await uitloggenLink.Or(usernameInput).Or(icattIdpButton).First.WaitForAsync(new() { Timeout = 30000 });
 
             if (await uitloggenLink.IsVisibleAsync())
             {
                 return;
+            }
+
+            if (await icattIdpButton.IsVisibleAsync() && !await usernameInput.IsVisibleAsync())
+            {
+                await icattIdpButton.ClickAsync();
+                await usernameInput.WaitForAsync(new() { Timeout = 30000 });
             }
 
             await usernameInput.FillAsync(_username);
@@ -84,6 +100,14 @@ namespace EndToEndTest.Common.Infrastructure
 
             var declineStaySignedInButton = _page.GetByRole(AriaRole.Button, new() { Name = "Nee" })
                 .Or(_page.GetByRole(AriaRole.Button, new() { Name = "No" }));
+
+            // "Let's keep your account secure" / "We'll help you set up another way to verify
+            // it's you" interstitial. This only appears the *first* time a given account
+            // completes 2FA (Microsoft prompting to register an additional verification
+            // method) — subsequent logins go straight to the decline/"Nieuw contactmoment"
+            // outcome instead. Dismiss it via the "Not now" link so the flow can proceed.
+            var notNowLink = _page.GetByRole(AriaRole.Link, new() { Name = "Not now" })
+                .Or(_page.GetByRole(AriaRole.Link, new() { Name = "Niet nu" }));
 
             var nieuwContactmomentSelector = _page.GetByRole(AriaRole.Button, new() { Name = "Nieuw contactmoment" });
 
@@ -145,14 +169,16 @@ namespace EndToEndTest.Common.Infrastructure
                 const int resultTimeoutMs = 30000;
                 var declineTask = declineStaySignedInButton.WaitForAsync(new() { Timeout = resultTimeoutMs });
                 var nieuwContactmomentTask = nieuwContactmomentSelector.WaitForAsync(new() { Timeout = resultTimeoutMs });
+                var notNowTask = notNowLink.WaitForAsync(new() { Timeout = resultTimeoutMs });
                 var errorTask = errorMessageSelector.WaitForAsync(new() { Timeout = resultTimeoutMs });
 
-                var completedTask = await Task.WhenAny(declineTask, nieuwContactmomentTask, errorTask);
+                var completedTask = await Task.WhenAny(declineTask, nieuwContactmomentTask, notNowTask, errorTask);
 
                 // Observe the losing tasks' exceptions (timeouts) so they don't surface later
                 // as unobserved task exceptions once they complete/fault in the background.
                 _ = declineTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
                 _ = nieuwContactmomentTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+                _ = notNowTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
                 _ = errorTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
 
                 try
@@ -179,8 +205,8 @@ namespace EndToEndTest.Common.Infrastructure
                     if (attempt == maxAttempts || !stillOnCodeScreen)
                     {
                         throw new TimeoutException(
-                            $"Timed out waiting for a post-2FA-verify outcome (decline/\"Nieuw contactmoment\"/error) " +
-                            $"after attempt {attempt}/{maxAttempts} (stillOnCodeScreen={stillOnCodeScreen}). " +
+                            $"Timed out waiting for a post-2FA-verify outcome (decline/\"Nieuw contactmoment\"/" +
+                            $"\"Not now\"/error) after attempt {attempt}/{maxAttempts} (stillOnCodeScreen={stillOnCodeScreen}). " +
                             $"Current page: url='{currentUrl}', title='{currentTitle}'.");
                     }
 
@@ -205,6 +231,15 @@ namespace EndToEndTest.Common.Infrastructure
                 }
 
                 break;
+            }
+
+            // Only shown the first time an account completes 2FA ("Let's keep your account
+            // secure" — set up another verification method). Dismiss it so we land on the
+            // normal decline/"Nieuw contactmoment" screen; on subsequent runs it won't appear
+            // and this is a no-op.
+            if (await notNowLink.IsVisibleAsync())
+            {
+                await notNowLink.ClickAsync();
             }
 
             if (await declineStaySignedInButton.IsVisibleAsync())

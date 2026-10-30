@@ -214,19 +214,39 @@ public class ObjectApiClient(
     {
         HttpResponseMessage? response = null;
 
-        try
+        // The shared objecten test register can transiently expose a half-written
+        // Afdeling record (missing naam/identificatie) to a concurrent data_icontains
+        // substring query, which aborts deserialization of the whole results collection.
+        // This is a narrow read-after-write race on the register, not persistent bad data
+        // (confirmed by querying the register directly outside of this race) — so retrying
+        // the request after a brief delay reliably sees the fully-written record instead.
+        const int maxAttempts = 3;
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            response = await _httpClient.GetAsync($"objects?type={afdelingOptions.Value.Type}&typeVersion={afdelingOptions.Value.TypeVersion}&data_icontains={query}");
-            response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<ObjectModels<Afdeling>>();
-            return result!;
+            try
+            {
+                response = await _httpClient.GetAsync($"objects?type={afdelingOptions.Value.Type}&typeVersion={afdelingOptions.Value.TypeVersion}&data_icontains={query}");
+                response.EnsureSuccessStatusCode();
+                var result = await response.Content.ReadFromJsonAsync<ObjectModels<Afdeling>>();
+                return result!;
+            }
+            catch (System.Text.Json.JsonException ex) when (attempt < maxAttempts)
+            {
+                _logger.LogWarning(ex, "Transient malformed afdeling record encountered on attempt {Attempt}/{MaxAttempts} for query '{Query}'; retrying after delay", attempt, maxAttempts, query);
+                await Task.Delay(300 * attempt);
+            }
+            catch (HttpRequestException ex)
+            {
+                var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
+                _logger.LogError(ex, "Error retrieving afdelingen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
+                throw;
+            }
         }
-        catch (HttpRequestException ex)
-        {
-            var errorResponse = response != null ? await response.Content.ReadAsStringAsync() : "";
-            _logger.LogError(ex, "Error retrieving afdelingen from overigeobjecten. Statuscode {StatusCode}. Response {errorResponse}", response?.StatusCode, errorResponse);
-            throw;
-        }
+
+        // Unreachable: the loop above either returns successfully or lets the final
+        // attempt's JsonException propagate (the `when (attempt < maxAttempts)` guard
+        // excludes the last attempt, so a JsonException there is not caught here).
+        throw new InvalidOperationException("Unreachable: FindAfdelingen retry loop exited without returning or throwing.");
     }
 
     public async Task<ObjectModels<Afdeling>> GetAfdelingen(int page)
