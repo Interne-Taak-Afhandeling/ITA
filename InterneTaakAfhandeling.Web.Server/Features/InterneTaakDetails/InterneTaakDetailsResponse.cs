@@ -1,7 +1,7 @@
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
+﻿using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi.Models;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.Internetaken;
+namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails;
 
 public class InterneTaakDetailsResponse
 {
@@ -24,6 +24,10 @@ public class InterneTaakDetailsResponse
     // Pre-resolved contact display fields (replaces client-side processing in ContactmomentDetails)
     public string? KlantNaam { get; init; }
     public string? Organisatienaam { get; init; }
+    // Only filled when PARTIJ_IDENTIFICATOR_TONEN is enabled
+    public List<string> Bsn { get; init; } = [];
+    public List<string> KvkNummer { get; init; } = [];
+    public List<string> Vestigingsnummer { get; init; } = [];
     public string? Email { get; init; }
     public TelefoonnummerItem? Telefoonnummer1 { get; init; }
     public TelefoonnummerItem? Telefoonnummer2 { get; init; }

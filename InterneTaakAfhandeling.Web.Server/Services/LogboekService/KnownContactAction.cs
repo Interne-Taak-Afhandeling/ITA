@@ -1,9 +1,9 @@
-﻿using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.KnownLogboekValues;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
+﻿using InterneTaakAfhandeling.Common.ApiClients;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 using InterneTaakAfhandeling.Web.Server.Features.KlantContact;
@@ -28,7 +28,7 @@ public class KnownContactAction
         };
     }
 
-    public static KnownContactAction CaseLinked(Guid zaakId, ITAUser loggedByUser)
+    public static KnownContactAction CaseLinked(string zaakId, ITAUser loggedByUser)
     {
         return new KnownContactAction
         {
@@ -42,13 +42,13 @@ public class KnownContactAction
                     CodeRegister = "openzaak",
                     CodeObjecttype = "zgw-Zaak",
                     CodeSoortObjectId = "uuid",
-                    ObjectId = zaakId.ToString()
+                    ObjectId = zaakId
                 }
             ]
         };
     }
 
-    public static KnownContactAction CaseModified(Guid zaakId, ITAUser loggedByUser)
+    public static KnownContactAction CaseModified(string zaakId, ITAUser loggedByUser)
     {
         return new KnownContactAction
         {
@@ -62,7 +62,7 @@ public class KnownContactAction
                     CodeRegister = "openzaak",
                     CodeObjecttype = "zgw-Zaak",
                     CodeSoortObjectId = "uuid",
-                    ObjectId = zaakId.ToString()
+                    ObjectId = zaakId
                 }
             ]
         };

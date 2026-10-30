@@ -1,4 +1,4 @@
-﻿using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+﻿using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.Shared.Urgentie;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInternetakenOverview;

@@ -1,4 +1,4 @@
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using ITA.InterneTaakAfhandeling.EndToEndTest.Helpers;
 using Microsoft.Playwright;

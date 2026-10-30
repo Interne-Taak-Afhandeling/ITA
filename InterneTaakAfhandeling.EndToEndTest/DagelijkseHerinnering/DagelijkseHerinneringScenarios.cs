@@ -13,17 +13,18 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
     /// SchedulerTrigger and TestMailbox are wired to real infrastructure - no further changes to
     /// this file should be needed at that point.
     ///
-    /// Link assertions intentionally match the CURRENT implementation in
-    /// VerlopenInternetakenProcessor.cs (medewerker -> "/afdelings-contacten", afdeling/groep ->
-    /// "/"), which is the reverse of Feature #413's Acceptance Criteria. This is a known,
-    /// separately-tracked bug - not something this task fixes.
+    /// Link assertions follow Feature #413's Acceptance Criteria: a Medewerker's mail links to
+    /// "/" (Mijn werkvoorraad), an Afdeling/Groep's mail links to "/afdelings-contacten"
+    /// (Afdelingswerkvoorraad). The href in the mail is absolute ({Ita:BaseUrl}{path}), so the
+    /// assertions match on the path followed by the closing quote of the href attribute. That
+    /// works whatever the base URL is, and keeps "/" from also matching "/afdelings-contacten".
     /// </summary>
     [TestClass]
     [DoNotParallelize]
     public class DagelijkseHerinneringScenarios : ITAPlaywrightTest
     {
-        private const string MedewerkerWerkvoorraadLinkPath = "/afdelings-contacten";
-        private const string AfdelingWerkvoorraadLinkPath = "/";
+        private const string MedewerkerWerkvoorraadLinkPath = "/";
+        private const string AfdelingWerkvoorraadLinkPath = "/afdelings-contacten";
         private const string AfsluitendeZin = "Fijne werkdag";
         private const string InstructieZin = "Neem contact op en handel deze contactverzoeken af.";
 
@@ -49,7 +50,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
             Assert.AreEqual(1, emails.Count, "Expected exactly one reminder mail.");
             var mail = emails[0];
             StringAssert.Contains(mail.Subject, "contactverzoek");
-            StringAssert.Contains(mail.HtmlBody, $"href=\"{MedewerkerWerkvoorraadLinkPath}");
+            StringAssert.Contains(mail.HtmlBody, $"{MedewerkerWerkvoorraadLinkPath}\"");
             StringAssert.Contains(mail.PlainTextBody, AfsluitendeZin);
         }
 
@@ -97,7 +98,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
             var emails = await TestMailbox.GetReceivedEmailsAsync($"afdeling-{afdelingNaam}@test.icatt.nl");
 
             Assert.AreEqual(1, emails.Count, "Expected exactly one reminder mail for the Afdeling.");
-            StringAssert.Contains(emails[0].HtmlBody, $"href=\"{AfdelingWerkvoorraadLinkPath}");
+            StringAssert.Contains(emails[0].HtmlBody, $"{AfdelingWerkvoorraadLinkPath}\"");
         }
 
         [TestMethod("Dual-assignment — zowel Medewerker als Afdeling ontvangen een herinneringsmail")]

@@ -1,14 +1,14 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.ZakenApi;
+using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Guards;
-using Microsoft.Extensions.Logging;
 
-namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
+namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
 {
-    public interface IInternetaakService
+    public interface IInternetaakDetailsService
     {
         Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters);
         Task<Internetaak?> GetByKlantcontactNummer(string klantcontactNummer);
@@ -17,14 +17,15 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
     public class InternetaakDetailsService(
         IOpenKlantApiClient openKlantApiClient,
         IZakenApiClient zakenApiClient,
-        IContactmomentenService contactmomentenService,
         IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
         ITAUser user,
-        ILogger<InternetaakDetailsService> logger) : IInternetaakService
+        PartijIdentificatorConfig partijIdentificatorConfig,
+        IInternetaakService internetaakService,
+        ILogger<InternetaakDetailsService> logger) : IInternetaakDetailsService
     {
         private readonly IOpenKlantApiClient _openKlantApiClient = openKlantApiClient;
         private readonly IZakenApiClient _zakenApiClient = zakenApiClient;
-        private readonly IContactmomentenService _contactmomentenService = contactmomentenService;
+        private readonly IInternetaakService _internetaakService = internetaakService;
         private readonly ILogger<InternetaakDetailsService> _logger = logger;
 
         public async Task<Internetaak?> Get(InterneTaakQuery interneTaakQueryParameters)
@@ -34,7 +35,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 Nummer = interneTaakQueryParameters.Nummer
             };
 
-            var internetaken = await _openKlantApiClient.QueryInterneTakenAsync(interneTaakQuery);
+            var internetaken = await _internetaakService.QueryInterneTakenAsync(interneTaakQuery);
 
 
             if (internetaken?.Count != 1)
@@ -48,6 +49,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 
             await EnrichWithZaakAsync(interntaak);
             await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);
+            await EnrichWithPartijIdentificatieAsync(interntaak);
 
             return interntaak;
         }
@@ -59,7 +61,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 Klantcontact__Nummer = klantcontactNummer
             };
 
-            var internetaken = await _openKlantApiClient.QueryInterneTakenAsync(query);
+            var internetaken = await _internetaakService.QueryInterneTakenAsync(query);
 
             if (internetaken == null || internetaken.Count == 0)
             {
@@ -85,15 +87,97 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
 
             await EnrichWithZaakAsync(interntaak);
             await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);
+            await EnrichWithPartijIdentificatieAsync(interntaak);
 
             return interntaak;
         }
+        
+        private async Task EnrichWithPartijIdentificatieAsync(Internetaak internetaak)
+        {
+            if (!partijIdentificatorConfig.Tonen)
+            {
+                return;
+            }
+
+            var partijUuids = internetaak.AanleidinggevendKlantcontact.Expand?.HadBetrokkenen?
+                .Select(b => b.Expand?.WasPartij?.Uuid)
+                .OfType<string>()
+                .Where(uuid => uuid.Length > 0)
+                .Distinct()
+                .ToList() ?? [];
+
+            if (partijUuids.Count == 0)
+            {
+                return;
+            }
+
+            var fetchedIdentificatoren = (await Task.WhenAll(partijUuids.Select(GetPartijIdentificatorenAsync)))
+                .OfType<List<PartijIdentificator>>()
+                .ToList();
+
+            if (fetchedIdentificatoren.Count == 0)
+            {
+                return;
+            }
+
+            var identificatoren = fetchedIdentificatoren.SelectMany(i => i).ToList();
+
+            List<string> Waarden(string codeSoortObjectId) => [.. identificatoren
+                .Where(i => i.CodeSoortObjectId == codeSoortObjectId)
+                .Select(i => i.ObjectId)
+                .OfType<string>()
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()];
+
+            internetaak.PartijIdentificatie = new PartijIdentificatie
+            {
+                Bsn = Waarden(KnownPartijIdentificatorSoorten.Bsn),
+                KvkNummer = Waarden(KnownPartijIdentificatorSoorten.KvkNummer),
+                Vestigingsnummer = Waarden(KnownPartijIdentificatorSoorten.Vestigingsnummer)
+            };
+        }
+
+        // Returns null when the lookup fails, so one failing partij does not hide the identificatoren of the others
+        private async Task<List<PartijIdentificator>?> GetPartijIdentificatorenAsync(string partijUuid)
+        {
+            try
+            {
+                var partij = await _openKlantApiClient.GetAsync<PartijMetIdentificatoren>($"partijen/{partijUuid}");
+
+                return partij?.PartijIdentificatoren?
+                    .Select(i => i.PartijIdentificator)
+                    .OfType<PartijIdentificator>()
+                    .ToList() ?? [];
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Ophalen partij-identificatoren gefaald voor partij {PartijUuid}", partijUuid);
+                return null;
+            }
+        }
+
+
+
+        private static string? GetZaakOnderwerpObject(Klantcontact klantContact)
+        {
+            return klantContact
+                .Expand?
+                .GingOverOnderwerpobjecten?
+                .Where(x =>
+                    x.Onderwerpobjectidentificator?.CodeObjecttype == KnownZgwIdentificators.OnderwerpobjectidentificatorCodeObjecttype &&
+                    x.Onderwerpobjectidentificator?.CodeRegister == KnownZgwIdentificators.OnderwerpobjectidentificatorCodeRegister
+                )
+                .FirstOrDefault()?
+                .Onderwerpobjectidentificator?
+                .ObjectId;
+        }
+
 
         private async Task EnrichWithZaakAsync(Internetaak? interntaak)
         {
             if (interntaak?.AanleidinggevendKlantcontact != null)
             {
-                var onderwerpObjectId = _contactmomentenService.GetZaakOnderwerpObject(interntaak.AanleidinggevendKlantcontact);
+                var onderwerpObjectId = GetZaakOnderwerpObject(interntaak.AanleidinggevendKlantcontact);
 
                 if (!string.IsNullOrEmpty(onderwerpObjectId))
                 {
@@ -125,7 +209,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                         _logger.LogInformation("Fallback: ophalen digitale adressen van partij {PartijUuid} voor betrokkene {BetrokkeneUuid}",
                             partijUuid, betrokkene.Uuid);
 
-                        partijAdressen = await _openKlantApiClient.GetPartijDigitaleAdressenAsync(partijUuid);
+                        var partij = await _openKlantApiClient.GetAsync<Partij>($"partijen/{partijUuid}?expand=digitaleAdressen");
+                        partijAdressen = partij?.Expand?.DigitaleAdressen ?? [];
                         partijAdressenCache[partijUuid] = partijAdressen;
                     }
 
@@ -143,5 +228,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaak
                 }
             }
         }
+
+        private record PartijMetIdentificatoren(List<PartijIdentificatorItem>? PartijIdentificatoren);
+        private record PartijIdentificatorItem(PartijIdentificator? PartijIdentificator);
+        private record PartijIdentificator(string? CodeSoortObjectId, string? ObjectId);
     }
 }

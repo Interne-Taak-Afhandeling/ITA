@@ -1,11 +1,12 @@
 using InterneTaakAfhandeling.Common.Extensions;
-using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi;
-using InterneTaakAfhandeling.Common.Services.Zgw;
+using InterneTaakAfhandeling.Common.ApiClients;
+using InterneTaakAfhandeling.Common.Services.Actors;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi;
+using InterneTaakAfhandeling.Common.ApiClients.Zgw;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
@@ -16,6 +17,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
     public class TestDataHelper
     {
         private OpenKlantApiClient OpenKlantApiClient { get; }
+        private IActorService ActorService { get; }
         private ObjectApiClient ObjectApiClient { get; }
         private ZakenApiClient ZakenApiClient { get; }
         private HttpClient OpenKlantHttpClient { get; }
@@ -42,6 +44,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             Logger = loggerFactory.CreateLogger<TestDataHelper>();
 
             OpenKlantApiClient = CreateOpenKlantApiClient(openKlantBaseUrl, openKlantApiKey, loggerFactory);
+            ActorService = new ActorService(OpenKlantApiClient, loggerFactory.CreateLogger<ActorService>());
             OpenKlantHttpClient = CreateOpenKlantHttpClient(openKlantBaseUrl, openKlantApiKey);
             ObjectApiClient = CreateObjectApiClient(objectenApiBaseUrl, objectenApiKey, loggerFactory, l, a, g, m);
             ZakenApiClient = CreateZakenApiClient(zakenApiBaseUrl, zakenApiKey, zakenApiClientId, loggerFactory);
@@ -599,7 +602,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         {
             try
             {
-                var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(klantcontactUuid);
+                var contactmoment = await GetKlantcontactAsync(klantcontactUuid);
 
                 if (contactmoment?.GingOverOnderwerpobjecten == null || 
                     contactmoment.GingOverOnderwerpobjecten.Count == 0)
@@ -647,11 +650,11 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public async Task<Internetaak> GetInternetaakByIdAsync(Guid uuid)
         {
-            var internetaak = await OpenKlantApiClient.GetInternetaakByIdAsync(uuid);
+            var internetaak = await OpenKlantApiClient.GetAsync<Internetaak>($"internetaken/{uuid}");
 
             if (internetaak.AanleidinggevendKlantcontact?.Uuid != null && internetaak.AanleidinggevendKlantcontact.Uuid != Guid.Empty)
             {
-                internetaak.AanleidinggevendKlantcontact = await OpenKlantApiClient.GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
+                internetaak.AanleidinggevendKlantcontact = await GetKlantcontactAsync(internetaak.AanleidinggevendKlantcontact.Uuid);
             }
 
             return internetaak;
@@ -659,7 +662,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         public async Task<Guid?> GetInternetaakUuidFromContactmomentAsync(Guid contactmomentUuid)
         {
-            var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
+            var contactmoment = await GetKlantcontactAsync(contactmomentUuid);
             var internetaak = contactmoment?.Expand?.LeiddeTotInterneTaken?.FirstOrDefault();
 
             if (internetaak?.Uuid == null)
@@ -679,7 +682,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         private async Task<List<Guid>> GetInternetaakUuidsFromContactmomentAsync(Guid contactmomentUuid)
         {
-            var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
+            var contactmoment = await GetKlantcontactAsync(contactmomentUuid);
             var internetaken = contactmoment?.Expand?.LeiddeTotInterneTaken;
 
             if (internetaken == null || internetaken.Count == 0)
@@ -735,7 +738,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         private async Task CleanupExistingContactmomenten(string onderwerp)
         {
-            var contactmomenten = await OpenKlantApiClient.QueryKlantcontactAsync(
+            var contactmomenten = await QueryKlantcontactAsync(
                 new KlantcontactQuery { Onderwerp = onderwerp });
 
             foreach (var existing in contactmomenten)
@@ -748,7 +751,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 await OpenKlantApiClient.DeleteKlantcontactAsync(existing.Uuid);
             }
 
-            var remaining = await OpenKlantApiClient.QueryKlantcontactAsync(
+            var remaining = await QueryKlantcontactAsync(
                 new KlantcontactQuery { Onderwerp = onderwerp });
 
             if (remaining.Count > 0)
@@ -759,7 +762,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         private async Task ConnectActorToContactmoment(Actor actor, Guid contactmomentUuid)
         {
-            var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(contactmomentUuid);
+            var contactmoment = await GetKlantcontactAsync(contactmomentUuid);
 
             if (contactmoment.HadBetrokkenActoren.Any(a => a.Uuid == actor.Uuid))
             {
@@ -981,7 +984,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         private async Task<Actor> GetOrCreateActor(ActorQuery query, ActorRequest request)
         {
-            var actor = await OpenKlantApiClient.QueryActorAsync(query);
+            var actor = await ActorService.QueryActorAsync(query);
             return actor ?? await OpenKlantApiClient.CreateActorAsync(request);
         }
 
@@ -1007,7 +1010,40 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return medewerkers.First();
         }
 
-//  Partij Operations
+        // OpenKlant lookups:
+        // The e2e project only references Common so these helpers read through the generic OpenKlantApiClient.GetAsync<T> instead.
+
+        private Task<Klantcontact?> GetKlantcontactAsync(Guid uuid)
+        {
+            return OpenKlantApiClient.GetAsync<Klantcontact>(
+                $"klantcontacten/{uuid}?expand=leiddeTotInterneTaken,gingOverOnderwerpobjecten,hadBetrokkenen,hadBetrokkenen.digitaleAdressen,hadBetrokkenen.wasPartij");
+        }
+
+        private async Task<List<Klantcontact>> QueryKlantcontactAsync(KlantcontactQuery query)
+        {
+            var response = await OpenKlantApiClient.GetAsync<KlantcontactResponse>($"klantcontacten?{query.BuildQueryString()}");
+            return response?.Results ?? [];
+        }
+
+        private async Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid)
+        {
+            var response = await OpenKlantApiClient.GetAsyncHttpResponse($"onderwerpobjecten/{uuid}");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
+        }
+
+        private class KlantcontactResponse
+        {
+            public List<Klantcontact> Results { get; set; } = [];
+        }
+
+        //  Partij Operations
 
         private async Task<Partij> GetPartijByBsn(string bsn)
         {
@@ -1040,7 +1076,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             });
         }
 
-    //   Internetaak Operations
+        //   Internetaak Operations
 
         private static string GenerateUniqueInternetaakNummer()
         {
@@ -1088,7 +1124,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 
         private async Task<bool> IsZaakAlreadyConnected(Guid klantcontactUuid, string zaakUuid)
         {
-            var contactmoment = await OpenKlantApiClient.GetKlantcontactAsync(klantcontactUuid);
+            var contactmoment = await GetKlantcontactAsync(klantcontactUuid);
 
             if (contactmoment.GingOverOnderwerpobjecten?.Count == 0)
             {
@@ -1099,7 +1135,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             {
                 if (onderwerpobjectRef?.Uuid == null) continue;
 
-                var onderwerpobject = await OpenKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
+                var onderwerpobject = await GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
 
                 if (IsZaakOnderwerpobject(onderwerpobject, zaakUuid))
                 {
@@ -1234,9 +1270,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         /// <summary>
         /// Returns existing digitale adressen for a partij.
         /// </summary>
-        public Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid)
+        public async Task<List<DigitaleAdres>> GetPartijDigitaleAdressenAsync(string partijUuid)
         {
-            return OpenKlantApiClient.GetPartijDigitaleAdressenAsync(partijUuid);
+            var partij = await OpenKlantApiClient.GetAsync<Partij>($"partijen/{partijUuid}?expand=digitaleAdressen");
+            return partij.Expand?.DigitaleAdressen ?? [];
         }
 
         /// <summary>
@@ -1320,7 +1357,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             var response = await OpenKlantHttpClient.PostAsJsonAsync("partijen", request);
             response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadFromJsonAsync<Common.Services.OpenKlantApi.Models.Partij>();
+            var result = await response.Content.ReadFromJsonAsync<Common.ApiClients.OpenKlantApi.Models.Partij>();
             Logger.LogInformation("Created partij without adressen: {Uuid}", result!.Uuid);
             return result.Uuid;
         }

@@ -20,7 +20,7 @@ public sealed class VerlopenContactverzoekHerinneringNotificatieTemplateService
             </head>
             <body>
                 <p>Beste collega,</p>
-                <p>Er staan <strong>{{aantalCvs}}</strong> contactverzoeken open die al verlopen zijn. Het langstlopende contactverzoek staat al <strong>{{maxWerkdagen}}</strong> werkdag{{werkdagSuffix}} open.</p>
+                <p>Er staan <strong>{{aantalCvs}}</strong> contactverzoeken open die al verlopen zijn. Het langstlopende contactverzoek staat <strong>{{maxWerkdagen}}</strong> werkdag{{werkdagSuffix}} open.</p>
                 <p>Inwoners waarderen een snelle afhandeling van hun verzoeken.</p>
                 <p>Neem contact op en handel deze contactverzoeken af.</p>
                 <p><a href="{{werkvoorraadUrlEncoded}}">Ga naar je werkvoorraad</a></p>
@@ -37,7 +37,7 @@ public sealed class VerlopenContactverzoekHerinneringNotificatieTemplateService
         return $"""
             Beste collega,
 
-            Er staan {aantalCvs} contactverzoeken open die al verlopen zijn. Het langstlopende contactverzoek staat al {maxWerkdagen} werkdag{werkdagSuffix} open.
+            Er staan {aantalCvs} contactverzoeken open die al verlopen zijn. Het langstlopende contactverzoek staat {maxWerkdagen} werkdag{werkdagSuffix} open.
 
             Inwoners waarderen een snelle afhandeling van hun verzoeken.
             Neem contact op en handel deze contactverzoeken af.

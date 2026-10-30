@@ -1,9 +1,9 @@
 ﻿using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Helpers;
-using InterneTaakAfhandeling.Common.Services.ObjectApi;
-using InterneTaakAfhandeling.Common.Services.ObjectApi.Models;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi;
+using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 
 namespace InterneTaakAfhandeling.Web.Server.Guards;
@@ -61,11 +61,8 @@ public class ContactverzoekAutorisatieGuardService(
 
     private static List<string> GetAfdelingEnGroepNamenVanTaak(Internetaak internetaak)
     {
+        // Only ToegewezenAanActoren: ToegewezenAanActor is deprecated in OpenKlant and is not loaded (uuid only).
         var actoren = new List<Actor>();
-        if (internetaak.ToegewezenAanActor != null)
-        {
-            actoren.Add(internetaak.ToegewezenAanActor);
-        }
         if (internetaak.ToegewezenAanActoren != null)
         {
             actoren.AddRange(internetaak.ToegewezenAanActoren);

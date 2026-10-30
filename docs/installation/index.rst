@@ -9,6 +9,7 @@ Deze handleiding is gebaseerd op Azure Kubernetes, maar ondersteunt ook andere h
    :maxdepth: 1
    :caption: Lees meer
 
+   vereisten.md
    configuratie.md
    objecttypen.rst
    cosp.rst

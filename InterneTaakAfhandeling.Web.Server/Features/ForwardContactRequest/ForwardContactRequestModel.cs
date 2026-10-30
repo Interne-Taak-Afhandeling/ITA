@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 
 namespace InterneTaakAfhandeling.Web.Server.Features.ForwardContactRequest;
 
@@ -27,7 +27,8 @@ public class ForwardContactRequestModel : IValidatableObject
 
 public class ForwardContactRequestResponse
 {
-    public Internetaak? Internetaak { get; init; }
-    public required string NotificationResult { get; init; }
+    public required string NotificationResultMessage { get; init; }
+    public bool AllNotificationsSent { get; init; }
+    public List<string> Recipients { get; init; } = [];
 }
 

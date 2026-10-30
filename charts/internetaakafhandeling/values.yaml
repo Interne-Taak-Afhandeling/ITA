@@ -138,6 +138,9 @@ web:
     designTokensUrl: ""
     webFontSources: []
 
+  # Show the BSN or KVK-nummer/vestigingsnummer of the partij on a contactverzoek (default: false)
+  partijIdentificatorTonen: false
+
   resources: {}
   # limits:
   #   cpu: 200m

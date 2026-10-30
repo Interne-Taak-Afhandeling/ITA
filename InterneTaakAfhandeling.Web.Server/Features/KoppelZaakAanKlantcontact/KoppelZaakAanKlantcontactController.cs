@@ -1,10 +1,12 @@
-﻿using InterneTaakAfhandeling.Common.Exceptions;
+﻿using InterneTaakAfhandeling.Common.Services.Klantcontacten;
+using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Helpers;
-using InterneTaakAfhandeling.Common.Services;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi;
-using InterneTaakAfhandeling.Common.Services.OpenKlantApi.Models;
-using InterneTaakAfhandeling.Common.Services.ZakenApi;
-using InterneTaakAfhandeling.Common.Services.ZakenApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients;
+using InterneTaakAfhandeling.Common.Services.Actors;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
+using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi;
+using InterneTaakAfhandeling.Common.ApiClients.ZakenApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
@@ -25,6 +27,8 @@ public class KoppelZaakAanKlantcontactController : Controller
     private readonly IZakenApiClient _zakenApiClient;
     private readonly ITAUser _user;
     private readonly IInternetaakGuardService _internetaakGuardService;
+    private readonly IActorService _actorService;
+    private readonly IKlantcontactService _klantcontactService;
 
     public KoppelZaakAanKlantcontactController(
         IZakenApiClient zakenApiClient,
@@ -32,8 +36,9 @@ public class KoppelZaakAanKlantcontactController : Controller
         ILogger<KoppelZaakAanKlantcontactController> logger,
         ILogboekService logboekService,
         IInternetaakGuardService internetaakGuardService,
-        ITAUser user
-        )
+        ITAUser user,
+        IActorService actorService,
+        IKlantcontactService klantcontactService)
     {
         _zakenApiClient = zakenApiClient ?? throw new ArgumentNullException(nameof(zakenApiClient));
         _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
@@ -41,6 +46,8 @@ public class KoppelZaakAanKlantcontactController : Controller
         _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
         _internetaakGuardService = internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
         _user = user;
+        _actorService = actorService ?? throw new ArgumentNullException(nameof(actorService));
+        _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
     }
 
     [HttpPost("koppel-zaak")]
@@ -94,7 +101,7 @@ public class KoppelZaakAanKlantcontactController : Controller
             _logger.LogInformation("Ophalen aanleidinggevend klantcontact met UUID: {SafeKlantcontactUuid}",
                 request.AanleidinggevendKlantcontactUuid);
             var aanleidinggevendKlantcontact =
-                await _openKlantApiClient.GetKlantcontactAsync(request.AanleidinggevendKlantcontactUuid);
+                await _klantcontactService.GetKlantcontactAsync(request.AanleidinggevendKlantcontactUuid);
 
             if (aanleidinggevendKlantcontact == null)
                 return NotFound(new ProblemDetails
@@ -139,6 +146,23 @@ public class KoppelZaakAanKlantcontactController : Controller
         }
     }
 
+
+
+    private async Task<Onderwerpobject?> GetOnderwerpobjectAsync(Guid uuid)
+    {
+        var response = await _openKlantApiClient.GetAsyncHttpResponse($"onderwerpobjecten/{uuid}");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Onderwerpobject>();
+    }
+
+
+
     private async Task<Onderwerpobject> KoppelZaakAanOnderwerpobject(Klantcontact klantcontact, string zaakUuid,
         string internetaakId)
     {
@@ -152,7 +176,7 @@ public class KoppelZaakAanKlantcontactController : Controller
             {
                 if (onderwerpobjectRef?.Uuid == null) continue;
 
-                var onderwerpobject = await _openKlantApiClient.GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
+                var onderwerpobject = await GetOnderwerpobjectAsync(onderwerpobjectRef.Uuid.Value);
 
                 if (onderwerpobject?.Onderwerpobjectidentificator != null &&
                     onderwerpobject.Onderwerpobjectidentificator.CodeObjecttype == "zgw-Zaak" &&
@@ -191,26 +215,26 @@ public class KoppelZaakAanKlantcontactController : Controller
         
         if (bestaandZaakOnderwerpobject?.Uuid != null)
         {
-            var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
+            var safeZaakUuid = SecureLogging.SanitizeAndTruncate(zaakUuid, 50);
             _logger.LogInformation(
                 "Bijwerken bestaand zaak-onderwerpobject {SafeOnderwerpUuid} met nieuwe zaak {SafeZaakUuid}",
                 bestaandZaakOnderwerpobject.Uuid, safeZaakUuid);
 
             var modifiedKlantContact = await _openKlantApiClient.UpdateOnderwerpobjectAsync(bestaandZaakOnderwerpobject.Uuid.Value, request);
-            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(Guid.Parse(zaakUuid), _user),
+            await _logboekService.LogContactRequestAction(KnownContactAction.CaseModified(zaakUuid, _user),
                 Guid.Parse(internetaakId));
             return modifiedKlantContact;
         }
         else
         {
-            var safeZaakUuid = SecureLogging.SanitizeUuid(zaakUuid);
+            var safeZaakUuid = SecureLogging.SanitizeAndTruncate(zaakUuid, 50);
             _logger.LogInformation(
                 "Aanmaken nieuw onderwerpobject voor zaak {SafeZaakUuid} en klantcontact {SafeKlantUuid}",
                 safeZaakUuid, klantcontact.Uuid);
 
             var linkedKlantContact = await _openKlantApiClient.CreateOnderwerpobjectAsync(request);
 
-            await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(Guid.Parse(zaakUuid), _user),
+            await _logboekService.LogContactRequestAction(KnownContactAction.CaseLinked(zaakUuid, _user),
                 Guid.Parse(internetaakId));
 
             return linkedKlantContact;
@@ -224,7 +248,7 @@ public class KoppelZaakAanKlantcontactController : Controller
 
         if (!string.IsNullOrWhiteSpace(userEmail))
         {
-            var fromEntra = await _openKlantApiClient.QueryActorAsync(new ActorQuery
+            var fromEntra = await _actorService.QueryActorAsync(new ActorQuery
             {
                 ActoridentificatorCodeObjecttype = KnownMedewerkerIdentificators.EmailFromEntraId.CodeObjecttype,
                 ActoridentificatorCodeRegister = KnownMedewerkerIdentificators.EmailFromEntraId.CodeRegister,
