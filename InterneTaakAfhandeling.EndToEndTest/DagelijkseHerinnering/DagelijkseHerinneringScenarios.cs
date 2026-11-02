@@ -1,6 +1,9 @@
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using InterneTaakAfhandeling.EndToEndTest.Werklijst;
 
+// Elk scenario zet een contactverzoek een paar werkuren voorbij de ingestelde afhandeltermijn,
+// zodat de herinneringsmail onafhankelijk van de termijn gaat lopen (zie #329).
+
 namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
 {
     /// <summary>
@@ -35,7 +38,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
         public async Task Medewerker_ReceivesReminderMail_ForOverdueContactverzoek()
         {
             const string onderwerp = "E2E_DagelijkseHerinnering_Medewerker";
-            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: UrgentieSettings.AfhandeltermijnUren + 5);
 
             await Step("Setup an overdue contactverzoek assigned only to the current Medewerker");
             var (uuid, _) = await TestDataHelper.CreateContactverzoekWithMedewerkerOnly(onderwerp, plaatsgevondenOp);
@@ -58,7 +61,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
         public async Task Medewerker_ReceivesSingleAggregatedMail_ForMultipleOverdueContactverzoeken()
         {
             const string onderwerpPrefix = "E2E_DagelijkseHerinnering_Geaggregeerd";
-            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: UrgentieSettings.AfhandeltermijnUren + 5);
 
             await Step("Setup 3 overdue contactverzoeken assigned to the current Medewerker");
             var uuids = await TestDataHelper.CreateMultipleContactverzoekenForMedewerker(onderwerpPrefix, count: 3, plaatsgevondenOp);
@@ -83,7 +86,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
         public async Task Afdeling_ReceivesReminderMail_ForUnassignedOverdueContactverzoek()
         {
             const string onderwerp = "E2E_DagelijkseHerinnering_Afdeling";
-            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: UrgentieSettings.AfhandeltermijnUren + 5);
 
             await Step("Setup an overdue contactverzoek assigned only to an Afdeling, no Medewerker");
             var (uuid, _, afdelingNaam) = await TestDataHelper.CreateContactverzoekWithAfdelingOnlyAndContactDatum(onderwerp, plaatsgevondenOp);
@@ -105,7 +108,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
         public async Task BothMedewerkerAndAfdeling_ReceiveReminderMail_ForDualAssignedContactverzoek()
         {
             const string onderwerp = "E2E_DagelijkseHerinnering_DualAssignment";
-            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: UrgentieSettings.AfhandeltermijnUren + 5);
 
             await Step("Setup an overdue contactverzoek assigned to both a Medewerker and an Afdeling");
             var (uuid, _, afdelingNaam) = await TestDataHelper.CreateContactverzoekWithContactDatum(onderwerp, plaatsgevondenOp);
@@ -128,7 +131,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
         {
             const string onderwerp = "E2E_DagelijkseHerinnering_GeenPersoonsgegevens";
             const string klantnaam = "Jan Janssen";
-            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: UrgentieSettings.AfhandeltermijnUren + 5);
 
             await Step("Setup an overdue contactverzoek with a named klant and gespreksinhoud");
             var (uuid, _) = await TestDataHelper.CreateContactverzoekWithMedewerkerOnly(onderwerp, plaatsgevondenOp);
@@ -151,7 +154,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
         public async Task NoReminderMail_ForVerwerktContactverzoek()
         {
             const string onderwerp = "E2E_DagelijkseHerinnering_Verwerkt";
-            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: UrgentieSettings.AfhandeltermijnUren + 5);
 
             await Step("Setup an overdue contactverzoek with status 'verwerkt', assigned to the current Medewerker");
             var (uuid, _, _) = await TestDataHelper.CreateVerwerktContactverzoekWithMedewerkerAsync(onderwerp, plaatsgevondenOp);
@@ -190,7 +193,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.DagelijkseHerinnering
 
             const string afdelingOnderwerp = "E2E_DagelijkseHerinnering_AfdelingZonderEmail";
             const string medewerkerOnderwerp = "E2E_DagelijkseHerinnering_AndereMedewerker";
-            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: 53);
+            var plaatsgevondenOp = BusinessHours.SubtractBusinessHours(DateTime.UtcNow, hours: UrgentieSettings.AfhandeltermijnUren + 5);
 
             await Step("Setup an overdue contactverzoek for an Afdeling without an email address");
             var (afdelingUuid, _, afdelingNaam) = await TestDataHelper.CreateContactverzoekWithAfdelingOnlyAndContactDatum(

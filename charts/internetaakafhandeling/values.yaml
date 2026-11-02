@@ -110,6 +110,13 @@ smtp:
 ita:
   baseUrl: ""
 
+# Urgentie-instellingen - optioneel, standaardwaarden gelden wanneer niets gezet is.
+urgentie:
+  # -- Aantal werkdaguren waarbinnen een contactverzoek afgehandeld dient te zijn (weekenden uitgezonderd). Default: 48.
+  afhandeltermijnUren: ""
+  # -- Aantal resterende werkdaguren waarna het urgentielabel oranje wordt. Default: 6.
+  bijnaVerlopenDrempelUren: ""
+
 # Web Application Configuration
 web:
   image:

@@ -7,9 +7,6 @@ namespace InterneTaakAfhandeling.EndToEndTest.Werklijst
     /// </summary>
     internal static class BusinessHours
     {
-        internal const int AfhandeltermijnUren = 48;
-        internal const int BijnaVerlopenDrempelUren = 6;
-
         internal static DateTime SubtractBusinessHours(DateTime from, double hours)
         {
             var current = from;
