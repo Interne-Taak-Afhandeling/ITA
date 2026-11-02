@@ -243,18 +243,59 @@ namespace EndToEndTest.Common.Infrastructure
                 break;
             }
 
-            // Only shown the first time an account completes 2FA ("Let's keep your account
-            // secure" — set up another verification method). Dismiss it so we land on the
-            // normal decline/"Nieuw contactmoment" screen; on subsequent runs it won't appear
-            // and this is a no-op.
-            if (await notNowLink.IsVisibleAsync())
-            {
-                await notNowLink.ClickAsync();
-            }
+            await CompleteLoginAsync(notNowLink, declineStaySignedInButton, nieuwContactmomentSelector);
+        }
 
-            if (await declineStaySignedInButton.IsVisibleAsync())
+        // Clicks through the post-2FA screens until the app's logged-in landing page is visible.
+        // Returning earlier (e.g. right after the "stay signed in" click) lets callers save the
+        // browser state mid-redirect, before the app has set its own session cookie.
+        private async Task CompleteLoginAsync(ILocator notNowLink, ILocator declineStaySignedInButton, ILocator nieuwContactmomentSelector)
+        {
+            var landing = _page.GetByRole(AriaRole.Link, new() { Name = "Uitloggen" })
+                .Or(nieuwContactmomentSelector)
+                .First;
+            var notNow = notNowLink.First;
+            var decline = declineStaySignedInButton.First;
+            var anyOutcome = landing.Or(notNow).Or(decline).First;
+
+            var deadline = DateTime.UtcNow.AddSeconds(90);
+            while (true)
             {
-                await declineStaySignedInButton.ClickAsync();
+                var remainingMs = (int)(deadline - DateTime.UtcNow).TotalMilliseconds;
+                try
+                {
+                    if (remainingMs <= 0)
+                    {
+                        throw new TimeoutException();
+                    }
+
+                    await anyOutcome.WaitForAsync(new() { Timeout = remainingMs });
+                }
+                catch (TimeoutException)
+                {
+                    var title = await _page.TitleAsync();
+                    throw new TimeoutException(
+                        "Login did not reach the app's logged-in landing page (\"Uitloggen\" link or " +
+                        $"\"Nieuw contactmoment\" button). Current page: url='{_page.Url}', title='{title}'.");
+                }
+
+                if (await landing.IsVisibleAsync())
+                {
+                    return;
+                }
+
+                // "Let's keep your account secure" — only shown the first time an account
+                // completes 2FA. Dismiss it; the "stay signed in" page may follow.
+                if (await notNow.IsVisibleAsync())
+                {
+                    await notNow.ClickAsync();
+                    continue;
+                }
+
+                if (await decline.IsVisibleAsync())
+                {
+                    await decline.ClickAsync();
+                }
             }
         }
     }

@@ -56,6 +56,20 @@ public static class GlobalSetup
         // has been removed in favor of the single, built-in handling in LoginAsync.
         await loginHelper.LoginAsync();
 
+        // Fail fast if the app session was not established: saving state without it makes every
+        // test redirect to the Keycloak login page and time out individually.
+        var uitloggenLink = page.GetByRole(AriaRole.Link, new() { Name = "Uitloggen" });
+        try
+        {
+            await uitloggenLink.WaitForAsync(new() { Timeout = 30000 });
+        }
+        catch (TimeoutException)
+        {
+            throw new InvalidOperationException(
+                "Global login finished but the app's logged-in marker (\"Uitloggen\" link) is not visible, " +
+                $"so no usable session would be saved. Current page: url='{page.Url}', title='{await page.TitleAsync()}'.");
+        }
+
         // Save authenticated state so all tests can reuse it
         await browserContext.StorageStateAsync(new()
         {
