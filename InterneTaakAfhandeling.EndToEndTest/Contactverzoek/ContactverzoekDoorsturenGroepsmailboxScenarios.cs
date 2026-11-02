@@ -541,7 +541,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         /// which reflects the selected afdeling/groep's groepsmailbox status. Returns true if found.
         /// </summary>
         private async Task<bool> SelectOptionUntilMedewerkerLabelIsAsync(
-            ILocator selectLocator, ILocator medewerkerLabel, string expectedLabelText, int maxAttempts = 10)
+            ILocator selectLocator, ILocator medewerkerLabel, string expectedLabelText, int maxAttempts = 30)
         {
             for (var i = 1; i <= maxAttempts; i++)
             {
