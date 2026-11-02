@@ -33,11 +33,14 @@ namespace EndToEndTest.Common.Infrastructure
             // (generic username/password fields + an "Or sign in with ICATT" identity-provider
             // button) before being redirected to the actual Azure AD login (loginfmt) page.
             // Detect it and click through to Azure AD instead of hanging forever waiting for
-            // a loginfmt field that will never appear on this intermediate page. Uses the same
-            // specific selector as the known-working GlobalSetup.ClickIcattIfPromptedAsync race
-            // (a generic role-based "ICATT" selector previously used here could match unrelated
-            // elements or race unpredictably with concurrent callers).
-            var icattIdpButton = _page.Locator("#social-oidc-icatt").First;
+            // a loginfmt field that will never appear on this intermediate page. Primarily
+            // targets the known Keycloak theme id, but falls back to a text-based match in case
+            // the id differs across theme/version changes (which would otherwise silently skip
+            // the click and hang waiting for a loginfmt field that never appears).
+            var icattIdpButton = _page.Locator("#social-oidc-icatt")
+                .Or(_page.GetByRole(AriaRole.Link, new() { Name = "ICATT" }))
+                .Or(_page.GetByRole(AriaRole.Button, new() { Name = "ICATT" }))
+                .First;
 
             await uitloggenLink.Or(usernameInput).Or(icattIdpButton).First.WaitForAsync(new() { Timeout = 30000 });
 
@@ -46,10 +49,17 @@ namespace EndToEndTest.Common.Infrastructure
                 return;
             }
 
-            if (await icattIdpButton.IsVisibleAsync() && !await usernameInput.IsVisibleAsync())
+            if (!await usernameInput.IsVisibleAsync() && await icattIdpButton.IsVisibleAsync())
             {
                 await icattIdpButton.ClickAsync();
                 await usernameInput.WaitForAsync(new() { Timeout = 30000 });
+            }
+            else if (!await usernameInput.IsVisibleAsync())
+            {
+                throw new Exception(
+                    "Login stuck on an unrecognized intermediate page: neither the Azure AD " +
+                    "username field (input[name='loginfmt']) nor a recognizable ICATT identity " +
+                    "provider button (#social-oidc-icatt or an 'ICATT' link/button) was found.");
             }
 
             await usernameInput.FillAsync(_username);

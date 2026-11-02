@@ -543,7 +543,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         private async Task<bool> SelectOptionUntilMedewerkerLabelIsAsync(
             ILocator selectLocator, ILocator medewerkerLabel, string expectedLabelText, int maxAttempts = 30)
         {
-            for (var i = 1; i <= maxAttempts; i++)
+            var optionCount = await selectLocator.Locator("option").CountAsync();
+            var limit = optionCount > 1 ? Math.Min(optionCount - 1, maxAttempts) : maxAttempts; // skip index 0 (placeholder)
+
+            for (var i = 1; i <= limit; i++)
             {
                 try
                 {
