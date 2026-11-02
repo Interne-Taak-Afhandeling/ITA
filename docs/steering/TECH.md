@@ -9,8 +9,8 @@ Last updated: 2026-05-19
 | Layer | Technology | Version |
 | -------------- | ------------------------------------------ | ------- |
 | Language | C# | 12 |
-| Framework | ASP.NET Core | 8.0 |
-| ORM | Entity Framework Core (Npgsql) | 8.0.19 |
+| Framework | ASP.NET Core | 10.0 |
+| ORM | Entity Framework Core (Npgsql) | 10.0.14 |
 | Database | PostgreSQL | 17 |
 | Frontend | Vue 3 (Composition API) | 3.5 |
 | Build tool | Vite | 6.4 |
@@ -19,7 +19,7 @@ Last updated: 2026-05-19
 | Design system | NL Design System (Utrecht + Den Haag) | 2.x |
 | Auth | OpenID Connect (Duende AccessTokenMgmt) | 3.2 |
 | Logging | Serilog | 3.1 |
-| Container | Docker (Alpine .NET 8.0 base) | — |
+| Container | Docker (Alpine .NET 10.0 base) | — |
 | Orchestration | Kubernetes (Helm) | — |
 | Registry | ghcr.io/interne-taak-afhandeling | — |
 | Node runtime | Node.js | 22 LTS |
