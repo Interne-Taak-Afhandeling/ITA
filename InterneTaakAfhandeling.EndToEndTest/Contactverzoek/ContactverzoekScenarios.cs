@@ -956,7 +956,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Select kanaal as 'Balie'");
             await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Balie" });
 
-            await Step("Enter details in field 'Informatie voor burger / bedrijf' as 'test logboek'");
+            await Step("Enter details in field 'Informatie voor inwoner / bedrijf' as 'test logboek'");
             await Page.GetInformatieBurgerTextbox().FillAsync("test logboek");
 
             await Step("Click on contactmoment opslaan");
@@ -995,7 +995,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Step("Select kanaal as 'Balie'");
             await Page.GetKanalenSelect().SelectOptionAsync(new[] { "Balie" });
 
-            await Step("Enter details in field 'Informatie voor burger / bedrijf' as 'test logboek'");
+            await Step("Enter details in field 'Informatie voor inwoner / bedrijf' as 'test logboek'");
             await Page.GetInformatieBurgerTextbox().FillAsync("test logboek");
 
             await Step("Click on 'Opslaan en afsluiten' button");

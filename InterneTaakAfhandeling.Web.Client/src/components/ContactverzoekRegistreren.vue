@@ -47,14 +47,19 @@
       </utrecht-form-field>
       <utrecht-form-field>
         <utrecht-form-label for="informatie-burger"
-          >Informatie voor burger / bedrijf</utrecht-form-label
+          >Informatie voor inwoner / bedrijf</utrecht-form-label
         >
         <utrecht-textarea
           id="informatie-burger"
+          aria-describedby="informatie-burger-hint"
           v-model="registerContactmomentForm.informatieBurger"
           :placeholder="!isInformatieBurgerRequired ? `Optioneel` : undefined"
           :required="isInformatieBurgerRequired"
         />
+        <div id="informatie-burger-hint" class="small">
+          Deze tekst kan zichtbaar zijn voor de inwoner of het bedrijf, bijvoorbeeld in een
+          Mijn-omgeving.
+        </div>
       </utrecht-form-field>
 
       <interne-toelichting-field
