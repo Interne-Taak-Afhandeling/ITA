@@ -25,7 +25,8 @@ namespace InterneTaakAfhandeling.Common.Services.Email.Recipients
             {
                 var actorIdentificator = actor.Actoridentificator;
 
-                if (actorIdentificator.Matches(KnownMedewerkerIdentificators.EmailHandmatig))
+                if (actorIdentificator.Matches(KnownMedewerkerIdentificators.EmailHandmatig)
+                    || actorIdentificator.Matches(KnownMedewerkerIdentificators.EmailFromEntraId))
                 {
                     if (EmailService.IsValidEmail(actorIdentificator.ObjectId))
                     {
