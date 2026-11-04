@@ -204,7 +204,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
             await Expect(Page.GetVraagValue(onderwerp)).ToHaveTextAsync(onderwerp);
 
             await Expect(Page.GetInformatieVoorBurgerLabel()).ToBeVisibleAsync();
-            // The "Informatie voor burger" field loads from a nested API call
+            // The "Informatie voor inwoner" field loads from a nested API call
             // (internetaak → aanleidinggevendKlantcontact.inhoud). In CI, this
             // external API call can be slow.
             await Expect(Page.GetInformatieVoorBurgerValue()).ToContainTextAsync(

@@ -8,11 +8,9 @@
         :placeholder="placeholder"
         :required="required"
         :name="name"
+        :aria-describedby="hintId"
       />
-      <div class="small">
-        Deze toelichting is alleen voor medewerkers te zien en is verborgen voor de burger/het
-        bedrijf.
-      </div>
+      <div :id="hintId" class="small">Bedoeld voor collega's.</div>
     </utrecht-form-field>
   </interne-toelichting-section>
 </template>
@@ -21,6 +19,7 @@
 import { useId } from "vue";
 import InterneToelichtingSection from "./InterneToelichtingSection.vue";
 const id = `interne-toelichting-text${useId()}`;
+const hintId = `${id}-hint`;
 defineProps<{ required?: boolean; placeholder?: string; name?: string }>();
 const model = defineModel<string>({ default: "" });
 </script>
