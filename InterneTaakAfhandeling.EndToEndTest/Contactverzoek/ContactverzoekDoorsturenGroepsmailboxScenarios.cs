@@ -543,16 +543,16 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
         private async Task<bool> SelectOptionUntilMedewerkerLabelIsAsync(
             ILocator selectLocator, ILocator medewerkerLabel, string expectedLabelText, int maxAttempts = 30)
         {
-            var optionCount = await selectLocator.Locator("option").CountAsync();
-            var limit = optionCount > 1 ? Math.Min(optionCount - 1, maxAttempts) : maxAttempts; // skip index 0 (placeholder)
-
-            for (var i = 1; i <= limit; i++)
+            for (var i = 1; i <= maxAttempts; i++)
             {
                 try
                 {
-                    await selectLocator.SelectOptionAsync(new SelectOptionValue { Index = i });
+                    // Short timeout so running past the last real option (out-of-range index)
+                    // fails fast instead of waiting the default 30s actionability timeout.
+                    await selectLocator.SelectOptionAsync(
+                        new SelectOptionValue { Index = i }, new() { Timeout = 2000 });
                 }
-                catch (PlaywrightException)
+                catch (Exception ex) when (ex is PlaywrightException or TimeoutException)
                 {
                     break;
                 }
@@ -563,7 +563,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
                     await Step($"Found option at index {i} with medewerkerveld label '{expectedLabelText}'");
                     return true;
                 }
-                catch (PlaywrightException)
+                catch (Exception ex) when (ex is PlaywrightException or TimeoutException)
                 {
                     // This option didn't match, try the next one
                 }
