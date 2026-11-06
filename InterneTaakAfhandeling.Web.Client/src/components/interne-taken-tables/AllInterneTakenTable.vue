@@ -8,7 +8,10 @@
         <utrecht-table-header-cell scope="col">Datum</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Klantnaam</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Onderwerp / vraag</utrecht-table-header-cell>
-        <utrecht-table-header-cell scope="col">Urgentie</utrecht-table-header-cell>
+        <utrecht-table-header-cell v-if="kolommen === 'urgentie'" scope="col"
+          >Urgentie</utrecht-table-header-cell
+        >
+        <utrecht-table-header-cell v-else scope="col">Afgehandeld op</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Afdeling</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Behandelaar</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Klantcontactnummer</utrecht-table-header-cell>
@@ -44,8 +47,11 @@
         >
           {{ taak.onderwerp || taak.gevraagdeHandeling || "-" }}
         </utrecht-table-cell>
-        <utrecht-table-cell>
+        <utrecht-table-cell v-if="kolommen === 'urgentie'">
           <urgentie-badge :urgentie="taak.urgentie" />
+        </utrecht-table-cell>
+        <utrecht-table-cell v-else class="ita-no-wrap">
+          <date-time-or-nvt :date="taak.afgehandeldOp" />
         </utrecht-table-cell>
         <utrecht-table-cell class="text-truncate" :title="taak.afdelingNaam || ''">
           {{ taak.afdelingNaam || "-" }}
@@ -78,7 +84,14 @@ import DateTimeOrNvt from "../DateTimeOrNvt.vue";
 import UrgentieBadge from "../UrgentieBadge.vue";
 import type { InterneTaakOverviewItem } from "@/types/internetaken";
 
-defineProps<{ interneTaken: InterneTaakOverviewItem[] }>();
+withDefaults(
+  defineProps<{
+    interneTaken: InterneTaakOverviewItem[];
+    // urgentie: werkvoorraad, afgehandeldOp: historie
+    kolommen?: "urgentie" | "afgehandeldOp";
+  }>(),
+  { kolommen: "urgentie" }
+);
 
 const { onRowMouseDown, navigateOnRowClick } = useRowNavigation();
 </script>
