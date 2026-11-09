@@ -29,8 +29,8 @@ This README is the single source of documentation for the configuration of ITA (
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| nameOverride | string | `""` | Overrides the chart name in the names of the Kubernetes resources. Useful when ITA is used as a subchart. |
-| fullnameOverride | string | `""` | Overrides the full name that is used as prefix for the names of the Kubernetes resources. By default this is the release name. |
+| nameOverride | string | `""` | Changes the prefix of the names of the Kubernetes resources into `<release name>-<nameOverride>`. By default the prefix is the release name. Useful when ITA is used as a subchart. Don't combine with the bundled PostgreSQL, see [Built-in or external PostgreSQL](#built-in-or-external-postgresql). |
+| fullnameOverride | string | `""` | Replaces the prefix of the names of the Kubernetes resources. By default the prefix is the release name. Don't combine with the bundled PostgreSQL, see [Built-in or external PostgreSQL](#built-in-or-external-postgresql). |
 | nodeSelector | object | `{}` | Node selector for the website and the poller CronJobs. Useful in clusters with multiple node pools (e.g. AKS system/user pool separation), where workloads must run on specific nodes. |
 | tolerations | list | `[]` | Tolerations for the website and the poller CronJobs. |
 | affinity | object | `{}` | Affinity rules for the website and the poller CronJobs. |
@@ -138,7 +138,7 @@ This README is the single source of documentation for the configuration of ITA (
 | web.oidc.nameClaimType | string | `name` | Name of the claim in the token of the Identity Provider that contains the full name of the logged in user.<br/>Env: `OIDC_NAME_CLAIM_TYPE` |
 | web.oidc.roleClaimType | string | `roles` | Name of the claim in the token of the Identity Provider that contains the roles of the logged in user.<br/>Env: `OIDC_ROLE_CLAIM_TYPE` |
 | web.oidc.objectregisterMedewerkerIdClaimType | string | `""` | **Required in practice.** Name of the claim in the token of the Identity Provider that contains a unique identification of the logged in user. Its value must match the attribute `identificatie` of the Medewerker in the Objects API. In most cases this is `email`.<br/>Env: `OIDC_OBJECTREGISTER_MEDEWERKER_ID_CLAIM_TYPE` <details><summary>More information</summary>ITA uses this value to find the Contactverzoeken that are assigned to the logged in user, and to find the Afdelingen and Groepen of the user. Without it, a user without the functioneel beheerder role cannot open Contactverzoeken of their Afdelingen and Groepen. When this value is set and the token of a user does not contain the claim, the user gets an error.<br/><br/>**Note:** ITA also sends this value as the `user_id` claim in the JWT token to the zaaksysteem. When you use the e-Suite via the podiumd-adapter, the e-Suite uses this value: it must match the username of the medewerker in the e-Suite.</details> |
-| web.oidc.emailClaimType | string | `email` | Name of the claim in the token of the Identity Provider that contains the e-mail address of the logged in user.<br/>Env: `OIDC_EMAIL_CLAIM_TYPE` |
+| web.oidc.emailClaimType | string | `email` | Name of the claim in the token of the Identity Provider that contains the e-mail address of the logged in user. ITA also uses it to find the Contactverzoeken that are assigned to the logged in user.<br/>Env: `OIDC_EMAIL_CLAIM_TYPE` |
 
 ### Styling
 
@@ -164,11 +164,11 @@ This README is the single source of documentation for the configuration of ITA (
 
 ### Base URLs of the registers
 
-ITA appends relative paths to the base URLs of Open Klant and the Objects API. Therefore these base URLs must **end with a slash**: without it, the last part of the path is lost.
+ITA appends relative paths to the base URLs of the registers. Therefore a base URL that contains a path must **end with a slash**: without it, the last part of the path is lost.
 
 - **Open Klant:** `apiConnections.openKlant.baseUrl` includes `/klantinteracties/api/v1/`, for example `https://openklant.mijngemeente.nl/klantinteracties/api/v1/`. ITA expects the Klantinteracties API at exactly this path of the host: Open Klant can't run under an extra path prefix.
 - **Objects API:** `apiConnections.object.baseUrl` includes `/api/v2/`, for example `https://objecten.mijngemeente.nl/api/v2/`.
-- **Zaaksysteem:** `apiConnections.zaakSysteem.baseUrl` is the root URL of the zaaksysteem, for example `https://openzaak.mijngemeente.nl/`. ITA adds the path of the API itself (for example `zaken/api/v1/zaken`).
+- **Zaaksysteem:** `apiConnections.zaakSysteem.baseUrl` is the root URL of the zaaksysteem, for example `https://openzaak.mijngemeente.nl/`. ITA adds the path of the API itself (for example `zaken/api/v1/zaken`). If the zaaksysteem runs under a path prefix, end the URL with a slash, for example `https://mijngemeente.nl/openzaak/`.
   - When you use the e-Suite, ITA connects through the podiumd-adapter. Use the root URL of the adapter, for example `https://podiumd-adapter.mijngemeente.nl/`. The adapter routes based on the paths of the ZGW APIs. `clientId` and `key` are the client ID and client secret as configured in the adapter.
 
 ### Built-in or external PostgreSQL
@@ -180,19 +180,20 @@ ConnectionStrings__DefaultConnection=Host=<host>;Port=<port>;Database=<name>;Use
 ```
 
 - With `postgresql.enabled: true` (default), the chart installs PostgreSQL with the bundled bitnami subchart. The host is set automatically to `<fullname>-postgresql`. `postgresql.auth.username`, `postgresql.auth.password` and `postgresql.auth.database` must be the same as `database.username`, `database.password` and `database.name`: the subchart creates that user and database, and ITA connects with the `database.*` values. See the note about CloudNativePG above.
+  - Don't set `nameOverride` or `fullnameOverride` together with the bundled PostgreSQL. The subchart names its database service after the release name, while ITA connects to `<fullname>-postgresql`. With an override, these names no longer match and ITA can't reach the database.
 - With `postgresql.enabled: false`, fill in `database.host` (and `database.port` if needed) of your own PostgreSQL server.
 
 ITA creates and updates its tables itself, when the website or a poller job starts.
 
 ### About the objecttypes
 
-ITA reads Medewerkers, Afdelingen and Groepen, including their e-mail addresses, from the Objects API (Overige Objecten), and writes the logboek of a Contactverzoek to it. The objecttypes must be present in an Objecttypen API, and ITA expects the data to follow the community-concept schemas. The [Objecttypen page of the ITA documentation](https://ita.readthedocs.io/nl/stable/installation/objecttypen.html) describes each objecttype and links to its schema.
+ITA reads Medewerkers, Afdelingen and Groepen, including their e-mail addresses, from the Objects API (Overige Objecten), and writes the logboek of a Contactverzoek to it. The objecttypes must be present in an Objecttypen API. Medewerker, Afdeling and Groep must follow the community-concept schemas; the Logboek (Activiteitenlog) follows a schema that is part of ITA. The [Objecttypen page of the ITA documentation](https://ita.readthedocs.io/nl/stable/installation/objecttypen.html) describes each objecttype and links to its schema.
 
 ### Urgency validation at startup
 
-The `urgentie.*` settings are checked when ITA starts:
+The `urgentie.*` settings are checked when the website starts:
 
-- A value of `0`, a negative number or a value that is not a whole number is rejected. ITA does not start and logs an error that names the invalid setting.
+- A value of `0`, a negative number or a value that is not a whole number is rejected. The website does not start and logs an error that names the invalid setting. The poller job for the daily reminder (see [Poller jobs](#poller-jobs)) fails with the same error when it runs.
 - A `bijnaVerlopenDrempelUren` that is greater than or equal to `afhandeltermijnUren` is valid but unusual: every new Contactverzoek is then marked as almost overdue right away. ITA starts and logs a warning.
 
 ### Poller jobs
@@ -204,7 +205,7 @@ Next to the website, the chart installs the poller as two Kubernetes CronJobs. B
 | `<fullname>-nieuw-cv-notify` | `nieuwe-internetaak-notificatie` | Sends a notification e-mail about new Contactverzoeken (Interne Taken). | `nieuweInternetaakNotificatie.schedule` |
 | `<fullname>-verlopen-cv-notify` | `verlopen-contactverzoek-herinnering-notificatie` | Sends a daily reminder e-mail about overdue Contactverzoeken, per Medewerker and per Afdeling/Groep. Only installed when `verlopenContactverzoekHerinneringNotificatie.enabled` is `true`. | `verlopenContactverzoekHerinneringNotificatie.schedule` |
 
-Without helm, run the poller with one of these values in `POLLER_MODE`. When `POLLER_MODE` is not set, the poller runs `nieuwe-internetaak-notificatie`. With an unknown value, the poller logs an error and stops without doing anything.
+Without helm, run the poller with one of these values in `POLLER_MODE`. When `POLLER_MODE` is not set, the poller runs `nieuwe-internetaak-notificatie`. With an unknown value, the poller logs an error and stops without running a job. It then still exits successfully (exit code 0), so Kubernetes does not report the job as failed: check the logs.
 
 ### Settings set by the chart
 
@@ -212,7 +213,7 @@ The chart always sets these environment variables. If you install ITA without th
 
 | Env | Value | Description |
 |-----|-------|-------------|
-| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | `true` | Lets the website process the `X-Forwarded-*` headers of the ingress / reverse proxy. Keep this `true` when ITA runs behind an ingress. |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | `true` | Lets the website process the `X-Forwarded-For` and `X-Forwarded-Proto` headers of the ingress / reverse proxy. Keep this `true` when ITA runs behind an ingress. |
 | `POLLER_MODE` | per CronJob | Selects the poller job. See [Poller jobs](#poller-jobs). |
 
 ### Settings without a chart value

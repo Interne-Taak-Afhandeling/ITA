@@ -1,8 +1,8 @@
 # Naming overrides - useful when used as subchart
-# -- (string) Overrides the chart name in the names of the Kubernetes resources. Useful when ITA is used as a subchart.
+# -- (string) Changes the prefix of the names of the Kubernetes resources into `<release name>-<nameOverride>`. By default the prefix is the release name. Useful when ITA is used as a subchart. Don't combine with the bundled PostgreSQL, see [Built-in or external PostgreSQL](#built-in-or-external-postgresql).
 # @section -- Kubernetes
 nameOverride: ""
-# -- (string) Overrides the full name that is used as prefix for the names of the Kubernetes resources. By default this is the release name.
+# -- (string) Replaces the prefix of the names of the Kubernetes resources. By default the prefix is the release name. Don't combine with the bundled PostgreSQL, see [Built-in or external PostgreSQL](#built-in-or-external-postgresql).
 # @section -- Kubernetes
 fullnameOverride: ""
 
@@ -245,7 +245,7 @@ web:
     # <details><summary>More information</summary>ITA uses this value to find the Contactverzoeken that are assigned to the logged in user, and to find the Afdelingen and Groepen of the user. Without it, a user without the functioneel beheerder role cannot open Contactverzoeken of their Afdelingen and Groepen. When this value is set and the token of a user does not contain the claim, the user gets an error.<br/><br/>**Note:** ITA also sends this value as the `user_id` claim in the JWT token to the zaaksysteem. When you use the e-Suite via the podiumd-adapter, the e-Suite uses this value: it must match the username of the medewerker in the e-Suite.</details>
     # @section -- Authentication (OIDC)
     objectregisterMedewerkerIdClaimType: ""
-    # -- (string) Name of the claim in the token of the Identity Provider that contains the e-mail address of the logged in user.<br/>Env: `OIDC_EMAIL_CLAIM_TYPE`
+    # -- (string) Name of the claim in the token of the Identity Provider that contains the e-mail address of the logged in user. ITA also uses it to find the Contactverzoeken that are assigned to the logged in user.<br/>Env: `OIDC_EMAIL_CLAIM_TYPE`
     # @default -- `email`
     # @section -- Authentication (OIDC)
     emailClaimType: ""
