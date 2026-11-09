@@ -8,10 +8,12 @@
         <utrecht-table-header-cell scope="col">Datum</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Klantnaam</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Onderwerp / vraag</utrecht-table-header-cell>
-        <utrecht-table-header-cell v-if="kolommen === 'urgentie'" scope="col"
+        <utrecht-table-header-cell v-if="showUrgentie" scope="col"
           >Urgentie</utrecht-table-header-cell
         >
-        <utrecht-table-header-cell v-else scope="col">Afgehandeld op</utrecht-table-header-cell>
+        <utrecht-table-header-cell v-if="showAfgehandeldOp" scope="col"
+          >Afgehandeld op</utrecht-table-header-cell
+        >
         <utrecht-table-header-cell scope="col">Afdeling</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Behandelaar</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Klantcontactnummer</utrecht-table-header-cell>
@@ -47,10 +49,10 @@
         >
           {{ taak.onderwerp || taak.gevraagdeHandeling || "-" }}
         </utrecht-table-cell>
-        <utrecht-table-cell v-if="kolommen === 'urgentie'">
+        <utrecht-table-cell v-if="showUrgentie">
           <urgentie-badge :urgentie="taak.urgentie" />
         </utrecht-table-cell>
-        <utrecht-table-cell v-else class="ita-no-wrap">
+        <utrecht-table-cell v-if="showAfgehandeldOp" class="ita-no-wrap">
           <date-time-or-nvt :date="taak.afgehandeldOp" />
         </utrecht-table-cell>
         <utrecht-table-cell class="text-truncate" :title="taak.afdelingNaam || ''">
@@ -87,10 +89,10 @@ import type { InterneTaakOverviewItem } from "@/types/internetaken";
 withDefaults(
   defineProps<{
     interneTaken: InterneTaakOverviewItem[];
-    // urgentie: werkvoorraad, afgehandeldOp: historie
-    kolommen?: "urgentie" | "afgehandeldOp";
+    showUrgentie?: boolean;
+    showAfgehandeldOp?: boolean;
   }>(),
-  { kolommen: "urgentie" }
+  { showUrgentie: true, showAfgehandeldOp: false }
 );
 
 const { onRowMouseDown, navigateOnRowClick } = useRowNavigation();

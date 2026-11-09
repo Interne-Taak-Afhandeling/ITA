@@ -22,7 +22,8 @@
     <scroll-container>
       <all-interne-taken-table
         :interneTaken="results"
-        :kolommen="afgerond ? 'afgehandeldOp' : 'urgentie'"
+        :showAfgehandeldOp="afgerond"
+        :showUrgentie="!afgerond"
       >
         <template #caption v-if="itemRange">
           {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} contactverzoeken
