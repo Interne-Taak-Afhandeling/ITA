@@ -125,7 +125,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             // Falls back to Assert.Inconclusive if this environment has no SMTP configured
             // (smtp.host/fromEmail blank) — see AssertForwardSucceededOrSkipWhenSmtpUnavailable.
             await Step("Verify success toast");
-            await AssertForwardSucceededOrSkipWhenSmtpUnavailable("succesvol doorgestuurd");
+            await AssertForwardSucceededOrSkipWhenSmtpUnavailable("is doorgestuurd naar");
         }
 
         [TestMethod("Toegewezen aan uitsluitend een medewerker")]
@@ -178,7 +178,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             // Falls back to Assert.Inconclusive if this environment has no SMTP configured
             // (smtp.host/fromEmail blank) — see AssertForwardSucceededOrSkipWhenSmtpUnavailable.
             await Step("Verify success toast — the afdeling's groepsmailbox is the sole recipient");
-            await AssertForwardSucceededOrSkipWhenSmtpUnavailable("Contactverzoek succesvol doorgestuurd");
+            await AssertForwardSucceededOrSkipWhenSmtpUnavailable("is doorgestuurd naar");
         }
 
         // Scenario: Medewerker zonder geldig e-mailadres, afdeling met groepsmailbox
@@ -261,7 +261,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             // Falls back to Assert.Inconclusive if this environment has no SMTP configured
             // (smtp.host/fromEmail blank) — see AssertForwardSucceededOrSkipWhenSmtpUnavailable.
             await Step("Verify success toast — unchanged existing behavior");
-            await AssertForwardSucceededOrSkipWhenSmtpUnavailable("succesvol doorgestuurd");
+            await AssertForwardSucceededOrSkipWhenSmtpUnavailable("is doorgestuurd naar");
         }
 
         [TestMethod("Doorsturen naar groep zonder groepsmailbox en zonder medewerker wordt geweigerd")]
@@ -417,7 +417,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             // Falls back to Assert.Inconclusive if this environment has no SMTP configured
             // (smtp.host/fromEmail blank) — see AssertForwardSucceededOrSkipWhenSmtpUnavailable.
             await Step("Verify the exact, unchanged success message is shown");
-            await AssertForwardSucceededOrSkipWhenSmtpUnavailable("Contactverzoek succesvol doorgestuurd");
+            await AssertForwardSucceededOrSkipWhenSmtpUnavailable("is doorgestuurd naar");
         }
 
         // === Edge cases (Task #550) ===
