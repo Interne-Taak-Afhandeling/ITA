@@ -20,11 +20,7 @@
     </utrecht-form-field>
 
     <scroll-container>
-      <all-interne-taken-table
-        :interneTaken="results"
-        :showAfgehandeldOp="afgerond"
-        :showUrgentie="!afgerond"
-      >
+      <all-interne-taken-table :interneTaken="results">
         <template #caption v-if="itemRange">
           {{ itemRange.start }} tot {{ itemRange.end }} van {{ totalCount }} contactverzoeken
         </template>
