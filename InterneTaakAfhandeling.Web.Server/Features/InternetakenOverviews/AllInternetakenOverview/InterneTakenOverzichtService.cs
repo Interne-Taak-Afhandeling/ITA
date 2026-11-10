@@ -95,10 +95,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
             //behandelaar en afdelingnaam toevoegen 
             await LoadActorInfoAsync(internetaak, item);
 
-            //urgentie alleen voor openstaande contactverzoeken, berekend op basis van ContactDatum
-            item.Urgentie = internetaak.Status == KnownInternetaakStatussen.Verwerkt
-                ? null
-                : _urgentieBerekenService.Bereken(item.ContactDatum);
+            //urgentie berekenen op basis van ContactDatum
+            item.Urgentie = _urgentieBerekenService.Bereken(item.ContactDatum);
 
             return item;
         }
