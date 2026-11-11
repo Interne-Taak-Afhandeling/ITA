@@ -84,7 +84,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
         }
 
         public static ILocator GetInformatieVoorBurgerLabel(this IPage page) =>
-            page.GetByRole(AriaRole.Term).Filter(new() { HasText = "Informatie voor burger /" });
+            page.GetByRole(AriaRole.Term).Filter(new() { HasText = "Informatie voor inwoner /" });
 
         public static ILocator GetInformatieVoorBurgerValue(this IPage page) =>
             page.GetByText("This is a test contact request created during an end-to-end test run.");

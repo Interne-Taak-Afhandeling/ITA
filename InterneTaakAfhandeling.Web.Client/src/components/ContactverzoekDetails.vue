@@ -7,7 +7,7 @@
       </utrecht-data-list-value>
     </utrecht-data-list-item>
     <utrecht-data-list-item>
-      <utrecht-data-list-key>Informatie voor burger / bedrijf</utrecht-data-list-key>
+      <utrecht-data-list-key>Informatie voor inwoner / bedrijf</utrecht-data-list-key>
       <utrecht-data-list-value
         :value="taak.aanleidinggevendKlantcontact?.inhoud"
         multiline
