@@ -6,7 +6,11 @@
       <utrecht-heading :level="2" id="h2-a">Mijn afgeronde contactverzoeken</utrecht-heading>
       <simple-spinner v-if="isLoading" />
       <scroll-container v-else>
-        <my-interne-taken-table :interne-taken="assignedInternetaken" aria-labelledby="h2-a" />
+        <my-interne-taken-table
+          :interne-taken="assignedInternetaken"
+          kolom="afgehandeldOp"
+          aria-labelledby="h2-a"
+        />
       </scroll-container>
     </section>
   </div>
