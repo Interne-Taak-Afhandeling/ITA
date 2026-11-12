@@ -29,37 +29,11 @@ namespace EndToEndTest.Common.Infrastructure
             var uitloggenLink = _page.GetByRole(AriaRole.Link, new() { Name = "Uitloggen" });
             var usernameInput = _page.Locator("input[name='loginfmt']");
 
-            // Some runs land on an intermediate Keycloak/broker "Sign in to your account" page
-            // (generic username/password fields + an "Or sign in with ICATT" identity-provider
-            // button) before being redirected to the actual Azure AD login (loginfmt) page.
-            // Detect it and click through to Azure AD instead of hanging forever waiting for
-            // a loginfmt field that will never appear on this intermediate page. Primarily
-            // targets the known Keycloak theme id, but falls back to a text-based match in case
-            // the id differs across theme/version changes (which would otherwise silently skip
-            // the click and hang waiting for a loginfmt field that never appears).
-            var icattIdpButton = _page.Locator("#social-oidc-icatt")
-                .Or(_page.GetByRole(AriaRole.Link, new() { Name = "ICATT" }))
-                .Or(_page.GetByRole(AriaRole.Button, new() { Name = "ICATT" }))
-                .First;
-
-            await uitloggenLink.Or(usernameInput).Or(icattIdpButton).First.WaitForAsync(new() { Timeout = 30000 });
+            await uitloggenLink.Or(usernameInput).WaitForAsync();
 
             if (await uitloggenLink.IsVisibleAsync())
             {
                 return;
-            }
-
-            if (!await usernameInput.IsVisibleAsync() && await icattIdpButton.IsVisibleAsync())
-            {
-                await icattIdpButton.ClickAsync();
-                await usernameInput.WaitForAsync(new() { Timeout = 30000 });
-            }
-            else if (!await usernameInput.IsVisibleAsync())
-            {
-                throw new Exception(
-                    "Login stuck on an unrecognized intermediate page: neither the Azure AD " +
-                    "username field (input[name='loginfmt']) nor a recognizable ICATT identity " +
-                    "provider button (#social-oidc-icatt or an 'ICATT' link/button) was found.");
             }
 
             await usernameInput.FillAsync(_username);
@@ -110,14 +84,6 @@ namespace EndToEndTest.Common.Infrastructure
 
             var declineStaySignedInButton = _page.GetByRole(AriaRole.Button, new() { Name = "Nee" })
                 .Or(_page.GetByRole(AriaRole.Button, new() { Name = "No" }));
-
-            // "Let's keep your account secure" / "We'll help you set up another way to verify
-            // it's you" interstitial. This only appears the *first* time a given account
-            // completes 2FA (Microsoft prompting to register an additional verification
-            // method) — subsequent logins go straight to the decline/"Nieuw contactmoment"
-            // outcome instead. Dismiss it via the "Not now" link so the flow can proceed.
-            var notNowLink = _page.GetByRole(AriaRole.Link, new() { Name = "Not now" })
-                .Or(_page.GetByRole(AriaRole.Link, new() { Name = "Niet nu" }));
 
             var nieuwContactmomentSelector = _page.GetByRole(AriaRole.Button, new() { Name = "Nieuw contactmoment" });
 
@@ -179,16 +145,14 @@ namespace EndToEndTest.Common.Infrastructure
                 const int resultTimeoutMs = 30000;
                 var declineTask = declineStaySignedInButton.WaitForAsync(new() { Timeout = resultTimeoutMs });
                 var nieuwContactmomentTask = nieuwContactmomentSelector.WaitForAsync(new() { Timeout = resultTimeoutMs });
-                var notNowTask = notNowLink.WaitForAsync(new() { Timeout = resultTimeoutMs });
                 var errorTask = errorMessageSelector.WaitForAsync(new() { Timeout = resultTimeoutMs });
 
-                var completedTask = await Task.WhenAny(declineTask, nieuwContactmomentTask, notNowTask, errorTask);
+                var completedTask = await Task.WhenAny(declineTask, nieuwContactmomentTask, errorTask);
 
                 // Observe the losing tasks' exceptions (timeouts) so they don't surface later
                 // as unobserved task exceptions once they complete/fault in the background.
                 _ = declineTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
                 _ = nieuwContactmomentTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
-                _ = notNowTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
                 _ = errorTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
 
                 try
@@ -215,8 +179,8 @@ namespace EndToEndTest.Common.Infrastructure
                     if (attempt == maxAttempts || !stillOnCodeScreen)
                     {
                         throw new TimeoutException(
-                            $"Timed out waiting for a post-2FA-verify outcome (decline/\"Nieuw contactmoment\"/" +
-                            $"\"Not now\"/error) after attempt {attempt}/{maxAttempts} (stillOnCodeScreen={stillOnCodeScreen}). " +
+                            $"Timed out waiting for a post-2FA-verify outcome (decline/\"Nieuw contactmoment\"/error) " +
+                            $"after attempt {attempt}/{maxAttempts} (stillOnCodeScreen={stillOnCodeScreen}). " +
                             $"Current page: url='{currentUrl}', title='{currentTitle}'.");
                     }
 
@@ -243,59 +207,9 @@ namespace EndToEndTest.Common.Infrastructure
                 break;
             }
 
-            await CompleteLoginAsync(notNowLink, declineStaySignedInButton, nieuwContactmomentSelector);
-        }
-
-        // Clicks through the post-2FA screens until the app's logged-in landing page is visible.
-        // Returning earlier (e.g. right after the "stay signed in" click) lets callers save the
-        // browser state mid-redirect, before the app has set its own session cookie.
-        private async Task CompleteLoginAsync(ILocator notNowLink, ILocator declineStaySignedInButton, ILocator nieuwContactmomentSelector)
-        {
-            var landing = _page.GetByRole(AriaRole.Link, new() { Name = "Uitloggen" })
-                .Or(nieuwContactmomentSelector)
-                .First;
-            var notNow = notNowLink.First;
-            var decline = declineStaySignedInButton.First;
-            var anyOutcome = landing.Or(notNow).Or(decline).First;
-
-            var deadline = DateTime.UtcNow.AddSeconds(90);
-            while (true)
+            if (await declineStaySignedInButton.IsVisibleAsync())
             {
-                var remainingMs = (int)(deadline - DateTime.UtcNow).TotalMilliseconds;
-                try
-                {
-                    if (remainingMs <= 0)
-                    {
-                        throw new TimeoutException();
-                    }
-
-                    await anyOutcome.WaitForAsync(new() { Timeout = remainingMs });
-                }
-                catch (TimeoutException)
-                {
-                    var title = await _page.TitleAsync();
-                    throw new TimeoutException(
-                        "Login did not reach the app's logged-in landing page (\"Uitloggen\" link or " +
-                        $"\"Nieuw contactmoment\" button). Current page: url='{_page.Url}', title='{title}'.");
-                }
-
-                if (await landing.IsVisibleAsync())
-                {
-                    return;
-                }
-
-                // "Let's keep your account secure" — only shown the first time an account
-                // completes 2FA. Dismiss it; the "stay signed in" page may follow.
-                if (await notNow.IsVisibleAsync())
-                {
-                    await notNow.ClickAsync();
-                    continue;
-                }
-
-                if (await decline.IsVisibleAsync())
-                {
-                    await decline.ClickAsync();
-                }
+                await declineStaySignedInButton.ClickAsync();
             }
         }
     }

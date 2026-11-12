@@ -1,5 +1,4 @@
 using Microsoft.Playwright;
-using System.Text.RegularExpressions;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
 { 
@@ -208,7 +207,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
                 : page.GetByRole(AriaRole.Status).Filter(new() { HasText = text });
 
         public static ILocator GetContactmomentSuccesvolOpgeslagenEnAfgerondMessage(this IPage page) =>
-            page.GetByText(new Regex(@"(Contactverzoek .+|Het contactverzoek) is afgehandeld\."));
+            page.GetByText("Contact vastgelegd en contactverzoek afgerond");
 
         public static ILocator GetContactmomentSuccesvolBijgewerktMessage(this IPage page) =>
             page.GetByText("Contact succesvol vastgelegd");
