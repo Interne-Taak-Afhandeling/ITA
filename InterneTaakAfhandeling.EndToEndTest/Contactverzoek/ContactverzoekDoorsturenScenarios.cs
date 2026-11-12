@@ -1,5 +1,6 @@
 using InterneTaakAfhandeling.EndToEndTest.Infrastructure;
 using Microsoft.Playwright;
+using System.Text.RegularExpressions;
 
 namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
 {
@@ -228,6 +229,104 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Step("Verify no listbox/options are shown");
             var listbox = Page.Locator("#medewerker-combobox-listbox");
             await Expect(listbox).Not.ToBeVisibleAsync();
+        }
+
+        [TestMethod("Na succesvol doorsturen keert de gebruiker terug naar Mijn werklijst met bevestiging")]
+        public async Task User_ReturnsToMijnWerklijst_WithConfirmation_AfterForwarding()
+        {
+            var onderwerp = $"Test_Forward_ReturnWerklijst_{Guid.NewGuid().ToString()[..8]}";
+            await SetupContactverzoek(onderwerp);
+
+            await Step("Given user is on Mijn werklijst page");
+            await SafeGotoAsync("/");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn werkvoorraad", Level = 1 })).ToBeVisibleAsync();
+
+            await NavigateToContactverzoekAndOpenDoorsturenTab(onderwerp);
+
+            await Step("Find an afdeling with a groepsmailbox (submitting without a medewerker requires one, per Feature #512)");
+            var identificatie = await FindGroepMetGroepsmailboxAsync();
+            Assert.IsNotNull(identificatie, "No groep with a groepsmailbox found in test environment");
+
+            await Step("Select 'Groep' mode and the groep with a groepsmailbox");
+            await Page.GetDoorsturenGroepRadio().ClickAsync();
+            await Page.GetGroepSelect().SelectOptionAsync(new SelectOptionValue { Value = identificatie });
+
+            await Step("And forward the request");
+            await Page.GetContactverzoekDoorsturenButton().ClickAsync();
+
+            await Step("Then after a successful forwarding the employee automatically returns to the Mijn werklijst page");
+            await Expect(Page).ToHaveURLAsync(new Regex(@"/$"));
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn werkvoorraad", Level = 1 })).ToBeVisibleAsync();
+
+            await Step("And a confirmation message is shown with the contactverzoeknummer and afdeling/groep name");
+            var bevestiging = Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "is doorgestuurd naar" });
+            await Expect(bevestiging).ToBeVisibleAsync();
+            await Expect(bevestiging).ToContainTextAsync("De e-mailnotificatie is verstuurd.");
+
+            await Step("And the message contains a 'Sluiten' button");
+            var sluitenButton = bevestiging.GetByRole(AriaRole.Button, new() { Name = "Sluiten" });
+            await Expect(sluitenButton).ToBeVisibleAsync();
+
+            await Step("And the confirmation remains visible after reloading the same page (not auto-dismissed)");
+            await Page.ReloadAsync();
+            await Expect(bevestiging).ToBeVisibleAsync();
+
+            await Step("When the employee navigates to another page");
+            await Page.GotoAsync("/historie");
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
+
+            await Step("Then the confirmation is no longer visible");
+            await Expect(bevestiging).Not.ToBeVisibleAsync();
+
+            await Step("When the employee forwards another contactverzoek and closes the confirmation manually");
+            await SafeGotoAsync("/");
+            var secondOnderwerp = $"Test_Forward_ReturnWerklijst_{Guid.NewGuid().ToString()[..8]}";
+            await SetupContactverzoek(secondOnderwerp);
+            await NavigateToContactverzoekAndOpenDoorsturenTab(secondOnderwerp);
+            var secondIdentificatie = await FindGroepMetGroepsmailboxAsync();
+            Assert.IsNotNull(secondIdentificatie, "No groep with a groepsmailbox found in test environment");
+            await Page.GetDoorsturenGroepRadio().ClickAsync();
+            await Page.GetGroepSelect().SelectOptionAsync(new SelectOptionValue { Value = secondIdentificatie });
+            await Page.GetContactverzoekDoorsturenButton().ClickAsync();
+            await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn werkvoorraad", Level = 1 })).ToBeVisibleAsync();
+            var secondBevestiging = Page.GetByRole(AriaRole.Status).Filter(new() { HasText = "is doorgestuurd naar" });
+            await Expect(secondBevestiging).ToBeVisibleAsync();
+            await secondBevestiging.GetByRole(AriaRole.Button, new() { Name = "Sluiten" }).ClickAsync();
+
+            await Step("Then the confirmation is closed immediately");
+            await Expect(secondBevestiging).Not.ToBeVisibleAsync();
+        }
+
+        [TestMethod("Contactmoment registreren zonder af te sluiten houdt de gebruiker op de detailpagina")]
+        public async Task User_RegistersContactmoment_WithoutClosing_StaysOnDetailPage()
+        {
+            var onderwerp = $"Test_RegisterNoClose_{Guid.NewGuid().ToString()[..8]}";
+            await SetupContactverzoek(onderwerp);
+
+            await Step("Given the user is on the contactverzoek detail page");
+            await SafeGotoAsync("/");
+            var detailsLink = Page.GetDetailsLink(onderwerp);
+            await detailsLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await detailsLink.ClickAsync();
+            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
+            var detailPageUrl = Page.Url;
+
+            await Step("When the user registers a contact moment ('Nee' — do not close the request)");
+            await Page.GetContactOpnemenGeluktRadio().ClickAsync();
+            await Page.GetByLabel("Nee").ClickAsync();
+            var kanaalOption = Page.Locator("#kanalen").Locator("option", new() { HasText = "Telefoon" });
+            await kanaalOption.WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            await Page.Locator("#kanalen").SelectOptionAsync(new[] { "Telefoon" });
+            await Page.Locator("#informatie-burger").FillAsync("Contact gelukt, request remains open");
+            await Page.GetContactmomentOpslaanButton().ClickAsync();
+
+            await Step("Then the existing 'Contact succesvol vastgelegd' message is shown (no confirmation dialog for closing)");
+            await Expect(Page.GetContactmomentSuccesvolBijgewerktMessage()).ToBeVisibleAsync();
+
+            await Step("And the employee remains on the same contactverzoek detail page — the request stays open");
+            Assert.AreEqual(detailPageUrl, Page.Url, "User should remain on the same detail page URL");
+            await Expect(Page.GetContactmomentRegistrerenTab()).ToBeVisibleAsync();
+            await Expect(Page.GetAfgehandeldMessage()).Not.ToBeVisibleAsync();
         }
 
         // === Task #404 Backend Scenarios (verified via UI E2E) ===
