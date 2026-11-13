@@ -84,6 +84,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
 
             await Step("And user close the contactverzoek");
             await CloseContactverzoek(onderwerp);
+            await VerifyInternetaakIsVerwerkt(internetaakUuid);
 
             await Step("When user navigates to Afdelingshistorie");
             await Page.GotoAsync("/");
@@ -97,6 +98,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await afdelingDropdown.SelectOptionAsync(new[] { afdelingNaam });
 
             await Step("Then Afgehandeld op is filled with closing date time");
+            await Expect(Page.GetByText(onderwerp)).ToBeVisibleAsync(new() { Timeout = 30000 });
             await VerifyAfgehandeldOpIsFilled(onderwerp);
 
             await Step("When user navigates to Mijn historie");
@@ -104,6 +106,7 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Mijn historie", Level = 1 })).ToBeVisibleAsync();
 
             await Step("Then Afgehandeld op is filled with closing date time");
+            await Expect(Page.GetByText(onderwerp)).ToBeVisibleAsync(new() { Timeout = 30000 });
             await VerifyAfgehandeldOpIsFilled(onderwerp);
         }
 
@@ -132,15 +135,30 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             await Page.GetOpslaanEnAfrondenButton().ClickAsync();
         }
 
+        private async Task VerifyInternetaakIsVerwerkt(Guid internetaakUuid)
+        {
+            var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
+            var internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid);
+
+            while ((internetaak.Status != "verwerkt" || internetaak.AfgehandeldOp == null) && DateTimeOffset.UtcNow < deadline)
+            {
+                await Task.Delay(1000);
+                internetaak = await TestDataHelper.GetInternetaakByIdAsync(internetaakUuid);
+            }
+
+            Assert.AreEqual("verwerkt", internetaak.Status, "Contactverzoek should be closed (status 'verwerkt') before checking historie pages");
+            Assert.IsNotNull(internetaak.AfgehandeldOp, "AfgehandeldOp should be set once the contactverzoek is closed");
+        }
+
         private async Task VerifyAfgehandeldOpIsFilled(string onderwerp)
         {
-            var row = Page.GetByRole(AriaRole.Row).Filter(new() { HasText = onderwerp });
-            await Expect(row).ToBeVisibleAsync(new() { Timeout = 10000 });
+            var afgehandeldOpCell = await Page.GetColumnCellAsync(onderwerp, "Afgehandeld op");
+            await Expect(afgehandeldOpCell).ToBeVisibleAsync(new() { Timeout = 30000 });
 
-            var rowText = await row.InnerTextAsync();
-            var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
-            Assert.IsTrue(Regex.IsMatch(rowText, dateTimePattern),
-                $"Afgehandeld op should contain a datetime in DD-MM-YYYY HH:MM format. Actual row text: '{rowText}'");
+            var cellText = (await afgehandeldOpCell.InnerTextAsync()).Trim();
+            var dateTimePattern = @"^\d{2}-\d{2}-\d{4} \d{2}:\d{2}$";
+            Assert.IsTrue(Regex.IsMatch(cellText, dateTimePattern),
+                $"Afgehandeld op cell should contain a datetime in DD-MM-YYYY HH:MM format. Actual cell text: '{cellText}'");
         }
     }
 }
