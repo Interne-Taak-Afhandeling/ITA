@@ -10,7 +10,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
+import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
@@ -34,6 +34,29 @@ extensions = [
     "sphinx_rtd_theme",
     "myst_parser",
 ]
+
+# -- Link naar de README van de helm chart ------------------------------------
+# De configuratie van ITA staat in charts/internetaakafhandeling/README.md. Read the Docs
+# zet READTHEDOCS_GIT_IDENTIFIER op de branch of tag van de versie die gebouwd wordt
+# (bijv. "main" voor latest en "v3.4.0" voor stable/tags). Zo linkt elke versie van
+# deze documentatie naar de README die bij dezelfde versie van ITA hoort.
+# Lokaal (zonder Read the Docs) en bij PR-previews ("external" versies, waar de
+# identifier het PR-nummer is in plaats van een branch of tag) wordt naar main gelinkt.
+if os.environ.get("READTHEDOCS_VERSION_TYPE") == "external":
+    _git_ref = "main"
+else:
+    _git_ref = os.environ.get("READTHEDOCS_GIT_IDENTIFIER") or "main"
+_helm_readme_url = (
+    "https://github.com/Interne-Taak-Afhandeling/ITA/blob/"
+    f"{_git_ref}/charts/internetaakafhandeling/README.md"
+)
+
+myst_enable_extensions = ["substitution"]
+myst_substitutions = {
+    "helm_readme_version": _git_ref,
+    "helm_readme_url": _helm_readme_url,
+    "helm_readme_link": f"[README van de helm chart]({_helm_readme_url})",
+}
 
 intersphinx_mapping = {
     "rtd": ("https://docs.readthedocs.io/en/stable/", None),

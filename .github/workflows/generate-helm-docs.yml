@@ -4,6 +4,7 @@ on:
     paths:
       - "charts/internetaakafhandeling/values.yaml"
       - "charts/internetaakafhandeling/Chart.yaml"
+      - "charts/internetaakafhandeling/README.md.gotmpl"
 permissions:
   contents: write
   pull-requests: write
@@ -19,3 +20,5 @@ jobs:
         uses: losisin/helm-docs-github-action@v1
         with:
           git-push: true
+          # Keep the order of values.yaml, so the sections of the README are in a logical order
+          sort-values-order: file

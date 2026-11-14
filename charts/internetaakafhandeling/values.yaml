@@ -1,24 +1,44 @@
 # Naming overrides - useful when used as subchart
+# -- (string) Changes the prefix of the names of the Kubernetes resources into `<release name>-<nameOverride>`. By default the prefix is the release name. Useful when ITA is used as a subchart. Don't combine with the bundled PostgreSQL, see [Built-in or external PostgreSQL](#built-in-or-external-postgresql).
+# @section -- Kubernetes
 nameOverride: ""
+# -- (string) Replaces the prefix of the names of the Kubernetes resources. By default the prefix is the release name. Don't combine with the bundled PostgreSQL, see [Built-in or external PostgreSQL](#built-in-or-external-postgresql).
+# @section -- Kubernetes
 fullnameOverride: ""
 
 # Pod scheduling controls applied to both cronjobs and web-deployment.
 # Defaults are empty so behavior is unchanged on single-nodepool clusters.
 # Useful for multi-nodepool clusters (e.g. AKS system/user pool separation)
 # where workloads must be pinned to specific nodes.
+# -- (object) Node selector for the website and the poller CronJobs. Useful in clusters with multiple node pools (e.g. AKS system/user pool separation), where workloads must run on specific nodes.
+# @section -- Kubernetes
 nodeSelector: {}
+# -- (list) Tolerations for the website and the poller CronJobs.
+# @section -- Kubernetes
 tolerations: []
+# -- (object) Affinity rules for the website and the poller CronJobs.
+# @section -- Kubernetes
 affinity: {}
 
 # Global PostgreSQL configuration
 postgresql:
+  # -- (bool) Install a PostgreSQL database with the bundled bitnami subchart. Set to `false` to use an existing PostgreSQL server; then fill in `database.host`. See [Built-in or external PostgreSQL](#built-in-or-external-postgresql).
+  # @section -- Database
   enabled: true
   image:
     repository: bitnamilegacy/postgresql
   auth:
+    # -- (string) User that the bundled PostgreSQL creates. Must be the same as `database.username`. Only used when `postgresql.enabled` is `true`.
+    # @section -- Database
     username: ""
+    # -- (string) Password of the user that the bundled PostgreSQL creates. Must be the same as `database.password`. Only used when `postgresql.enabled` is `true`.
+    # @section -- Database
     password: ""
+    # -- (string) Database that the bundled PostgreSQL creates. Must be the same as `database.name`. Only used when `postgresql.enabled` is `true`.
+    # @section -- Database
     database: "interneTaakAfhandeling"
+    # -- (string) Password of the `postgres` admin user of the bundled PostgreSQL. Not used by ITA itself.
+    # @section -- Database
     postgresPassword: ""
   primary:
     persistence:
@@ -34,17 +54,26 @@ postgresql:
 
 # Ingress Configuration
 ingress:
+  # -- (bool) Create an Ingress for the ITA website.
+  # @section -- Ingress
   enabled: false
+  # -- (object) Annotations of the Ingress, for example for cert-manager.
+  # @section -- Ingress
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+  # -- (string) IngressClass of the Ingress, for example `nginx`.
+  # @section -- Ingress
   className: ""
-  # -- ingress hosts
+  # -- (list) Hosts and paths of the Ingress. See the example below this value in [values.yaml](./values.yaml).
+  # @section -- Ingress
   hosts: []
   #  - host: ita.gemeente.nl
   #    paths:
   #      - path: /
   #        pathType: ImplementationSpecific
+  # -- (list) TLS configuration of the Ingress. See the example below this value in [values.yaml](./values.yaml).
+  # @section -- Ingress
   tls: []
   #  - secretName: ita-tls
   #    hosts:
@@ -52,102 +81,198 @@ ingress:
 
 # Database Configuration
 database:
-  # When postgresql.enabled=true, host is auto-set to {Release.Name}-postgresql
-  # Specify this host only when postgresql.enabled=false
+  # -- (string) Host of the PostgreSQL server. Only used when `postgresql.enabled` is `false`. With the bundled PostgreSQL, the chart uses `<fullname>-postgresql` (by default `<release name>-postgresql`).<br/>Env: part of `ConnectionStrings__DefaultConnection`
+  # @section -- Database
   host: ""
+  # -- (string) Port of the PostgreSQL server.<br/>Env: part of `ConnectionStrings__DefaultConnection`
+  # @section -- Database
   port: "5432"
+  # -- (string) **Required.** Name of the database of ITA.<br/>Env: part of `ConnectionStrings__DefaultConnection`
+  # @section -- Database
   name: "interneTaakAfhandeling"
+  # -- (string) **Required.** Username for ITA to access the database.<br/>Env: part of `ConnectionStrings__DefaultConnection`
+  # @section -- Database
   username: ""
+  # -- (string) **Required.** Password for ITA to access the database.<br/>Env: part of `ConnectionStrings__DefaultConnection` (secret)
+  # @section -- Database
   password: ""
 
 # API Connections
 apiConnections:
   openKlant:
+    # -- (string) **Required.** URL of the Klantinteracties API of Open Klant, including `/klantinteracties/api/v1/` and **ending with a slash**. See [Base URLs of the registers](#base-urls-of-the-registers).<br/>Example: `https://openklant.mijngemeente.nl/klantinteracties/api/v1/`<br/>Env: `OpenKlantApi__BaseUrl`
+    # @section -- Registers
     baseUrl: ""
+    # -- (string) **Required.** Token for the Klantinteracties API of Open Klant.<br/>Env: `OpenKlantApi__ApiKey` (secret)
+    # @section -- Registers
     apiKey: ""
   object:
+    # -- (string) **Required.** URL of the Objects API (Overige Objecten, e.g. Open Objecten), including `/api/v2/` and **ending with a slash**. ITA reads Medewerkers, Afdelingen and Groepen from this API and writes the logboek to it.<br/>Example: `https://objecten.mijngemeente.nl/api/v2/`<br/>Env: `ObjectApi__BaseUrl`
+    # @section -- Registers
     baseUrl: ""
+    # -- (string) **Required.** Token for the Objects API.<br/>Env: `ObjectApi__ApiKey` (secret)
+    # @section -- Registers
     apiKey: ""
   zaakSysteem:
+    # -- (string) **Required.** Root URL of the zaaksysteem (ZGW APIs), **without** `/zaken/api/v1` (ITA adds that itself). When you use the e-Suite, this is the root URL of the podiumd-adapter. See [Base URLs of the registers](#base-urls-of-the-registers).<br/>Example: `https://openzaak.mijngemeente.nl/` or `https://podiumd-adapter.mijngemeente.nl/`<br/>Env: `ZaakSysteem__BaseUrl`
+    # @section -- Registers
     baseUrl: ""
+    # -- (string) **Required.** Client ID for the ZGW APIs of the zaaksysteem. With the podiumd-adapter, this is the client ID as configured in the adapter.<br/>Env: `ZaakSysteem__ClientId`
+    # @section -- Registers
     clientId: ""
+    # -- (string) **Required.** Secret for the ZGW APIs of the zaaksysteem, used to sign the JWT token. **At least 32 characters.** With the podiumd-adapter, this is the client secret as configured in the adapter.<br/>Env: `ZaakSysteem__Key` (secret)
+    # @section -- Registers
     key: ""
 
 logboek:
-  # -- De url van het logboek objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie
+  # -- (string) **Required.** URL of the Logboek (Activiteitenlog) objecttype in the Objecttypen API. ITA stores the history of the handling of a Contactverzoek with this objecttype. See [Objecttypes](#about-the-objecttypes).<br/>Example: `https://objecttypen.mijngemeente.nl/api/v2/objecttypes/<uuid>`<br/>Env: `LogBoekOptions__Type`
+  # @section -- Objecttypes
   type: ""
-  # -- De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
+  # -- (int) Version of the Logboek objecttype that is used (most likely `1`).<br/>Env: `LogBoekOptions__TypeVersion`
+  # @section -- Objecttypes
   typeVersion: 1
 
 afdeling:
-  # -- De url van het afdeling objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie
+  # -- (string) **Required.** URL of the Afdeling objecttype in the Objecttypen API. See [Objecttypes](#about-the-objecttypes).<br/>Env: `AfdelingOptions__Type`
+  # @section -- Objecttypes
   type: ""
-  # -- De versie van het afdeling objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
+  # -- (int) Version of the Afdeling objecttype that is used (most likely `1`).<br/>Env: `AfdelingOptions__TypeVersion`
+  # @section -- Objecttypes
   typeVersion: 1
 
 groep:
-  # -- De url van het groep objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie for meer informatie
+  # -- (string) **Required.** URL of the Groep objecttype in the Objecttypen API. See [Objecttypes](#about-the-objecttypes).<br/>Env: `GroepOptions__Type`
+  # @section -- Objecttypes
   type: ""
-  # -- De versie van het groep objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
+  # -- (int) Version of the Groep objecttype that is used (most likely `1`).<br/>Env: `GroepOptions__TypeVersion`
+  # @section -- Objecttypes
   typeVersion: 1
 
 medewerker:
-  # -- De url van het medewerker objecttype in de objecttypen api. zie de objecttypen pagina in de documentatie voor meer informatie
+  # -- (string) **Required.** URL of the Medewerker objecttype in the Objecttypen API. See [Objecttypes](#about-the-objecttypes).<br/>Env: `MedewerkerOptions__Type`
+  # @section -- Objecttypes
   type: ""
-  # -- De versie van het medewerker objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1)
+  # -- (int) Version of the Medewerker objecttype that is used (most likely `1`).<br/>Env: `MedewerkerOptions__TypeVersion`
+  # @section -- Objecttypes
   typeVersion: 1
 
 smtp:
+  # -- (string) **Required.** Host name of the mail server (SMTP) that ITA uses to send e-mails.<br/>Env: `Email__SmtpSettings__Host`
+  # @section -- E-mail notifications
   host: ""
+  # -- (string) Port of the mail server.<br/>Env: `Email__SmtpSettings__Port`
+  # @section -- E-mail notifications
   port: "25"
+  # -- (string) Username for the mail server.<br/>Env: `Email__SmtpSettings__Username`
+  # @section -- E-mail notifications
   username: ""
+  # -- (string) Password for the mail server.<br/>Env: `Email__SmtpSettings__Password` (secret)
+  # @section -- E-mail notifications
   password: ""
+  # -- (string) **Required.** Sender address of the e-mails that ITA sends.<br/>Env: `Email__SmtpSettings__FromEmail`
+  # @section -- E-mail notifications
   fromEmail: ""
+  # -- (string) `true` or `false`: use SSL/TLS for the connection with the mail server.<br/>Env: `Email__SmtpSettings__EnableSsl`
+  # @section -- E-mail notifications
   enableSsl: "true"
 
 # ITA Base URL for email deeplinks
 # Example: https://itawebsite.nl
 ita:
+  # -- (string) **Required.** Public URL of the ITA website. Used for the links to ITA in the e-mails that ITA sends.<br/>Example: `https://ita.mijngemeente.nl`<br/>Env: `Ita__BaseUrl`
+  # @section -- E-mail notifications
   baseUrl: ""
 
 # Urgentie-instellingen - optioneel, standaardwaarden gelden wanneer niets gezet is.
 urgentie:
-  # -- Aantal werkdaguren waarbinnen een contactverzoek afgehandeld dient te zijn (weekenden uitgezonderd). Default: 48.
+  # -- (int) Optional. Number of working hours within which a Contactverzoek should be handled. Weekends are not counted. Leave empty to use the default. See [Urgency validation at startup](#urgency-validation-at-startup).<br/>Env: `Urgentie__AfhandeltermijnUren`
+  # @default -- `48`
+  # @section -- Contactverzoeken
   afhandeltermijnUren: ""
-  # -- Aantal resterende werkdaguren waarna het urgentielabel oranje wordt. Default: 6.
+  # -- (int) Optional. Number of remaining working hours at which the urgency label of a Contactverzoek turns orange. Leave empty to use the default. See [Urgency validation at startup](#urgency-validation-at-startup).<br/>Env: `Urgentie__BijnaVerlopenDrempelUren`
+  # @default -- `6`
+  # @section -- Contactverzoeken
   bijnaVerlopenDrempelUren: ""
 
 # Web Application Configuration
 web:
   image:
+    # -- (string) Image of the ITA website.
+    # @section -- Deployment
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.web"
+    # -- (string) Tag of the website image. Use a fixed version in production, for example `3.4.0`.
+    # @section -- Deployment
     tag: "latest"
+    # -- (string) Pull policy of the website image.
+    # @section -- Deployment
     pullPolicy: Always
   
   service:
+    # -- (string) Type of the Kubernetes Service of the website.
+    # @section -- Deployment
     type: ClusterIP
+    # -- (int) Port of the Kubernetes Service of the website.
+    # @section -- Deployment
     port: 80
   
   oidc:
+    # -- (string) **Required.** URL of the OpenID Connect Identity Provider.<br/>Example: `https://login.microsoftonline.com/<tenant-id>/v2.0`<br/>Env: `OIDC_AUTHORITY`
+    # <details><summary>More information</summary>The chart only passes the `web.oidc` settings (except `clientSecret`) to ITA when this value is filled in. The website does not start without them.</details>
+    # @section -- Authentication (OIDC)
     authority: ""
+    # -- (string) **Required.** Client ID of ITA at the OpenID Connect Identity Provider.<br/>Env: `OIDC_CLIENT_ID`
+    # @section -- Authentication (OIDC)
     clientId: ""
+    # -- (string) **Required.** Client secret of ITA at the OpenID Connect Identity Provider.<br/>Env: `OIDC_CLIENT_SECRET` (secret)
+    # @section -- Authentication (OIDC)
     clientSecret: ""
+    # -- (string) **Required.** Value of the role claim that gives a user access to ITA.<br/>Example: `ITA-Gebruiker`<br/>Env: `OIDC_ITA_SYSTEM_ACCESS_ROLE`
+    # @section -- Authentication (OIDC)
     itaSystemAccessRole: ""
+    # -- (string) **Required.** Value of the role claim for functioneel beheerders. A functioneel beheerder also needs the role of `itaSystemAccessRole`.<br/>Example: `ITA-Functioneel-Beheerder`<br/>Env: `OIDC_FUNCTIONEEL_BEHEERDER_ROLE`
+    # <details><summary>More information</summary>With this role, a user can also manage kanalen (menu option Beheer), see all Contactverzoeken, reopen a Contactverzoek, and open Contactverzoeken of every Afdeling and Groep, not only those of their own Afdelingen and Groepen.</details>
+    # @section -- Authentication (OIDC)
     functioneelBeheerderRole: ""
+    # -- (string) Name of the claim in the token of the Identity Provider that contains the full name of the logged in user.<br/>Env: `OIDC_NAME_CLAIM_TYPE`
+    # @default -- `name`
+    # @section -- Authentication (OIDC)
     nameClaimType: ""
+    # -- (string) Name of the claim in the token of the Identity Provider that contains the roles of the logged in user.<br/>Env: `OIDC_ROLE_CLAIM_TYPE`
+    # @default -- `roles`
+    # @section -- Authentication (OIDC)
     roleClaimType: ""
+    # -- (string) **Required in practice.** Name of the claim in the token of the Identity Provider that contains a unique identification of the logged in user. Its value must match the attribute `identificatie` of the Medewerker in the Objects API. In most cases this is `email`.<br/>Env: `OIDC_OBJECTREGISTER_MEDEWERKER_ID_CLAIM_TYPE`
+    # <details><summary>More information</summary>ITA uses this value to find the Contactverzoeken that are assigned to the logged in user, and to find the Afdelingen and Groepen of the user. Without it, a user without the functioneel beheerder role cannot open Contactverzoeken of their Afdelingen and Groepen. When this value is set and the token of a user does not contain the claim, the user gets an error.<br/><br/>**Note:** ITA also sends this value as the `user_id` claim in the JWT token to the zaaksysteem. When you use the e-Suite via the podiumd-adapter, the e-Suite uses this value: it must match the username of the medewerker in the e-Suite.</details>
+    # @section -- Authentication (OIDC)
     objectregisterMedewerkerIdClaimType: ""
+    # -- (string) Name of the claim in the token of the Identity Provider that contains the e-mail address of the logged in user. ITA also uses it to find the Contactverzoeken that are assigned to the logged in user.<br/>Env: `OIDC_EMAIL_CLAIM_TYPE`
+    # @default -- `email`
+    # @section -- Authentication (OIDC)
     emailClaimType: ""
   
   styling:
+    # -- (string) Optional. Public, absolute URL of the logo of the municipality.<br/>Example: `https://www.mijngemeente.nl/logo.svg`<br/>Env: `RESOURCES__LOGO_URL`
+    # <details><summary>More information</summary>The chart only passes the `web.styling` settings to ITA when this value is filled in. ITA ignores URLs that are not absolute.</details>
+    # @section -- Styling
     logoUrl: ""
+    # -- (string) Optional. Public, absolute URL of the favicon of the municipality. Only passed to ITA when `logoUrl` is set.<br/>Example: `https://www.mijngemeente.nl/favicon.ico`<br/>Env: `RESOURCES__FAVICON_URL`
+    # @section -- Styling
     faviconUrl: ""
+    # -- (string) Optional. Public, absolute URL of a CSS file with [NL Design System](https://nldesignsystem.nl) design tokens, to style ITA in the house style of the municipality. Only passed to ITA when `logoUrl` is set.<br/>Example: `https://unpkg.com/@gemeente/design-tokens/dist/index.css`<br/>Env: `RESOURCES__DESIGN_TOKENS_URL`
+    # @section -- Styling
     designTokensUrl: ""
+    # -- (list) Optional. One or more public, absolute URLs of web font files of the house style, or of the location where all font files are. Only passed to ITA when `logoUrl` is set.<br/>Example: `["https://fonts.mijngemeente.nl/custom-regular-font.woff2", "https://fonts.mijngemeente.nl/custom-bold-font.woff2"]` or `["https://fonts.mijngemeente.nl/custom-font/"]`<br/>Env: `RESOURCES__WEB_FONT_SOURCES` (separated by spaces)
+    # <details><summary>More information</summary>This setting only allows the browser to load the font files (it adds the URLs to the Content Security Policy). The fonts must also be declared with `@font-face` rules in the theme CSS.</details>
+    # @section -- Styling
     webFontSources: []
 
   # Show the BSN or KVK-nummer/vestigingsnummer of the partij on a contactverzoek (default: false)
+  # -- (bool) Optional. Set to `true` to show the BSN (person) or the KVK-nummer and/or vestigingsnummer (company) of the partij linked to a Contactverzoek. If a Contactverzoek has multiple partijen, or a partij has multiple identificatoren of the same kind, all are shown. Nothing is shown when no partij is linked.<br/>Env: `PARTIJ_IDENTIFICATOR_TONEN`
+  # @section -- Contactverzoeken
   partijIdentificatorTonen: false
 
+  # -- (object) Resource requests and limits of the website container.
+  # @section -- Deployment
   resources: {}
   # limits:
   #   cpu: 200m
@@ -157,7 +282,11 @@ web:
   #   memory: 128Mi
 
   appsettings:
+    # -- (string) Placeholder: written as `Setting1` to the `appsettings.json` that the chart mounts in the website container, but not used by ITA.
+    # @section -- Deployment
     setting1: ""
+    # -- (string) Placeholder: written as `Setting2` to the `appsettings.json` that the chart mounts in the website container, but not used by ITA.
+    # @section -- Deployment
     setting2: ""
 
 # Poller — shared image and resource settings for all poller CronJobs.
@@ -166,10 +295,18 @@ web:
 #   "verlopen-contactverzoek-herinnering-notificatie" — send daily reminders for overdue contact requests
 poller:
   image:
+    # -- (string) Image of the poller, used by all poller CronJobs. See [Poller jobs](#poller-jobs).
+    # @section -- Deployment
     repository: "ghcr.io/interne-taak-afhandeling/internetaakafhandeling.poller"
+    # -- (string) Tag of the poller image. Use the same version as the website image.
+    # @section -- Deployment
     tag: "latest"
+    # -- (string) Pull policy of the poller image.
+    # @section -- Deployment
     pullPolicy: Always
 
+  # -- (object) Resource requests and limits of the poller containers.
+  # @section -- Deployment
   resources: {}
   # limits:
   #   cpu: 200m
@@ -180,15 +317,19 @@ poller:
 
 # NieuweInternetaakNotificatie — notifies assignees when a new internetaak is created (every 15 min)
 nieuweInternetaakNotificatie:
-  # -- Cron expression controlling how often the poller checks for new internetaken
+  # -- (string) Cron expression that controls how often the poller checks for new Contactverzoeken (Interne Taken) to send a notification e-mail for. Default: every 15 minutes. See [Poller jobs](#poller-jobs).
+  # @section -- E-mail notifications
   schedule: "*/15 * * * *"
   notification:
-    # -- Message written to the logs when a poller run starts
+    # -- (string) Message written to the logs when a poller run starts (both poller jobs).<br/>Env: `pollerMessage`
+    # @section -- E-mail notifications
     pollerMessage: "Poller uitgevoerd om:"
 
 # VerlopenContactverzoekHerinneringNotificatie — sends a daily reminder for overdue contact requests (weekdays 07:00)
 verlopenContactverzoekHerinneringNotificatie:
-  # -- Set to false to disable the daily reminder email for overdue contact requests (per medewerker and per afdeling/groep)
+  # -- (bool) Set to `false` to disable the daily reminder e-mail for overdue Contactverzoeken (per Medewerker and per Afdeling/Groep). See [Poller jobs](#poller-jobs).
+  # @section -- E-mail notifications
   enabled: true
-  # -- Cron expression controlling when the daily reminder email is sent
+  # -- (string) Cron expression that controls when the daily reminder e-mail is sent. Default: every working day at 07:00.
+  # @section -- E-mail notifications
   schedule: "0 7 * * 1-5"
