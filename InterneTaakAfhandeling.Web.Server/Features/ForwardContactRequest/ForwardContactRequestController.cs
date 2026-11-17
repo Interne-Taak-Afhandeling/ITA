@@ -14,6 +14,7 @@ public class ForwardContactRequestController(
     IForwardContactRequestService forwardContactRequestService,
     ILogboekService logboekService,
     IInternetaakGuardService internetaakGuardService,
+    IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
     ITAUser user,
     ILogger<ForwardContactRequestController> logger) : Controller
 {
@@ -23,10 +24,12 @@ public class ForwardContactRequestController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [HttpPost("{id:guid}/forward")]
     public async Task<IActionResult> ForwardContactRequestAsync([FromRoute] Guid id,
         [FromBody] ForwardContactRequestModel request)
     {
+        await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(id, _user);
         await internetaakGuardService.GuardAgainstVerwerktAsync(id);
 
         try
