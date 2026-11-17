@@ -14,6 +14,7 @@ public class AddNotitieToInternetaakController(
     ITAUser user,
     ILogboekService logboekService,
     IInternetaakGuardService internetaakGuardService,
+    IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
     ILogger<AddNotitieToInternetaakController> logger) : Controller
 {
     private readonly ILogboekService _logboekService =
@@ -31,9 +32,11 @@ public class AddNotitieToInternetaakController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [HttpPost("{internetaakId}/notitie")]
     public async Task<IActionResult> AddNote([FromRoute] Guid internetaakId, [FromBody] AddNotitieRequest request)
     {
+        await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaakId, _user);
         await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakId);
 
         try

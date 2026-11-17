@@ -20,6 +20,7 @@ public class CloseInterneTaakWithKlantContactController(
     ILogger<CloseInterneTaakWithKlantContactController> logger,
     IOpenKlantApiClient openKlantApiClient,
     IInternetaakGuardService internetaakGuardService,
+    IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
     ILogboekService logboekService,
     IInternetaakService internetaakService) : Controller
 {
@@ -46,9 +47,11 @@ public class CloseInterneTaakWithKlantContactController(
     [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [HttpPost("close-with-klantcontact")] //todo: refactor to "HttpPost("[internetaakUuid]/close-with-klantcontact)" and consider making it a PUT
     public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] RequestModel request)
     {
+        await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(request.InterneTaakId, _user);
         await _internetaakGuardService.GuardAgainstVerwerktAsync(request.InterneTaakId);
 
         try

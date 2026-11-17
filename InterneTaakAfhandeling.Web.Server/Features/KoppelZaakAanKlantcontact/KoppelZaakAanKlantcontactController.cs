@@ -27,6 +27,7 @@ public class KoppelZaakAanKlantcontactController : Controller
     private readonly IZakenApiClient _zakenApiClient;
     private readonly ITAUser _user;
     private readonly IInternetaakGuardService _internetaakGuardService;
+    private readonly IContactverzoekAutorisatieGuardService _contactverzoekAutorisatieGuardService;
     private readonly IActorService _actorService;
     private readonly IKlantcontactService _klantcontactService;
 
@@ -36,6 +37,7 @@ public class KoppelZaakAanKlantcontactController : Controller
         ILogger<KoppelZaakAanKlantcontactController> logger,
         ILogboekService logboekService,
         IInternetaakGuardService internetaakGuardService,
+        IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
         ITAUser user,
         IActorService actorService,
         IKlantcontactService klantcontactService)
@@ -46,6 +48,7 @@ public class KoppelZaakAanKlantcontactController : Controller
         _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
         _internetaakGuardService = internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
         _user = user;
+        _contactverzoekAutorisatieGuardService = contactverzoekAutorisatieGuardService ?? throw new ArgumentNullException(nameof(contactverzoekAutorisatieGuardService));
         _actorService = actorService ?? throw new ArgumentNullException(nameof(actorService));
         _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
     }
@@ -54,7 +57,7 @@ public class KoppelZaakAanKlantcontactController : Controller
     [ProducesResponseType(typeof(KoppelZaakAanKlantcontactResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    [AllowAnonymous]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> KoppelZaakAanKlantcontact([FromBody] KoppelZaakAanKlantcontactRequest request)
     {
         if (!Guid.TryParse(request.InternetaakId, out var internetaakGuid))
@@ -65,6 +68,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                 Status = StatusCodes.Status400BadRequest
             });
 
+        await _contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaakGuid, _user);
         await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakGuid);
 
         try

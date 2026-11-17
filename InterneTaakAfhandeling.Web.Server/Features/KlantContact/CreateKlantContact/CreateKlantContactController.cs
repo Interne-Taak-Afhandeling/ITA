@@ -20,13 +20,15 @@ public class CreateKlantContactController : Controller
 
 
     private readonly IInternetaakGuardService _internetaakGuardService;
+    private readonly IContactverzoekAutorisatieGuardService _contactverzoekAutorisatieGuardService;
 
     public CreateKlantContactController(
         ITAUser user,
         ICreateKlantContactService createKlantContactService,
         ILogger<CreateKlantContactController> logger,
         ILogboekService logboekService,
-        IInternetaakGuardService internetaakGuardService)
+        IInternetaakGuardService internetaakGuardService,
+        IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService)
     {
         _user = user ?? throw new ArgumentNullException(nameof(user));
         _createKlantContactService = createKlantContactService ??
@@ -34,14 +36,17 @@ public class CreateKlantContactController : Controller
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
         _internetaakGuardService = internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
+        _contactverzoekAutorisatieGuardService = contactverzoekAutorisatieGuardService ?? throw new ArgumentNullException(nameof(contactverzoekAutorisatieGuardService));
     }
 
     [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [HttpPost("add-klantcontact")] //todo refactor, route should be api/klantcontacten/[klantcontactUuid]/klantcontacten
     public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequestModel request)
     {
+        await _contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(request.InterneTaakId, _user);
         await _internetaakGuardService.GuardAgainstVerwerktAsync(request.InterneTaakId);
 
         try

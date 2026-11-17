@@ -16,6 +16,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         ITAUser user,
         ILogboekService logboekService,
         IInternetaakGuardService internetaakGuardService,
+        IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
         ILogger<AssignInternetaakToMeController> logger) : Controller
     {
         private readonly IAssignInternetaakToMeService _AssignInternetakenService = AssignInternetakenService;
@@ -23,11 +24,14 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         private readonly ILogboekService _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
         private readonly IInternetaakGuardService _internetaakGuardService = internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
         private readonly ILogger<AssignInternetaakToMeController> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [HttpPost("{internetaakId}/aan-mij-toewijzen")]
         public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetaakId)
         {
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaakId, _user);
             await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakId);
 
             try
