@@ -79,7 +79,7 @@ public sealed class VerlopenInternetakenProcessor(
                 Link = entry.Actor.SoortActor == SoortActor.medewerker ? "/" : "/afdelings-contacten",
                 EmailAdressen = resolveResult.FoundEmails,
                 AantalVerlopenContactVerzoeken = entry.Taken.Count,
-                MaxAantalWerkdagenOpenstaan = entry.Taken.Max(taak =>
+                MaxAantalWerkdagenVerlopen = entry.Taken.Max(taak =>
                     BerekenWerkdagenVerlopen(taak.AanleidinggevendKlantcontact?.PlaatsgevondenOp ?? now, now))
             });
 
@@ -157,12 +157,12 @@ public sealed class VerlopenInternetakenProcessor(
 
             var content = VerlopenContactverzoekHerinneringNotificatieTemplateService.GenereerMailBody(
                 herinnering.AantalVerlopenContactVerzoeken,
-                herinnering.MaxAantalWerkdagenOpenstaan,
+                herinnering.MaxAantalWerkdagenVerlopen,
                werkvoorraadUrl);
 
             var plainTextContent = VerlopenContactverzoekHerinneringNotificatieTemplateService.GenereerMailBodyPlainText(
                 herinnering.AantalVerlopenContactVerzoeken,
-                herinnering.MaxAantalWerkdagenOpenstaan,
+                herinnering.MaxAantalWerkdagenVerlopen,
                 werkvoorraadUrl);
 
             var onderwerp = VerlopenContactverzoekHerinneringNotificatieTemplateService.GenereerMailSubject(herinnering.AantalVerlopenContactVerzoeken);
