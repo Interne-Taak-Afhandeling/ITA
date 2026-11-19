@@ -54,7 +54,6 @@ public class KoppelZaakAanKlantcontactController : Controller
     [ProducesResponseType(typeof(KoppelZaakAanKlantcontactResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    [AllowAnonymous]
     public async Task<IActionResult> KoppelZaakAanKlantcontact([FromBody] KoppelZaakAanKlantcontactRequest request)
     {
         if (!Guid.TryParse(request.InternetaakId, out var internetaakGuid))
