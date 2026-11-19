@@ -66,7 +66,9 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.MyInt
                 ToegewezenOp = internetaak.ToegewezenOp,
                 AfgehandeldOp = internetaak.AfgehandeldOp,
                 AanleidinggevendKlantcontact = internetaak.AanleidinggevendKlantcontact,
-                Urgentie = _urgentieBerekenService.Bereken(contactDatum),
+                Urgentie = internetaak.Status == KnownInternetaakStatussen.Verwerkt
+                    ? null
+                    : _urgentieBerekenService.Bereken(contactDatum),
                 AfdelingNaam = afdelingNaam
             };
         }
