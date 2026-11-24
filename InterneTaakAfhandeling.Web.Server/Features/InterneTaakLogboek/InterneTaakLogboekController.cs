@@ -30,7 +30,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakLogboek
         [HttpGet("{internetaakId}/logboek")]
         public async Task<IActionResult> Get(Guid internetaakId)
         {
-            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaakId, user);
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(internetaakId, user);
 
             try
             {

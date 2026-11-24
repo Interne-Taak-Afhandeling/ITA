@@ -46,8 +46,9 @@ public class CreateKlantContactController : Controller
     [HttpPost("add-klantcontact")] //todo refactor, route should be api/klantcontacten/[klantcontactUuid]/klantcontacten
     public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] CreateRelatedKlantcontactRequestModel request)
     {
-        await _contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(request.InterneTaakId, _user);
+        await _contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(request.InterneTaakId, _user);
         await _internetaakGuardService.GuardAgainstVerwerktAsync(request.InterneTaakId);
+        await _internetaakGuardService.GuardAgainstKlantcontactNietGerelateerdAsync(request.InterneTaakId, request.AanleidinggevendKlantcontactUuid);
 
         try
         {

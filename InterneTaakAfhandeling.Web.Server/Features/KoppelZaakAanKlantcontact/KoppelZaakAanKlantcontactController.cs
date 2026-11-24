@@ -68,7 +68,7 @@ public class KoppelZaakAanKlantcontactController : Controller
                 Status = StatusCodes.Status400BadRequest
             });
 
-        await _contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaakGuid, _user);
+        await _contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(internetaakGuid, _user);
         await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakGuid);
 
         try
@@ -117,7 +117,7 @@ public class KoppelZaakAanKlantcontactController : Controller
             // validating internetaak is related to klant contact 
             var isInternetaakRelatedToKlantContact = aanleidinggevendKlantcontact?.LeiddeTotInterneTaken?
                 .Where(x => x.Uuid == request.InternetaakId).Any();
-            if (isInternetaakRelatedToKlantContact == false)
+            if (isInternetaakRelatedToKlantContact != true)
                 return NotFound(new ProblemDetails
                 {
                     Title = "Internetaak niet gerelateerd aan klantcontact",

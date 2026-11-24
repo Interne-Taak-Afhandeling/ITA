@@ -31,7 +31,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.AssignInternetaakToMe
         [HttpPost("{internetaakId}/aan-mij-toewijzen")]
         public async Task<IActionResult> AssignInternetakenAsync([FromRoute] Guid internetaakId)
         {
-            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaakId, _user);
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(internetaakId, _user);
             await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakId);
 
             try

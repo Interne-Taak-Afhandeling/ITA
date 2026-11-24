@@ -36,7 +36,7 @@ public class AddNotitieToInternetaakController(
     [HttpPost("{internetaakId}/notitie")]
     public async Task<IActionResult> AddNote([FromRoute] Guid internetaakId, [FromBody] AddNotitieRequest request)
     {
-        await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(internetaakId, _user);
+        await contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(internetaakId, _user);
         await _internetaakGuardService.GuardAgainstVerwerktAsync(internetaakId);
 
         try

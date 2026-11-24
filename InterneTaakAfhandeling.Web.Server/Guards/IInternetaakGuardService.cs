@@ -12,4 +12,6 @@ public interface IInternetaakGuardService
     /// Used to ensure only closed contactverzoeken can be reopened.
     /// </summary>
     Task GuardAgainstNietVerwerktAsync(Guid internetaakId);
+
+    Task GuardAgainstKlantcontactNietGerelateerdAsync(Guid internetaakId, Guid aanleidinggevendKlantcontactUuid);
 }

@@ -40,4 +40,21 @@ public class InternetaakGuardService(
                 "INTERNETAAK_NIET_VERWERKT");
         }
     }
+
+    public async Task GuardAgainstKlantcontactNietGerelateerdAsync(Guid internetaakId, Guid aanleidinggevendKlantcontactUuid)
+    {
+        var internetaak = await internetaakService.GetInternetaakByIdAsync(internetaakId);
+
+        if (internetaak.AanleidinggevendKlantcontact?.Uuid != aanleidinggevendKlantcontactUuid)
+        {
+            logger.LogWarning(
+                "Klantcontact {KlantcontactUuid} is not the aanleidinggevend klantcontact of interne taak {InternetaakId}",
+                aanleidinggevendKlantcontactUuid,
+                internetaakId);
+
+            throw new UnprocessableEntityException(
+                "Internetaak en klantcontact zijn niet gerelateerd.",
+                "INTERNETAAK_KLANTCONTACT_NIET_GERELATEERD");
+        }
+    }
 }

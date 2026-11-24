@@ -19,7 +19,7 @@ public class ContactverzoekAutorisatieGuardService(
     private const string GeenToegangMessage = "Je hebt geen toegang tot dit contactverzoek.";
     private const string GeenToegangAfdelingOfGroepMessage = "Je hebt geen toegang tot deze afdeling of groep.";
 
-    public async Task GuardAgainstGeenToegangAsync(Guid internetaakId, ITAUser user)
+    public async Task GuardAgainstGeenLidVanAfdelingOfGroepAsync(Guid internetaakId, ITAUser user)
     {
         if (user.HasFunctioneelBeheerderAccess)
         {
@@ -34,10 +34,10 @@ public class ContactverzoekAutorisatieGuardService(
             .Select(a => actorService.GetActorAsync(a.Uuid)));
         internetaak.ToegewezenAanActoren = [.. actoren];
 
-        await GuardAgainstGeenToegangAsync(internetaak, user);
+        await GuardAgainstGeenLidVanAfdelingOfGroepAsync(internetaak, user);
     }
 
-    public async Task GuardAgainstGeenToegangAsync(Internetaak internetaak, ITAUser user)
+    public async Task GuardAgainstGeenLidVanAfdelingOfGroepAsync(Internetaak internetaak, ITAUser user)
     {
         if (user.HasFunctioneelBeheerderAccess)
         {
@@ -56,9 +56,7 @@ public class ContactverzoekAutorisatieGuardService(
             throw new GeenToegangException(GeenToegangMessage);
         }
 
-        var gebruikerAfdelingenEnGroepen = await GetAfdelingEnGroepNamenVanGebruikerAsync(user);
-
-        if (!HeeftOverlap(gebruikerAfdelingenEnGroepen, taakAfdelingenEnGroepen))
+        if (!await IsLidVanEenVanAsync(taakAfdelingenEnGroepen, user))
         {
             logger.LogWarning(
                 "Toegang geweigerd: gebruiker behoort niet tot de afdeling/groep van interne taak {InternetaakUuid}",
@@ -74,9 +72,7 @@ public class ContactverzoekAutorisatieGuardService(
             return;
         }
 
-        var gebruikerAfdelingenEnGroepen = await GetAfdelingEnGroepNamenVanGebruikerAsync(user);
-
-        if (string.IsNullOrWhiteSpace(afdelingOfGroepNaam) || !HeeftOverlap(gebruikerAfdelingenEnGroepen, [afdelingOfGroepNaam]))
+        if (string.IsNullOrWhiteSpace(afdelingOfGroepNaam) || !await IsLidVanEenVanAsync([afdelingOfGroepNaam], user))
         {
             logger.LogWarning("Toegang geweigerd: gebruiker behoort niet tot de gevraagde afdeling/groep");
             throw new GeenToegangException(GeenToegangAfdelingOfGroepMessage);
@@ -86,28 +82,32 @@ public class ContactverzoekAutorisatieGuardService(
     private async Task<List<string>> GetAfdelingEnGroepNamenVanGebruikerAsync(ITAUser user)
     {
         var medewerkers = await objectApiClient.GetMedewerkersByIdentificatie(user.ObjectregisterMedewerkerId);
-        if (medewerkers.Count > 1)
+        switch (medewerkers.Count)
         {
-            throw new ConflictException(
-                $"Meerdere medewerkers gevonden met dezelfde identificatie {SecureLogging.SanitizeAndTruncate(user.ObjectregisterMedewerkerId, 5)}");
-        }
-
-        // A user that is not registered in the Objectregister belongs to no afdeling/groep: return 403
-        // instead of failing with an unhandled exception (500).
-        if (medewerkers.Count == 0)
-        {
-            logger.LogWarning("Geen medewerker gevonden in het objectenregister voor de ingelogde gebruiker");
-            return [];
+            case > 1:
+                throw new ConflictException(
+                    $"Meerdere medewerkers gevonden met dezelfde identificatie {SecureLogging.SanitizeAndTruncate(user.ObjectregisterMedewerkerId, 5)}");
+            
+            // A user that is not registered in the Objectregister belongs to no afdeling/groep: return 403
+            // instead of failing with an unhandled exception (500).
+            case 0:
+                logger.LogWarning("Geen medewerker gevonden in het objectenregister voor de ingelogde gebruiker");
+                return [];
         }
 
         var medewerker = medewerkers.Single();
         var afdelingen = medewerker.Afdelingen ?? Enumerable.Empty<MedewerkerAfdeling>();
         var groepen = medewerker.Groepen ?? Enumerable.Empty<MedewerkerGroep>();
 
-        return afdelingen.Select(a => a.Afdelingnaam)
-            .Concat(groepen.Select(g => g.Groepsnaam))
-            .ToList();
+        return
+        [
+            .. afdelingen.Select(a => a.Afdelingnaam),
+            .. groepen.Select(g => g.Groepsnaam)
+        ];
     }
+
+    private async Task<bool> IsLidVanEenVanAsync(IReadOnlyCollection<string> afdelingenEnGroepen, ITAUser user) =>
+        HeeftOverlap(await GetAfdelingEnGroepNamenVanGebruikerAsync(user), afdelingenEnGroepen);
 
     private static bool HeeftOverlap(IEnumerable<string> gebruikerNamen, IReadOnlyCollection<string> taakNamen) =>
         gebruikerNamen.Any(gebruikerNaam =>

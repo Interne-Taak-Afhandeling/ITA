@@ -29,7 +29,7 @@ public class ForwardContactRequestController(
     public async Task<IActionResult> ForwardContactRequestAsync([FromRoute] Guid id,
         [FromBody] ForwardContactRequestModel request)
     {
-        await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(id, _user);
+        await contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(id, _user);
         await internetaakGuardService.GuardAgainstVerwerktAsync(id);
 
         try

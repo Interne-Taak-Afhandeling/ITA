@@ -21,8 +21,7 @@ public class CloseInterneTaakWithKlantContactController(
     IOpenKlantApiClient openKlantApiClient,
     IInternetaakGuardService internetaakGuardService,
     IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
-    ILogboekService logboekService,
-    IInternetaakService internetaakService) : Controller
+    ILogboekService logboekService) : Controller
 {
     private readonly ICreateKlantContactService _createKlantContactService =
         createKlantContactService ?? throw new ArgumentNullException(nameof(createKlantContactService));
@@ -40,9 +39,6 @@ public class CloseInterneTaakWithKlantContactController(
 
     private readonly IInternetaakGuardService _internetaakGuardService =
         internetaakGuardService ?? throw new ArgumentNullException(nameof(internetaakGuardService));
-    
-    private readonly IInternetaakService _internetaakService = 
-        internetaakService ?? throw new ArgumentNullException(nameof(internetaakService));
 
     [ProducesResponseType(typeof(RelatedKlantcontactResult), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ITAException), StatusCodes.Status409Conflict)]
@@ -51,25 +47,15 @@ public class CloseInterneTaakWithKlantContactController(
     [HttpPost("close-with-klantcontact")] //todo: refactor to "HttpPost("[internetaakUuid]/close-with-klantcontact)" and consider making it a PUT
     public async Task<IActionResult> CreateRelatedKlantcontact([FromBody] RequestModel request)
     {
-        await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(request.InterneTaakId, _user);
+        await contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(request.InterneTaakId, _user);
         await _internetaakGuardService.GuardAgainstVerwerktAsync(request.InterneTaakId);
+        await _internetaakGuardService.GuardAgainstKlantcontactNietGerelateerdAsync(request.InterneTaakId, request.AanleidinggevendKlantcontactUuid);
 
         try
         {
             _logger.LogInformation(
                 "Closing Interne taak and creating related klantcontact with aanleidinggevendKlantcontact UUID: {AanleidinggevendKlantcontactUuid}",
                 request.AanleidinggevendKlantcontactUuid);
-
-            //check if the internetaak that will be closed and the klantcontact to which the new klantcontact will be related belong to eachother
-            var interneTaak = await _internetaakService.GetInternetaakByIdAsync(request.InterneTaakId);
-
-            if (interneTaak?.Uuid != request.InterneTaakId.ToString())
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Ongeldige aanvraag",
-                    Detail = "Internetaak en klantcontact zijn niet gerelateerd",
-                    Status = StatusCodes.Status400BadRequest
-                });
 
             var result = await _createKlantContactService.CreateRelatedKlantcontactAsync(
                 request.KlantcontactRequest,
