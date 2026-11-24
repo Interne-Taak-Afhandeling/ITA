@@ -1,4 +1,4 @@
-﻿using InterneTaakAfhandeling.Common.Exceptions;
+using InterneTaakAfhandeling.Common.Exceptions;
 using InterneTaakAfhandeling.Common.Helpers;
 using InterneTaakAfhandeling.Common.ApiClients.ObjectApi;
 using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
@@ -6,6 +6,7 @@ using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
 using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Common.Services.Actors;
 using InterneTaakAfhandeling.Common.Services.Internetaken;
+using InterneTaakAfhandeling.Common.Services.Klantcontacten;
 using InterneTaakAfhandeling.Web.Server.Authentication;
 
 namespace InterneTaakAfhandeling.Web.Server.Guards;
@@ -14,6 +15,7 @@ public class ContactverzoekAutorisatieGuardService(
     IObjectApiClient objectApiClient,
     IInternetaakService internetaakService,
     IActorService actorService,
+    IKlantcontactService klantcontactService,
     ILogger<ContactverzoekAutorisatieGuardService> logger) : IContactverzoekAutorisatieGuardService
 {
     private const string GeenToegangMessage = "Je hebt geen toegang tot dit contactverzoek.";
@@ -63,6 +65,39 @@ public class ContactverzoekAutorisatieGuardService(
                 SecureLogging.SanitizeUuid(internetaak.Uuid));
             throw new GeenToegangException(GeenToegangMessage);
         }
+    }
+
+    public async Task GuardAgainstGeenLidVanAfdelingOfGroepVoorKlantcontactAsync(Guid klantcontactId, ITAUser user)
+    {
+        if (user.HasFunctioneelBeheerderAccess)
+        {
+            return;
+        }
+
+        var klantcontact = await klantcontactService.GetKlantcontactAsync(klantcontactId);
+
+        var internetaakIds = (klantcontact.LeiddeTotInterneTaken ?? [])
+            .Select(t => Guid.TryParse(t.Uuid, out var id) ? id : (Guid?)null)
+            .OfType<Guid>()
+            .ToList();
+
+        foreach (var internetaakId in internetaakIds)
+        {
+            try
+            {
+                await GuardAgainstGeenLidVanAfdelingOfGroepAsync(internetaakId, user);
+                return;
+            }
+            catch (GeenToegangException)
+            {
+                // continue with the next internetaak
+            }
+        }
+
+        logger.LogWarning(
+            "Toegang geweigerd: gebruiker heeft geen toegang tot een interne taak van klantcontact {KlantcontactUuid}",
+            klantcontactId);
+        throw new GeenToegangException(GeenToegangMessage);
     }
 
     public async Task GuardAgainstGeenToegangTotAfdelingOfGroepAsync(string afdelingOfGroepNaam, ITAUser user)

@@ -18,6 +18,13 @@ public interface IContactverzoekAutorisatieGuardService
     Task GuardAgainstGeenLidVanAfdelingOfGroepAsync(Guid internetaakId, ITAUser user);
 
     /// <summary>
+    /// Same rule as above, for callers that only have the id of a klantcontact. The user needs access to at least one
+    /// internetaak that was caused by the klantcontact; a klantcontact without interne taak is not accessible
+    /// for non-beheerders.
+    /// </summary>
+    Task GuardAgainstGeenLidVanAfdelingOfGroepVoorKlantcontactAsync(Guid klantcontactId, ITAUser user);
+
+    /// <summary>
     /// Throws <see cref="InterneTaakAfhandeling.Common.Exceptions.GeenToegangException"/> if the user is not
     /// a functioneel beheerder and does not belong to the requested afdeling or groep (used for the worklist per afdeling/groep).
     /// </summary>
