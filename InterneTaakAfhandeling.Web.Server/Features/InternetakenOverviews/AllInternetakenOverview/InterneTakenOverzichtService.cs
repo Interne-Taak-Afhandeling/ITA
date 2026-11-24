@@ -10,15 +10,22 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
 {
     public interface IInterneTakenOverzichtService
     {
-        Task<InterneTakenOverviewResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTaakQuery);
+        /// <param name="interneTaakQuery">Filters that OpenKlant applies, including paging.</param>
+        /// <param name="medewerkerIdentificatie">Optional objectregister identificatie of a medewerker; only contactverzoeken assigned to that medewerker are returned.</param>
+        Task<InterneTakenOverviewResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTaakQuery, string? medewerkerIdentificatie = null);
     }
 
     public class InterneTakenOverzichtService : IInterneTakenOverzichtService
     {
+        // Used when a medewerker is known under several actors and the lists have to be merged in memory.
+        private const int MergePageSize = 100;
+        private const int MaxMergePages = 10;
+
         private readonly IUrgentieBerekenService _urgentieBerekenService;
         private readonly IKlantcontactService _klantcontactService;
         private readonly IInternetaakService  _internetaakService;
         private readonly IActorService _actorService;
+        private readonly IMedewerkerActorenService _medewerkerActorenService;
         private readonly ILogger<InterneTakenOverzichtService> _logger;
         private readonly IOpenKlantApiClient _openKlantApiClient;
 
@@ -27,6 +34,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
             IKlantcontactService klantcontactService,
             IInternetaakService internetaakService,
             IActorService actorService,
+            IMedewerkerActorenService medewerkerActorenService,
             ILogger<InterneTakenOverzichtService> logger,
             IOpenKlantApiClient openKlantApiClient)
         {
@@ -34,13 +42,16 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
             _klantcontactService = klantcontactService ?? throw new ArgumentNullException(nameof(klantcontactService));
             _internetaakService = internetaakService ?? throw new ArgumentNullException(nameof(internetaakService));
             _actorService = actorService ?? throw new ArgumentNullException(nameof(actorService));
+            _medewerkerActorenService = medewerkerActorenService ?? throw new ArgumentNullException(nameof(medewerkerActorenService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _openKlantApiClient = openKlantApiClient ?? throw new ArgumentNullException(nameof(openKlantApiClient));
         }
 
-        public async Task<InterneTakenOverviewResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery)
-        {                   
-            var internetakenResponse = await GetInternetakenPaginatedAsync(interneTakenQuery);
+        public async Task<InterneTakenOverviewResponse> GetInterneTakenOverzichtAsync(InterneTaakQuery interneTakenQuery, string? medewerkerIdentificatie = null)
+        {
+            var internetakenResponse = string.IsNullOrWhiteSpace(medewerkerIdentificatie)
+                ? await GetInternetakenPaginatedAsync(interneTakenQuery)
+                : await GetInternetakenForMedewerkerAsync(interneTakenQuery, medewerkerIdentificatie);
 
             var OverzichtItems = (await Task.WhenAll(internetakenResponse.Results
                 .Select(ExtendAndMapInternetaakToOverzichtItemAsync))).ToList();
@@ -52,6 +63,83 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
                 Previous = internetakenResponse.Previous,
                 Results = OverzichtItems
             };
+        }
+
+        private async Task<InternetakenResponse> GetInternetakenForMedewerkerAsync(InterneTaakQuery query, string medewerkerIdentificatie)
+        {
+            var actorUuids = await _medewerkerActorenService.GetActorUuidsAsync(medewerkerIdentificatie);
+
+            switch (actorUuids.Count)
+            {
+                // A medewerker that never had a contactverzoek has no actor in OpenKlant yet
+                case 0:
+                    return new InternetakenResponse { Results = [], Count = 0 };
+
+                // Common case: let OpenKlant filter and paginate
+                case 1:
+                    return await GetInternetakenPaginatedAsync(query with { ToegewezenAanActor__Uuid = actorUuids[0] });
+
+                // OpenKlant can only filter on one actor at a time: fetch per actor, merge and paginate here
+                default:
+                    return await GetMergedInternetakenPageAsync(query, actorUuids);
+            }
+        }
+
+        private async Task<InternetakenResponse> GetMergedInternetakenPageAsync(InterneTaakQuery query, IReadOnlyList<Guid> actorUuids)
+        {
+            var perActor = await Task.WhenAll(actorUuids.Select(uuid => GetAllInternetakenForActorAsync(query, uuid)));
+
+            var merged = perActor
+                .SelectMany(x => x)
+                .DistinctBy(x => x.Uuid)
+                .OrderByDescending(x => x.ToegewezenOp)
+                .ToList();
+
+            var page = query.Page ?? 1;
+            var pageSize = query.PageSize ?? 20;
+
+            // Same behaviour as OpenKlant: a page beyond the last page is a 404
+            if (page > 1 && (page - 1) * pageSize >= merged.Count)
+            {
+                throw new HttpRequestException("Page not found", null, System.Net.HttpStatusCode.NotFound);
+            }
+
+            return new InternetakenResponse
+            {
+                Count = merged.Count,
+                Next = page * pageSize < merged.Count ? $"?page={page + 1}" : null,
+                Previous = page > 1 ? $"?page={page - 1}" : null,
+                Results = merged.Skip((page - 1) * pageSize).Take(pageSize).ToList()
+            };
+        }
+
+        private async Task<List<Internetaak>> GetAllInternetakenForActorAsync(InterneTaakQuery query, Guid actorUuid)
+        {
+            var result = new List<Internetaak>();
+
+            for (var page = 1; page <= MaxMergePages; page++)
+            {
+                InternetakenResponse response;
+                try
+                {
+                    response = await GetInternetakenPaginatedAsync(query with { ToegewezenAanActor__Uuid = actorUuid, Page = page, PageSize = MergePageSize });
+                }
+                catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    break;
+                }
+
+                result.AddRange(response.Results);
+
+                if (response.Next == null)
+                {
+                    return result;
+                }
+            }
+
+            _logger.LogWarning("Meer dan {Max} contactverzoeken voor actor {ActorUuid}; de lijst is afgekapt",
+                MaxMergePages * MergePageSize, actorUuid);
+            return result;
         }
 
 

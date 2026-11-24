@@ -1,7 +1,11 @@
 <template>
   <utrecht-heading :level="1">{{ route.meta.title }}</utrecht-heading>
   <werklijst-bevestiging />
-  <AfdelingenEnGroepenSelectieEnOverzicht :afgerond="false" cacheKey="AfdelingenEnGroepenView" />
+  <AfdelingenEnGroepenSelectieEnOverzicht
+    :afgerond="false"
+    cacheKey="AfdelingenEnGroepenView"
+    toon-medewerker-filter
+  />
 </template>
 
 <script setup lang="ts">

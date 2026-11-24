@@ -58,6 +58,7 @@ namespace InterneTaakAfhandeling.Web.Server.Config
             services.AddScoped<ICreateKlantContactService, CreateKlantContactService>();
             services.AddScoped<IInternetaakDetailsService, InternetaakDetailsService>();          
             services.AddScoped<IInterneTakenOverzichtService, InterneTakenOverzichtService>();
+            services.AddScoped<IMedewerkerActorenService, MedewerkerActorenService>();
             services.AddScoped<IAssignInternetaakToMeService, AssignInternetaakToMeService>();
             services.AddScoped<IForwardContactRequestService, ForwardContactRequestService>();
             services.AddScoped<IMedewerkersOverzichtService, MedewerkersOverzichtService>();

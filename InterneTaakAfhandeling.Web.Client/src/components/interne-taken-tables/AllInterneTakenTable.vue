@@ -25,7 +25,7 @@
 
     <utrecht-table-body>
       <utrecht-table-row v-if="interneTaken.length === 0">
-        <utrecht-table-cell colspan="8">Geen contactverzoeken gevonden</utrecht-table-cell>
+        <utrecht-table-cell colspan="8">{{ emptyMessage }}</utrecht-table-cell>
       </utrecht-table-row>
 
       <utrecht-table-row
@@ -91,8 +91,9 @@ withDefaults(
     interneTaken: InterneTaakOverviewItem[];
     showUrgentie?: boolean;
     showAfgehandeldOp?: boolean;
+    emptyMessage?: string;
   }>(),
-  { showUrgentie: true, showAfgehandeldOp: false }
+  { showUrgentie: true, showAfgehandeldOp: false, emptyMessage: "Geen contactverzoeken gevonden" }
 );
 
 const { onRowMouseDown, navigateOnRowClick } = useRowNavigation();

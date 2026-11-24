@@ -22,7 +22,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
         [ProducesResponseType(typeof(InterneTakenOverviewResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [HttpGet]
-        public async Task<IActionResult> GetAlleOverzicht([FromQuery] InterneTakenOverviewQueryParameters queryParameters)
+        public async Task<IActionResult> GetAlleOverzicht([FromQuery] AlleOverzichtQuery queryParameters)
         {
             try
             {
@@ -30,10 +30,11 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
                 {
                     Page = queryParameters.Page,
                     PageSize = queryParameters.PageSize,
-                    Status = KnownInternetaakStatussen.TeVerwerken
+                    Status = queryParameters.Afgerond ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken,
+                    Actoren__Naam = string.IsNullOrWhiteSpace(queryParameters.AfdelingOfGroep) ? null : queryParameters.AfdelingOfGroep
                 };
 
-                var result = await _interneTakenOverzichtService.GetInterneTakenOverzichtAsync(query);
+                var result = await _interneTakenOverzichtService.GetInterneTakenOverzichtAsync(query, queryParameters.Medewerker);
 
                 return Ok(result);
             }
@@ -53,5 +54,19 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
                 throw;
             }
         }
+    }
+
+    public class AlleOverzichtQuery : InterneTakenOverviewQueryParameters
+    {
+        /// <summary>
+        /// Naam of an afdeling or groep: only show contactverzoeken assigned to it.
+        /// </summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(200)]
+        public string? AfdelingOfGroep { get; set; }
+
+        /// <summary>
+        /// false (default): open contactverzoeken; true: afgehandelde contactverzoeken.
+        /// </summary>
+        public bool Afgerond { get; set; }
     }
 }
