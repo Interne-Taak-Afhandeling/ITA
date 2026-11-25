@@ -9,5 +9,5 @@ public sealed class RecipientHerinneringData
     [MinLength(1)]
     public required IReadOnlyList<string> EmailAdressen { get; init; }
     public required int AantalVerlopenContactVerzoeken { get; init; }
-    public required int MaxAantalWerkdagenOpenstaan { get; init; }
+    public required int MaxAantalWerkdagenVerlopen { get; init; }
 }

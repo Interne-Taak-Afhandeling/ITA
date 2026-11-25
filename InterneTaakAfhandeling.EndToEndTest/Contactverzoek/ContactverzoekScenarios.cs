@@ -13,8 +13,10 @@ namespace InterneTaakAfhandeling.EndToEndTest.Dashboard
     public partial class ContactverzoekScenarios : ITAPlaywrightTest
     {
         // Helper method for logbook verification
-        private async Task VerifyLogbookEntry(string expectedAction, string expectedUserName = "ICATT Integratie Test", bool verifyTimestamp = true)
+        private async Task VerifyLogbookEntry(string expectedAction, string? expectedUserName = null, bool verifyTimestamp = true)
         {
+            expectedUserName ??= Configuration["TestSettings:TEST_USERNAME"] ?? throw new InvalidOperationException("TEST_USERNAME is missing from the configuration");
+
             await Step($"Verify contact request history/logbook contains action with '{expectedAction}'");
             await Expect(Page.GetByText(expectedAction, new() { Exact = true })).ToBeVisibleAsync();
 

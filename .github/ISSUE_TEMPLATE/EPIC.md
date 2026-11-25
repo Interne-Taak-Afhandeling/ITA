@@ -10,12 +10,6 @@ assignees: ""
 
 ---
 
-## Bounded Context
-
-<!-- In welk deel van het systeem / welk werkproces valt dit initiatief? Als het meerdere onderdelen raakt, benoem elk onderdeel en beschrijf het raakvlak. -->
-
----
-
 ## Context
 
 <!-- Waarom bestaat dit? Welk probleem lost het op? Gebruik domein­taal — geen technisch jargon. -->

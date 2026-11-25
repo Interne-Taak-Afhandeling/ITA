@@ -5,7 +5,10 @@
         <utrecht-table-header-cell scope="col">Datum</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Klantnaam</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Onderwerp / vraag</utrecht-table-header-cell>
-        <utrecht-table-header-cell scope="col">Urgentie</utrecht-table-header-cell>
+        <utrecht-table-header-cell v-if="kolom === 'urgentie'" scope="col"
+          >Urgentie</utrecht-table-header-cell
+        >
+        <utrecht-table-header-cell v-else scope="col">Afgehandeld op</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Afdeling</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col">Klantcontactnummer</utrecht-table-header-cell>
         <utrecht-table-header-cell scope="col" class="details-cell"
@@ -37,8 +40,11 @@
             .find(Boolean)
         }}</utrecht-table-cell>
         <utrecht-table-cell>{{ taak.aanleidinggevendKlantcontact?.onderwerp }}</utrecht-table-cell>
-        <utrecht-table-cell>
+        <utrecht-table-cell v-if="kolom === 'urgentie'">
           <urgentie-badge :urgentie="taak.urgentie" />
+        </utrecht-table-cell>
+        <utrecht-table-cell v-else class="ita-no-wrap">
+          <date-time-or-nvt :date="taak.afgehandeldOp" />
         </utrecht-table-cell>
         <utrecht-table-cell class="text-truncate" :title="taak.afdelingNaam || ''">
           {{ taak.afdelingNaam || "-" }}
@@ -68,7 +74,14 @@ import type { MyInterneTaakOverviewItem } from "@/types/internetaken";
 import DateTimeOrNvt from "../DateTimeOrNvt.vue";
 import UrgentieBadge from "../UrgentieBadge.vue";
 
-defineProps<{ interneTaken: MyInterneTaakOverviewItem[] }>();
+withDefaults(
+  defineProps<{
+    interneTaken: MyInterneTaakOverviewItem[];
+    /** Welke kolom getoond wordt: urgentie (werkvoorraad) of afgehandeldOp (historie) */
+    kolom?: "urgentie" | "afgehandeldOp";
+  }>(),
+  { kolom: "urgentie" }
+);
 
 const { onRowMouseDown, navigateOnRowClick } = useRowNavigation();
 

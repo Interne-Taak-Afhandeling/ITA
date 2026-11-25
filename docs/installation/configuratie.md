@@ -1,111 +1,21 @@
+(config_omgevingsvariabelen)=
 
-Omgevingsvariabelen
-===================
+# Configuratie
 
-**Nieuwe variabelen sinds laatste release**
----------------------------------
-- web.partijIdentificatorTonen
+De configuratie van ITA is beschreven in de {{ helm_readme_link }}. Die README is de enige plek waar alle instellingen staan, met per instelling:
 
+- de helm value (bijvoorbeeld `web.oidc.authority`);
+- de bijbehorende **environment variabele** (bijvoorbeeld `OIDC_AUTHORITY`), voor wie ITA zonder de helm chart installeert of lokaal draait;
+- uitleg, standaardwaarden en voorbeelden.
 
-**Alle variabelen zijn verplicht, tenzij anders vermeld.** 
+De link hierboven verwijst naar de README van dezelfde versie als deze documentatie ({{ helm_readme_version }}).
 
-OpenID Connect settings
----------------------------------
-| **Variabele**                                           | **Waarde**                                                                                                  |
-|---------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| web.oidc.authority                                      | URL van de OpenID Connect Identity Provider <details> <summary>Meer informatie </summary>Bijvoorbeeld: `https://login.microsoftonline.com/ce1a3f2d-2265-4517-a8b4-3e4f381461ab/v2.0` </details>         |
-| web.oidc.clientId                                       | Voor toegang tot de OpenID Connect Identity Provider <details> <summary>Meer informatie </summary>Bijvoorbeeld: `54f66f54-71e5-45f1-8634-9158c41f602a` </details>  |
-| web.oidc.clientSecret                                   | Secret voor de OpenID Connect Identity Provider <details> <summary>Meer informatie </summary>Bijvoorbeeld: `VM2B!ccnebNe.M*gxH63*NXc8iTiAGhp` </details>    |
-| web.oidc.itaSystemAccessRole                            | De waarde van de role claim in het JWT token van de OpenID Connect Provider voor toegang tot ITA <details> <summary>Meer informatie </summary>Bijvoorbeeld: `ITA-Gebruiker` </details>     |
-| web.oidc.functioneelBeheerderRole                       | De waarde van de role claim in het JWT token van de OpenID Connect Provider voor toegang tot beheerfuncties (zoals het beheren van kanalen) <details> <summary>Meer informatie </summary>Bijvoorbeeld: `ITA-Functioneel-Beheerder` </details>     |
-| web.oidc.nameClaimType                                  | De naam van de claim in het JWT token van de OpenID Connect Provider waarin de volledige naam van de ingelogde gebruiker staat <br/> (default waarde is `name`) |
-| web.oidc.roleClaimType                                  | De naam van de claim in het JWT token van de OpenID Connect Provider waarin de rollen van de ingelogde gebruiker staan. <br/> (default waarde is `roles`)  |
-| web.oidc.objectregisterMedewerkerIdClaimType            | De naam van de claim in het JWT token van de OpenID Connect Provider waarin een unieke identificatie van de ingelogde gebruiker staat die overeenkomt met het attribuut `identificatie` van de medewerker in het Medewerkersregister in OverigeObjecten. <br/><br/>In de meeste gevallen zal hier waarschijnlijk 'email' voor gebruikt worden. <br/>Dit gegeven wordt gebruikt om Contactverzoeken te vinden die zijn toegewezen aan de ingelogde gebruiker en om Contactverzoeken te vinden die zijn toegewezen aan de afdelingen en groepen van de ingelogde gebruiker. <br/><br/>**Let op:** deze waarde wordt ook als `user_id` claim meegestuurd in het JWT token richting het zaaksysteem. Bij gebruik van de e-Suite via de podiumd-adapter gebruikt de e-Suite deze waarde. De waarde moet overeenkomen met de gebruikersnaam van de medewerker in de e-Suite.  |
-| web.oidc.emailClaimType                                 | De naam van de claim in het JWT token van de OpenID Connect Provider waarin het e-mailadres van de ingelogde gebruiker staat. <br/> (default waarde is `email`)   |
+**Andere versie van ITA?** Vervang dan `<versie>` in deze URL door je ITA-versie (bijvoorbeeld `v3.4.0`):
 
-Contactverzoek settings
----------------------------------
-| **Variabele**                | **Waarde**                                                                                                  |
-|------------------------------|-------------------------------------------------------------------------------------------------------------|
-| web.partijIdentificatorTonen | Optioneel, default `false`. Zet op `true` om bij een contactverzoek het BSN (persoon) of het KVK-nummer en/of vestigingsnummer (bedrijf) van de gekoppelde partij te tonen. Heeft het contactverzoek meerdere gekoppelde partijen, of een partij meerdere identificatoren van dezelfde soort, dan worden ze allemaal getoond. Zonder gekoppelde partij wordt niets getoond. |
+```text
+https://github.com/Interne-Taak-Afhandeling/ITA/blob/<versie>/charts/internetaakafhandeling/README.md
+```
 
-Notificatie settings
----------------------------------
+## Objecttypen
 
-| **Variabele**        | **Waarde**                                                                                               |
-|----------------------|----------------------------------------------------------------------------------------------------------|
-| smtp.host            | Adres van uw mailserver                                                                                  |
-| smtp.port            | De poort waarover van uw mailserver benaderbaar is                                                       |
-| smtp.username        | Credentials voor toegang tot uw mailserver                                                               |
-| smtp.password        | Credentials voor toegang tot uw mailserver                                                               |
-| smtp.enableSsl       | true/false                                                                                               |
-| smtp.fromEmail       | Afzenderadres voor mails die door ITA verstuurd worden                                                   |
-| ita.baseUrl          | De base URL van de ITA website, gebruikt voor deeplinks in email notificaties naar contactverzoeken. Bijvoorbeeld: `https://itawebsite.nl` |
-| nieuweInternetaakNotificatie.schedule                         | Optioneel, default `"*/15 * * * *"` (elke 15 minuten). Cron-expressie die bepaalt hoe vaak er gecontroleerd wordt op nieuwe internetaken om een notificatie-e-mail voor te versturen. |
-| nieuweInternetaakNotificatie.notification.pollerMessage       | Optioneel, default `"Poller uitgevoerd om:"`. Tekst die bij het starten van elke poller-run naar de logs geschreven wordt. |
-| verlopenContactverzoekHerinneringNotificatie.enabled  | Optioneel, default `true`. Zet op `false` om de dagelijkse e-mailherinnering voor verlopen contactverzoeken (per medewerker en per afdeling/groep) volledig uit te schakelen. |
-| verlopenContactverzoekHerinneringNotificatie.schedule | Optioneel, default `"0 7 * * 1-5"` (elke werkdag om 07:00). Cron-expressie die bepaalt wanneer de dagelijkse herinneringsmail wordt verstuurd.
-
-
- 
-Koppelingen met externe registers
----------------------------------
-
-ITA gaat ervan uit dat emailadressen van medewerkers en organisatorische eenheden in een overige objecten registratie te vinden zijn en voldoen aan deze formats:
-- medewerker: https://github.com/open-objecten/objecttypes/blob/main/community-concepts/Medewerker/medewerker-schema.json
-- groep: https://github.com/open-objecten/objecttypes/blob/main/community-concepts/Afdeling%20en%20Groep/groep-schema.json
-- afdeling:  https://github.com/open-objecten/objecttypes/blob/main/community-concepts/Afdeling%20en%20Groep/afdeling-schema.json
-
-| **Variabele**                          | **Waarde**                                                                                                  |
-|----------------------------------------|----------------------------------------------------------------------------------------------------------|
-| apiConnections.objectApi.baseUrl       | https://uw-objecten-adres.nl/api/v2/  |
-| apiConnections.objectApiKey            | Min. 32 karakters  |
-| apiConnections.openKlantApi.baseUrl    | https://uw-openklant-adres.nl/klantinteracties/api/v1/  |
-| apiConnections.openKlantApiKey         | Min. 32 karakters  |
-| apiConnections.zaakSysteem.baseUrl     |  https://uw-zaaksysteem-adres.nl of, bij e-Suite, de root-URL van de podiumd-adapter (bijv. `https://podiumd-adapter.uw-domein.nl`). De adapter routeert op basis van de ZGW API-paden (bijv. `/zaken/api/v1/`). |
-| apiConnections.zaakSysteem.clientId    |  Bij gebruik van de podiumd-adapter is dit de client ID zoals geconfigureerd in de adapter.  |
-| apiConnections.zaakSysteemKey          |  Min. 32 karakters. Bij gebruik van de podiumd-adapter is dit de client secret zoals geconfigureerd in de adapter.  |
-| logboek.type                           | De url van het logboek objecttype in de objecttypen api. Zie de objecttypen pagina in de documentatie for meer informatie.  |
-| logboek.typeVersion                    | De versie van het logboek objecttype dat gebruikt wordt (hoogstwaarschijnlijk 1) |
-| afdeling.type                          | De url van het afdeling objecttype in de objecttypen api. |
-| afdeling.typeVersion                   | De versie van het afdeling objecttype dat gebruikt wordt (waarschijnlijk 1). |
-| groep.type                             | De url van het groep objecttype in de objecttypen api.   |
-| groep.typeVersion                      | De versie van het groep objecttype dat gebruikt wordt (waarschijnlijk 1). |
-| medewerker.type                        | De url van het medewerker objecttype in de objecttypen api. Zie de objecttypen pagina in de documentatie voor meer informatie. |
-| medewerker.typeVersion                 | De versie van het medewerker objecttype dat gebruikt wordt (waarschijnlijk 1). |
-
-Urgentie settings
----------------------------------
-
-Deze instellingen zijn optioneel — standaardwaarden worden gebruikt wanneer ze niet geconfigureerd zijn.
-
-| **Variabele**                        | **Waarde**                                                                                              |
-|--------------------------------------|---------------------------------------------------------------------------------------------------------|
-| urgentie.afhandeltermijnUren         | Aantal werkdaguren waarbinnen een contactverzoek afgehandeld dient te zijn (default: `48`). Weekenden worden uitgesloten van de berekening. |
-| urgentie.bijnaVerlopenDrempelUren    | Aantal resterende werkdaguren waarna het urgentielabel oranje wordt (default: `6`).                     |
-
-**Validatie bij opstarten.** Een waarde van `0`, een negatief getal of een niet-numerieke waarde wordt afgewezen; de applicatie start in dat geval niet en logt een foutmelding die naar de ongeldige sleutel verwijst. Een `bijnaVerlopenDrempelUren` die groter of gelijk is aan `afhandeltermijnUren` is geldig maar ongebruikelijk (elk nieuw contactverzoek wordt dan direct als bijna-verlopen gemarkeerd); de applicatie start in dat geval wel en logt een waarschuwing.
-
-Database configuratie
----------------------------------
-| **Variabele**            | **Waarde**                                                                                  |
-|--------------------------|---------------------------------------------------------------------------------------------|
-| database.name            | Naam van de database voor ITA                                                               |
-| database.username        | Gebruikersnaam voor toegang tot de database                                                 |
-| database.password        | Wachtwoord voor toegang tot de database                                                     |
-| database.host            | Hostnaam van de database server *(optioneel - alleen nodig als `postgresql.enabled=false`)* |
-
-Theming
-------------------
-
-Deze theming variabelen zijn allemaal optioneel.
-
-| Variabele                      | Omschrijving |
-|--------------------------------|--------------|
-| web.styling.logoUrl          | Publieke URL waar het logo van de gemeente beschikbaar is, bijvoorbeeld: `https://www.mijn-gemeente.nl/logo.svg` |
-| web.styling.faviconUrl       | Publieke URL waar het favicon van de gemeente beschikbaar is, bijvoorbeeld: `https://www.mijn-gemeente.nl/favicon.ico` |
-| web.styling.designTokensUrl  | Publieke URL waar het CSS-bestand met NL Design System tokens beschikbaar is, om de applicatie te stylen in gemeentehuisstijl, bijvoorbeeld: `https://unpkg.com/@gemeente/design-tokens/dist/index.css` |
-| web.styling.webFontSources   | Publieke URL – of meerdere publieke URL's – als verwijzing naar web-font-bestand(en) horend bij de gemeentehuisstijl, bijvoorbeeld: `['https://fonts.mijn-gemeente.nl/custom-regular-font.woff2', 'https://fonts.mijn-gemeente.nl/custom-bold-font.woff2']`. Een enkele verwijzing naar de locatie waar alle font-style-bestanden staan kan ook: `['https://fonts.mijn-gemeente.nl/custom-font/']`. **Let op:** deze configuratie is alleen bedoeld om de font-bestanden onder CORS te kunnen inladen. Verwijzingen naar bestanden zullen ook in de theme styling onder een `@font-face` ruleset gespecificeerd moeten worden. |
-
-
-
+ITA haalt Medewerkers, Afdelingen en Groepen (met hun e-mailadressen) op uit de Objecten API (Overige Objecten), en schrijft het logboek van een Contactverzoek daarin weg. Welke objecttypen daarvoor nodig zijn en aan welke schema's ze moeten voldoen, staat op de pagina [Objecttypen](objecttypen.rst).

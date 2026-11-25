@@ -115,8 +115,9 @@ namespace InterneTaakAfhandeling.EndToEndTest.Contactverzoek
             var logbookSection = Page.Locator("ol");
             var logbookText = await logbookSection.InnerTextAsync();
 
-            Assert.IsTrue(logbookText.Contains("ICATT Integratie Test"),
-                $"Logboek should contain actor name 'ICATT Integratie Test'. Actual: '{logbookText}'");
+            var expectedActorName = Configuration["TestSettings:TEST_USERNAME"] ?? throw new InvalidOperationException("TEST_USERNAME is missing from the configuration");
+            Assert.IsTrue(logbookText.Contains(expectedActorName),
+                $"Logboek should contain actor name '{expectedActorName}'. Actual: '{logbookText}'");
 
             var dateTimePattern = @"\d{2}-\d{2}-\d{4} \d{2}:\d{2}";
             Assert.IsTrue(Regex.IsMatch(logbookText, dateTimePattern),

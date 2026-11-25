@@ -49,9 +49,26 @@ public static class GlobalSetup
         var otpHelper = ITAPlaywrightTest.s_uniqueOtpHelper ?? new UniqueOtpHelper(totpSecret);
         var loginHelper = new AzureAdLoginHelper(page, username, password, otpHelper);
 
-        var loginTask = loginHelper.LoginAsync();
-        await ClickIcattIfPromptedAsync(page);
-        await loginTask;
+        // AzureAdLoginHelper.LoginAsync now handles the ICATT identity-broker chooser screen
+        // internally (using the same #social-oidc-icatt selector previously raced here via
+        // ClickIcattIfPromptedAsync). Running both concurrently risked a double-click /
+        // corrupted session (e.g. two navigations racing each other), so the separate race
+        // has been removed in favor of the single, built-in handling in LoginAsync.
+        await loginHelper.LoginAsync();
+
+        // Fail fast if the app session was not established: saving state without it makes every
+        // test redirect to the Keycloak login page and time out individually.
+        var uitloggenLink = page.GetByRole(AriaRole.Link, new() { Name = "Uitloggen" });
+        try
+        {
+            await uitloggenLink.WaitForAsync(new() { Timeout = 30000 });
+        }
+        catch (TimeoutException)
+        {
+            throw new InvalidOperationException(
+                "Global login finished but the app's logged-in marker (\"Uitloggen\" link) is not visible, " +
+                $"so no usable session would be saved. Current page: url='{page.Url}', title='{await page.TitleAsync()}'.");
+        }
 
         // Save authenticated state so all tests can reuse it
         await browserContext.StorageStateAsync(new()
@@ -66,29 +83,6 @@ public static class GlobalSetup
         if (File.Exists(ITAPlaywrightTest.AuthStatePath))
         {
             File.Delete(ITAPlaywrightTest.AuthStatePath);
-        }
-    }
-
-    private static async Task ClickIcattIfPromptedAsync(IPage page)
-    {
-        var icattButton = page.Locator("#social-oidc-icatt").First;
-        try
-        {
-            await icattButton.WaitForAsync(new()
-            {
-                State = WaitForSelectorState.Visible,
-                Timeout = 10000
-            });
-
-            await icattButton.ClickAsync();
-        }
-        catch (PlaywrightException)
-        {
-            // ICATT chooser not shown in this run; continue.
-        }
-        catch (TimeoutException)
-        {
-            // ICATT chooser not shown in this run; continue.
         }
     }
 }

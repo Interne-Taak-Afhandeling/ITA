@@ -8,21 +8,15 @@ assignees: ""
 
 # 🚀 Feature: {{title}}
 
-## Bounded Context
+## Value and context 
+<!-- Welke waarde levert de feature voor de gebruiker en de business? Wat is het doel? Wat is de aanleiding voor het aanmaken van de feature? Wie zijn de gebruikers en belanghebbenden? Houdt het kort en geef alleen aan wat relevant is.-->
 
-<!-- In welk deel van het systeem / werkproces valt deze feature? Beschrijf kort het raakvlak met andere onderdelen als dat van toepassing is. -->
-
----
-
-## User Stories
-
-<!-- Geschreven door de Product Owner -->
-
-- Als **_, wil ik _** zodat \_\_\_
+## Feature
+<!-- Wat is de gevraagde feature in één zin? -->
 
 ## Design Handoff
 
-<!-- Link naar Figma frames, componentspecificaties of geannoteerde mockups -->
+<!-- Link naar Figma frames, componentspecificaties of geannoteerde mockups. Laat dit kopje weg als er geen design benodigd is. -->
 
 - Figma:
 - Schermen: (standaard / laden / fout / leeg)
@@ -40,13 +34,6 @@ assignees: ""
 ## Edge Cases
 
 <!-- Benoem ze hier expliciet zodat taken ze in Gherkin kunnen afdekken. Gebruik domeintaal. -->
-
-## Domain Events
-
-<!-- Welke gegevens verstuurt of verwerkt deze feature vanuit andere onderdelen? -->
-
-- Verstuurt:
-- Verwerkt:
 
 ---
 
@@ -82,9 +69,6 @@ assignees: ""
 <!-- Onderliggende taken — link issues zodra ze aangemaakt worden. -->
 
 - [ ]
-
-### Exclude from release notes
-- [ ] Leave this issue out of the release notes
 
 ---
 
