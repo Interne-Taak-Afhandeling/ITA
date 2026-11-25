@@ -45,7 +45,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
 
             var interntaak = internetaken.Single();
 
-            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(interntaak, user);
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(interntaak, user);
 
             await EnrichWithZaakAsync(interntaak);
             await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);
@@ -83,7 +83,7 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakDetails
 
             var interntaak = internetaken.Single();
 
-            await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangAsync(interntaak, user);
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(interntaak, user);
 
             await EnrichWithZaakAsync(interntaak);
             await EnrichBetrokkenenWithPartijDigitaleAdressenAsync(interntaak);

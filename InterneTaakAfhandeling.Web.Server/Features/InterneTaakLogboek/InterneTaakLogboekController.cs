@@ -3,6 +3,7 @@ using InterneTaakAfhandeling.Common.ApiClients.ObjectApi.Models;
 using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
 using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Guards;
 using InterneTaakAfhandeling.Web.Server.Services.LogboekService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakLogboek
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public class InterneTaakLogboekController(
         ILogboekService logboekService,
+        IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
+        ITAUser user,
         ILogger<InterneTaakLogboekController> logger) : Controller
     {
         private readonly ILogboekService _logboekService = logboekService ?? throw new ArgumentNullException(nameof(logboekService));
@@ -23,9 +26,12 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InterneTaakLogboek
 
         [ProducesResponseType(typeof(LogboekData), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [HttpGet("{internetaakId}/logboek")]
         public async Task<IActionResult> Get(Guid internetaakId)
         {
+            await contactverzoekAutorisatieGuardService.GuardAgainstGeenLidVanAfdelingOfGroepAsync(internetaakId, user);
+
             try
             {
                 var response = await _logboekService.GetLogboek(internetaakId);

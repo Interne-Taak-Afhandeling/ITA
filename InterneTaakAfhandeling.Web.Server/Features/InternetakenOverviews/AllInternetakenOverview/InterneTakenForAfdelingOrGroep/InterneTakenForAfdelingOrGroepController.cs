@@ -1,6 +1,7 @@
 ﻿using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi;
 using InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models;
 using InterneTaakAfhandeling.Web.Server.Authentication;
+using InterneTaakAfhandeling.Web.Server.Guards;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,6 +14,8 @@ namespace InterneTaakAfhandeling.Web.Server.Features.InternetakenOverviews.AllIn
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class InterneTakenForAfdelingOrGroepController(
     IInterneTakenOverzichtService interneTakenOverzichtService,
+    IContactverzoekAutorisatieGuardService contactverzoekAutorisatieGuardService,
+    ITAUser user,
     ILogger<InterneTakenForAfdelingOrGroepController> logger)
     : Controller
 {
@@ -28,6 +31,8 @@ public class InterneTakenForAfdelingOrGroepController(
     public async Task<IActionResult> GetAfdelingenGroepenOverzicht(
         [FromQuery] AfdelingenGroepenOverzichtQuery queryParameters)
     {
+        await contactverzoekAutorisatieGuardService.GuardAgainstGeenToegangTotAfdelingOfGroepAsync(queryParameters.NaamActor, user);
+
         try
         {
             var query = new InterneTaakQuery
