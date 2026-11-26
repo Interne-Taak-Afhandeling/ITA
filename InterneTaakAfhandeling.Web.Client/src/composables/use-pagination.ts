@@ -70,14 +70,19 @@ export function usePagination<T = unknown>(
     return { start, end };
   });
 
+  // Only the most recent request may update the state, e.g. when a filter changes while a page is loading.
+  let latestRequestId = 0;
+
   const fetchData = async (page: number = currentPage.value) => {
-    if (isLoading.value) return;
+    const requestId = ++latestRequestId;
+    const isLatest = () => requestId === latestRequestId;
 
     isLoading.value = true;
     error.value = null;
 
     try {
       const response = await fetchFunction(page, pageSize.value);
+      if (!isLatest()) return;
 
       results.value = response.results;
       totalCount.value = response.count;
@@ -85,9 +90,9 @@ export function usePagination<T = unknown>(
       hasNextPage.value = !!response.next;
       hasPreviousPage.value = !!response.previous;
     } catch (err: unknown) {
+      if (!isLatest()) return;
       //fallback to the first page in case of a notfound on a higer pagenr
       if ((err as { message: string }).message == knownErrorMessages.notFound && page > 1) {
-        isLoading.value = false;
         currentPage.value = 1;
         await fetchData(currentPage.value);
       } else {
@@ -99,7 +104,7 @@ export function usePagination<T = unknown>(
         console.error("Pagination fetch error:", err);
       }
     } finally {
-      isLoading.value = false;
+      if (isLatest()) isLoading.value = false;
     }
   };
 

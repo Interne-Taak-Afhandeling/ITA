@@ -37,7 +37,7 @@ public class InterneTakenForAfdelingOrGroepController(
                 Actoren__Naam = queryParameters.NaamActor,
                 Status = queryParameters.Afgerond ? KnownInternetaakStatussen.Verwerkt : KnownInternetaakStatussen.TeVerwerken
             };
-            var result = await _interneTakenOverzichtService.GetInterneTakenOverzichtAsync(query);
+            var result = await _interneTakenOverzichtService.GetInterneTakenOverzichtAsync(query, queryParameters.Medewerker);
 
             return Ok(result);
         }

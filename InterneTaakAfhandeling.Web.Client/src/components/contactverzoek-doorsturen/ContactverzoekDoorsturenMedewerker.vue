@@ -42,28 +42,24 @@
   />
 </template>
 <script setup lang="ts">
-import { get } from "@/utils/fetchWrapper";
 import { computed, ref } from "vue";
 import UtrechtCombobox from "../UtrechtCombobox.vue";
 import UtrechtAlert from "@/components/UtrechtAlert.vue";
-
-interface MedewerkerData {
-  naam: string;
-  identificatie: string;
-  afdelingen: { afdelingnaam: string }[];
-  groepen: { groepsnaam: string }[];
-}
+import { useMedewerkerSearch } from "@/composables/use-medewerker-search";
 
 const props = defineProps<{
   afdelingen: Array<{ label: string; value: string }>;
   groepen: Array<{ label: string; value: string }>;
 }>();
 
-const isMedewerkerSearchLoading = ref(false);
 const selectedMedewerker = ref<string>("");
 const afdelingOfGroep = ref<string>("");
 
-const medewerkerSearchResults = ref<MedewerkerData[]>([]);
+const {
+  isLoading: isMedewerkerSearchLoading,
+  results: medewerkerSearchResults,
+  search: onMedewerkerSearch
+} = useMedewerkerSearch();
 const medewerkerSearchOptions = computed(() =>
   medewerkerSearchResults.value.map(({ naam, identificatie }) => ({
     label: naam,
@@ -102,34 +98,4 @@ const hiddenAfdelingOfGroepInput = computed(() => {
   const id = value.substring(index + 1);
   return { name: type, value: id };
 });
-
-let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-let searchAbortController: AbortController | null = null;
-
-function onMedewerkerSearch(query: string) {
-  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-  if (searchAbortController) searchAbortController.abort();
-  if (!query || query.length < 2) {
-    medewerkerSearchResults.value = [];
-    isMedewerkerSearchLoading.value = false;
-    return;
-  }
-  isMedewerkerSearchLoading.value = true;
-  searchDebounceTimer = setTimeout(async () => {
-    searchAbortController = new AbortController();
-    try {
-      const response = await get<MedewerkerData[]>(
-        "/api/medewerkers",
-        { search: query },
-        { signal: searchAbortController.signal }
-      );
-      medewerkerSearchResults.value = response;
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
-      medewerkerSearchResults.value = [];
-    } finally {
-      isMedewerkerSearchLoading.value = false;
-    }
-  }, 300);
-}
 </script>

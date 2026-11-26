@@ -829,6 +829,19 @@ namespace InterneTaakAfhandeling.EndToEndTest.Infrastructure
             return actor.Naam;
         }
 
+        /// <summary>
+        /// Returns the name of the current user as shown in the medewerker picker
+        /// (same rule as GET /api/medewerkers: VolledigeNaam, else voornaam + voorvoegsel + achternaam).
+        /// </summary>
+        public async Task<string> GetCurrentUserMedewerkerNaamAsync()
+        {
+            var medewerker = await GetMedewerkerByEmail(Username);
+            return string.IsNullOrWhiteSpace(medewerker.VolledigeNaam)
+                ? string.Join(" ", new[] { medewerker.Voornaam, medewerker.VoorvoegselAchternaam, medewerker.Achternaam }
+                    .Where(s => !string.IsNullOrWhiteSpace(s)))
+                : medewerker.VolledigeNaam;
+        }
+
         private async Task<Actor> GetOrCreateAfdelingActor(string afdelingName)
 {
     var afdeling = await GetAfdelingByName(afdelingName);

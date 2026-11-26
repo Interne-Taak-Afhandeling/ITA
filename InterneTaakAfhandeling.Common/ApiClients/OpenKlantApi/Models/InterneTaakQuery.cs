@@ -1,6 +1,7 @@
 ﻿namespace InterneTaakAfhandeling.Common.ApiClients.OpenKlantApi.Models
 {
-    public class InterneTaakQuery
+    // record, so a query can be copied with a few changed filters: query with { Page = 2 }
+    public record InterneTaakQuery
     {
         public string? AanleidinggevendKlantcontact_Url { get; set; }
         public Guid? AanleidinggevendKlantcontact_Uuid { get; set; }

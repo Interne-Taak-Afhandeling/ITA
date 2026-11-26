@@ -13,6 +13,11 @@ public class InterneTakenOverviewQueryParameters
     [Range(1, 100)]
     public int PageSize { get; set; } = 20;
 
+    /// <summary>
+    /// Optional objectregister identificatie of a medewerker: only show contactverzoeken assigned to this medewerker.
+    /// </summary>
+    [MaxLength(200)]
+    public string? Medewerker { get; set; }
 }
 
 public class InterneTakenOverviewResponse
